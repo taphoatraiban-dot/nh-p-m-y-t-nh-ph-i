@@ -125,8 +125,7 @@ const loginStatus=(t,cls="")=>{ $("loginStatus").className="status "+cls; $("log
 async function checkLicense(){
   const {data,error}=await sb.rpc("check_email_license");
   if(error) throw error;
-  if(!data?.allowed) throw new Error(data?.message||"Tài khoản chưa có bản quyền.");
-  if(data.is_admin){
+  if(data?.success !== true || data?.active !== true) throw new Error(data?.message||"Tài khoản chưa có bản quyền.");  if(data.is_admin){
     $("licenseState").textContent="BẢN QUYỀN: ADMIN • VÔ THỜI HẠN";
   }else{
     const exp=data.expires_at?new Date(data.expires_at).toLocaleDateString("vi-VN"):"—";

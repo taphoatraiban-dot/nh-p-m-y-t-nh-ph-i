@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Máy tính phơi</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:15px}
+.box{background:white;padding:15px;margin-bottom:15px;border-radius:12px}
+h2{margin-top:0}
+select,textarea,button{width:100%;box-sizing:border-box;padding:12px;font-size:17px;border-radius:8px;border:1px solid #ccc}
+textarea{height:220px}
+button{background:#111;color:white;font-weight:bold;margin-top:10px}
+.result{font-size:28px;font-weight:bold}
+.line{padding:8px 0;border-bottom:1px solid #ddd}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>🧮 MÁY TÍNH PHƠI</h2>
+
+<select id="bang">
+<option value="x74">X74 — 0.80</option>
+<option value="x79">X79 — 0.79</option>
+<option value="hanh">Hạnh — 0.76</option>
+<option value="tuan">Tuấn — 0.77</option>
+</select>
+</div>
+
+<div class="box">
+<textarea id="phoi" placeholder="Dán phơi vào đây...
+
+Ví dụ:
+2DMT
+357,757,957 XC20
+57,69,75 DA1
+99 B10"></textarea>
+
+<button onclick="tinh()">TÍNH NGAY</button>
+</div>
+
+<div class="box" id="ketqua">
+<div class="result">0k</div>
+Chưa có dữ liệu.
+</div>
+
+<script>
+
+const bang={
+x74:{nhan:.80,xc:640,dd:74,da2:540,da1:700,b2:74,b3:640,b4:5000},
+x79:{nhan:.79,xc:640,dd:76,da2:540,da1:700,b2:75,b3:640,b4:5000},
+hanh:{nhan:.76,xc:650,dd:75,da2:550,da1:730,b2:75,b3:650,b4:5000},
+tuan:{nhan:.77,xc:650,dd:75,da2:550,da1:730,b2:75,b3:650,b4:5000}
+};
+
+function tinh(){
+
+let cfg=bang[document.getElementById("bang").value];
+let text=document.getElementById("phoi").value;
+let lines=text.split(/\r?\n/);
+
+let soDai=2;
+let tong=0;
+let chiTiet=[];
+
+for(let raw of lines){
+
+let s=raw.toLowerCase()
+.replace(/\s+/g,"")
+.replace(/đ/g,"d");
+
+if(!s)continue;
+
+/* số đài */
+let md=s.match(/^([1-4])d(mn|mt)$/);
+
+if(md){
+soDai=parseInt(md[1]);
+continue;
+}
+
+if(s=="mn"||s=="mt"){
+soDai=2;
+continue;
+}
+
+/* Cần Thơ / Đồng Nai / Sóc Trăng = 1 đài */
+if(["ctho","dnai","st","soctrang","danang","khanhhoa"].includes(s)){
+soDai=1;
+continue;
+}
+
+/* nhận loại cược */
+let m=s.match(/^(.+?)(xc|dd|da|b)([0-9]+(?:[.,][0-9]+)?)$/);
+
+if(!m)continue;
+
+let danhSach=m[1];
+let loai=m[2];
+let diem=parseFloat(m[3].replace(",","."));
+
+let nums=danhSach
+.replace(/\./g,",")
+.split(",")
+.filter(x=>x);
+
+let n=nums.length;
+let tien=0;
+let moTa="";
+
+/* BAO */
+if(loai=="b"){
+
+let daiSo=nums[0].length;
+let giai=0;
+
+if(daiSo==2)giai=18;
+if(daiSo==3)giai=17;
+if(daiSo==4)giai=16;
+
+if(!giai)continue;
+
+tien=n*giai*soDai*diem;
+
+moTa=n+" số × "+giai+" giải × "+soDai+
+" đài × "+diem+"n";
+}
+
+/* XIU CHU */
+else if(loai=="xc"){
+
+tien=n*diem*4;
+
+moTa=n+" số × "+diem+"n × 4k";
+}
+
+/* DAU DUOI */
+else if(loai=="dd"){
+
+tien=n*diem*8;
+
+moTa=n+" số × "+diem+"n × 8k";
+}
+
+/* DA */
+else if(loai=="da"){
+
+let cap=n*(n-1);
+
+tien=cap*soDai*18*diem;
+
+moTa=n+"×"+(n-1)+" cặp × "+
+soDai+" đài × 18 × "+diem+"n";
+}
+
+tong+=tien;
+
+chiTiet.push(
+"<div class='line'><b>"+raw+"</b><br>"+
+tien+"k<br><small>"+moTa+"</small></div>"
+);
+
+}
+
+let thu=tong*cfg.nhan;
+
+document.getElementById("ketqua").innerHTML=
+"<div class='result'>"+Math.round(tong*10)/10+"k</div>"+
+"<b>Thu: "+Math.round(thu*10)/10+"k</b>"+
+" — Giá nhận "+cfg.nhan.toFixed(2)+
+"<hr>"+
+chiTiet.join("");
+
+}
+
+</script>
+
+</body>
+</html>

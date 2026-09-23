@@ -1,179 +1,1453 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Máy tính phơi</title>
+
 <style>
-body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:15px}
-.box{background:white;padding:15px;margin-bottom:15px;border-radius:12px}
-h2{margin-top:0}
-select,textarea,button{width:100%;box-sizing:border-box;padding:12px;font-size:17px;border-radius:8px;border:1px solid #ccc}
-textarea{height:220px}
-button{background:#111;color:white;font-weight:bold;margin-top:10px}
-.result{font-size:28px;font-weight:bold}
-.line{padding:8px 0;border-bottom:1px solid #ddd}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#f4f6f8;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;
+  color:#202124
+}
+
+.wrap{
+  max-width:820px;
+  margin:auto;
+  padding:12px
+}
+
+.box,.card{
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:14px;
+  margin-bottom:10px;
+  box-shadow:0 2px 10px #0000000a
+}
+
+h1{
+  font-size:21px;
+  text-align:center;
+  margin:12px 0
+}
+
+.bar{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  padding:10px
+}
+
+.bar label{
+  font-size:13px;
+  font-weight:700
+}
+
+.bar input,
+.bar select{
+  width:100%;
+  padding:10px;
+  border:1px solid #bbb;
+  border-radius:9px;
+  margin-top:4px;
+  background:#fff
+}
+
+textarea{
+  display:block;
+  width:calc(100% - 20px);
+  margin:0 10px;
+  min-height:300px;
+  padding:12px;
+  border:1px solid #bbb;
+  border-radius:10px;
+  font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace
+}
+
+.buttons{
+  display:flex;
+  gap:8px;
+  padding:10px
+}
+
+.buttons button{
+  flex:1
+}
+
+.primary{
+  background:#c91c25;
+  color:#fff
+}
+
+.secondary{
+  background:#e9ecef
+}
+
+.blue{
+  background:#2563eb;
+  color:#fff
+}
+
+button{
+  border:0;
+  border-radius:9px;
+  padding:12px;
+  font-weight:800;
+  font-size:15px
+}
+
+.hint{
+  padding:0 12px 12px;
+  color:#666;
+  font-size:12px;
+  line-height:1.5
+}
+
+.title{
+  padding:10px 12px;
+  background:#eef3ff;
+  font-weight:900
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr)
+}
+
+.stat{
+  text-align:center;
+  padding:10px;
+  border-top:1px solid #ddd;
+  border-right:1px solid #ddd
+}
+
+.stat:last-child{
+  border-right:0
+}
+
+.stat b{
+  display:block;
+  font-size:17px
+}
+
+.stat span{
+  font-size:11px;
+  color:#666
+}
+
+.total{
+  padding:13px;
+  font-size:20px;
+  font-weight:900;
+  text-align:center
+}
+
+.scroll{
+  overflow:auto
+}
+
+table{
+  border-collapse:collapse;
+  width:100%;
+  font-size:12px
+}
+
+th,td{
+  padding:7px;
+  border-top:1px solid #eee;
+  text-align:right;
+  white-space:nowrap
+}
+
+th:first-child,
+td:first-child{
+  text-align:left
+}
+
+.err{
+  padding:10px;
+  background:#fff1f1;
+  color:#a00
+}
+
+.ok{
+  padding:10px;
+  background:#effcf6;
+  color:#08643c
+}
+
+.small{
+  font-size:12px;
+  color:#666;
+  padding:10px
+}
+
+.tag{
+  background:#eee;
+  border-radius:99px;
+  padding:2px 6px;
+  font-weight:800
+}
+
+.wininput{
+  background:#fff8d9!important
+}
+
+@media(max-width:560px){
+  .bar{
+    grid-template-columns:1fr 1fr
+  }
+
+  .stats .stat b{
+    font-size:15px
+  }
+}
 </style>
 </head>
 
 <body>
 
-<div class="box">
-<h2>🧮 MÁY TÍNH PHƠI</h2>
+<main class="wrap">
 
-<select id="bang">
+<section class="box">
+
+<h1>🧮 MÁY TÍNH PHƠI</h1>
+
+<div class="bar">
+
+<label>
+Gốc
+<select id="rate">
 <option value="x74">X74 — 0.80</option>
 <option value="x79">X79 — 0.79</option>
 <option value="hanh">Hạnh — 0.76</option>
 <option value="tuan">Tuấn — 0.77</option>
 </select>
+</label>
+
+<label>
+Ngày
+<input id="day" type="date">
+</label>
+
+<label>
+Trúng MN
+<input id="winN" class="wininput" type="number" step="0.1" value="0">
+</label>
+
+<label>
+Trúng MT
+<input id="winT" class="wininput" type="number" step="0.1" value="0">
+</label>
+
+<label>
+Trúng MB
+<input id="winB" class="wininput" type="number" step="0.1" value="0">
+</label>
+
 </div>
 
-<div class="box">
-<textarea id="phoi" placeholder="Dán phơi vào đây...
+<textarea id="input"
+placeholder="Dán phơi vào đây...
 
 Ví dụ:
-2DMT
-357,757,957 XC20
-57,69,75 DA1
-99 B10"></textarea>
+2dmn
+917b0,5x10
+517.856b0,5x3
+26.62.67.76da0,5
+dnai
+93.26.63.17da0,5
+2dmt 99b20
+hn 44b25"></textarea>
 
-<button onclick="tinh()">TÍNH NGAY</button>
+<div class="buttons">
+
+<button id="calc" class="primary">
+TÍNH NGAY
+</button>
+
+<button id="demo" class="secondary">
+NẠP MẪU MÁY
+</button>
+
+<button id="clear" class="secondary">
+XÓA
+</button>
+
 </div>
 
-<div class="box" id="ketqua">
-<div class="result">0k</div>
-Chưa có dữ liệu.
+<div class="hint">
+Nhập đúng cú pháp:
+<b>
+2dmn / 3dmn / 4dmn /
+2dmt / 3dmt /
+dnai / ctho / dnang /
+hn / mb
+</b>
+
+<br>
+
+Cược:
+<b>
+b, x/xc, dd, dau, duoi, da
+</b>
+
+<br>
+
+Dấu phẩy thập phân và dấu chấm ngăn số đều được hỗ trợ.
 </div>
+
+</section>
+
+<div id="out"></div>
+
+</main>
+
 
 <script>
 
-const bang={
-x74:{nhan:.80,xc:640,dd:74,da2:540,da1:700,b2:74,b3:640,b4:5000},
-x79:{nhan:.79,xc:640,dd:76,da2:540,da1:700,b2:75,b3:640,b4:5000},
-hanh:{nhan:.76,xc:650,dd:75,da2:550,da1:730,b2:75,b3:650,b4:5000},
-tuan:{nhan:.77,xc:650,dd:75,da2:550,da1:730,b2:75,b3:650,b4:5000}
+'use strict';
+
+
+/* =========================
+   BẢNG GỐC
+========================= */
+
+const R={
+
+x74:{
+name:'X74',
+price:.80,
+back:1,
+b2:74,
+b3:640,
+b4:5200,
+xc:640,
+dd:74,
+da2:540,
+da1:700
+},
+
+x79:{
+name:'X79',
+price:.79,
+back:1,
+b2:75,
+b3:640,
+b4:5000,
+xc:640,
+dd:76,
+da2:540,
+da1:700
+},
+
+hanh:{
+name:'Hạnh',
+price:.76,
+back:.95,
+b2:75,
+b3:650,
+b4:5000,
+xc:650,
+dd:75,
+da2:550,
+da1:730
+},
+
+tuan:{
+name:'Tuấn',
+price:.77,
+back:.95,
+b2:75,
+b3:650,
+b4:5000,
+xc:650,
+dd:75,
+da2:550,
+da1:730
+}
+
 };
 
-function tinh(){
 
-let cfg=bang[document.getElementById("bang").value];
-let text=document.getElementById("phoi").value;
-let lines=text.split(/\r?\n/);
+/* =========================
+   HÀM TIỆN ÍCH
+========================= */
 
-let soDai=2;
-let tong=0;
-let chiTiet=[];
+const $=id=>document.getElementById(id);
 
-for(let raw of lines){
 
-let s=raw.toLowerCase()
-.replace(/\s+/g,"")
-.replace(/đ/g,"d");
+function clean(s){
 
-if(!s)continue;
+return String(s||'')
+.toLowerCase()
+.replace(/,/g,'.')
+.replace(/[–—−]/g,'-')
+.trim();
 
-/* số đài */
-let md=s.match(/^([1-4])d(mn|mt)$/);
-
-if(md){
-soDai=parseInt(md[1]);
-continue;
 }
 
-if(s=="mn"||s=="mt"){
-soDai=2;
-continue;
+
+/* =========================
+   NHẬN DIỆN ĐÀI
+========================= */
+
+function station(t){
+
+t=clean(t)
+.replace(/[.:;]+$/,'')
+.replace(/^\.+/,'')
+.replace(/\s+/g,'');
+
+
+if(/^\d+d(mn|mt)$/.test(t)){
+
+let n=+t[0];
+
+return {
+region:t.endsWith('mn')?'N':'T',
+stations:n,
+label:n+' Đài '+(t.endsWith('mn')?'MN':'MT')
+};
+
 }
 
-/* Cần Thơ / Đồng Nai / Sóc Trăng = 1 đài */
-if(["ctho","dnai","st","soctrang","danang","khanhhoa"].includes(s)){
-soDai=1;
-continue;
+
+if(t==='hn'||t==='mb')
+
+return {
+region:'B',
+stations:1,
+label:'Hà Nội'
+};
+
+
+if(t==='dnai')
+
+return {
+region:'N',
+stations:1,
+label:'Đồng Nai'
+};
+
+
+if(t==='ctho')
+
+return {
+region:'N',
+stations:1,
+label:'Cần Thơ'
+};
+
+
+if(t==='dnang')
+
+return {
+region:'T',
+stations:1,
+label:'Đà Nẵng'
+};
+
+
+return null;
+
 }
 
-/* nhận loại cược */
-let m=s.match(/^(.+?)(xc|dd|da|b)([0-9]+(?:[.,][0-9]+)?)$/);
 
-if(!m)continue;
+/* =========================
+   SỐ LƯỢNG GIẢI
+========================= */
 
-let danhSach=m[1];
-let loai=m[2];
-let diem=parseFloat(m[3].replace(",","."));
+function groups(region){
 
-let nums=danhSach
-.replace(/\./g,",")
-.split(",")
-.filter(x=>x);
+return region==='B' ? 27 : 18;
 
-let n=nums.length;
-let tien=0;
-let moTa="";
-
-/* BAO */
-if(loai=="b"){
-
-let daiSo=nums[0].length;
-let giai=0;
-
-if(daiSo==2)giai=18;
-if(daiSo==3)giai=17;
-if(daiSo==4)giai=16;
-
-if(!giai)continue;
-
-tien=n*giai*soDai*diem;
-
-moTa=n+" số × "+giai+" giải × "+soDai+
-" đài × "+diem+"n";
 }
 
-/* XIU CHU */
-else if(loai=="xc"){
 
-tien=n*diem*4;
+/* =========================
+   TÁCH SỐ
+========================= */
 
-moTa=n+" số × "+diem+"n × 4k";
+function getNums(raw,type){
+
+let s=raw
+.replace(/[\s,;]+/g,'.')
+.replace(/\.{2,}/g,'.')
+.replace(/^\.|\.$/g,'');
+
+
+if(type==='da'&&!s.includes('.')){
+
+if(s.length%2===0){
+
+let a=[];
+
+for(
+let i=0;
+i<s.length;
+i+=2
+){
+
+a.push(s.slice(i,i+2));
+
 }
 
-/* DAU DUOI */
-else if(loai=="dd"){
+return a;
 
-tien=n*diem*8;
-
-moTa=n+" số × "+diem+"n × 8k";
 }
+
+}
+
+
+return s.match(/\d{2,4}/g)||[];
+
+}
+
+
+/* =========================
+   THÊM CƯỢC
+========================= */
+
+function add(rows,st,raw,type,pts){
+
+if(!st)return;
+
+
+let ns=getNums(raw,type);
+
+if(!ns.length)return;
+
+
+let n=ns.length;
+
+let g=groups(st.region);
+
+let gross=0;
+
+let label=type.toUpperCase();
+
+
+/* B */
+
+if(type==='b'){
+
+let d=ns[0].length;
+
+let prize;
+
+if(st.region==='B'){
+
+prize=
+d===2 ? 27 :
+d===3 ? 23 :
+20;
+
+}else{
+
+prize=
+d===2 ? 18 :
+d===3 ? 17 :
+16;
+
+}
+
+gross=
+n*
+pts*
+prize*
+st.stations;
+
+label='B'+d;
+
+}
+
+
+/* XC */
+
+else if(type==='xc'){
+
+gross=
+n*
+pts*
+4;
+
+label='XC';
+
+}
+
+
+/* DD */
+
+else if(type==='dd'){
+
+gross=
+n*
+pts*
+2*
+st.stations;
+
+label='DD';
+
+}
+
+
+/* ĐẦU */
+
+else if(type==='dau'){
+
+gross=
+n*
+pts*
+st.stations;
+
+label='ĐẦU';
+
+}
+
+
+/* ĐUÔI */
+
+else if(type==='duoi'){
+
+gross=
+n*
+pts*
+st.stations;
+
+label='ĐUÔI';
+
+}
+
 
 /* DA */
-else if(loai=="da"){
 
-let cap=n*(n-1);
+else if(type==='da'){
 
-tien=cap*soDai*18*diem;
+gross=
+n*
+(n-1)*
+g*
+st.stations*
+pts;
 
-moTa=n+"×"+(n-1)+" cặp × "+
-soDai+" đài × 18 × "+diem+"n";
+label='DA';
+
 }
 
-tong+=tien;
 
-chiTiet.push(
-"<div class='line'><b>"+raw+"</b><br>"+
-tien+"k<br><small>"+moTa+"</small></div>"
+else{
+
+return;
+
+}
+
+
+rows.push({
+
+region:st.region,
+
+station:st.label,
+
+numbers:ns.join('–'),
+
+type:label,
+
+points:pts,
+
+gross:gross
+
+});
+
+}
+
+
+/* =========================
+   PHÂN TÍCH MỘT DÒNG
+========================= */
+
+function parseBet(text,st,rows,errors,orig){
+
+let s=clean(text)
+.replace(/^[-.:;]+/,'')
+.trim();
+
+
+if(!s)return;
+
+
+/*
+Cho phép:
+
+22.91.47.da0,5
+
+26.62.67.76da0,5
+
+917b0,5x10
+
+517.856b0,5x3
+*/
+
+
+const first=
+/^(.*?)(daoxc|dxc|xcdao|xcduoi|xduoi|xc|x|da|dv|bdao|daob|b|dd|dau|duoi)(\d+(?:\.\d+)?)(?:n)?/i
+.exec(s);
+
+
+if(!first){
+
+errors.push(
+'Không đọc được: '+orig
+);
+
+return;
+
+}
+
+
+let nums=
+first[1]
+.replace(/[.\s-]+$/,'')
+.trim();
+
+
+let pos=first[0].length;
+
+let suffix=
+first[2].toLowerCase();
+
+let points=
++first[3];
+
+
+function doOne(typ,pts){
+
+let actual=typ;
+
+
+if(actual==='x')
+actual='xc';
+
+
+if(actual==='dv')
+actual='da';
+
+
+if(
+actual==='xduoi' ||
+actual==='xcduoi'
+)
+actual='duoi';
+
+
+/*
+Các loại đặc biệt chưa xử lý
+*/
+
+if(actual.includes('dao')){
+
+errors.push(
+'Chưa hỗ trợ '+typ+': '+orig
+);
+
+return;
+
+}
+
+
+add(
+rows,
+st,
+nums,
+actual,
+pts
 );
 
 }
 
-let thu=tong*cfg.nhan;
 
-document.getElementById("ketqua").innerHTML=
-"<div class='result'>"+Math.round(tong*10)/10+"k</div>"+
-"<b>Thu: "+Math.round(thu*10)/10+"k</b>"+
-" — Giá nhận "+cfg.nhan.toFixed(2)+
-"<hr>"+
-chiTiet.join("");
+doOne(
+suffix,
+points
+);
+
+
+/*
+CƯỢC KẾT HỢP
+
+917b0,5x10
+
+66.88da1.b5
+
+066b1.xc20
+*/
+
+
+let tail=s.slice(pos);
+
+
+while(tail){
+
+tail=
+tail.replace(
+/^[\s.,;]+/,
+''
+);
+
+
+if(!tail)
+break;
+
+
+const q=
+/^(daoxc|dxc|xcdao|xcduoi|xduoi|xc|x|da|dv|bdao|daob|b|dd|dau|duoi)(\d+(?:\.\d+)?)(?:n)?/i
+.exec(tail);
+
+
+if(!q)
+break;
+
+
+doOne(
+q[1].toLowerCase(),
++q[2]
+);
+
+
+tail=
+tail.slice(q[0].length);
 
 }
+
+}
+
+
+/* =========================
+   TÍNH TOÀN BỘ
+========================= */
+
+function calculate(){
+
+let rows=[];
+
+let errors=[];
+
+
+/*
+Mặc định MN
+*/
+
+let st={
+region:'N',
+stations:1,
+label:'Mặc định'
+};
+
+
+let raw=
+$('input')
+.value
+.replace(/\r/g,'');
+
+
+for(
+let line of raw.split('\n')
+){
+
+let original=line;
+
+
+if(!line.trim())
+continue;
+
+
+let s=clean(line);
+
+
+/*
+Tìm đài ở đầu dòng
+*/
+
+let first=
+s.split(/\s+/)[0];
+
+
+let q=
+station(first);
+
+
+if(q){
+
+st=q;
+
+s=
+s.slice(first.length)
+.trim();
+
+
+if(!s)
+continue;
+
+}
+
+
+parseBet(
+s,
+st,
+rows,
+errors,
+original
+);
+
+}
+
+
+render(
+rows,
+errors
+);
+
+}
+
+
+/* =========================
+   ĐỊNH DẠNG TIỀN
+========================= */
+
+function k(x){
+
+return Math
+.round(x)
+.toLocaleString('vi-VN')
++'k';
+
+}
+
+
+function nfmt(x){
+
+return Number(x||0)
+.toLocaleString(
+'vi-VN',
+{
+maximumFractionDigits:1
+}
+);
+
+}
+
+
+/* =========================
+   HIỂN THỊ
+========================= */
+
+function render(rows,errors){
+
+let rate=
+R[$('rate').value];
+
+
+let wins={
+N:+$('winN').value||0,
+T:+$('winT').value||0,
+B:+$('winB').value||0
+};
+
+
+let html='';
+
+let grand=0;
+
+
+for(
+let [r,title]
+of
+[
+['N','🄽 MIỀN NAM'],
+['T','🅃 MIỀN TRUNG'],
+['B','🅱 MIỀN BẮC']
+]
+){
+
+let rs=
+rows.filter(
+x=>x.region===r
+);
+
+
+let gross=
+Math.round(
+rs.reduce(
+(a,x)=>a+x.gross,
+0
+)
+);
+
+
+let thu=
+Math.round(
+gross*
+rate.price
+-
+wins[r]*
+rate.back
+);
+
+
+grand+=thu;
+
+
+html+=`
+
+<section class="card">
+
+<div class="title">
+${title}
+</div>
+
+<div class="stats">
+
+<div class="stat">
+<b>${k(gross)}</b>
+<span>Tiền xác</span>
+</div>
+
+<div class="stat">
+<b>${nfmt(wins[r])}k</b>
+<span>Tiền trúng</span>
+</div>
+
+<div class="stat">
+<b>${k(thu)}</b>
+<span>Thu / Bù</span>
+</div>
+
+</div>
+`;
+
+
+if(rs.length){
+
+html+=`
+
+<div class="scroll">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Phơi</th>
+<th>Đài</th>
+<th>Loại</th>
+<th>Điểm</th>
+<th>Tiền</th>
+</tr>
+
+</thead>
+
+<tbody>
+`;
+
+
+for(
+let x of rs
+){
+
+html+=`
+
+<tr>
+
+<td>${x.numbers}</td>
+
+<td>${x.station}</td>
+
+<td>
+<span class="tag">
+${x.type}
+</span>
+</td>
+
+<td>
+${nfmt(x.points)}n
+</td>
+
+<td>
+${nfmt(x.gross)}k
+</td>
+
+</tr>
+`;
+
+}
+
+
+html+=`
+
+</tbody>
+</table>
+
+</div>
+`;
+
+}else{
+
+html+=`
+
+<div class="small">
+Chưa có phơi.
+</div>
+
+`;
+
+}
+
+
+html+=`
+
+</section>
+`;
+
+}
+
+
+/* TỔNG */
+
+html+=`
+
+<section class="card">
+
+<div class="total">
+TỔNG THU: ${k(grand)}
+</div>
+
+<div class="buttons">
+
+<button id="copy" class="blue">
+COPY KẾT QUẢ
+</button>
+
+</div>
+
+</section>
+`;
+
+
+/* LỖI */
+
+if(errors.length){
+
+html+=`
+
+<section class="card err">
+
+<b>DÒNG CHƯA ĐỌC:</b>
+
+<br>
+
+${errors
+.map(
+e=>e
+.replace(/</g,'&lt;')
+)
+.join('<br>')}
+
+</section>
+`;
+
+}
+
+
+/* GỐC */
+
+html+=`
+
+<section class="card small">
+
+${rate.name}
+· Giá nhận ${rate.price}
+· Hồi khi thu ${rate.back}
+
+<br>
+
+Công thức:
+
+Tiền xác × Giá nhận − Tiền trúng × Hồi khi thu.
+
+</section>
+`;
+
+
+$('out').innerHTML=
+html;
+
+
+$('copy').onclick=
+copy;
+
+}
+
+
+/* =========================
+   COPY KẾT QUẢ
+========================= */
+
+function copy(){
+
+let rate=
+R[$('rate').value];
+
+
+let wins={
+N:+$('winN').value||0,
+T:+$('winT').value||0,
+B:+$('winB').value||0
+};
+
+
+let rows=[];
+
+
+let st={
+region:'N',
+stations:1,
+label:'Mặc định'
+};
+
+
+for(
+let line of
+$('input')
+.value
+.split(/\r?\n/)
+){
+
+let s=clean(line);
+
+let first=
+s.split(/\s+/)[0];
+
+let q=
+station(first);
+
+
+if(q){
+
+st=q;
+
+s=
+s.slice(first.length)
+.trim();
+
+}
+
+
+if(s)
+
+parseBet(
+s,
+st,
+rows,
+[],
+line
+);
+
+}
+
+
+let out=
+'→ Ngày: '+
+($('day').value||'')+
+'\n';
+
+
+let total=0;
+
+
+for(
+let [r,l]
+of
+[
+['N','N'],
+['T','T'],
+['B','B']
+]
+){
+
+let g=
+Math.round(
+rows
+.filter(x=>x.region===r)
+.reduce(
+(a,x)=>a+x.gross,
+0
+)
+);
+
+
+let t=
+Math.round(
+g*
+rate.price
+-
+wins[r]*
+rate.back
+);
+
+
+total+=t;
+
+
+out+=
+l+
+': '+
+g+
+' - '+
+wins[r]+
+' = '+
+t+
+'\n';
+
+}
+
+
+out+=
+'→ Thu: '+
+total;
+
+
+if(
+navigator.clipboard &&
+navigator.clipboard.writeText
+){
+
+navigator.clipboard
+.writeText(out)
+.then(
+()=>{
+alert('Đã copy');
+}
+)
+.catch(
+()=>{
+prompt(
+'Copy:',
+out
+);
+}
+);
+
+}else{
+
+prompt(
+'Copy:',
+out
+);
+
+}
+
+}
+
+
+/* =========================
+   MẪU TEST GIỐNG MÁY
+========================= */
+
+const DEMO=`2dmn
+917b0,5x10
+517.856b0,5x3
+262b0,5x3
+26 62.17.58da0,5
+26.62.67.76da0,5
+26.06.60.62da0,5
+68.23.86.17da0,5
+52.93.75.17da0,5
+70.10.56.26da0,5
+43.14.41.62da0,5
+13.17.71.77da0,5
+19.59.79.63da0,5
+758b0,5x3
+dnai
+93.26.63.17da0,5
+23dau20
+217b0,5
+5217b1
+393b1
+dnai
+63b5
+80b3
+2dmt 99b20
+2dmt 22.38.78.83da0,5
+25.52.59.95da0,5
+22b5
+22.91.47.da0,5
+622b1
+138b0,5x3
+dnang
+23.63.78.88da0,5
+hn. 49.94.53.23da0,5
+37.73.19.91da0,5
+22.47.74da0,5
+hn44b25
+hn. 44.83da0,5
+hn. 326.526b0,5x3
+hn. 26.83da0,5`;
+
+
+/* =========================
+   NÚT
+========================= */
+
+$('calc').onclick=
+calculate;
+
+
+$('demo').onclick=()=>{
+
+$('input').value=
+DEMO;
+
+$('winN').value=
+2510;
+
+$('winT').value=
+270;
+
+$('winB').value=
+0;
+
+calculate();
+
+};
+
+
+$('clear').onclick=()=>{
+
+$('input').value='';
+
+$('out').innerHTML='';
+
+$('winN').value=0;
+
+$('winT').value=0;
+
+$('winB').value=0;
+
+};
+
+
+/* =========================
+   NGÀY HIỆN TẠI
+========================= */
+
+$('day').value=
+new Date()
+.toISOString()
+.slice(0,10);
 
 </script>
 

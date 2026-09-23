@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Máy tính phơi PRO - Email License</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;color:#17202a}
+.wrap{max-width:900px;margin:auto;padding:14px}.card{background:#fff;border:1px solid #ddd;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 2px 10px #0000000b}
+h1{font-size:22px;text-align:center;margin:5px 0 14px}.muted{color:#687078;font-size:12px}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;padding:11px;border:1px solid #bbb;border-radius:10px;background:#fff}
+textarea{min-height:520px;height:520px;max-height:70vh;resize:vertical;font:14px/1.45 ui-monospace,monospace;white-space:pre;overflow:auto;-webkit-overflow-scrolling:touch}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.grid label{font-size:12px;font-weight:800}
+button{border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer}.primary{background:#c51d2b;color:#fff}.blue{background:#2563eb;color:#fff}.green{background:#087f5b;color:#fff}.danger{background:#a61b29;color:#fff}.soft{background:#e9ecef}
+.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.buttons button{flex:1;min-width:140px}
+.status{padding:10px;border-radius:10px;background:#eef4ff;margin-top:10px;font-size:13px}.ok{background:#eafaf3;color:#08643c}.err{background:#fff0f0;color:#a00}
+.hidden{display:none}.device{background:#f7f8fa;border-radius:10px;padding:10px;margin-top:10px}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#e8eefc;font-size:11px;font-weight:800}
+.title{font-weight:900;background:#eef3ff;padding:10px;border-radius:9px;margin-bottom:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.stat{text-align:center;border:1px solid #eee;border-radius:10px;padding:9px}.stat b{display:block;font-size:18px}
+.scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid #eee;padding:7px;white-space:nowrap;text-align:right}th:first-child,td:first-child{text-align:left}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.buttons{display:grid;grid-template-columns:1fr 1fr}.buttons button{min-width:0}.stats{grid-template-columns:1fr 1fr}}
+
+.customer-list{display:grid;gap:8px}.customer-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #eee;border-radius:10px;padding:9px}.customer-row small{display:block;color:#687078}.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.price-grid label{font-size:12px;font-weight:800}.price-grid input{margin-top:4px}@media(max-width:600px){.price-grid{grid-template-columns:1fr}}
+
+/* ===== V3: giao diện tổng hợp ===== */
+.topbar{background:#111827;color:#fff;border-radius:14px;padding:12px;margin-bottom:10px}.topbar h1{margin:0;font-size:21px}.subnav{display:flex;gap:7px;overflow:auto;margin-top:9px}.subnav button{white-space:nowrap;background:#fff;color:#111827;border:1px solid #d1d5db;padding:8px 11px}
+.section-title{font-weight:900;font-size:18px;text-align:center;padding:9px;background:#f1f5f9;border-radius:10px;margin-bottom:10px}.section-title.red{background:#fee2e2;color:#991b1b}.section-title.green{background:#dcfce7;color:#166534}
+.price-original{border:2px solid #2563eb;border-radius:10px;padding:10px}.price-customer{border:2px solid #16a34a;border-radius:10px;padding:10px;margin-top:10px}.price-grid.v3{grid-template-columns:repeat(4,1fr)}
+.price-grid.v3 label{font-size:11px}.price-grid.v3 input{font-weight:800;text-align:center}
+.daybar{display:flex;gap:7px;overflow:auto;padding-bottom:3px}.daybar button{min-width:92px;background:#f3f4f6;border:1px solid #d1d5db}.daybar button.active{background:#2563eb;color:#fff}.bigok{width:100%;font-size:20px;background:#c51d2b;color:#fff;margin-top:10px}
+.action-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.action-mini button{min-width:0}.copybtn{background:#111827;color:#fff}.shotbtn{background:#7c3aed;color:#fff}
+.total-card{border:2px solid #2563eb;background:#fff}.total-table{width:100%;border-collapse:collapse}.total-table th{background:#4b5563;color:#fff;padding:8px}.total-table td{border-bottom:1px solid #ddd;padding:8px;text-align:center;font-weight:700}.total-table td:first-child{text-align:left}.rednum{color:#c22;font-weight:900}.greenmoney{color:#087f5b;font-weight:900}.v3line{border-bottom:1px dashed #ccc;padding:8px 2px}.hitline{background:#ecfdf5}.missline{background:#fff}.result-pill{display:inline-block;padding:2px 7px;border-radius:99px;font-size:11px;font-weight:900;background:#dcfce7;color:#166534}.miss-pill{background:#fee2e2;color:#991b1b}
+@media(max-width:600px){.price-grid.v3{grid-template-columns:1fr 1fr}.topbar h1{font-size:19px}}
+.calc-box{border:2px solid #2563eb;background:#fff}.calc-head{font-weight:900;font-size:18px;padding:10px;background:#eef3ff;border-radius:10px 10px 0 0}.calc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:10px;background:#f8fafc;font-weight:800;font-size:13px}.calc-summary>div{padding:7px;border:1px solid #e5e7eb;border-radius:8px;text-align:center}.calc-tag{display:inline-block;background:#16a34a;color:#fff;border-radius:999px;padding:4px 9px}.calc-table{width:100%;border-collapse:collapse}.calc-table th{background:#4b5563;color:#fff;padding:8px}.calc-table td{border-bottom:1px solid #ddd;padding:8px;text-align:right}.calc-table td:first-child{text-align:left}.calc-table tfoot td{font-weight:900;background:#f8fafc}@media(max-width:600px){.calc-summary{grid-template-columns:1fr 1fr}}
+/* ===== MENU TRƯỢT IPHONE ===== */
+#edgeMenuHandle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:7px;height:82px;background:#2563eb;border-radius:0 8px 8px 0;z-index:10000;opacity:.78;touch-action:none}
+#sideMenuOverlay{position:fixed;inset:0;background:#111827;z-index:10001;opacity:0;visibility:hidden;transition:opacity .18s ease;touch-action:none}
+#sideMenuPanel{position:absolute;left:0;top:0;bottom:0;width:min(285px,78vw);background:linear-gradient(180deg,#0f172a 0%,#111827 100%);box-shadow:10px 0 30px rgba(0,0,0,.28);transform:translateX(-101%);transition:transform .2s ease;display:flex;flex-direction:column;overflow:hidden;touch-action:pan-y}
+#sideMenuOverlay.open{opacity:1;visibility:visible}
+#sideMenuOverlay.open #sideMenuPanel{transform:translateX(0)}
+.side-menu-head{padding:18px 16px 14px;color:#fff;border-bottom:1px solid rgba(255,255,255,.12);font-weight:900;font-size:18px}
+.side-menu-sub{font-size:12px;font-weight:600;opacity:.7;margin-top:4px}
+.side-menu-list{padding:10px;display:flex;flex-direction:column;gap:7px;overflow:auto;-webkit-overflow-scrolling:touch}
+.side-menu-btn{width:100%;border:0!important;border-radius:11px!important;background:#fff!important;color:#111827!important;text-align:left!important;padding:13px 14px!important;font-weight:850!important;font-size:15px!important;box-shadow:none!important;display:flex;align-items:center;gap:10px;touch-action:manipulation}
+.side-menu-btn:active{transform:scale(.98);background:#e5e7eb!important}
+.side-menu-foot{margin-top:auto;padding:12px 14px;color:#cbd5e1;font-size:11px;border-top:1px solid rgba(255,255,255,.1);line-height:1.45}
+@media(min-width:601px){#edgeMenuHandle{width:9px}#sideMenuPanel{width:320px}}
+@media(prefers-reduced-motion:reduce){#sideMenuOverlay,#sideMenuPanel{transition:none}}
+
+
+.guide-modal{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:10px}
+.guide-modal.show{display:flex}
+.guide-box{width:min(760px,96vw);max-height:90vh;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.guide-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f3f4f6;border-bottom:1px solid #ddd}
+.guide-head h2{margin:0;font-size:18px;font-weight:900}
+.guide-close{border:0;background:#ef4444;color:#fff;border-radius:9px;padding:8px 12px;font-weight:900}
+.guide-body{overflow:auto;padding:12px 14px 20px;-webkit-overflow-scrolling:touch;font-size:14px;line-height:1.5}
+.guide-body h3{color:#15803d;margin:15px 0 7px}
+.guide-row{border-top:1px solid #d1d5db;padding:8px 0}
+.guide-row code{background:#eef2ff;color:#1d4ed8;padding:2px 5px;border-radius:4px;font-weight:800}
+.guide-row .example{font-weight:900}
+@media(max-width:600px){.guide-modal{padding:6px}.guide-box{width:98vw;max-height:92vh}.guide-head h2{font-size:16px}}
+
+</style>
+</head>
+<body>
+
+<!-- MENU TRƯỢT CẠNH TRÁI: mở bằng vuốt từ mép trái -->
+<div id="edgeMenuHandle" aria-hidden="true"></div>
+<div id="sideMenuOverlay" aria-hidden="true">
+  <aside id="sideMenuPanel" aria-label="Menu ứng dụng">
+    <div class="side-menu-head">
+      ☰ MENU ỨNG DỤNG
+      <div class="side-menu-sub">Vuốt sang trái để đóng</div>
+    </div>
+    <div class="side-menu-list">
+      <button class="side-menu-btn" data-menu-action="top">↩️ Quay lại</button>
+      <button class="side-menu-btn" data-menu-action="recent">🕘 Tin gần nhất</button>
+      <button class="side-menu-btn" data-menu-action="sms">📩 Lấy lại SMS</button>
+      <button class="side-menu-btn" data-menu-action="total">🧾 Tổng thu bù</button>
+      <button class="side-menu-btn" data-menu-action="guide">📖 Hướng dẫn</button>
+      <button class="side-menu-btn" data-menu-action="close">⏻ Đóng ứng dụng</button>
+    </div>
+  </aside>
+</div>
+
+<div class="wrap">
+
+<section id="loginCard" class="card">
+<h1>🔐 ĐĂNG NHẬP</h1>
+<div class="grid">
+<label>Email
+<input id="email" type="email" autocomplete="username" placeholder="email@example.com">
+</label>
+<label>Mật khẩu
+<input id="password" type="password" autocomplete="current-password" placeholder="Mật khẩu">
+</label>
+</div>
+<div class="buttons">
+<button class="primary" id="loginBtn">ĐĂNG NHẬP</button>
+<button class="soft" id="showRegisterBtn">ĐĂNG KÝ LẦN ĐẦU</button>
+</div>
+<div id="loginStatus" class="status">Đăng nhập bằng Email + mật khẩu.</div>
+<p class="muted">Lần đầu: Email phải được Admin cấp license trước. Khách tự đặt mật khẩu. Mỗi tài khoản chỉ dùng được 1 thiết bị.</p>
+</section>
+
+<section id="registerCard" class="card hidden">
+<h1>🆕 ĐĂNG KÝ LẦN ĐẦU</h1>
+<div class="grid">
+<label>Email
+<input id="regEmail" type="email" autocomplete="username" placeholder="email@example.com">
+</label>
+<label>Mật khẩu mới
+<input id="regPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự">
+</label>
+<label>Nhập lại mật khẩu
+<input id="regPassword2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu">
+</label>
+</div>
+<div class="buttons">
+<button class="green" id="registerBtn">TẠO TÀI KHOẢN</button>
+<button class="soft" id="backLoginBtn">QUAY LẠI ĐĂNG NHẬP</button>
+</div>
+<div id="registerStatus" class="status">Email phải được Admin cấp license trước.</div>
+</section>
+
+<section id="appCard" class="hidden">
+<div class="topbar"><h1>🧮 MÁY TÍNH PHƠI PRO</h1><div class="subnav"><button onclick="scrollToId('customerCard')">Giá khách</button><button onclick="scrollToId('betsCard')">Nhập phơi</button><button onclick="scrollToId('out')">Kết quả</button><button id="logoutBtn2">Đăng xuất</button></div><div class="device"><span class="badge">THIẾT BỊ</span> <b id="deviceState">Đang kiểm tra...</b><div class="muted" id="deviceInfo"></div><div id="licenseState" class="muted" style="margin-top:5px;font-weight:800"></div></div></div>
+
+<div class="card hidden" id="adminCard">
+ <div class="section-title">👑 QUẢN LÝ KHÁCH — ADMIN</div>
+ <div class="grid">
+  <label>Email khách<input id="adminEmail" type="email" autocomplete="email" placeholder="khach@example.com"></label>
+  <label>Số ngày cấp<input id="adminDays" type="number" min="1" value="30"></label>
+  <label>Ghi chú<input id="adminNote" placeholder="Ví dụ: Khách A"></label>
+ </div>
+ <div class="buttons"><button class="green" id="createCustomerBtn">＋ CẤP EMAIL + LICENSE</button></div>
+ <div id="adminStatus" class="status">Admin cấp trước Email. Khách sẽ tự đặt mật khẩu ở lần đăng ký đầu tiên.</div>
+</div>
+
+<div class="card" id="customerCard">
+ <div class="section-title red">THÊM HOẶC SỬA — BẢNG GIÁ</div>
+ <div class="grid"><label>Khách đang tính<select id="customerSelect"></select></label><label>Tên khách mới<input id="customerName" placeholder="Nhập tên khách"></label></div>
+ <div class="price-original"><b>GỐC ĐANG DÙNG</b><div class="price-grid v3" style="margin-top:8px">
+  <label>DD<input id="p_dd" type="number" step=".01"></label><label>XC<input id="p_xc" type="number" step=".01"></label><label>BL 2<input id="p_b2" type="number" step=".01"></label><label>BL 3<input id="p_b3" type="number" step=".01"></label><label>BL 4<input id="p_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="p_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="p_dathang" type="number" step=".01"></label><label>Đá MB<input id="p_daMB" type="number" step=".01" value="640"></label><label>Giá nhận<input id="p_receive" type="number" step=".01"></label><label>Hồi khi thu<input id="p_repay" type="number" step=".01"></label></div></div>
+ <div class="price-customer"><b>↓ CÒ NHẬN CHO KHÁCH ↓</b><div class="price-grid v3" style="margin-top:8px"><label>DD<input id="c_dd" type="number" step=".01"></label><label>XC<input id="c_xc" type="number" step=".01"></label><label>BL 2<input id="c_b2" type="number" step=".01"></label><label>BL 3<input id="c_b3" type="number" step=".01"></label><label>BL 4<input id="c_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="c_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="c_dathang" type="number" step=".01"></label><label>Đá MB<input id="c_daMB" type="number" step=".01"></label></div></div>
+ <div class="action-mini"><button class="green" id="saveCustomer">💾 LƯU KHÁCH</button><button class="soft" id="newCustomer">＋ KHÁCH MỚI</button><button class="danger" id="deleteCustomer">🗑 XÓA KHÁCH</button><button class="blue" id="multiPriceBtn">NHẬN NHIỀU GIÁ</button></div><div id="customerStatus" class="status">Sẵn sàng.</div>
+</div>
+
+<div class="card" id="betsCard">
+ <div class="section-title green">NGÀY KẾT QUẢ</div>
+ <div class="daybar" id="daybar"></div>
+ <div class="grid"><label>Ngày đang tính<input id="date" type="date"></label><label>Khách / Giá nhận<input id="rateDisplay" readonly></label></div>
+ <textarea id="bets" rows="30" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="DÁN TOÀN BỘ PHƠI VÀO ĐÂY..."></textarea>
+ <div class="muted">Dán bao nhiêu dòng cũng được. Giữ nguyên xuống dòng từ Zalo / Ghi chú / timkiem.</div>
+ <button class="bigok" id="okAll">OK — TÍNH + TỰ DÒ</button>
+ <div class="action-mini"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div>
+ <div id="status" class="status">Sẵn sàng.</div>
+</div>
+<section id="out"></section>
+</section>
+
+</div>
+
+<script>
+const SUPABASE_URL="https://zigpqddlhvjbjrwhfhaa.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
+const $=id=>document.getElementById(id);
+const setStatus=(t,cls="")=>{ $("status").className="status "+cls; $("status").textContent=t; };
+const loginStatus=(t,cls="")=>{ $("loginStatus").className="status "+cls; $("loginStatus").textContent=t; };
+
+async function checkLicense(){
+  const {data,error}=await sb.rpc("check_email_license");
+  if(error) throw error;
+  if(!(data?.allowed===true || (data?.success===true && data?.active===true))) throw new Error(data?.message||"Tài khoản chưa có bản quyền.");
+  if(data.is_admin){
+    $("licenseState").textContent="BẢN QUYỀN: ADMIN • VÔ THỜI HẠN";
+  }else{
+    const exp=data.expires_at?new Date(data.expires_at).toLocaleDateString("vi-VN"):"—";
+    $("licenseState").textContent=`BẢN QUYỀN: CÒN ${data.days_left} NGÀY • HẾT HẠN ${exp}`;
+  }
+  $("adminCard").classList.toggle("hidden",!data.is_admin);
+  return data;
+}
+
+async function reserveCustomer(){
+  const email=$("adminEmail").value.trim().toLowerCase();
+  const days=Number($("adminDays").value||30);
+  const note=$("adminNote").value.trim();
+  $("adminStatus").className="status";
+  $("adminStatus").textContent="Đang cấp Email...";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    $("adminStatus").className="status err";
+    $("adminStatus").textContent="Email không hợp lệ.";
+    return;
+  }
+  try{
+    const {data,error}=await sb.rpc("admin_reserve_email",{p_email:email,p_days:days,p_note:note||null});
+    if(error) throw error;
+    if(!data?.ok) throw new Error(data?.message||"Không cấp được license.");
+    $("adminStatus").className="status ok";
+    $("adminStatus").textContent=`Đã cấp ${email} • ${days} ngày • Hạn ${new Date(data.expires_at).toLocaleDateString("vi-VN")}.`;
+    $("adminEmail").value="";$("adminNote").value="";
+  }catch(e){
+    $("adminStatus").className="status err";
+    $("adminStatus").textContent=e.message;
+  }
+}
+$("createCustomerBtn").onclick=reserveCustomer;
+
+async function registerCustomer(){
+  const email=$("regEmail").value.trim().toLowerCase();
+  const password=$("regPassword").value;
+  const confirm=$("regPassword2").value;
+  $("registerStatus").className="status";
+  $("registerStatus").textContent="Đang tạo tài khoản...";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent="Email không hợp lệ.";
+    return;
+  }
+  if(password.length<6){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent="Mật khẩu tối thiểu 6 ký tự.";
+    return;
+  }
+  if(password!==confirm){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent="Hai mật khẩu không giống nhau.";
+    return;
+  }
+  try{
+    const {data,error}=await sb.auth.signUp({
+      email,
+      password,
+      options:{data:{license_email:email}}
+    });
+    if(error) throw error;
+    if(!data?.user) throw new Error("Không tạo được tài khoản.");
+
+    // Nếu Supabase đang yêu cầu xác nhận email, báo rõ.
+    if(!data.session){
+      $("registerStatus").className="status ok";
+      $("registerStatus").textContent="Tài khoản đã tạo. Hãy xác nhận Email rồi đăng nhập.";
+      return;
+    }
+
+    $("registerStatus").className="status ok";
+    $("registerStatus").textContent="Đăng ký thành công. Đang mở phần mềm...";
+    await checkLicense();
+    await claimDevice();
+    showApp();
+  }catch(e){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent=e.message;
+  }
+}
+$("registerBtn").onclick=registerCustomer;
+
+$("showRegisterBtn").onclick=()=>{
+  $("loginCard").classList.add("hidden");
+  $("registerCard").classList.remove("hidden");
+  $("regEmail").value=$("email").value;
+  $("regEmail").focus();
+};
+$("backLoginBtn").onclick=()=>{
+  $("registerCard").classList.add("hidden");
+  $("loginCard").classList.remove("hidden");
+  $("email").focus();
+};
+
+function deviceId(){
+  let id=localStorage.getItem("device_lock_id");
+  if(!id){
+    id=crypto.randomUUID();
+    localStorage.setItem("device_lock_id",id);
+  }
+  return id;
+}
+function deviceName(){
+  const ua=navigator.userAgent;
+  if(/iPhone/i.test(ua))return "iPhone";
+  if(/iPad/i.test(ua))return "iPad";
+  if(/Android/i.test(ua))return "Android";
+  if(/Mac/i.test(ua))return "Mac";
+  if(/Windows/i.test(ua))return "Windows";
+  return "Thiết bị web";
+}
+async function claimDevice(){
+  const {data,error}=await sb.rpc("claim_device",{p_device_id:deviceId(),p_device_name:deviceName()});
+  if(error)throw error;
+  if(!data?.allowed) throw new Error(data?.message||"Tài khoản đã khóa trên thiết bị khác.");
+  $("deviceState").textContent="ĐÃ KHÓA CHO THIẾT BỊ NÀY";
+  $("deviceInfo").textContent=`${deviceName()} • mã thiết bị ${deviceId().slice(0,8)}…`;
+}
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    try{await checkLicense();await claimDevice();showApp();}
+    catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}
+  }else showLogin();
+}
+function showApp(){$("loginCard").classList.add("hidden");$("appCard").classList.remove("hidden");}
+function showLogin(){$("loginCard").classList.remove("hidden");$("registerCard").classList.add("hidden");$("appCard").classList.add("hidden");}
+$("loginBtn").onclick=async()=>{
+  const email=$("email").value.trim().toLowerCase();
+  const password=$("password").value;
+  if(!email||!password){loginStatus("Nhập Email và mật khẩu.","err");return;}
+  loginStatus("Đang đăng nhập...");
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error){loginStatus("Email hoặc mật khẩu không đúng.","err");return;}
+  try{await checkLicense();await claimDevice();showApp();loginStatus("");}
+  catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}
+};
+if($("logoutBtn2")) $("logoutBtn2").onclick=async()=>{await sb.auth.signOut();showLogin();};
+sb.auth.onAuthStateChange((_event,session)=>{if(!session)showLogin();});
+boot();
+
+const DEFAULT_CUSTOMERS={
+  "X74":{xc:640,dd:74,da2:540,dathang:700,b2:74,b3:640,b4:5200,receive:.80,repay:1},
+  "X79":{xc:640,dd:76,da2:540,dathang:700,b2:75,b3:640,b4:5000,receive:.79,repay:1},
+  "Hạnh":{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,receive:.76,repay:.95},
+  "Tuấn":{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,receive:.77,repay:.95}
+};
+const CUSTOMER_KEY="phoi_customers_v1";
+let customers=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||"null")||DEFAULT_CUSTOMERS;
+let currentCustomer="X74";
+function saveCustomers(){localStorage.setItem(CUSTOMER_KEY,JSON.stringify(customers));}
+function syncCustomerSelect(){const sel=$("customerSelect");sel.innerHTML=Object.keys(customers).map(n=>`<option>${n.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</option>`).join(""); if(customers[currentCustomer])sel.value=currentCustomer; loadCustomer();}
+function loadCustomer(){currentCustomer=$("customerSelect").value;const c=customers[currentCustomer];if(!c)return; ["xc","dd","da2","dathang","b2","b3","b4"].forEach(k=>$("p_"+k).value=c[k]);$("p_receive").value=c.receive;$("p_repay").value=c.repay;$("rateDisplay").value=`${currentCustomer} — nhận ${c.receive} / hồi ${c.repay}`;$("customerStatus").textContent=`Đang dùng bảng giá: ${currentCustomer}`;}
+function readCustomer(){return {xc:+$("p_xc").value||0,dd:+$("p_dd").value||0,da2:+$("p_da2").value||0,dathang:+$("p_dathang").value||0,b2:+$("p_b2").value||0,b3:+$("p_b3").value||0,b4:+$("p_b4").value||0,receive:+$("p_receive").value||0,repay:+$("p_repay").value||0};}
+$("customerSelect").onchange=loadCustomer;
+$("newCustomer").onclick=()=>{$("customerName").value="";$("customerName").focus();};
+$("saveCustomer").onclick=()=>{let name=$("customerName").value.trim()||$("customerSelect").value;if(!name){alert("Nhập tên khách.");return;}customers[name]=readCustomer();currentCustomer=name;saveCustomers();syncCustomerSelect();$("customerSelect").value=name;loadCustomer();$("customerStatus").textContent=`Đã lưu bảng giá cho ${name}.`;};
+$("deleteCustomer").onclick=()=>{let name=$("customerSelect").value;if(Object.keys(customers).length<=1){alert("Phải giữ ít nhất 1 bảng giá.");return;}if(confirm(`Xóa bảng giá ${name}?`)){delete customers[name];saveCustomers();currentCustomer=Object.keys(customers)[0];syncCustomerSelect();}};
+
+function groups(r){return r==="B"?27:18}
+function stationToken(t){
+ t=t.toLowerCase().replace(/[.:;]+$/,"");
+ if(/^\d+d(mn|mt)$/.test(t))return{region:t.endsWith("mn")?"N":"T",stations:+t[0],label:+t[0]+" Đài "+(t.endsWith("mn")?"MN":"MT")};
+ if(["hn","mb","hanoi","ha noi","mienbac","mien-bac"].includes(t))return{region:"B",stations:1,label:"Hà Nội/Bắc"};
+ if(t==="dnai")return{region:"N",stations:1,label:"Đồng Nai"};
+ if(t==="ctho")return{region:"N",stations:1,label:"Cần Thơ"};
+ if(["st","sot"].includes(t))return{region:"N",stations:1,label:"Sóc Trăng"};
+ if(["dnang","danang"].includes(t))return{region:"T",stations:1,label:"Đà Nẵng"};
+ if(["kh","khanhhoa"].includes(t))return{region:"T",stations:1,label:"Khánh Hòa"};
+ return null;
+}
+function nums(s){return String(s).replace(/[\s,;]+/g,".").replace(/\.{2,}/g,".").replace(/^[.]+|[.]+$/g,"").match(/\d{2,4}/g)||[]}
+function addBet(rows,st,raw,type,p){
+ const ns=nums(raw);if(!ns.length)return;let g=groups(st.region),gross=0,label=type.toUpperCase();
+ if(type==="b"){let d=ns[0].length,pr=st.region==="B"?(d===2?27:d===3?23:20):(d===2?18:d===3?17:16);gross=ns.length*p*pr*st.stations;label="B"+d}
+ else if(type==="xc"){gross=ns.length*p*4;label="XC"}
+ else if(type==="dd"){gross=ns.length*p*2*st.stations;label="DD"}
+ else if(type==="dau"||type==="duoi"){gross=ns.length*p*st.stations;label=type==="dau"?"ĐẦU":"ĐUÔI"}
+ else if(type==="da"){gross=ns.length*(ns.length-1)*g*st.stations*p;label="DA"}
+ else return;
+ rows.push({region:st.region,station:st.label,numbers:ns,type:label,points:p,gross});
+}
+function parseBets(){
+ let rows=[],errors=[],st={region:"N",stations:1,label:"Mặc định"};
+ for(let line of $("bets").value.replace(/\r/g,"").split("\n")){
+  let s=line.trim();if(!s)continue;
+  let tok=s.split(/\s+/)[0],q=stationToken(tok);
+  if(q){st=q;s=s.slice(tok.length).trim();if(!s)continue}
+  let found=false;
+
+  // Cú pháp timkiem: 917b0,5x10 = B 0,5n + XC 10n
+  // 517.856b0,5x3 = mỗi số có B 0,5n + XC 3n
+  const comboRe=/([0-9.\s]+)b(\d+(?:[.,]\d+)?)x(\d+(?:[.,]\d+)?)(?:n)?/gi;
+  let cm;
+  while((cm=comboRe.exec(s))){
+    found=true;
+    const raw=cm[1].trim();
+    addBet(rows,st,raw,"b",parseFloat(cm[2].replace(",",".")));
+    addBet(rows,st,raw,"xc",parseFloat(cm[3].replace(",",".")));
+    s=s.replace(cm[0]," ");
+  }
+
+  const re=/(daoxc|dxc|xcdao|xcduoi|xduoi|xc|x|da|dv|bdao|daob|b|dd|dau|duoi)(\d+(?:[.,]\d+)?)(?:n)?/gi;
+  let m,last=0;
+  while((m=re.exec(s))){
+    found=true;
+    let raw=s.slice(last,m.index).replace(/[.\s]+$/,"").trim();
+    let typ=m[1].toLowerCase(),p=parseFloat(m[2].replace(",",".")); 
+    let actual=typ==="x"?"xc":typ==="dv"?"da":(typ==="xduoi"||typ==="xcduoi")?"duoi":typ;
+    if(actual.includes("dao"))errors.push("Chưa hỗ trợ đảo: "+line);
+    else addBet(rows,st,raw,actual,p);
+    last=m.index+m[0].length;
+  }
+  if(!found)errors.push(line);
+ }
+ return{rows,errors};
+}
+function money(x){return Math.round(x).toLocaleString("vi-VN")+"k"}
+function renderCalc(){
+ const {rows,errors}=parseBets(),c=customers[$("customerSelect").value]||readCustomer();let html="",total=0;
+ const rate=c.receive;
+ for(const [r,n] of [["N","🄽 MIỀN NAM"],["T","🅃 MIỀN TRUNG"],["B","🅱 MIỀN BẮC"]]){
+  const a=rows.filter(x=>x.region===r),g=a.reduce((s,x)=>s+x.gross,0),thu=g*rate;total+=thu;
+  html+=`<section class="card"><div class="title">${n}</div><div class="stats"><div class="stat"><b>${money(g)}</b><small>Tiền xác</small></div><div class="stat"><b>0k</b><small>Tiền trúng</small></div><div class="stat"><b>${money(thu)}</b><small>Thu trước trúng</small></div></div><div class="scroll"><table><tr><th>Phơi</th><th>Đài</th><th>Loại</th><th>Điểm</th><th>Tiền</th></tr>${a.map(x=>`<tr><td>${x.numbers.join("–")}</td><td>${x.station}</td><td>${x.type}</td><td>${x.points}n</td><td>${x.gross}k</td></tr>`).join("")}</table></div></section>`;
+ }
+ if(errors.length)html+=`<section class="card err"><b>Dòng chưa đọc:</b><br>${errors.map(x=>x.replace(/</g,"&lt;")).join("<br>")}</section>`;
+ html+=`<section class="card"><b>KHÁCH: ${currentCustomer}</b><br><b>TỔNG XÁC: ${money(rows.reduce((s,x)=>s+x.gross,0))}</b><br><span class="muted">Giá nhận ${c.receive} • Hồi ${c.repay}</span></section>`;
+ $("out").innerHTML=html;
+}
+
+
+
+// ===== TRA KẾT QUẢ 3 MIỀN / TỰ DÒ =====
+const RESULTS_FUNCTION_URL = SUPABASE_URL + "/functions/v1/xoso-results";
+let lotteryResults = {N:[], T:[], B:[]};
+
+function normalizeDateKey(v){
+  if(!v) return "";
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if(m) return `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
+  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+  if(m) return `${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;
+  return s.slice(0,10);
+}
+function flattenDrawPayload(payload, selectedDate){
+  const out=[];
+  const visit=(item,parent={})=>{
+    if(!item) return;
+    if(Array.isArray(item)){ item.forEach(x=>visit(x,parent)); return; }
+    if(typeof item!=="object") return;
+    if(Array.isArray(item.draws)){
+      item.draws.forEach(x=>visit(x,{...parent,...item}));
+      return;
+    }
+    if(Array.isArray(item.data) && !item.prizes){
+      item.data.forEach(x=>visit(x,{...parent,...item}));
+      return;
+    }
+    const d={...parent,...item};
+    if(item.prizes || item.results || item.result || item.province || item.station || item.province_name || item.name){
+      const dateKey=normalizeDateKey(d.date||d.draw_date||d.drawDate||d.formatted_date||d.formattedDate||d.ngay);
+      if(!selectedDate || !dateKey || dateKey===selectedDate || !d.date&&!d.draw_date&&!d.drawDate&&!d.formatted_date&&!d.formattedDate&&!d.ngay) out.push(d);
+    }
+  };
+  visit(payload);
+  const seen=new Set();
+  return out.filter(d=>{
+    const k=[drawProvince(d),normalizeDateKey(d.date||d.draw_date||d.formatted_date||d.ngay),JSON.stringify(d.prizes||d.results||d.result||"")].join("|");
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+}
+async function fetchLotteryRegion(region){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) throw new Error("Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.");
+  const d = $("date").value;
+  if(!d) throw new Error("Chưa chọn ngày.");
+  const url = RESULTS_FUNCTION_URL + "?date=" + encodeURIComponent(d) + "&region=" + region + "&limit=20";
+  const res = await fetch(url, {
+    method:"GET",
+    headers:{
+      "Authorization":"Bearer "+session.access_token,
+      "apikey":SUPABASE_PUBLISHABLE_KEY,
+      "Accept":"application/json"
+    }
+  });
+  const json = await res.json().catch(()=>({}));
+  if(!res.ok || !json.ok) throw new Error(json.error || ("Lỗi lấy KQ "+region+" (HTTP "+res.status+")"));
+  const payload = json.data || {};
+  const rows=flattenDrawPayload(payload,d);
+  if(!rows.length && Array.isArray(payload.data)) return payload.data;
+  return rows;
+}
+
+async function getAllLotteryResults(){
+  setStatus("Đang lấy kết quả MN + MT + MB...");
+  const [mn,mt,mb] = await Promise.all([
+    fetchLotteryRegion("MN"),
+    fetchLotteryRegion("MT"),
+    fetchLotteryRegion("MB")
+  ]);
+  lotteryResults = {N:mn, T:mt, B:mb};
+  const count = mn.length + mt.length + mb.length;
+  if(!mb.length) setStatus(`Đã lấy MN ${mn.length} đài, MT ${mt.length} đài nhưng MB/Hà Nội chưa có dữ liệu từ máy chủ.`,"err");
+  else setStatus(`Đã lấy KQ 3 miền ngày ${$("date").value}: MN ${mn.length} đài • MT ${mt.length} đài • MB ${mb.length} đài.`,"ok");
+  return lotteryResults;
+}
+
+function drawProvince(draw){
+  const p=draw?.province;
+  const raw=typeof p==='string' ? p : (p?.name || p?.code || p?.province_name || p?.provinceName || "");
+  return String(draw?.station_name || draw?.station || draw?.province_name || raw || draw?.name || "").trim();
+}
+function prizeKey(k){
+  const s=String(k||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+  const map={
+    db:"db",dacbiet:"db",dacbietgiai:"db",special:"db",gdb:"db",
+    g1:"g1",nhat:"g1",giainhat:"g1",
+    g2:"g2",nhi:"g2",giainhi:"g2",
+    g3:"g3",ba:"g3",giaiba:"g3",
+    g4:"g4",tu:"g4",giaitu:"g4",
+    g5:"g5",nam:"g5",giainam:"g5",
+    g6:"g6",sau:"g6",giaisau:"g6",
+    g7:"g7",bay:"g7",giaibay:"g7",
+    g8:"g8",tam:"g8",giaitam:"g8"
+  };
+  return map[s] || s;
+}
+function drawPrizes(draw){
+  // Chuẩn hóa nhiều dạng dữ liệu MB/MN/MT từ Edge Function/XoSoAPI.
+  const out={};
+  const keys=["g8","g7","g6","g5","g4","g3","g2","g1","db"];
+  const add=(key,val)=>{
+    const k=prizeKey(key);
+    if(val==null) return;
+    const arr=Array.isArray(val)?val:[val];
+    const nums=arr.flatMap(x=>{
+      if(x==null) return [];
+      if(typeof x==='object') return Object.values(x).flatMap(y=>String(y??'').match(/\d{2,6}/g)||[]);
+      return String(x).match(/\d{2,6}/g)||[];
+    });
+    if(nums.length) out[k]=(out[k]||[]).concat(nums);
+  };
+  const readObj=(obj)=>{
+    if(!obj||typeof obj!=='object') return;
+    for(const k of Object.keys(obj)) add(k,obj[k]);
+  };
+  if(Array.isArray(draw?.prizes)) draw.prizes.forEach((v,i)=>add(keys[i]||('r'+i),v));
+  else readObj(draw?.prizes);
+  if(Array.isArray(draw?.results)) draw.results.forEach((v,i)=>add(keys[i]||('r'+i),v));
+  else if(draw?.results && typeof draw.results==='object') readObj(draw.results);
+  if(Array.isArray(draw?.result)) draw.result.forEach((v,i)=>add(keys[i]||('r'+i),v));
+  else if(draw?.result && typeof draw.result==='object') readObj(draw.result);
+  // Một số response lồng thêm data/lottery/result_data.
+  for(const container of [draw?.lottery,draw?.result_data,draw?.data]){
+    if(container && typeof container==='object' && !Array.isArray(container)){
+      if(container.prizes) readObj(container.prizes);
+      if(container.results && !Array.isArray(container.results)) readObj(container.results);
+    }
+  }
+  for(const k of Object.keys(out)) out[k]=[...new Set(out[k])];
+  return out;
+}
+function cleanDigits(v){return String(v||"").replace(/\D/g,"");}
+function lastN(v,n){const d=cleanDigits(v);return d.length>=n?d.slice(-n):"";}
+function prizeEntries(draw){
+  const p=drawPrizes(draw), out=[];
+  for(const k of Object.keys(p)){
+    for(const v of p[k]){
+      const d=cleanDigits(v);
+      if(d) out.push({prize:k,value:d});
+    }
+  }
+  return out;
+}
+function provinceMatches(label, draw){
+  const q=String(label||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const n=drawProvince(draw).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  if(!q || q==="mac dinh") return true;
+  if(q.includes("dong nai")) return n.includes("dong nai");
+  if(q.includes("can tho")) return n.includes("can tho");
+  if(q.includes("da nang")) return n.includes("da nang");
+  if(q.includes("khanh hoa")) return n.includes("khanh hoa");
+  if(q.includes("soc trang")) return n.includes("soc trang");
+  return n.includes(q) || q.includes(n);
+}
+function regionDraws(row){
+  const all=[...(lotteryResults[row.region]||[])];
+  // MB/HN chỉ có một đài: tuyệt đối không lọc theo tên tỉnh, vì API có thể trả province rỗng.
+  if(row.region==="B" || row.station==="Hà Nội/Bắc") return all;
+  const explicit=row.station && !/^\d+ Đài (MN|MT)$/.test(row.station);
+  if(explicit) return all.filter(d=>provinceMatches(row.station,d));
+  // MN/MT: giữ đúng số đài theo cú pháp 1dmn/2dmn/3dmn/4dmn hoặc 1dmt/2dmt/3dmt.
+  const unique=[]; const seen=new Set();
+  for(const d of all){
+    const k=(drawProvince(d)||JSON.stringify(d)).toLowerCase();
+    if(!seen.has(k)){seen.add(k);unique.push(d);}
+  }
+  return unique.slice(0,Math.max(1,row.stations||1));
+}
+function resultForB(row,draw){
+  const digits=row.numbers[0]||"", len=digits.length, entries=prizeEntries(draw);
+  const excluded = row.region==="B" ? (len===3?["g7"]:len===4?["g6","g7"]:[]) : (len===3?["g8"]:len===4?["g7","g8"]:[]);
+  return entries.filter(e=>!excluded.includes(e.prize) && lastN(e.value,len)===digits.padStart(len,"0"));
+}
+function resultForXC(row,draw){
+  const want=(row.numbers[0]||"").padStart(3,"0");
+  const keys=row.region==="B"?["g6","db"]:["g7","db"];
+  const p=drawPrizes(draw), out=[];
+  for(const k of keys) for(const v of (p[k]||[])) if(lastN(v,3)===want) out.push({prize:k,value:v});
+  return out;
+}
+function resultForDD(row,draw){
+  const want=(row.numbers[0]||"").padStart(2,"0"), p=drawPrizes(draw), out=[];
+  const small=row.region==="B"?"g7":"g8";
+  for(const v of (p[small]||[])) if(lastN(v,2)===want) out.push({prize:small,value:v});
+  for(const v of (p.db||[])) if(lastN(v,2)===want) out.push({prize:"db",value:v});
+  return out;
+}
+function resultForDA(row,draw){
+  const wanted=[...new Set(row.numbers.map(x=>lastN(x,2)))];
+  const seen=new Set(prizeEntries(draw).map(e=>lastN(e.value,2)).filter(Boolean));
+  const hit=wanted.filter(x=>seen.has(x));
+  const pairs=[];
+  for(const a of wanted) for(const b of wanted) if(a!==b && seen.has(a) && seen.has(b)) pairs.push(a+"–"+b);
+  return {numbers:hit,pairs:[...new Set(pairs)]};
+}
+function scanRow(row){
+  const draws=regionDraws(row), hits=[];
+  for(const draw of draws){
+    let r=[];
+    if(row.type.startsWith("B")) r=resultForB(row,draw);
+    else if(row.type==="XC") r=resultForXC(row,draw);
+    else if(row.type==="DD") r=resultForDD(row,draw);
+    else if(row.type==="DA") r=resultForDA(row,draw);
+    if(row.type==="DA"){
+      if(r.numbers.length) hits.push({province:drawProvince(draw),date:draw.formatted_date||draw.date,detail:"Số về: "+r.numbers.join(", ")+(r.pairs.length?" • Cặp: "+r.pairs.join(", "):"")});
+    }else if(r.length){
+      hits.push({province:drawProvince(draw),date:draw.formatted_date||draw.date,detail:r.map(x=>(x.prize||"").toUpperCase()+": "+x.value).join(" • ")});
+    }
+  }
+  return hits;
+}
+function renderScan(){
+  const {rows,errors}=parseBets();
+  if(!rows.length){setStatus("Không đọc được phơi để dò.","err");return;}
+  let html=`<section class="card"><div class="title">🔎 KẾT QUẢ TỰ DÒ — ${$("date").value}</div>`;
+  let totalHits=0;
+  for(const row of rows){
+    const hits=scanRow(row); totalHits+=hits.length;
+    const color=hits.length?"ok":"err";
+    html+=`<div class="line ${color}"><b>${row.numbers.join("–")} ${row.type} ${row.points}n</b> — ${hits.length?"TRÚNG":"CHƯA THẤY TRÚNG"}`;
+    if(hits.length) html+=`<div class="muted">${hits.map(h=>`${h.province}: ${h.detail}`).join("<br>")}</div>`;
+    html+=`</div>`;
+  }
+  if(errors.length) html+=`<div class="line"><b>Dòng chưa đọc:</b><br>${errors.map(x=>x.replace(/</g,"&lt;")).join("<br>")}</div>`;
+  html+=`<div class="total">Tổng dòng có kết quả: ${totalHits}</div></section>`;
+  $("out").innerHTML=html;
+  setStatus(totalHits?`Đã dò xong: có ${totalHits} dòng có kết quả.`:"Đã dò xong: chưa thấy dòng nào trúng.",totalHits?"ok":"");
+}
+
+if($("get")) $("get").onclick=async()=>{
+  try{await getAllLotteryResults();}catch(e){setStatus(e.message,"err");}
+};
+if($("scan")) $("scan").onclick=async()=>{
+  try{
+    if(!lotteryResults.N.length&&!lotteryResults.T.length&&!lotteryResults.B.length) await getAllLotteryResults();
+    renderScan();
+  }catch(e){setStatus(e.message,"err");}
+};
+
+if($("calc")) $("calc").onclick=renderCalc;
+if($("clear")) $("clear").onclick=()=>{$("bets").value="";$("out").innerHTML="";setStatus("Đã xóa.")};
+$("date").value=new Date().toISOString().slice(0,10);
+syncCustomerSelect();
+boot();
+
+// ===== V3 UI =====
+function scrollToId(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+const V3_CUSTOMER_KEY='phoi_customers_v3';
+const V3_DEFAULT={
+ X74:{xc:640,dd:74,da2:540,dathang:700,b2:74,b3:640,b4:5200,daMB:640,receive:.80,repay:1,c:{xc:630,dd:73,da2:530,dathang:730,b2:73,b3:630,b4:5300,daMB:630}},
+ X79:{xc:640,dd:76,da2:540,dathang:700,b2:75,b3:640,b4:5000,daMB:640,receive:.79,repay:1,c:{xc:630,dd:75,da2:530,dathang:730,b2:74,b3:630,b4:5100,daMB:630}},
+ Hạnh:{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,daMB:650,receive:.76,repay:.95,c:{xc:640,dd:74,da2:540,dathang:740,b2:74,b3:640,b4:5100,daMB:640}},
+ Tuấn:{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,daMB:650,receive:.77,repay:.95,c:{xc:640,dd:74,da2:540,dathang:740,b2:74,b3:640,b4:5100,daMB:640}}
+};
+let v3Customers=JSON.parse(localStorage.getItem(V3_CUSTOMER_KEY)||'null')||V3_DEFAULT; let lastCalc=null; let lastSummary=null;
+function v3Save(){localStorage.setItem(V3_CUSTOMER_KEY,JSON.stringify(v3Customers));}
+function fillCustomer(){const name=$('customerSelect').value, c=v3Customers[name]; if(!c)return; for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB']) $('p_'+k).value=c[k]??0; $('p_receive').value=c.receive??0; $('p_repay').value=c.repay??0; const cc=c.c||{}; for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB']) $('c_'+k).value=cc[k]??0; $('rateDisplay').value=`${name} • nhận ${c.receive} • hồi ${c.repay}`; $('customerStatus').textContent='Đang dùng bảng giá: '+name;}
+function renderCustomers(){const s=$('customerSelect');s.innerHTML=Object.keys(v3Customers).map(n=>`<option>${n}</option>`).join(''); if(!v3Customers[currentCustomer])currentCustomer=Object.keys(v3Customers)[0]; s.value=currentCustomer; fillCustomer();}
+$('customerSelect').onchange=()=>{currentCustomer=$('customerSelect').value;fillCustomer();};
+$('newCustomer').onclick=()=>{$('customerName').value='';$('customerName').focus();};
+$('saveCustomer').onclick=()=>{let n=$('customerName').value.trim()||$('customerSelect').value; if(!n)return alert('Nhập tên khách.'); const old=v3Customers[n]||{}; const c={...old,c:{...(old.c||{})}}; for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB'])c[k]=+$('p_'+k).value||0; c.receive=+$('p_receive').value||0;c.repay=+$('p_repay').value||0;for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB'])c.c[k]=+$('c_'+k).value||0;v3Customers[n]=c;currentCustomer=n;v3Save();renderCustomers();$('customerSelect').value=n;fillCustomer();$('customerStatus').textContent='Đã lưu khách '+n;};
+$('deleteCustomer').onclick=()=>{const n=$('customerSelect').value;if(Object.keys(v3Customers).length<=1)return alert('Phải giữ ít nhất 1 khách.');if(confirm('Xóa '+n+'?')){delete v3Customers[n];currentCustomer=Object.keys(v3Customers)[0];v3Save();renderCustomers();}};
+$('multiPriceBtn').onclick=()=>alert('Chọn khách rồi sửa các ô “Cò nhận cho khách”, sau đó bấm LƯU KHÁCH.');
+function buildDays(){const bar=$('daybar');bar.innerHTML='';const base=new Date();for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()-i);const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const label=i===0?'Hôm nay':`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;const b=document.createElement('button');b.textContent=label;b.dataset.date=iso;b.onclick=()=>{ $('date').value=iso;document.querySelectorAll('#daybar button').forEach(x=>x.classList.remove('active'));b.classList.add('active');};bar.appendChild(b);if(i===0){$('date').value=iso;b.classList.add('active');}}}
+$('date').addEventListener('change',()=>document.querySelectorAll('#daybar button').forEach(b=>b.classList.toggle('active',b.dataset.date===$('date').value)));
+function priceForRow(row,c){let k=row.type.startsWith('B')?row.type.toLowerCase():row.type.toLowerCase();if(row.type==='DA')k='da2';if(row.type==='XC')k='xc';if(row.type==='DD')k='dd';if(row.type==='ĐẦU'||row.type==='ĐUÔI')k='dd';return +(c[k]||0);}
+function calcWinning(rows){let wins=0, by={N:{win:0},T:{win:0},B:{win:0}};const details=[];for(const row of rows){const hits=scanRow(row);let payout=0;for(const h of hits){let grossPayout=0;const cp=v3Customers[$('customerSelect').value]?.c||{};grossPayout=priceForRow(row,cp)*row.points; if(row.type==='DA')grossPayout=priceForRow(row,cp)*row.points*row.numbers.length*(row.numbers.length-1); payout+=grossPayout;}wins+=payout;by[row.region].win+=payout;details.push({row,hits,payout});}return{wins,by,details};}
+
+function typeLabel(t){
+  if(/^B2$/.test(t)) return "Bao 2";
+  if(/^B3$/.test(t)) return "Bao 3";
+  if(/^B4$/.test(t)) return "Bao 4";
+  if(t==="DA") return "DA";
+  if(t==="XC") return "XC";
+  if(t==="DD") return "DD";
+  if(t==="ĐẦU") return "Đầu";
+  if(t==="ĐUÔI") return "Đuôi";
+  return t;
+}
+function regionTitle(r){
+  return r==="N" ? "🄽 MIỀN NAM" : r==="T" ? "🅃 MIỀN TRUNG" : "🅱 MIỀN BẮC";
+}
+function regionTag(r,arr){
+  const labels=(arr||[]).map(x=>x.station||"");
+  if(r==="B") return "MB";
+  const count=Math.max(1,new Set(labels).size);
+  return `${count}ĐM${r}`;
+}
+
+function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
+  const gross={N:0,T:0,B:0};
+  for(const r of rows) gross[r.region]+=r.gross;
+  const by={N:{win:0},T:{win:0},B:{win:0}};
+  const details=[];
+
+  if(winData){
+    for(const d of winData.details){
+      details.push(d);
+      by[d.row.region].win+=d.payout;
+    }
+  }else{
+    for(const r of rows) details.push({row:r,hits:[],payout:0});
+  }
+
+  let html='';
+  for(const r of ['N','T','B']){
+    if(!gross[r] && !by[r].win) continue;
+    const thu=gross[r]*c.receive-by[r].win;
+    const arr=rows.filter(x=>x.region===r);
+    const g={};
+    for(const x of arr){
+      const k=typeLabel(x.type);
+      if(!g[k])g[k]={gross:0,win:0};
+      g[k].gross+=x.gross;
+    }
+    for(const d of details.filter(x=>x.row.region===r)){
+      const k=typeLabel(d.row.type);
+      if(g[k])g[k].win+=d.payout;
+    }
+    const detail=Object.entries(g).map(([k,v])=>`<tr><td>${k}</td><td>${money(v.gross)}</td><td class="rednum">${money(v.win)}</td><td class="${v.gross*c.receive-v.win<0?'rednum':'greenmoney'}">${money(v.gross*c.receive-v.win)}</td></tr>`).join('');
+    html+=`<section class="card calc-box">
+      <div class="calc-head">${regionTitle(r)}</div>
+      <div class="calc-summary">
+        <div>Tiền Xác: ${Math.round(gross[r]).toLocaleString('vi-VN')}k</div>
+        <div>Tiền trúng: <span class="rednum">${Math.round(by[r].win).toLocaleString('vi-VN')}k</span></div>
+        <div>Tổng Tiền ${thu<0?'Bù':'Thu'}: <span class="${thu<0?'rednum':'greenmoney'}">${Math.round(thu).toLocaleString('vi-VN')}k</span></div>
+        <div><span class="calc-tag">${regionTag(r,arr)}</span></div>
+      </div>
+      <div class="scroll"><table class="calc-table">
+        <thead><tr><th>Loại</th><th>Tổng</th><th>Trúng</th><th>Thu/Bù</th></tr></thead>
+        <tbody>${detail}</tbody>
+        <tfoot><tr><td>TỔNG</td><td>${money(gross[r])}</td><td class="rednum">${money(by[r].win)}</td><td class="${thu<0?'rednum':'greenmoney'}">${money(thu)}</td></tr></tfoot>
+      </table></div>
+    </section>`;
+  }
+
+  const totalGross=gross.N+gross.T+gross.B;
+  const totalWin=by.N.win+by.T.win+by.B.win;
+  const totalThu=totalGross*c.receive-totalWin;
+  html+=`<section class="card total-card">
+    <div class="section-title">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}</div>
+    <table class="total-table">
+      <thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead>
+      <tbody>
+        <tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${gross.N*c.receive-by.N.win<0?'rednum':'greenmoney'}">${money(gross.N*c.receive-by.N.win)}</td></tr>
+        <tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${gross.T*c.receive-by.T.win<0?'rednum':'greenmoney'}">${money(gross.T*c.receive-by.T.win)}</td></tr>
+        <tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${gross.B*c.receive-by.B.win<0?'rednum':'greenmoney'}">${money(gross.B*c.receive-by.B.win)}</td></tr>
+      </tbody>
+      <tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot>
+    </table>
+    <div class="muted" style="margin-top:8px">Khách: ${$('customerSelect').value} • Nhận ${c.receive} • Hồi ${c.repay}</div>
+  </section>`;
+
+  html+=`<section class="card"><div class="section-title">CHI TIẾT TỰ DÒ</div>`;
+  for(const d of details){
+    const r=d.row;
+    html+=`<div class="v3line ${d.hits.length?'hitline':'missline'}"><b>${r.numbers.join('–')} ${r.type} ${r.points}n</b> — ${d.hits.length?'<span class="result-pill">TRÚNG</span>':'<span class="muted">CHƯA DÒ KẾT QUẢ</span>'}`;
+    if(d.hits.length) html+=`<div class="muted">${d.hits.map(h=>h.province+': '+h.detail).join('<br>')}</div>`;
+    html+=`</div>`;
+  }
+  html+=`</section>`;
+  if(errors.length) html+=`<section class="card err"><b>Dòng chưa đọc:</b><br>${errors.map(x=>String(x).replace(/</g,'&lt;')).join('<br>')}</section>`;
+  if(apiMessage) html+=`<section class="card"><b>ℹ️ Tự dò kết quả:</b><br>${apiMessage}</section>`;
+
+  $('out').innerHTML=html;
+  lastCalc={date:$('date').value,html};
+  lastSummary={
+    date:$('date').value,
+    name:$('customerSelect').value,
+    receive:Number(c.receive)||0,
+    repay:Number(c.repay)||0,
+    N:{gross:Number(gross.N)||0,win:Number(by.N.win)||0,thu:Number(gross.N*c.receive-by.N.win)||0},
+    T:{gross:Number(gross.T)||0,win:Number(by.T.win)||0,thu:Number(gross.T*c.receive-by.T.win)||0},
+    B:{gross:Number(gross.B)||0,win:Number(by.B.win)||0,thu:Number(gross.B*c.receive-by.B.win)||0},
+    totalGross:Number(totalGross)||0,totalWin:Number(totalWin)||0,totalThu:Number(totalThu)||0
+  };
+  return {totalGross,totalWin,totalThu};
+}
+
+async function runAll(){
+  const {rows,errors}=parseBets();
+  if(!rows.length){setStatus('Chưa đọc được phơi.','err');return;}
+  const c=v3Customers[$('customerSelect').value]||V3_DEFAULT.X74;
+
+  // Tính tiền ngay, hoàn toàn độc lập với API.
+  renderCalculation(rows,errors,c,null);
+  setStatus('Đã tính phơi. Đang thử lấy kết quả 3 miền...');
+
+  // Nếu API hết hạn/lỗi, vẫn giữ nguyên phần tính tiền.
+  try{
+    await getAllLotteryResults();
+    const win=calcWinning(rows);
+    const result=renderCalculation(rows,errors,c,win,null);
+    setStatus(`Đã hoàn tất: tính + tự dò KQ 3 miền. Tổng xác ${money(result.totalGross)} • Thu/Bù ${money(result.totalThu)}.`,'ok');
+  }catch(e){
+    const msg=e?.message||String(e);
+    renderCalculation(rows,errors,c,null,`Không lấy được kết quả tự động: ${msg}. Phần tính tiền vẫn hoạt động bình thường. Khi API hoạt động lại, anh chỉ cần bấm OK lần nữa để dò.`);
+    setStatus('Đã tính phơi. API kết quả hiện không khả dụng — không ảnh hưởng phần tính tiền.','ok');
+  }
+}
+$('okAll').onclick=runAll;
+function totalCopyText(){
+  if(!lastSummary) return '';
+  const x=lastSummary;
+  const date=x.date.split('-').reverse().join('-');
+  const line=(r)=>{
+    const g=Math.round(r.gross||0), w=Math.round(r.win||0), t=Math.round(r.thu||0);
+    return `${g||w ? `  ${g}  -  ${w}  =  ${t}` : '  —————————'} `;
+  };
+  const tc=Math.round(x.totalThu||0);
+  const co=0;
+  return `Tên:   ${x.name || 'Gốc X74'}\n→     Ngày: ${date}\n🄽:${line(x.N)}\n🅃:${line(x.T)}\n🄱:${line(x.B)}\n→       ${tc<0?'Bù':'Thu'}: ${tc}\nTiền Cò: ${co}`;
+}
+$('copyTotal').onclick=async()=>{
+  if(!lastSummary)return alert('Chưa có bảng tổng. Bấm OK trước.');
+  const text=totalCopyText();
+  try{await navigator.clipboard.writeText(text);}catch(e){
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+  }
+  setStatus('Đã copy tổng theo mẫu N / T / B.','ok');
+};
+function escSvg(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+function fmtK(v){return Math.round(Number(v)||0).toLocaleString('vi-VN');}
+function openCutImage(){
+  if(!lastSummary)return alert('Chưa có bảng tổng. Bấm OK trước.');
+  const x=lastSummary;
+  const date=x.date.split('-').reverse().join('-');
+  const tcLabel=x.totalThu<0?'Bù':'Thu';
+  const tcValue=Math.abs(Math.round(x.totalThu||0));
+  const rows=[['N',x.N.gross,x.N.win,x.N.thu],['T',x.T.gross,x.T.win,x.T.thu],['B',x.B.gross,x.B.win,x.B.thu]];
+  const rowSvg=rows.map((r,i)=>{
+    const y=165+i*105, thu=Math.round(r[3]);
+    const thuText=fmtK(thu);
+    return `<rect x="0" y="${y}" width="700" height="105" fill="#f8f8f8" stroke="#222" stroke-width="2"/>
+      <line x1="175" y1="${y}" x2="175" y2="${y+105}" stroke="#222" stroke-width="2"/>
+      <line x1="350" y1="${y}" x2="350" y2="${y+105}" stroke="#222" stroke-width="2"/>
+      <line x1="525" y1="${y}" x2="525" y2="${y+105}" stroke="#222" stroke-width="2"/>
+      <text x="87.5" y="${y+65}" text-anchor="middle" font-size="38" font-family="Arial" font-weight="500">${r[0]}</text>
+      <text x="262.5" y="${y+65}" text-anchor="middle" font-size="34" font-family="Arial" font-weight="500">${fmtK(r[1])}</text>
+      <text x="437.5" y="${y+65}" text-anchor="middle" font-size="34" font-family="Arial" font-weight="500" fill="#c00">${fmtK(r[2])}</text>
+      <text x="612.5" y="${y+65}" text-anchor="middle" font-size="34" font-family="Arial" font-weight="500" fill="${thu<0?'#c00':'#111'}">${thuText}</text>`;
+  }).join('');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="700" height="700" viewBox="0 0 700 700">
+    <rect width="700" height="700" fill="#fff"/>
+    <rect x="0" y="0" width="700" height="165" fill="#6f9fe9" stroke="#222" stroke-width="3"/>
+    <text x="350" y="92" text-anchor="middle" font-size="34" font-family="Arial" font-weight="500">Ngày: ${escSvg(date)}</text>
+    <text x="70" y="98" text-anchor="middle" font-size="45">🧧</text><text x="630" y="98" text-anchor="middle" font-size="45">🧧</text>
+    ${rowSvg}
+    <rect x="0" y="480" width="175" height="105" fill="#eee" stroke="#222" stroke-width="2"/>
+    <rect x="175" y="480" width="525" height="105" fill="#eee" stroke="#222" stroke-width="2"/>
+    <text x="87.5" y="547" text-anchor="middle" font-size="38" font-family="Arial">TC</text>
+    <text x="437.5" y="547" text-anchor="middle" font-size="34" font-family="Arial">${tcLabel} : ${fmtK(tcValue)}</text>
+    <rect x="0" y="585" width="175" height="115" fill="#eee" stroke="#222" stroke-width="2"/>
+    <rect x="175" y="585" width="525" height="115" fill="#fff" stroke="#222" stroke-width="2"/>
+    <text x="87.5" y="658" text-anchor="middle" font-size="38" font-family="Arial">Cũ</text>
+    <rect x="355" y="610" width="160" height="65" fill="#fff" stroke="#555" stroke-width="2"/>
+    <text x="435" y="655" text-anchor="middle" font-size="34" font-family="Arial">0</text>
+  </svg>`;
+  const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const img=new Image();
+  img.onload=()=>{
+    const canvas=document.createElement('canvas');canvas.width=700;canvas.height=700;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,700,700);ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(png=>{
+      const pngUrl=URL.createObjectURL(png);
+      const old=document.getElementById('cutImageModal');if(old)old.remove();
+      const modal=document.createElement('div');modal.id='cutImageModal';modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:99999;padding:14px;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;';
+      modal.innerHTML=`<div style="width:min(700px,100%);background:#fff;border-radius:12px;padding:8px;box-sizing:border-box"><img id="cutPreview" src="${pngUrl}" style="display:block;width:100%;height:auto;border-radius:4px;-webkit-user-select:auto;user-select:auto;-webkit-touch-callout:default;touch-action:auto;pointer-events:auto"></div><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button id="saveCut" style="background:#087f5b;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:800">LƯU ẢNH</button><button id="openCut" style="background:#f59e0b;color:#111;border:0;border-radius:10px;padding:12px 18px;font-weight:800">MỞ ẢNH</button><button id="shareCut" style="background:#2563eb;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:800">CHIA SẺ</button><button id="closeCut" style="background:#fff;color:#111;border:0;border-radius:10px;padding:12px 18px;font-weight:800">ĐÓNG</button></div><div style="color:#fff;font-size:13px;text-align:center;line-height:1.5">Trên iPhone: <b>nhấn giữ trực tiếp vào ảnh</b> để hiện menu của trình duyệt: Tải hình ảnh / Sao chép hình ảnh / Mở hình ảnh. Không chặn menu nhấn giữ.</div>`;
+      document.body.appendChild(modal);
+      document.getElementById('closeCut').onclick=()=>{URL.revokeObjectURL(pngUrl);modal.remove();};
+      document.getElementById('openCut').onclick=()=>{const w=window.open();if(w){w.document.write('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#111;display:flex;align-items:flex-start;justify-content:center"><img src="'+pngUrl+'" style="max-width:100%;height:auto;display:block"></body></html>');w.document.close();}};
+      document.getElementById('saveCut').onclick=async()=>{try{const f=new File([png],`tong-${x.date}.png`,{type:'image/png'});if(navigator.share&&navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:`Tổng ${date}`});}else{document.getElementById('openCut').click();}}catch(e){if(e?.name!=='AbortError')document.getElementById('openCut').click();}};
+      document.getElementById('shareCut').onclick=async()=>{try{const f=new File([png],`tong-${x.date}.png`,{type:'image/png'});if(navigator.share&&navigator.canShare?.({files:[f]}))await navigator.share({files:[f],title:`Tổng ${date}`});else document.getElementById('openCut').click();}catch(e){if(e?.name!=='AbortError')document.getElementById('openCut').click();}};
+    },'image/png');
+  };img.src=url;
+}
+$('shotTotal').onclick=openCutImage;
+$('logoutBtn2').onclick=async()=>{await sb.auth.signOut();showLogin();};
+renderCustomers();buildDays();
+
+/* ===== MENU TRƯỢT IPHONE ===== */
+(function initSideMenu(){
+  const overlay=document.getElementById('sideMenuOverlay');
+  const panel=document.getElementById('sideMenuPanel');
+  const handle=document.getElementById('edgeMenuHandle');
+  if(!overlay||!panel||!handle) return;
+  let tracking=false,startX=0,startY=0,currentX=0,dragging=false;
+  const W=()=>panel.getBoundingClientRect().width||320;
+  function setDrag(x){
+    const w=W(), clamped=Math.max(0,Math.min(w,x));
+    panel.style.transition='none';
+    panel.style.transform=`translateX(${clamped-w}px)`;
+    overlay.style.transition='none';
+    overlay.style.visibility='visible';
+    overlay.style.opacity=String(Math.min(.5,clamped/w*.5));
+    dragging=true;
+  }
+  function finish(open){
+    panel.style.transition='transform .2s ease';
+    overlay.style.transition='opacity .18s ease';
+    panel.style.transform=open?'translateX(0)':'translateX(-101%)';
+    overlay.style.opacity=open?'1':'0';
+    overlay.classList.toggle('open',open);
+    if(!open)setTimeout(()=>{if(!overlay.classList.contains('open'))overlay.style.visibility='hidden';},200);
+    else overlay.style.visibility='visible';
+    dragging=false;tracking=false;
+  }
+  function openMenu(){finish(true)}
+  function closeMenu(){finish(false)}
+  function touchStart(e){
+    if(e.touches.length!==1)return;
+    const t=e.touches[0];startX=t.clientX;startY=t.clientY;currentX=startX;
+    if(!overlay.classList.contains('open') && startX<=28)tracking=true;
+    else if(overlay.classList.contains('open'))tracking=true;
+  }
+  function touchMove(e){
+    if(!tracking||e.touches.length!==1)return;
+    const t=e.touches[0],dx=t.clientX-startX,dy=t.clientY-startY;currentX=t.clientX;
+    if(Math.abs(dx)<8&&Math.abs(dy)<8)return;
+    if(!dragging&&Math.abs(dy)>Math.abs(dx)*1.2){tracking=false;return;}
+    if(e.cancelable)e.preventDefault();
+    if(overlay.classList.contains('open'))setDrag(W()+dx);else setDrag(dx);
+  }
+  function touchEnd(){
+    if(!tracking&&!dragging)return;
+    const dx=currentX-startX,open=overlay.classList.contains('open');
+    if(open)finish(dx>-W()*.35);else finish(dx>W()*.28);
+  }
+  document.addEventListener('touchstart',touchStart,{passive:true});
+  document.addEventListener('touchmove',touchMove,{passive:false});
+  document.addEventListener('touchend',touchEnd,{passive:true});
+  handle.addEventListener('click',openMenu);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeMenu();});
+  document.querySelectorAll('.side-menu-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    const action=btn.dataset.menuAction;
+    if(action==='top')window.scrollTo({top:0,behavior:'smooth'});
+    if(action==='recent')document.getElementById('daybar')?.scrollIntoView({behavior:'smooth',block:'start'});
+    if(action==='sms')alert('Lấy lại SMS: chức năng này chưa được kết nối trong bản web hiện tại.');
+    if(action==='total')document.getElementById('out')?.scrollIntoView({behavior:'smooth',block:'start'});
+    if(action==='close'){
+      closeMenu();
+      const ok=confirm('Đóng ứng dụng và đăng xuất tài khoản này?');
+      if(ok&&typeof sb!=='undefined')sb.auth.signOut();
+      return;
+    }
+    closeMenu();
+  }));
+})();
+
+</script>
+
+<div id="guideModal" class="guide-modal" aria-hidden="true">
+  <div class="guide-box" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="guide-head">
+      <h2 id="guideTitle">📖 BẢNG HƯỚNG DẪN NHẬP PHƠI</h2>
+      <button type="button" class="guide-close" id="guideClose">ĐÓNG ✕</button>
+    </div>
+    <div class="guide-body">
+      <h3>* Cách viết tên đài</h3>
+      <div class="guide-row">Viết tắt chữ cái đầu: <code>bến tre → bt</code>, <code>vũng tàu → vt</code>.</div>
+      <div class="guide-row">Tên đài trùng chữ cái đầu thì viết rõ hơn: <code>dnang</code>, <code>dnong</code>.</div>
+      <h3>* Các loại tên đài</h3>
+      <div class="guide-row">2 đài miền Nam: <code>2dmn</code> → 3, 4 đài: <code>3dmn</code>, <code>4dmn</code>.</div>
+      <div class="guide-row">2 đài miền Trung: <code>2dmt</code> → 3 đài: <code>3dmt</code>.</div>
+      <div class="guide-row">2 đài bất kỳ: <code>vl.tv</code>.</div>
+      <h3>* Cách viết kiểu đánh</h3>
+      <div class="guide-row">Đầu đuôi: <code>dd</code> → <b>12dd10</b>.</div>
+      <div class="guide-row">Xỉu chủ: <code>xc</code>, <code>x</code> → <b>123xc10</b> hoặc <b>123x10</b>.</div>
+      <div class="guide-row">Đầu/đuôi: <code>11dau10</code>, <code>333dau10</code>, <code>11duoi10</code>, <code>333duoi10</code>.</div>
+      <div class="guide-row">Bao lô: <code>b</code> → <b>12b10</b>.</div>
+      <div class="guide-row">Đảo bao lô: <code>daob</code>, <code>bdao</code> → <b>123daob10</b>.</div>
+      <div class="guide-row">Bao lô 7, 8: <code>baobay</code>, <code>b7l</code>, <code>b8l</code> → <b>33b7l50</b>.</div>
+      <div class="guide-row">Bao lô 7, 8 đảo: <code>b7ld</code>, <code>b7ldao</code> → <b>123b7ld50</b>.</div>
+      <h3>* Đá</h3>
+      <div class="guide-row"><code>da</code>, <code>dv</code> → <b>12.34da10</b> hoặc <b>12.34dv10</b>.</div>
+      <div class="guide-row">Gộp nhiều cặp đá: <b>1234.4567da1</b>.</div>
+      <div class="guide-row">Gộp nhiều kiểu cùng số: <b>66.88da1.b5</b>.</div>
+      <h3>* Đảo xỉu chủ</h3>
+      <div class="guide-row"><code>daoxc</code>, <code>dxc</code>, <code>xcdao</code> → <b>123dxc10</b>.</div>
+      <div class="guide-row">Đảo XC đầu: <code>daodau</code>, <code>ddau</code> → <b>123ddau10</b>.</div>
+      <div class="guide-row">Đảo XC đuôi: <code>daoduoi</code>, <code>daodui</code>, <code>dduoi</code>, <code>ddui</code>.</div>
+      <h3>* Nhất To — Xiên miền Bắc</h3>
+      <div class="guide-row">Nhất To: <code>nto</code>, <code>nhatto</code> → <b>12nto10</b>.</div>
+      <div class="guide-row">Xiên miền Bắc: <code>xien</code> → <b>12.34xien10</b>.</div>
+      <h3>* 12 Con Giáp</h3>
+      <div class="guide-row"><code>12giap</code>, <code>12congiap</code> → <b>12giap.dd10n</b>.</div>
+      <h3>* Tài — Xỉu — Chẵn — Lẻ</h3>
+      <div class="guide-row">Tài: <code>tai</code> → <b>taidd10n</b>.</div>
+      <div class="guide-row">Xỉu: <code>xiu</code> → <b>xiudd10n</b>.</div>
+      <div class="guide-row">Chẵn: <code>chan</code> → <b>chandd10n</b>.</div>
+      <div class="guide-row">Lẻ: <code>le</code> → <b>ledd10n</b>.</div>
+      <div class="guide-row">Chẵn Chẵn: <code>chanchan</code> → <b>chanchandd10n</b>.</div>
+      <div class="guide-row">Lẻ Lẻ: <code>lele</code> → <b>leledd10n</b>.</div>
+      <div class="guide-row">Chẵn Lẻ: <code>chanle</code> → <b>chanledd10n</b>.</div>
+      <div class="guide-row">Lẻ Chẵn: <code>lechan</code> → <b>lechandd10n</b>.</div>
+      <h3>* Kéo</h3>
+      <div class="guide-row"><b>20/30keo90duoi10n</b> → 20, 30, 40...90.</div>
+      <div class="guide-row"><b>60/61keo69dau15n</b> → 60, 61, 62...69.</div>
+      <div class="guide-row"><b>111/222keo999xc20n</b>.</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  function initGuide(){
+    var modal=document.getElementById("guideModal");
+    var openBtn=document.querySelector('[data-menu-action="guide"]');
+    var closeBtn=document.getElementById("guideClose");
+    if(!modal||!openBtn||!closeBtn)return;
+    function openGuide(){
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden","false");
+      var overlay=document.getElementById("sideMenuOverlay");
+      var panel=document.getElementById("sideMenuPanel");
+      if(overlay)overlay.classList.remove("open");
+      if(panel)panel.classList.remove("open");
+    }
+    function closeGuide(){
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden","true");
+    }
+    openBtn.addEventListener("click",openGuide);
+    closeBtn.addEventListener("click",closeGuide);
+    modal.addEventListener("click",function(e){if(e.target===modal)closeGuide();});
+    document.addEventListener("keydown",function(e){if(e.key==="Escape")closeGuide();});
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initGuide);
+  else initGuide();
+})();
+</script>
+
+</body>
+</html>

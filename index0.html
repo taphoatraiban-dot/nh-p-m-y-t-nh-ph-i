@@ -184,9 +184,10 @@ async function registerCustomer(){
       body:JSON.stringify({phone,password,confirm_password:confirm})
     });
     const json=await res.json().catch(()=>({}));
-    if(!res.ok||!json.ok) throw new Error(json.message||"Không đăng ký được.");
+    if(!res.ok||json.success!==true) throw new Error(json.error||json.message||"Không đăng ký được.");
 
-    const {error}=await sb.auth.signInWithPassword({phone,password});
+    const authPhone=phone.startsWith("84") ? "+"+phone : phone;
+    const {error}=await sb.auth.signInWithPassword({phone:authPhone,password});
     if(error) throw error;
     $("registerStatus").className="status ok";
     $("registerStatus").textContent="Đăng ký thành công. Đang mở phần mềm...";
@@ -239,7 +240,8 @@ $("loginBtn").onclick=async()=>{
   if(!raw||!password){loginStatus("Nhập số điện thoại và mật khẩu.","err");return;}
   loginStatus("Đang đăng nhập...");
   const phone=normalizePhone(raw);
-  const {data,error}=await sb.auth.signInWithPassword({phone,password});
+  const authPhone=phone.startsWith("84") ? "+"+phone : phone;
+  const {data,error}=await sb.auth.signInWithPassword({phone:authPhone,password});
   if(error){loginStatus("Số điện thoại hoặc mật khẩu không đúng.","err");return;}
   try{await checkLicense();await claimDevice();showApp();loginStatus("");}
   catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}

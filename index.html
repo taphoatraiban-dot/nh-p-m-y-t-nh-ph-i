@@ -221,7 +221,7 @@ button{border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:poin
      <button class="blue" id="getMonth" type="button">LẤY KQ 7 NGÀY TRƯỚC → CUỐI NĂM</button>
      <button class="soft" id="scan" type="button">DÒ PHƠI THEO KQ</button>
    </div>
-   <div id="resultLookupStatus" class="muted">Nguồn: Xổ Số Minh Chính. Mặc định: 7 ngày trước ngày đang tính → hết năm. Có thể chỉnh khoảng ngày nếu cần.</div>
+   <div id="resultLookupStatus" class="muted">Nguồn: Xổ Số  Mặc định: 7 ngày trước ngày đang tính → hết năm. Có thể chỉnh khoảng ngày nếu cần.</div>
    <div id="lotteryViewer" class="lottery-viewer"></div>
  </div>
  <textarea id="bets" rows="30" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="DÁN TOÀN BỘ PHƠI VÀO ĐÂY..." data-max-lines="300"></textarea>
@@ -729,17 +729,104 @@ function parseMinhChinhHtml(html,region,date){
     if(hasPrizeStructure(out[0])) return out;
   }
   throw new Error(`Không đọc được bảng KQ Minh Chính ${region} ngày ${date}`);
-}
+
 async function fetchLotteryRegion(region,date){
-  const urls=[minhChinhUrl(region,date),minhChinhWeeklyUrl(region,date)];
-  let last=null;
-  for(const url of urls){
-    try{const html=await fetchTextMinhChinh(url);const rows=parseMinhChinhHtml(html,region,date);if(rows.length)return uniqueDraws(rows);}catch(e){last=e;}
+  const regionMap = {
+    N: "MB",
+    T: "MT",
+    B: "MN"
+  };
+
+  const apiRegion = regionMap[region] || region;
+
+  const url =
+    `${SUPABASE_URL}/functions/v1/xoso-results` +
+    `?date=${encodeURIComponent(date)}` +
+    `&region=${encodeURIComponent(apiRegion)}`;
+
+  const response = await fetch(url);
+
+  const data = await response.json();
+
+  if (!response.ok || !data.ok) {
+    throw new Error(
+      data?.error ||
+      `Không lấy được KQ ${apiRegion} ngày ${date}`
+    );
   }
-  try{const rows=await fetchFallbackRegion(region,date);if(rows.length)return uniqueDraws(rows);}catch(e){last=e;}
-  throw last||new Error(`Không lấy được KQ Minh Chính ${region} ${date}`);
-}
-async function getAllLotteryResultsForDate(date,render=true){
+
+  const rows = Array.isArray(data?.data?.data)
+    ? data.data.data
+    : [];
+
+  if (!rows.length) {
+    throw new Error(
+      `Không có dữ liệu ${apiRegion} ngày ${date}`
+    );
+  }
+
+  const out = [];
+
+  for (const draw of rows) {
+    const provinceName =
+      draw?.province?.name ||
+      draw?.province?.code ||
+      "Không rõ đài";
+
+    const results = Array.isArray(draw?.results)
+      ? draw.results.map(x => String(x).padStart(2,"0"))
+      : [];
+
+    if (!results.length) continue;
+
+    const prizes = {};
+
+    if (apiRegion === "MB") {
+      const keys = [
+        "G7","G6","G5","G4",
+        "G3","G2","G1","DB"
+      ];
+
+      let p = 0;
+
+      prizes.G7 = results.slice(p,p+4); p += 4;
+      prizes.G6 = results.slice(p,p+3); p += 3;
+      prizes.G5 = results.slice(p,p+6); p += 6;
+      prizes.G4 = results.slice(p,p+4); p += 4;
+      prizes.G3 = results.slice(p,p+6); p += 6;
+      prizes.G2 = results.slice(p,p+2); p += 2;
+      prizes.G1 = results.slice(p,p+1); p += 1;
+      prizes.DB = results.slice(p,p+1);
+    } else {
+      let p = 0;
+
+      prizes.G8 = results.slice(p,p+1); p += 1;
+      prizes.G7 = results.slice(p,p+1); p += 1;
+      prizes.G6 = results.slice(p,p+3); p += 3;
+      prizes.G5 = results.slice(p,p+1); p += 1;
+      prizes.G4 = results.slice(p,p+7); p += 7;
+      prizes.G3 = results.slice(p,p+2); p += 2;
+      prizes.G2 = results.slice(p,p+1); p += 1;
+      prizes.G1 = results.slice(p,p+1); p += 1;
+      prizes.DB = results.slice(p,p+1);
+    }
+
+    out.push({
+      date,
+      station_name: provinceName,
+      province: provinceName,
+      prizes
+    });
+  }
+
+  if (!out.length) {
+    throw new Error(
+      `Không đọc được kết quả ${apiRegion} ngày ${date}`
+    );
+  }
+
+  return out;
+}  async function getAllLotteryResultsForDate(date,render=true){
   const [mnR,mtR,mbR]=await Promise.allSettled([fetchLotteryRegion('N',date),fetchLotteryRegion('T',date),fetchLotteryRegion('B',date)]);
   const mn=mnR.status==='fulfilled'?mnR.value:[],mt=mtR.status==='fulfilled'?mtR.value:[],mb=mbR.status==='fulfilled'?mbR.value:[];
   const errors=[]; if(mnR.status==='rejected')errors.push('MN: '+mnR.reason.message);if(mtR.status==='rejected')errors.push('MT: '+mtR.reason.message);if(mbR.status==='rejected')errors.push('MB: '+mbR.reason.message);

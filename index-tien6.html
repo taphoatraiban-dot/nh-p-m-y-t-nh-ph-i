@@ -1,0 +1,2598 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>THẦN SỐ HỌC</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;color:#17202a}
+.wrap{max-width:900px;margin:auto;padding:14px}.card{background:#fff;border:1px solid #ddd;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 2px 10px #0000000b}
+h1{font-size:22px;text-align:center;margin:5px 0 14px}.muted{color:#687078;font-size:12px}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;padding:11px;border:1px solid #bbb;border-radius:10px;background:#fff}
+textarea{min-height:520px;height:520px;max-height:70vh;resize:vertical;font:14px/1.45 ui-monospace,monospace;white-space:pre;overflow:auto;-webkit-overflow-scrolling:touch}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.grid label{font-size:12px;font-weight:800}
+button{border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer}.primary{background:#c51d2b;color:#fff}.blue{background:#2563eb;color:#fff}.green{background:#087f5b;color:#fff}.danger{background:#a61b29;color:#fff}.soft{background:#e9ecef}
+.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.buttons button{flex:1;min-width:140px}
+.status{padding:10px;border-radius:10px;background:#eef4ff;margin-top:10px;font-size:13px}.ok{background:#eafaf3;color:#08643c}.err{background:#fff0f0;color:#a00}
+.hidden{display:none}.device{background:#f7f8fa;border-radius:10px;padding:10px;margin-top:10px}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#e8eefc;font-size:11px;font-weight:800}
+.title{font-weight:900;background:#eef3ff;padding:10px;border-radius:9px;margin-bottom:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.stat{text-align:center;border:1px solid #eee;border-radius:10px;padding:9px}.stat b{display:block;font-size:18px}
+.scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid #eee;padding:7px;white-space:nowrap;text-align:right}th:first-child,td:first-child{text-align:left}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.buttons{display:grid;grid-template-columns:1fr 1fr}.buttons button{min-width:0}.stats{grid-template-columns:1fr 1fr}}
+
+.customer-list{display:grid;gap:8px}.customer-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #eee;border-radius:10px;padding:9px}.customer-row small{display:block;color:#687078}.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.price-grid label{font-size:12px;font-weight:800}.price-grid input{margin-top:4px}@media(max-width:600px){.price-grid{grid-template-columns:1fr}}
+
+/* ===== V3: giao diện tổng hợp ===== */
+.topbar{background:#111827;color:#fff;border-radius:14px;padding:12px;margin-bottom:10px}.topbar h1{margin:0;font-size:21px}.subnav{display:flex;gap:7px;overflow:auto;margin-top:9px}.subnav button{white-space:nowrap;background:#fff;color:#111827;border:1px solid #d1d5db;padding:8px 11px}
+.section-title{font-weight:900;font-size:18px;text-align:center;padding:9px;background:#f1f5f9;border-radius:10px;margin-bottom:10px}.section-title.red{background:#fee2e2;color:#991b1b}.section-title.green{background:#dcfce7;color:#166534}
+.price-original{border:2px solid #2563eb;border-radius:10px;padding:10px}.price-customer{border:2px solid #16a34a;border-radius:10px;padding:10px;margin-top:10px}.price-grid.v3{grid-template-columns:repeat(4,1fr)}
+.price-grid.v3 label{font-size:11px}.price-grid.v3 input{font-weight:800;text-align:center}
+.daybar{display:flex;gap:7px;overflow:auto;padding-bottom:3px}.daybar button{min-width:92px;background:#f3f4f6;border:1px solid #d1d5db}.daybar button.active{background:#2563eb;color:#fff}.bigok{width:100%;font-size:20px;background:#c51d2b;color:#fff;margin-top:10px}
+.action-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px} .total-actions{margin-top:8px}.total-actions button{font-size:15px;padding:10px 8px}.action-mini button{min-width:0}.copybtn{background:#111827;color:#fff}.shotbtn{background:#7c3aed;color:#fff}
+.total-card{border:2px solid #2563eb;background:#fff}.total-table{width:100%;border-collapse:collapse}.total-table th{background:#4b5563;color:#fff;padding:8px}.total-table td{border-bottom:1px solid #ddd;padding:8px;text-align:center;font-weight:700}.total-table td:first-child{text-align:left}.rednum{color:#c22;font-weight:900}.greenmoney{color:#087f5b;font-weight:900}.v3line{border-bottom:1px dashed #ccc;padding:8px 2px}.hitline{background:#ecfdf5}.missline{background:#fff}.result-pill{display:inline-block;padding:2px 7px;border-radius:99px;font-size:11px;font-weight:900;background:#dcfce7;color:#166534}.miss-pill{background:#fee2e2;color:#991b1b}
+@media(max-width:600px){.price-grid.v3{grid-template-columns:1fr 1fr}.topbar h1{font-size:19px}}
+/* ===== PHOM BANG TINH THEO MAU TIMKIEM.ONLINE ===== */
+.calc-box{border:2px solid #d7d7d7;background:#fff;border-radius:2px;padding:0;overflow:hidden;box-shadow:none;margin:12px 0}
+.calc-head{font-weight:900;font-size:26px;line-height:1.15;text-align:center;padding:13px 8px;background:#fff;border-bottom:1px solid #999;color:#222}
+.calc-summary{display:grid;grid-template-columns:1fr;padding:8px 10px;background:#fff;font-weight:800;font-size:18px;line-height:1.45;text-align:center;border-bottom:1px solid #d33;color:#3046b7}
+.calc-summary>div{padding:0;border:0;border-radius:0;text-align:center}
+.calc-summary .calc-tag{display:inline-block;margin:4px auto 0;background:#fff;color:#65b800;border:0;border-radius:0;font-size:22px;font-weight:900;padding:0}
+.station-title{background:#dff06a;color:#222;font-weight:900;font-size:20px;text-align:center;padding:5px 4px;border-top:1px solid #555;border-bottom:1px solid #555;line-height:1.15}
+.calc-detail-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;background:#fff}
+.calc-detail-table th,.calc-detail-table td{border:1px solid #777;padding:6px 4px;text-align:center;vertical-align:middle;line-height:1.15}
+.calc-detail-table th{background:#f4f4f4;font-weight:900;color:#222}
+.calc-detail-table th:nth-child(1){width:29%}.calc-detail-table th:nth-child(2){width:15%}.calc-detail-table th:nth-child(3){width:18%}.calc-detail-table th:nth-child(4){width:23%}.calc-detail-table th:nth-child(5){width:15%}
+.calc-detail-table td:nth-child(1){font-weight:800;text-align:center;white-space:normal;word-break:break-word}
+.calc-detail-table .calc-hit{background:#ff2b12;color:#111;font-weight:900}
+.calc-detail-table .calc-hit td:last-child{font-weight:900;color:#111}
+.calc-detail-table .calc-miss td:last-child{font-weight:900;color:#111}
+.calc-detail-table .calc-total td{font-weight:900;background:#f2f2f2}
+.calc-region-total{padding:8px 10px;border-top:1px solid #555;text-align:center;font-size:18px;font-weight:900;line-height:1.45;background:#fff;color:#3046b7}
+.calc-region-total .rednum{color:#3046b7}.calc-region-total .greenmoney{color:#3046b7}
+@media(max-width:600px){.calc-head{font-size:24px}.calc-summary{font-size:17px}.station-title{font-size:18px}.calc-detail-table{font-size:13px}.calc-detail-table th,.calc-detail-table td{padding:6px 2px}.calc-region-total{font-size:16px}}
+
+/* ===== PHOM BANG CHUAN TIMKIEM ===== */
+.legacy-calc-region{background:#fff;border:1px solid #d7d7d7;margin:14px 0 18px;overflow:hidden}
+.legacy-region-title{text-align:center;font-family:Georgia,serif;font-size:30px;font-weight:700;padding:12px 8px;border-bottom:1px solid #d66;color:#222}
+.legacy-summary{text-align:center;padding:12px 8px;border-bottom:1px solid #d66;font-size:21px;line-height:1.45;color:#344bb4;font-weight:600}
+.legacy-summary b{font-weight:800}
+.legacy-blue{color:#344bb4}.legacy-green{color:#27855f}.legacy-red{color:#d72626}
+.legacy-station-title{background:#e5f47b;border-top:2px solid #d33;border-bottom:1px solid #777;text-align:center;font-size:26px;font-weight:800;padding:7px 4px;color:#111}
+.legacy-table-wrap{overflow-x:auto}
+.legacy-calc-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:18px;background:#fff}
+.legacy-calc-table th,.legacy-calc-table td{border:1px solid #777;text-align:center;padding:6px 4px;line-height:1.15;vertical-align:middle}
+.legacy-calc-table th{font-weight:800;background:#f4f4f4}
+.legacy-calc-table th:nth-child(1){width:30%}.legacy-calc-table th:nth-child(2){width:14%}.legacy-calc-table th:nth-child(3){width:16%}.legacy-calc-table th:nth-child(4){width:23%}.legacy-calc-table th:nth-child(5){width:17%}
+.legacy-calc-table tr.legacy-hit td{background:#f0442d;color:#050505;font-weight:800}
+.legacy-calc-table tr.legacy-miss td{background:#fff;color:#222}
+.legacy-calc-table tfoot td{background:#f5f5f5;font-size:18px}
+.legacy-region-total{text-align:center;padding:12px 8px;border-top:1px solid #d66;color:#344bb4;font-size:21px;font-weight:700;line-height:1.45}
+@media(max-width:600px){.legacy-region-title{font-size:28px}.legacy-summary{font-size:19px}.legacy-station-title{font-size:24px}.legacy-calc-table{font-size:16px}.legacy-calc-table th,.legacy-calc-table td{padding:5px 2px}.legacy-region-total{font-size:19px}}
+
+/* ===== GIAO DIỆN GỌN - THẦN SỐ HỌC ===== */
+.mini-label{font-size:15px;font-weight:900;margin:2px 0 7px;color:#166534}
+.compact-top{background:#111827;color:#fff;border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.compact-brand{font-size:22px;font-weight:900;text-align:center;letter-spacing:.3px;padding:4px 0 8px}
+.compact-menu{position:relative}
+.compact-menu summary{list-style:none;cursor:pointer;background:#fff;color:#111827;border-radius:10px;padding:10px 12px;font-weight:900;text-align:center;border:1px solid #d1d5db}
+.compact-menu summary::-webkit-details-marker{display:none}
+.compact-menu summary:after{content:'☰';float:right}
+.compact-menu[open] summary:after{content:'×'}
+.compact-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:7px}
+.compact-actions button{min-width:0;padding:9px 6px;font-size:13px}
+.compact-section{border:1px solid #d8dee8;border-radius:14px;background:#fff;margin:10px 0;overflow:hidden}
+.compact-section>summary{list-style:none;cursor:pointer;padding:13px 15px;font-size:18px;font-weight:900;background:#eef3ff;color:#17202a}
+.compact-section>summary::-webkit-details-marker{display:none}
+.compact-section>summary:after{content:'＋';float:right;font-size:22px}
+.compact-section[open]>summary:after{content:'−'}
+.compact-section .compact-body{padding:10px}
+.compact-section.green>summary{background:#dcfce7;color:#166534}
+.compact-section.red>summary{background:#fee2e2;color:#991b1b}
+.compact-section.gray>summary{background:#f1f5f9;color:#17202a}
+#devicePanel{display:none!important}
+.compact-section .section-title{display:none}
+@media(max-width:600px){
+ .compact-brand{font-size:21px}
+ .compact-actions{grid-template-columns:repeat(2,1fr)}
+ .compact-actions button{font-size:12px}
+ .compact-section>summary{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="loginCard" class="card">
+<h1>🔐 ĐĂNG NHẬP</h1>
+<div class="grid">
+<label>Email
+<input id="email" type="email" autocomplete="username" placeholder="email@example.com">
+</label>
+<label>Mật khẩu
+<input id="password" type="password" autocomplete="current-password" placeholder="Mật khẩu">
+</label>
+</div>
+<div class="buttons">
+<button class="primary" id="loginBtn">ĐĂNG NHẬP</button>
+<button class="soft" id="showRegisterBtn">ĐĂNG KÝ LẦN ĐẦU</button>
+</div>
+<div id="loginStatus" class="status">Đăng nhập bằng Email + mật khẩu.</div>
+<p class="muted">Lần đầu: Email phải được Admin cấp license trước. Khách tự đặt mật khẩu. Mỗi tài khoản chỉ dùng được 1 thiết bị.</p>
+</section>
+
+<section id="registerCard" class="card hidden">
+<h1>🆕 ĐĂNG KÝ LẦN ĐẦU</h1>
+<div class="grid">
+<label>Email
+<input id="regEmail" type="email" autocomplete="username" placeholder="email@example.com">
+</label>
+<label>Mật khẩu mới
+<input id="regPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự">
+</label>
+<label>Nhập lại mật khẩu
+<input id="regPassword2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu">
+</label>
+</div>
+<div class="buttons">
+<button class="green" id="registerBtn">TẠO TÀI KHOẢN</button>
+<button class="soft" id="backLoginBtn">QUAY LẠI ĐĂNG NHẬP</button>
+</div>
+<div id="registerStatus" class="status">Email phải được Admin cấp license trước.</div>
+</section>
+
+<section id="appCard" class="hidden">
+<div class="compact-top">
+ <div class="compact-brand">🔮 THẦN SỐ HỌC</div>
+ <details class="compact-menu">
+  <summary>MENU CHỨC NĂNG</summary>
+  <div class="compact-actions">
+   <button onclick="scrollToId('customerCard')">💰 BẢNG GIÁ</button>
+   <button onclick="scrollToId('betsCard')">📝 NHẬP PHƠI</button>
+   <button onclick="scrollToId('out')">📊 KẾT QUẢ</button>
+   <button id="logoutBtn2">🚪 ĐĂNG XUẤT</button>
+  </div>
+ </details>
+ <div id="devicePanel" class="device"><span class="badge">THIẾT BỊ</span> <b id="deviceState">Đang kiểm tra...</b><div class="muted" id="deviceInfo"></div><div id="licenseState" class="muted" style="margin-top:5px;font-weight:800"></div></div>
+</div>
+
+<details class="compact-section gray" id="adminWrap">
+ <summary>👑 QUẢN LÝ KHÁCH HÀNG</summary>
+ <div class="compact-body">
+  <div class="card hidden" id="adminCard">
+   <div class="grid">
+    <label>Email khách<input id="adminEmail" type="email" autocomplete="email" placeholder="khach@example.com"></label>
+    <label>Số ngày cấp<input id="adminDays" type="number" min="1" value="30"></label>
+    <label>Ghi chú<input id="adminNote" placeholder="Ví dụ: Khách A"></label>
+   </div>
+   <div class="buttons"><button class="green" id="createCustomerBtn">＋ CẤP EMAIL + LICENSE</button></div>
+   <div id="adminStatus" class="status">Admin cấp trước Email. Khách sẽ tự đặt mật khẩu ở lần đăng ký đầu tiên.</div>
+  </div>
+ </div>
+</details>
+
+<details class="compact-section red" id="customerCard">
+ <summary>🧮 BẢNG TÍNH</summary>
+ <div class="compact-body">
+  <div class="grid"><label>Khách đang tính<select id="customerSelect"></select></label><label>Tên khách mới<input id="customerName" placeholder="Nhập tên khách"></label></div>
+  <div class="price-original"><b>GỐC ĐANG DÙNG</b><div class="price-grid v3" style="margin-top:8px">
+   <label>DD<input id="p_dd" type="number" step=".01"></label><label>XC<input id="p_xc" type="number" step=".01"></label><label>BL 2<input id="p_b2" type="number" step=".01"></label><label>BL 3<input id="p_b3" type="number" step=".01"></label><label>BL 4<input id="p_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="p_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="p_dathang" type="number" step=".01"></label><label>Đá MB<input id="p_daMB" type="number" step=".01" value="640"></label><label>Giá nhận<input id="p_receive" type="number" step=".01"></label><label>Hồi khi thu<input id="p_repay" type="number" step=".01"></label></div></div>
+  <div class="price-customer"><b>↓ CÒ NHẬN CHO KHÁCH ↓</b><div class="price-grid v3" style="margin-top:8px"><label>DD<input id="c_dd" type="number" step=".01"></label><label>XC<input id="c_xc" type="number" step=".01"></label><label>BL 2<input id="c_b2" type="number" step=".01"></label><label>BL 3<input id="c_b3" type="number" step=".01"></label><label>BL 4<input id="c_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="c_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="c_dathang" type="number" step=".01"></label><label>Đá MB<input id="c_daMB" type="number" step=".01"></label><label>Giá nhận<input id="c_receive" type="number" step=".01"></label><label>Hồi khi thu<input id="c_repay" type="number" step=".01"></label></div></div>
+  <div class="action-mini"><button class="green" id="saveCustomer">💾 LƯU KHÁCH</button><button class="soft" id="newCustomer">＋ KHÁCH MỚI</button><button class="danger" id="deleteCustomer">🗑 XÓA KHÁCH</button><button class="blue" id="multiPriceBtn">NHẬN NHIỀU GIÁ</button></div><div id="customerStatus" class="status">Sẵn sàng.</div>
+ </div>
+</details>
+
+<details class="compact-section green" id="betsCard">
+ <summary>📝 NHẬP PHƠI</summary>
+ <div class="compact-body">
+  <div class="daybar" id="daybar"></div>
+  <div class="grid"><label>Ngày đang tính<input id="date" type="date"></label><label>Khách / Giá nhận<input id="rateDisplay" readonly></label></div>
+  <textarea id="bets" rows="30" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" style="white-space:pre;overflow:auto" placeholder="DÁN TOÀN BỘ PHƠI VÀO ĐÂY..."></textarea>
+  <div style="display:flex;gap:8px;margin:8px 0">
+    <button type="button" id="pasteAll" class="soft" style="flex:1">📋 DÁN TOÀN BỘ</button>
+    <button type="button" id="clearBets" class="soft" style="flex:1">XÓA PHƠI</button>
+  </div>
+  <div class="muted">Ô phơi không giới hạn số dòng. Dùng “DÁN TOÀN BỘ” nếu Safari/iPhone dán thiếu dữ liệu từ Zalo/Ghi chú.</div>
+  <button class="bigok" id="okAll">OK</button>
+  <div id="status" class="status">Sẵn sàng.</div>
+ </div>
+</details>
+
+<section id="out" style="display:none"></section>
+</section>
+
+</div>
+
+<script>
+const SUPABASE_URL="https://zigpqddlhvjbjrwhfhaa.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
+const $=id=>document.getElementById(id);
+const setStatus=(t,cls="")=>{ $("status").className="status "+cls; $("status").textContent=t; };
+const loginStatus=(t,cls="")=>{ $("loginStatus").className="status "+cls; $("loginStatus").textContent=t; };
+
+// Khi dán phơi từ Zalo/Telegram, chuẩn hóa ngay trong ô để người dùng nhìn thấy
+// đúng dạng mà bộ máy tính sẽ nhận diện. Không giới hạn số dòng.
+function normalizePasteVisible(){
+  const el=$("bets"); if(!el) return;
+  const before=el.value;
+  const after=cleanTelegramPhoiText(before);
+  if(after && after!==before){
+    const pos=el.selectionStart||after.length;
+    el.value=after;
+    try{el.setSelectionRange(Math.min(pos,after.length),Math.min(pos,after.length));}catch(e){}
+  }
+}
+if($("bets")){
+  $("bets").addEventListener("paste",()=>setTimeout(normalizePasteVisible,0));
+}
+
+async function checkLicense(){
+  const {data,error}=await sb.rpc("check_email_license");
+  if(error) throw error;
+  // RPC check_email_license trả về: success, active, is_admin, email, expires_at, message
+  // Không dùng data.allowed vì RPC hiện tại không có trường này.
+  if(!data?.success || !data?.active){
+    throw new Error(data?.message||"Tài khoản chưa có bản quyền.");
+  }
+  if(data.is_admin){
+    $("licenseState").textContent="BẢN QUYỀN: ADMIN • VÔ THỜI HẠN";
+  }else{
+    const exp=data.expires_at?new Date(data.expires_at).toLocaleDateString("vi-VN"):"—";
+    $("licenseState").textContent=`BẢN QUYỀN: CÒN ${data.days_left} NGÀY • HẾT HẠN ${exp}`;
+  }
+  $("adminCard").classList.toggle("hidden",!data.is_admin);
+  return data;
+}
+
+async function reserveCustomer(){
+  const email=$("adminEmail").value.trim().toLowerCase();
+  const days=Number($("adminDays").value||30);
+  const note=$("adminNote").value.trim();
+  $("adminStatus").className="status";
+  $("adminStatus").textContent="Đang cấp Email...";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    $("adminStatus").className="status err";
+    $("adminStatus").textContent="Email không hợp lệ.";
+    return;
+  }
+  try{
+    const {data,error}=await sb.rpc("admin_reserve_email",{p_email:email,p_days:days,p_note:note||null});
+    if(error) throw error;
+    if(!data?.ok) throw new Error(data?.message||"Không cấp được license.");
+    $("adminStatus").className="status ok";
+    $("adminStatus").textContent=`Đã cấp ${email} • ${days} ngày • Hạn ${new Date(data.expires_at).toLocaleDateString("vi-VN")}.`;
+    $("adminEmail").value="";$("adminNote").value="";
+  }catch(e){
+    $("adminStatus").className="status err";
+    $("adminStatus").textContent=e.message;
+  }
+}
+$("createCustomerBtn").onclick=reserveCustomer;
+
+async function registerCustomer(){
+  const email=$("regEmail").value.trim().toLowerCase();
+  const password=$("regPassword").value;
+  const confirm=$("regPassword2").value;
+  $("registerStatus").className="status";
+  $("registerStatus").textContent="Đang tạo tài khoản...";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent="Email không hợp lệ.";
+    return;
+  }
+  if(password.length<6){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent="Mật khẩu tối thiểu 6 ký tự.";
+    return;
+  }
+  if(password!==confirm){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent="Hai mật khẩu không giống nhau.";
+    return;
+  }
+  try{
+    const {data,error}=await sb.auth.signUp({
+      email,
+      password,
+      options:{data:{license_email:email}}
+    });
+    if(error) throw error;
+    if(!data?.user) throw new Error("Không tạo được tài khoản.");
+
+    // Nếu Supabase đang yêu cầu xác nhận email, báo rõ.
+    if(!data.session){
+      $("registerStatus").className="status ok";
+      $("registerStatus").textContent="Tài khoản đã tạo. Hãy xác nhận Email rồi đăng nhập.";
+      return;
+    }
+
+    $("registerStatus").className="status ok";
+    $("registerStatus").textContent="Đăng ký thành công. Đang mở phần mềm...";
+    await checkLicense();
+    await claimDevice();
+    showApp();
+  }catch(e){
+    $("registerStatus").className="status err";
+    $("registerStatus").textContent=e.message;
+  }
+}
+$("registerBtn").onclick=registerCustomer;
+
+$("showRegisterBtn").onclick=()=>{
+  $("loginCard").classList.add("hidden");
+  $("registerCard").classList.remove("hidden");
+  $("regEmail").value=$("email").value;
+  $("regEmail").focus();
+};
+$("backLoginBtn").onclick=()=>{
+  $("registerCard").classList.add("hidden");
+  $("loginCard").classList.remove("hidden");
+  $("email").focus();
+};
+
+function deviceId(){
+  let id=localStorage.getItem("device_lock_id");
+  if(!id){
+    id=crypto.randomUUID();
+    localStorage.setItem("device_lock_id",id);
+  }
+  return id;
+}
+function deviceName(){
+  const ua=navigator.userAgent;
+  if(/iPhone/i.test(ua))return "iPhone";
+  if(/iPad/i.test(ua))return "iPad";
+  if(/Android/i.test(ua))return "Android";
+  if(/Mac/i.test(ua))return "Mac";
+  if(/Windows/i.test(ua))return "Windows";
+  return "Thiết bị web";
+}
+async function claimDevice(){
+  const {data,error}=await sb.rpc("claim_device",{p_device_id:deviceId(),p_device_name:deviceName()});
+  if(error)throw error;
+  if(!data?.allowed) throw new Error(data?.message||"Tài khoản đã khóa trên thiết bị khác.");
+  $("deviceState").textContent="ĐÃ KHÓA CHO THIẾT BỊ NÀY";
+  $("deviceInfo").textContent=`${deviceName()} • mã thiết bị ${deviceId().slice(0,8)}…`;
+}
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    try{await checkLicense();await claimDevice();showApp();}
+    catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}
+  }else showLogin();
+}
+function showApp(){$("loginCard").classList.add("hidden");$("appCard").classList.remove("hidden");}
+function showLogin(){$("loginCard").classList.remove("hidden");$("registerCard").classList.add("hidden");$("appCard").classList.add("hidden");}
+$("loginBtn").onclick=async()=>{
+  const email=$("email").value.trim().toLowerCase();
+  const password=$("password").value;
+  if(!email||!password){loginStatus("Nhập Email và mật khẩu.","err");return;}
+  loginStatus("Đang đăng nhập...");
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error){loginStatus("Email hoặc mật khẩu không đúng.","err");return;}
+  try{await checkLicense();await claimDevice();showApp();loginStatus("");}
+  catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}
+};
+if($("logoutBtn2")) $("logoutBtn2").onclick=async()=>{await sb.auth.signOut();showLogin();};
+sb.auth.onAuthStateChange((_event,session)=>{if(!session)showLogin();});
+boot();
+
+const DEFAULT_CUSTOMERS={
+  "X74":{xc:640,dd:74,da2:540,dathang:700,b2:74,b3:640,b4:5200,receive:.80,repay:1},
+  "X79":{xc:640,dd:76,da2:540,dathang:700,b2:75,b3:640,b4:5000,receive:.79,repay:1},
+  "Hạnh":{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,receive:.76,repay:.95},
+  "Tuấn":{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,receive:.77,repay:.95}
+};
+const CUSTOMER_KEY="phoi_customers_v1";
+let customers=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||"null")||DEFAULT_CUSTOMERS;
+let currentCustomer="X74";
+function saveCustomers(){localStorage.setItem(CUSTOMER_KEY,JSON.stringify(customers));}
+function syncCustomerSelect(){const sel=$("customerSelect");sel.innerHTML=Object.keys(customers).map(n=>`<option>${n.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</option>`).join(""); if(customers[currentCustomer])sel.value=currentCustomer; loadCustomer();}
+function loadCustomer(){currentCustomer=$("customerSelect").value;const c=customers[currentCustomer];if(!c)return; ["xc","dd","da2","dathang","b2","b3","b4"].forEach(k=>$("p_"+k).value=c[k]);$("p_receive").value=c.receive;$("p_repay").value=c.repay;$("rateDisplay").value=`${currentCustomer} — nhận ${c.receive} / hồi ${c.repay}`;$("customerStatus").textContent=`Đang dùng bảng giá: ${currentCustomer}`;}
+function readCustomer(){return {xc:+$("p_xc").value||0,dd:+$("p_dd").value||0,da2:+$("p_da2").value||0,dathang:+$("p_dathang").value||0,b2:+$("p_b2").value||0,b3:+$("p_b3").value||0,b4:+$("p_b4").value||0,receive:+$("p_receive").value||0,repay:+$("p_repay").value||0};}
+$("customerSelect").onchange=loadCustomer;
+$("newCustomer").onclick=()=>{$("customerName").value="";$("customerName").focus();};
+$("saveCustomer").onclick=()=>{let name=$("customerName").value.trim()||$("customerSelect").value;if(!name){alert("Nhập tên khách.");return;}customers[name]=readCustomer();currentCustomer=name;saveCustomers();syncCustomerSelect();$("customerSelect").value=name;loadCustomer();$("customerStatus").textContent=`Đã lưu bảng giá cho ${name}.`;};
+$("deleteCustomer").onclick=()=>{let name=$("customerSelect").value;if(Object.keys(customers).length<=1){alert("Phải giữ ít nhất 1 bảng giá.");return;}if(confirm(`Xóa bảng giá ${name}?`)){delete customers[name];saveCustomers();currentCustomer=Object.keys(customers)[0];syncCustomerSelect();}};
+
+function groups(r){return r==="B"?27:18}
+// Chuẩn hóa phôi khi COPY trực tiếp từ Telegram.
+// Bỏ tên người gửi + [Th. 9 25, 16:13 2026], bỏ ký tự tiền tệ ₫/đ trong mã đài,
+// chuẩn hóa dấu câu/khoảng trắng nhưng KHÔNG thay đổi số tiền hay số cược.
+function normalizePhoiToken(v){
+ let t=String(v||"").trim().toLowerCase();
+ t=t.replace(/[₫đĐ]/g,"d");
+ t=t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+ t=t.replace(/[.:;]+$/g,"");
+ t=t.replace(/\s+/g,"");
+ return t;
+}
+function cleanTelegramPhoiText(text){
+ let out=[];
+ const lines=String(text||"").replace(/\r/g,"").split("\n");
+ for(const rawLine of lines){
+   let line=rawLine.trim();
+   if(!line) continue;
+   // Header Telegram dạng: T A, [Th. 9 25, 16:13 2026]
+   if(/^[^\n,]{1,120},\s*\[[^\]]*\]\s*$/.test(line)) continue;
+   // Một số bản copy có timestamp ở cuối dòng.
+   line=line.replace(/\s*\[[^\]]*\]\s*$/g,"").trim();
+   // Chuẩn hóa các biến thể đài và viết tắt thường gặp khi copy từ Zalo/Telegram.
+   // Ví dụ: Vl.88... -> Vlong\n88..., Bd.815... -> Bduong\n815..., Gl.28... -> Glai\n28..., Hn7196... -> Hn\n7196...
+   line=line.replace(/([0-9])\s*[₫đĐ]\s*(mn|mt)\b/gi,"$1d$2");
+   line=line.replace(/\b(?:đa|đá|dá)\b/gi,"da");
+   const stationPrefix=line.match(/^\s*(vl|vlong|vinhlong|bd|bduong|binhduong|gl|glai|gialai|hn|hanoi|hm|mb|tp|tpho|tphcm|hcm|hochiminh|la|longan|labp|bphuoc|bp|binhphuoc|hg|hgiang|haugiang)\s*\.?\s*(?=\d)/i);
+   if(stationPrefix){
+     const key=stationPrefix[1].toLowerCase();
+     const canonical=/^(?:vl|vlong|vinhlong)$/.test(key)?"Vlong":
+       /^(?:bd|bduong|binhduong)$/.test(key)?"Bduong":
+       /^(?:gl|glai|gialai)$/.test(key)?"Glai":
+       /^(?:tp|tpho|tphcm|hcm|hochiminh)$/.test(key)?"Tpho":
+       /^(?:la|longan)$/.test(key)?"Long An":
+       /^(?:bphuoc|bp|binhphuoc)$/.test(key)?"Bphuoc":
+       /^(?:hg|hgiang|haugiang)$/.test(key)?"Hgiang":
+       /^(?:dnong|daknong)$/.test(key)?"Dnong":
+       /^(?:qngai|quangngai)$/.test(key)?"Qngai":"Hn";
+     line=canonical+"\n"+line.slice(stationPrefix[0].length).trim();
+   }
+   // Viết tắt B + X được hiển thị thành B + XC: 576b0,5x3 -> 576b0.5xc3.
+   line=line.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*b\s*(\d+(?:[.,]\s*\d+)?)\s*x\s*(\d+(?:[.,]\s*\d+)?)(?:n)?/gi,
+     (m,raw,bp,xp)=>raw.replace(/\s+/g,'.')+"b"+bp.replace(/\s+/g,"").replace(",",".")+"xc"+xp.replace(/\s+/g,"").replace(",","."));
+   // 2dn/3dn được hiểu là 2/3 đài miền Nam.
+   line=line.replace(/\b([23])\s*[₫d]?n\b/gi,"$1dn");
+   // Chuẩn hóa dấu phẩy thập phân trong mức điểm, giữ nguyên dấu chấm phân cách số.
+   line=line.replace(/\u00a0/g," ").replace(/\s{2,}/g," ").trim();
+   // Mức điểm kiểu copy từ tin nhắn: da0\'5 / da0’5 / da0,5 -> da0.5
+   // Dấu ' chỉ là cách viết thập phân, không phải dấu phân cách phôi.
+   line=line.replace(/(\d)[\'’](\d)/g,"$1.$2");
+   // Telegram/Zalo đôi khi chèn khoảng trắng sau dấu phẩy thập phân:
+   // da0, 5 / da5, 5 -> da0.5 / da5.5. Không đổi dấu phẩy phân cách phôi.
+   line=line.replace(/(\d)\s*,\s*(\d)(?=\s*(?:n)?(?:$|[.]|x|b|d|c))/gi,"$1.$2");
+   // Trường hợp mức điểm đứng ngay sau loại cược, cho phép khoảng trắng sau dấu phẩy.
+   // Giữ dấu phẩy giữa các số (26,29da1). nums() sẽ tự tách thành 26 và 29.
+   // Chuẩn hóa kiểu copy từ Telegram: "880. 808 xcdao8n.xc55.b3"
+   // thành "880.808xcdao8n.xc55.b3" để parser đọc như phần mềm chuẩn.
+   line=line.replace(/\s*\.\s*/g,".");
+   line=line.replace(/\s+(?=(?:xdao|xcdao|daoxc|dxc|b7lo|baobay|bao7|xcdau|xcduoi|xdau|xduoi|duoi|dui|dd|xc|da|b)\b)/gi,"");
+   if(line) out.push(line);
+ }
+ // Telegram đôi khi tách danh sách số ra thành một dòng riêng:
+ // 2dmn\n304.580....304\n091.058x25.\n
+ // Phần mềm chuẩn hiểu đây là MỘT phôi. Gộp dòng số thuần vào dòng cược kế tiếp.
+ const merged=[];
+ for(let i=0;i<out.length;i++){
+   const cur=out[i];
+   const next=out[i+1]||"";
+   const curIsNumbers=/^[0-9.,;\s-]+$/.test(cur);
+   const nextIsBet=/^\s*[0-9][0-9.\s-]*(?:xdao|xcdao|daoxc|dxc|b7lo|baobay|bao7|xcdau|xcduoi|xdau|xduoi|duoi|dui|dd|xc|x|da|b2|bao2|bl2|b)\s*[0-9]/i.test(next);
+   if(curIsNumbers && nextIsBet){
+     const a=cur.replace(/[\s]+/g,"");
+     const b=next.replace(/^\s+/,"");
+     merged.push(a.replace(/[.,;]+$/g,"")+"."+b);
+     i++;
+   }else{
+     merged.push(cur);
+   }
+ }
+ return merged.join("\n");
+}
+function stationToken(t){
+ // Quy ước: LA = Long An; 2DMN = TP.HCM + Long An.
+ t=normalizePhoiToken(t);
+ // Viết tắt ĐÁ XUYÊN 2 ĐÀI: mỗi tên là một cặp đài cố định.
+ // 3dmn khi đi với DA sẽ tự bung thành 3 cặp: TP.HCM-Long An, TP.HCM-Bình Phước, Long An-Bình Phước.
+ const crossPairs={
+   // Các cặp 2 đài MN cố định theo cách ghi trong phôi/Telegram.
+   "tpholan":["TP.HCM","Long An"],
+   "hcmloan":["TP.HCM","Long An"],
+   "tphobphuoc":["TP.HCM","Bình Phước"],
+   "tphobp":["TP.HCM","Bình Phước"],
+   "lanbphuoc":["Long An","Bình Phước"],
+   "labphuoc":["Long An","Bình Phước"],
+   "labp":["Long An","Bình Phước"],
+   "tphaugiang":["TP.HCM","Hậu Giang"],
+   "vlongbduong":["Vĩnh Long","Bình Dương"],
+   "vinhlongbduong":["Vĩnh Long","Bình Dương"],
+   "vlongbd":["Vĩnh Long","Bình Dương"],
+   "bduongvlong":["Bình Dương","Vĩnh Long"],
+   "bduongtvinh":["Bình Dương","Trà Vinh"],
+   "binhduongtravinh":["Bình Dương","Trà Vinh"],
+   "bdtvinh":["Bình Dương","Trà Vinh"],
+   "tvinhbduong":["Trà Vinh","Bình Dương"],
+   "tvinhvlong":["Trà Vinh","Vĩnh Long"],
+   "travinhvlong":["Trà Vinh","Vĩnh Long"],
+   "travinvinhlong":["Trà Vinh","Vĩnh Long"],
+   "vlongtvinh":["Vĩnh Long","Trà Vinh"]
+ };
+ if(crossPairs[t]) return {region:"N",stations:2,label:crossPairs[t].join(" + "),crossProvinces:crossPairs[t],cross2:true};
+ if(/^4d(mn|mt)$/.test(t) && t.endsWith("mn")) return {region:"N",stations:4,label:"4 Đài MN",fixedStations:["TP.HCM","Long An","Bình Phước","Hậu Giang"]};
+ if(/^3d(mn|mt)$/.test(t) && t.endsWith("mn")) return {region:"N",stations:3,label:"3 Đài MN",fixedStations:["TP.HCM","Long An","Bình Phước"]};
+ if(/^2d(mn|mt)$/.test(t) && t.endsWith("mn")) return {region:"N",stations:2,label:"2 Đài MN",fixedStations:["TP.HCM","Long An"],crossProvinces:["TP.HCM","Long An"],cross2:true};
+ if(/^2dmn\s*(phu|phuoc)?$/.test(t) && /phu/.test(t)) return {region:"N",stations:2,label:"2 Đài MN phụ",fixedStations:["Bình Phước","Hậu Giang"],crossProvinces:["Bình Phước","Hậu Giang"],cross2:true};
+ if(/^2d(mn|mt)$/.test(t) && t.endsWith("mt")) return {region:"T",stations:2,label:"2 Đài MT",fixedStations:["Đà Nẵng","Quảng Ngãi"],crossProvinces:["Đà Nẵng","Quảng Ngãi"],cross2:true};
+ // 2DMT chính = Đà Nẵng + Quảng Ngãi.
+ if(["2dmtdanangquangngai","2dmtdnangqngai","dnangqngai","danangquangngai"].includes(t)) return {region:"T",stations:2,label:"2 Đài MT",fixedStations:["Đà Nẵng","Quảng Ngãi"],crossProvinces:["Đà Nẵng","Quảng Ngãi"],cross2:true};
+ if(/^3dmt$/.test(t)) return {region:"T",stations:3,label:"3 Đài MT",fixedStations:["Đà Nẵng","Quảng Ngãi","Đắk Nông"]};
+ if(/^\d+dn$/.test(t))return{region:"N",stations:+t[0],label:+t[0]+" Đài MN"};
+ if(["hn","hm","mb","hanoi","ha noi","mienbac","mien-bac"].includes(t))return{region:"B",stations:1,label:"Hà Nội/Bắc"};
+ if(t==="tpho" || t==="tphcm" || t==="hcm" || t==="hochiminh" || t==="tphochiminh")return{region:"N",stations:1,label:"TP.HCM"};
+ if(t==="la" || t==="longan" || t==="long-an")return{region:"N",stations:1,label:"Long An"};
+ if(t==="bphuoc" || t==="bp" || t==="binhphuoc" || t==="binh-phuoc")return{region:"N",stations:1,label:"Bình Phước"};
+ if(t==="hgiang" || t==="hg" || t==="haugiang" || t==="hau-giang")return{region:"N",stations:1,label:"Hậu Giang"};
+ if(t==="dnai")return{region:"N",stations:1,label:"Đồng Nai"};
+ if(["bd","bduong","binhduong","binh-duong"].includes(t))return{region:"N",stations:1,label:"Bình Dương"};
+ if(["vlong","vinhlong","vl"].includes(t))return{region:"N",stations:1,label:"Vĩnh Long"};
+ if(["tvinh","travinh","travin","tra-vinh"].includes(t))return{region:"N",stations:1,label:"Trà Vinh"};
+ if(["dnong","daknong","dak-nong"].includes(t))return{region:"T",stations:1,label:"Đắk Nông"};
+ if(["qngai","quangngai","quang-ngai"].includes(t))return{region:"T",stations:1,label:"Quảng Ngãi"};
+ if(["gialai","glai","gia-lai"].includes(t))return{region:"T",stations:1,label:"Gia Lai"};
+ if(t==="ctho")return{region:"N",stations:1,label:"Cần Thơ"};
+ if(["st","sot"].includes(t))return{region:"N",stations:1,label:"Sóc Trăng"};
+ if(["dnang","danang"].includes(t))return{region:"T",stations:1,label:"Đà Nẵng"};
+ if(["kh","khanhhoa"].includes(t))return{region:"T",stations:1,label:"Khánh Hòa"};
+ return null;
+}
+function nums(s){return String(s).replace(/[\s,;]+/g,".").replace(/\.{2,}/g,".").replace(/^[.]+|[.]+$/g,"").match(/\d{2,4}/g)||[]}
+// Hỗ trợ cú pháp dải số của phần mềm chuẩn: 20keo39duoi12.5
+// => 20,21,22,...,39 cùng một loại cược và cùng mức điểm.
+// Chỉ áp dụng cho dải 2 số, có thể dùng bất kỳ AkeoB nào (ví dụ 20keo29).
+function expandKeoRanges(line){
+  return String(line||'').replace(/(\d{2})\s*keo\s*(\d{2})/gi,(m,a,b)=>{
+    const start=Number(a), end=Number(b);
+    if(!Number.isInteger(start)||!Number.isInteger(end)||start>end) return m;
+    const arr=[];
+    for(let n=start;n<=end;n++) arr.push(String(n).padStart(2,'0'));
+    return arr.join('.');
+  });
+}
+
+// Chuẩn hóa viết tắt kiểu tin nhắn: B + X = B + XC.
+// Ví dụ 815b1x5 -> 815b1xc5; bare b tự nhận B2/B3/B4 theo số chữ số.
+// Chỉ đổi chữ x khi nó đứng NGAY sau mức điểm của B, không đổi xdao/xc/xduoi...
+function normalizeBetShorthands(line){
+  let s=String(line||'');
+  s=s.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*b\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)(?:n)?/gi,
+    (m,raw,bp,xp)=>`${raw.replace(/\s+/g,'.')}b${bp.replace(',','.')}xc${xp}`);
+  // Viết liền nhiều phôi: 786b0,5x5.
+  // Sau khi chuẩn hóa, parser comboRe sẽ tách B và XC riêng.
+  return s;
+}
+function daNums(raw){
+ const s=String(raw||'').trim();
+ // Theo quy chuẩn phôi: 1234da1 = 12.34da1; 123456da1 = 12.34.56da1.
+ if(/^\d{4,}$/.test(s) && s.length%2===0) return s.match(/\d{2}/g)||[];
+ return nums(s).flatMap(x=>/^\d{4,}$/.test(x)&&x.length%2===0 ? (x.match(/\d{2}/g)||[]) : [x]);
+}
+function addBet(rows,st,raw,type,p){
+ const ns=type==='da'?daNums(raw):nums(raw);if(!ns.length)return;
+ const stations=st.stations||1, isB=st.region==="B";
+ let gross=0,label=type.toUpperCase();
+ const d=ns[0].length;
+ if(type==="b2"){
+   // Bao 2 dùng cú pháp b2/bao2/bl2. Bare "b" tự nhận theo số chữ số.
+   // Miền Bắc: B2=27k, B3=23k, B4=20k/điểm.
+   const pr=isB?(d===2?27:d===3?23:d===4?20:0):(d===2?18:d===3?17:d===4?16:0);
+   gross=ns.length*p*pr*stations;label="B"+d;
+ }
+ else if(type==="b3"){
+   // Bao 3 số Miền Bắc: 23k/điểm.
+   // Ví dụ hn 138b10n = 10 × 23k = 230k.
+   const pr=isB?23:17;
+   gross=ns.length*p*pr*stations;label="B3";
+ }
+ else if(type==="b4"){
+   const pr=isB?20:16;
+   gross=ns.length*p*pr*stations;label="B4";
+ }
+ else if(type==="b7"){
+   gross=ns.length*p*7*stations;label="BAO 7";
+ }
+ else if(type==="bdao"){
+   // bdao/daob = BAO đảo: tính theo số hoán vị khác nhau của từng số.
+   // Ví dụ 781bdao0.5 ở 2DMN: 6 hoán vị x 17k x 0.5 = 51k mỗi đài,
+   // tổng 102k cho 2 đài. 880 có 3 hoán vị, 112 có 3 hoán vị...
+   const pr=isB?(d===2?27:d===3?23:d===4?20:0):(d===2?18:d===3?17:d===4?16:0);
+   let permCount=0;
+   for(const n of ns){
+     const a=String(n);
+     if(a.length<3){ permCount+=1; continue; }
+     // Dùng tập hoán vị đầy đủ cho 3-4 chữ số.
+     const arr=a.split(''), out=new Set();
+     const walk=(prefix,rest)=>{ if(!rest.length){out.add(prefix);return;} for(let i=0;i<rest.length;i++) walk(prefix+rest[i],rest.slice(0,i).concat(rest.slice(i+1))); };
+     walk('',arr); permCount += out.size;
+   }
+   gross=permCount*p*pr*stations;label="DAO BL";
+ }
+ else if(type==="xc"){
+   const pr=isB?4:2*stations;
+   gross=ns.length*p*pr;label="XC";
+ }
+ else if(type==="dao_xc"){
+   // xdao/xcdao = đảo XC. Tính theo số HOÁN VỊ KHÁC NHAU:
+   // 132 có 6 hoán vị; 880 có 3 hoán vị. Ví dụ 880 xdao8 ở 2DMT = 3 x 8 x 4 = 96k.
+   const perms = ns.reduce((sum,n)=>{
+     const a=String(n);
+     if(a.length!==3) return sum+1;
+     const uniq=new Set([
+       a[0]+a[1]+a[2], a[0]+a[2]+a[1],
+       a[1]+a[0]+a[2], a[1]+a[2]+a[0],
+       a[2]+a[0]+a[1], a[2]+a[1]+a[0]
+     ]);
+     return sum+uniq.size;
+   },0);
+   const pr=isB?4:2*stations;
+   gross=perms*p*pr;label="DAO XC";
+ }
+ else if(type==="xc_dau"){
+   const pr=isB?3:stations;
+   gross=ns.length*p*pr;label="XC-ĐẦU";
+ }
+ else if(type==="xc_duoi"){
+   const pr=isB?0.8:stations;
+   gross=ns.length*p*pr;label="XC-ĐUÔI";
+ }
+ else if(type==="dd_duoi"){
+   // duoi/dui là cược ĐUÔI một phía; phần hiển thị chuẩn vẫn ghi DD 0n-Xn.
+   const pr=isB?1:stations;
+   gross=ns.length*p*pr;label="ĐUÔI";
+ }
+ else if(type==="dd"){
+   const pr=isB?5:2*stations;
+   gross=ns.length*p*pr;label="DD";
+ }
+ else if(type==="dau"){
+   const pr=isB?4:stations;
+   gross=ns.length*p*pr;label="ĐẦU";
+ }
+ else if(type==="duoi"){
+   const pr=isB?1:stations;
+   gross=ns.length*p*pr;label="ĐUÔI";
+ }
+ else if(type==="da"){
+   const g=isB?54:36;
+   gross=(ns.length*(ns.length-1)/2)*g*stations*p;label="DA";
+ }
+ else return;
+ // 4DMN là viết tắt: một phôi phải bung ngay thành 4 đài riêng.
+ if(st.region==="N" && Array.isArray(st.fixedStations) && st.fixedStations.length===4 && st.label==="4 Đài MN"){
+   const perTotal=gross/4;
+   if(type!=="da"){
+     const per=ns.length?perTotal/ns.length:0;
+     for(const stationName of st.fixedStations){
+       for(const n of ns) rows.push({region:st.region,station:stationName,scopeStation:stationName,fixedStations:[stationName],stations:1,numbers:[n],type:label,points:p,gross:per,cross2:false,crossProvinces:null});
+     }
+   }else{
+     for(const stationName of st.fixedStations){
+       rows.push({region:st.region,station:stationName,scopeStation:stationName,fixedStations:[stationName],stations:1,numbers:ns,type:label,points:p,gross:perTotal/4,cross2:false,crossProvinces:null});
+     }
+   }
+   return;
+ }
+ if(type!=="da"){
+   const per=ns.length?gross/ns.length:0;
+   for(const n of ns) rows.push({region:st.region,station:st.label,numbers:[n],type:label,points:p,gross:per,cross2:!!st.cross2,crossProvinces:st.crossProvinces||null});
+ }else{
+   rows.push({region:st.region,station:st.label,numbers:ns,type:label,points:p,gross,cross2:!!st.cross2,crossProvinces:st.crossProvinces||null});
+ }
+
+}
+function parseBets(){
+ let rows=[],errors=[],st={region:"N",stations:1,label:"Mặc định"};
+ const text=cleanTelegramPhoiText($("bets").value);
+ for(let line of text.split("\n")){
+  let s=line.trim(); if(!s) continue;
+  // Nhận dạng tên đài dù người gửi viết liền hay có dấu chấm/khoảng trắng:
+  // Hn7196da5,5 -> HN + 7196da5,5; Vl.88... -> VL + 88...; Bd.815... -> BD + 815...
+  let tok=s.split(/\s+/)[0], q=stationToken(tok);
+  if(!q){
+    const mPrefix=s.match(/^\s*(hn|hm|mb|vl|vlong|vinhlong|vlongbduong|vinhlongbduong|vlongbd|bduongvlong|bduongtvinh|binhduongtravinh|bdtvinh|tvinhbduong|tvinhvlong|travinhvlong|travinvinhlong|vlongtvinh|tpholan|tphobphuoc|tphobp|lanbphuoc|labphuoc|labp|tpho|tp|tphcm|hcm|hochiminh|la|longan|bd|bduong|binhduong|bphuoc|bp|binhphuoc|hgiang|hg|haugiang|gl|glai|gialai|dnai|ctho|st|sot|dnang|danang|dnong|daknong|dak-nong|qngai|quangngai|quang-ngai|kh|khanhhoa)(?=\s|\.|\d)/i);
+    if(mPrefix){
+      tok=mPrefix[1];
+      q=stationToken(tok);
+      s=s.slice(mPrefix[0].length).replace(/^\s*\.??\s*/,'').trim();
+    }
+  }
+  if(q){
+    st=q;
+    if(s===line.trim()) s=s.slice(tok.length).trim();
+    else if(!s) s=line.trim().slice(tok.length).replace(/^\s*\.??\s*/,'').trim();
+    if(!s) continue;
+  }
+
+  // Tự mở dải số trước khi phân tích loại cược.
+  // Ví dụ: 20keo39duoi12.5 -> 20.21.22....39duoi12.5
+  s=expandKeoRanges(s);
+  // Chuẩn hóa B + X thành B + XC trước khi phân tích.
+  s=normalizeBetShorthands(s);
+  // Telegram/Zalo hay viết XC đuôi là xdui; chuẩn hóa thành xduoi.
+  s=s.replace(/\bxdui\b/gi,"xduoi");
+
+  let found=false;
+
+  // ===== PHÔI VIẾT TẮT CHUẨN =====
+  // 3dmn + DA = 3 cặp ĐÁ theo mẫu của anh:
+  // TP.HCM-Long An, TP.HCM-Bình Phước, Long An-Bình Phước.
+  // Xử lý trực tiếp trước typeRe để không bị parser chung tách sai.
+  const daCrossMatch = s.match(/^([0-9.\s]+)da(\d+(?:[.,]\d+)?)(?:n)?[.;]?$/i);
+  const isThreeDmn = st.region==='N' && /^3 Đài MN$/i.test(String(st.label||''));
+  const isThreeDmt = st.region==='T' && /^3 Đài MT$/i.test(String(st.label||''));
+  if(daCrossMatch && (st.cross2 || isThreeDmn || isThreeDmt)){
+    const rawCross=daCrossMatch[1].trim();
+    const pointCross=parseFloat(daCrossMatch[2].replace(',','.'));
+    const pairs=st.cross2 ? [st.crossProvinces] : isThreeDmn ? [
+      ['TP.HCM','Long An'],
+      ['TP.HCM','Bình Phước'],
+      ['Long An','Bình Phước']
+    ] : [
+      ['Đà Nẵng','Quảng Ngãi'],
+      ['Đà Nẵng','Đắk Nông'],
+      ['Quảng Ngãi','Đắk Nông']
+    ];
+    for(const pair of pairs){
+      if(!Array.isArray(pair)||pair.length!==2) continue;
+      const stCross={region:st.region,stations:2,label:pair.join(' + '),cross2:true,crossProvinces:pair};
+      addBet(rows,stCross,rawCross,'da',pointCross);
+    }
+    found=true;
+    continue;
+  }
+
+  // HM/HN: 3333b2 = BAO 4 số, 2 điểm.
+  // b luôn là ký hiệu Bao; số chữ số quyết định Bao 2/3/4.
+  const baoSuffix=s.match(/^([0-9]{2,4})b(\d+(?:[.,]\d+)?)(?:n)?[.;]?$/i);
+  if(baoSuffix && st.region==='B'){
+    const rawBao=baoSuffix[1];
+    const pointBao=parseFloat(baoSuffix[2].replace(',','.'));
+    const len=rawBao.length;
+    const baoType=len===2?'b2':len===3?'b3':len===4?'b4':null;
+    if(baoType){
+      addBet(rows,st,rawBao,baoType,pointBao);
+      found=true;
+      continue;
+    }
+  }
+
+  // Cú pháp gộp B + XC: 123.456b0,5x3. Tách riêng nhưng giữ nguyên nhóm số.
+  const comboRe=/([0-9.\s]+)b(\d+(?:[.,]\d+)?)x(\d+(?:[.,]\d+)?)(?:n)?/gi;
+  let cm;
+  while((cm=comboRe.exec(s))){
+    found=true;
+    const raw=cm[1].trim();
+    addBet(rows,st,raw,"dd",parseFloat(cm[2].replace(",",".")));
+    addBet(rows,st,raw,"xc",parseFloat(cm[3].replace(",",".")));
+    s=s.replace(cm[0]," ");
+  }
+
+  // Chuẩn quy tắc: sau khi gặp 66b10.dd10 hoặc
+  // 666b10.xc10.xdau10.xduoi10, các kiểu sau dấu '.'
+  // vẫn dùng lại CHÍNH SỐ vừa đứng trước.
+  // xdui = XC-ĐUÔI; 26,29da1 giữ nguyên dấu phẩy để nums() tách 2 số.
+  const typeRe=/(xdao|xcdao|daoxc|dxc|b7lo|baobay|bao7|bao2|bl2|xcdau|xcduoi|xdau|xduoi|xdui|dau|dui|duoi|dd|xc|x|bdao|daob|dv|da|b)/gi;
+  let tm, cursor=0, currentRaw="";
+  while((tm=typeRe.exec(s))){
+    found=true;
+    const typ=tm[1].toLowerCase();
+    const gap=s.slice(cursor,tm.index);
+    const gapTrim=gap.trim();
+    let raw=currentRaw;
+
+    // Có số mới giữa hai kiểu đánh -> dùng số mới.
+    // Chỉ có dấu . / khoảng trắng -> kiểu đánh tiếp theo dùng lại số trước.
+    if(gapTrim.replace(/[.\s,;]+/g,"")===""){
+      raw=currentRaw;
+    }else{
+      raw=gapTrim.replace(/^[.\s,;]+|[.\s,;]+$/g,"");
+    }
+
+    // Trường hợp đầu tiên của dòng: raw chính là chuỗi số đứng trước kiểu đánh.
+    if(!raw && gapTrim) raw=gapTrim.replace(/^[.\s,;]+|[.\s,;]+$/g,"");
+
+    const after=s.slice(tm.index+tm[0].length).trimStart();
+    // Đọc điểm: số nguyên hoặc số thập phân dùng dấu phẩy/chấm.
+    // Nếu dấu chấm tiếp theo là dấu phân cách sang một số mới (10.66b7lo),
+    // chỉ lấy 10; còn 0.5x10 vẫn lấy 0.5.
+    let pm=after.match(/^(\d+(?:,\d+|\.\d+)?)(?:n)?/i);
+    if(!pm){errors.push("Không đọc được mức điểm: "+line);continue;}
+    let pointText=pm[1];
+    const decimalDot=pointText.match(/^(\d+)\.(\d+)$/);
+    if(decimalDot){
+      const rest=after.slice(pointText.length);
+      // 10.66b7lo10 = điểm 10, số mới 66; dấu chấm ở đây là dấu phân cách.
+      // 0.5x10 / 10.5x10 vẫn là điểm thập phân.
+      if(/^(?:\d{2,4}(?:xdao|xcdao|daoxc|dxc|b7lo|baobay|bao7|xcdau|xcduoi|xdau|xduoi|dau|duoi|dd|xc|x|bdao|daob|dv|da|b)|(?:xdao|xcdao|daoxc|dxc|b7lo|baobay|bao7|xcdau|xcduoi|xdau|xduoi|dau|duoi|dd|xc|x|bdao|daob|dv|da|b))/i.test(rest)){
+        pointText=decimalDot[1];
+        pm={0:decimalDot[1],1:decimalDot[1]};
+      }
+    }
+    const p=parseFloat(pointText.replace(",","."));
+
+    let actual=typ==="x"?"xc":
+      (typ==="xdao"||typ==="xcdao"||typ==="daoxc"||typ==="dxc")?"dao_xc":
+      (typ==="dv")?"da":
+      (typ==="b7lo"||typ==="baobay"||typ==="bao7")?"b7":
+      (typ==="bao2"||typ==="bl2")?"b2":
+      (typ==="b" || typ==="b2") ? ((nums(raw)[0]||"").length===2 ? "b2" : (nums(raw)[0]||"").length===3 ? "b3" : (nums(raw)[0]||"").length===4 ? "b4" : "dd") :
+      (typ==="xdau"||typ==="xcdau")?"xc_dau":
+      (typ==="xduoi"||typ==="xcduoi")?"xc_duoi":(typ==="dui"||typ==="duoi")?"dd_duoi":(typ==="b")?"dd":typ;
+
+    if(actual==="dao_xc"){
+      if(raw) {
+        // xdao/xcdao/daoxc/dxc là PHÔI ĐẢO chỉ dùng để dò hoán vị.
+        // Theo phần mềm chuẩn: ẩn khỏi bảng tiền xác, không cộng tiền xác.
+        // Nhưng vẫn giữ toàn bộ hoán vị để tìm trúng.
+        const ns=nums(raw);
+        const scan=[];
+        for(const n of ns){
+          const a=String(n);
+          if(a.length===3){
+            const set=new Set();
+            for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(j!==i) for(let k=0;k<3;k++) if(k!==i&&k!==j) set.add(a[i]+a[j]+a[k]);
+            scan.push(...set);
+          }else if(a.length===4){
+            const set=new Set();
+            const walk=(pre,rest)=>{if(!rest.length){set.add(pre);return;}for(let i=0;i<rest.length;i++)walk(pre+rest[i],rest.slice(0,i)+rest.slice(i+1));};
+            walk('',a); scan.push(...set);
+          }else scan.push(a);
+        }
+        // Một dòng DAO XC duy nhất cho toàn bộ cụm; các hoán vị chỉ dùng nội bộ để dò.
+        // Tiền xác vẫn tính theo đúng số hoán vị khác nhau.
+        const pr=st.region==="B"?4:2*(st.stations||1);
+        const permCount=ns.reduce((sum,n)=>{
+          const a=String(n), set=new Set();
+          if(a.length===3){
+            for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(j!==i) for(let k=0;k<3;k++) if(k!==i&&k!==j) set.add(a[i]+a[j]+a[k]);
+          }else if(a.length===4){
+            const walk=(pre,rest)=>{if(!rest.length){set.add(pre);return;}for(let i=0;i<rest.length;i++)walk(pre+rest[i],rest.slice(0,i)+rest.slice(i+1));};
+            walk('',a);
+          }else set.add(a);
+          return sum+set.size;
+        },0);
+        rows.push({region:st.region,station:st.label,numbers:ns,type:"DAO XC",points:p,gross:permCount*p*pr,scanNumbers:[...new Set(scan)]});
+      } else errors.push("Không xác định được số cho: "+tm[0]+" — "+line);
+    } else if(raw) addBet(rows,st,raw,actual,p);
+    else errors.push("Không xác định được số cho: "+tm[0]+" — "+line);
+
+    if(raw) currentRaw=raw;
+    cursor=tm.index+tm[0].length+pm[0].length;
+    typeRe.lastIndex=cursor;
+  }
+  // Nếu một dòng có số nhưng không có kiểu đánh thì báo rõ.
+  if(!found) errors.push(line);
+ }
+
+ // 3dmn + DA là viết tắt ĐÁ XUYÊN 2 ĐÀI: bung thành 3 cặp đài.
+ // vlongbduong / bduongtvinh / tvinhvlong là các tên viết tắt tương ứng.
+ rows=expand3DmnCrossDA(rows);
+ rows=expandThreeStationRows(rows);
+
+ // Giữ nguyên nhóm 2DMN/3DMN theo đúng quy ước phôi của anh.
+ // 2DMN = TP.HCM + Long An theo quy ước cố định của anh.
+ // 3DMN = TP.HCM + Long An + Bình Phước; khi là cược thường sẽ bung thành 3 dòng đài.
+ // regionDraws() dùng station="2 Đài MN" để dò đúng 2 đài.
+ //
+ // Quy tắc DD đầu/đuôi của phần mềm chuẩn:
+ // dauX = DD Xn-0n, duoiX = DD 0n-Xn. Khi cả đầu và đuôi cùng có
+ // điểm cho cùng một số, phần mềm chuẩn còn hiển thị một dòng DD
+ // cân bằng với min(đầu,đuôi): ví dụ duoi100.dau50 -> DD 50n-50n.
+ // Dòng cân bằng này là một phôi tính tiền riêng.
+ // Phần mềm chuẩn không hiển thị phần ĐẦU nhỏ hơn một phôi DD đã có
+ // cho cùng số: ví dụ 52dd100 + 52duoi100.dau50 chỉ còn 0-100 và
+ // phần cân bằng 50-50. Nếu DD bằng đúng mức ĐẦU (như 64dd20 + dau20
+ // hoặc 99dd100 + dau100) thì vẫn giữ dòng ĐẦU riêng.
+ const filteredRows=[];
+ for(const r of rows){
+   if(r.type==='ĐẦU'){
+     const scope=r.scopeStation||r.station;
+     const same=rows.some(x=>x!==r && x.region===r.region &&
+       (x.scopeStation||x.station)===scope && x.type==='DD' &&
+       String(x.numbers[0])===String(r.numbers[0]) && Number(x.points||0)>Number(r.points||0));
+     if(same){ filteredRows.push({...r,hidden:true,gross:0}); continue; }
+   }
+   filteredRows.push(r);
+ }
+ rows=filteredRows;
+
+ const directional=new Map();
+ for(const r of rows){
+   if(r.type!=='ĐẦU' && r.type!=='ĐUÔI') continue;
+   const key=[r.region,r.scopeStation||r.station,r.numbers[0]||''].join('|');
+   const o=directional.get(key)||{dau:[],duoi:[],base:r};
+   o[r.type==='ĐẦU'?'dau':'duoi'].push(r);
+   directional.set(key,o);
+ }
+ for(const [key,o] of directional){
+   if(!o.dau.length || !o.duoi.length) continue;
+   const dau=o.dau.reduce((s,r)=>s+Number(r.points||0),0);
+   const duoi=o.duoi.reduce((s,r)=>s+Number(r.points||0),0);
+   const balanced=Math.min(dau,duoi);
+   if(balanced<=0) continue;
+   const base=o.base;
+   const stations=base.region==='B'?1:(stationToken(base.scopeStation||base.station)?.stations||1);
+   // Nếu người dùng đã nhập sẵn DD đúng bằng phần giao nhau thì không tạo
+   // thêm một dòng trùng. Ví dụ 64duoi100.dau20 + 64dd20 chỉ có 1 dòng DD20;
+   // 99dau100.duoi100 + 99dd100 cũng chỉ có 1 dòng DD100.
+   const exists=rows.some(r=>r!==base && r.region===base.region &&
+     (r.scopeStation||r.station)===(base.scopeStation||base.station) &&
+     r.type==='DD' && String(r.numbers[0])===String(base.numbers[0]) &&
+     Number(r.points||0)===balanced);
+   if(!exists){
+     const gross=balanced*2*stations;
+     rows.push({region:base.region,station:base.station,scopeStation:base.scopeStation,numbers:[base.numbers[0]],type:'DD',points:balanced,gross,nonWinning:true});
+   }
+ }
+ return {rows,errors};
+}
+function money(x){return Math.round(x).toLocaleString("vi-VN")+"k"}
+function renderCalc(){
+ const {rows,errors}=parseBets();
+ const c=v3Customers[$("customerSelect")?.value]||customers[$("customerSelect")?.value]||readCustomer();
+ const cp=v3Customers[$("customerSelect")?.value]?.c||c||{};
+ let html="",total=0;
+ // Tính theo TỪNG PHÔI: trúng không nhân hồi; không trúng nhân hồi.
+ // Tiền trúng được trừ trên chính phôi trúng.
+ const details=[];
+ for(const row of rows){
+   if(row.hidden){details.push({row,hits:[],payout:0});continue;}
+   const hits=scanRow(row);
+   let payout=0;
+   if(!row.nonWinning){
+     if(row.type==='DA') payout=priceForRow(row,cp)*Number(row.points||0)*hits.reduce((s,h)=>s+(Number(h.pairCount)||0),0);
+     else if(row.type==='DAO XC') payout=priceForRow(row,cp)*Number(row.points||0)*hits.reduce((s,h)=>s+(Number(h.matchCount)||0),0);
+     else payout=priceForRow(row,cp)*Number(row.points||0)*hits.reduce((s,h)=>s+(Number(h.count)||1),0);
+   }
+   details.push({row,hits,payout});
+ }
+ const thuBy={N:0,T:0,B:0}, grossBy={N:0,T:0,B:0}, winBy={N:0,T:0,B:0};
+ for(const d of details){
+   if(d.row.hidden) continue;
+   const g=Number(d.row.gross)||0,w=Number(d.payout)||0;
+   grossBy[d.row.region]+=g;winBy[d.row.region]+=w;
+   const raw=d.hits.length ? g*Number(c.receive||0)-w : g*Number(c.receive||0)*Number(c.repay||0);
+   thuBy[d.row.region]+=Math.round(raw);
+ }
+ for(const [r,n] of [["N","🄽 MIỀN NAM"],["T","🅃 MIỀN TRUNG"],["B","🅱 MIỀN BẮC"]]){
+   if(!grossBy[r]&&!winBy[r]) continue;
+   const thu=thuBy[r]; total+=thu;
+   const a=details.filter(d=>d.row.region===r&&!d.row.hidden);
+   html+=`<section class="card"><div class="title">${n}</div><div class="stats"><div class="stat"><b>${money(grossBy[r])}</b><small>Tiền xác</small></div><div class="stat"><b>${money(winBy[r])}</b><small>Tiền trúng</small></div><div class="stat"><b>${money(thu)}</b><small>Tổng Tiền ${thu<0?'Bù':'Thu'}</small></div></div><div class="scroll"><table><tr><th>Phơi</th><th>Đài</th><th>Loại</th><th>Điểm</th><th>Tiền xác</th><th>Trúng</th></tr>${a.map(d=>`<tr><td>${htmlEsc(d.row.numbers.join("–"))}</td><td>${htmlEsc(d.row.station)}</td><td>${typeLabel(d.row.type)}</td><td>${displayPoints(d.row)}</td><td>${money(d.row.gross)}</td><td>${d.hits.length?money(d.payout):'X'}</td></tr>`).join("")}</table></div></section>`;
+ }
+ const customerName=$('customerSelect')?.value||currentCustomer||'Gốc X74';
+ const oldRaw=localStorage.getItem('oldBalance_'+customerName);
+ const oldValue=Number(oldRaw||0);
+ lastSummary={date:$('date').value,name:customerName,receive:Number(c.receive)||0,repay:Number(c.repay)||0,
+   N:{gross:Number(grossBy.N)||0,win:Number(winBy.N)||0,thu:Number(thuBy.N)||0},
+   T:{gross:Number(grossBy.T)||0,win:Number(winBy.T)||0,thu:Number(thuBy.T)||0},
+   B:{gross:Number(grossBy.B)||0,win:Number(winBy.B)||0,thu:Number(thuBy.B)||0},
+   totalGross:Number(grossBy.N+grossBy.T+grossBy.B)||0,totalWin:Number(winBy.N+winBy.T+winBy.B)||0,totalThu:Number(total)||0,old:oldValue,finalTotal:Number(total+oldValue)||0};
+ html+=`<section class="card total-card"><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody>
+ <tr><td>N</td><td>${money(grossBy.N)}</td><td class="rednum">${money(winBy.N)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr>
+ <tr><td>T</td><td>${money(grossBy.T)}</td><td class="rednum">${money(winBy.T)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr>
+ <tr><td>B</td><td>${money(grossBy.B)}</td><td class="rednum">${money(winBy.B)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr>
+ <tr><td><b>TỔNG</b></td><td><b>${money(grossBy.N+grossBy.T+grossBy.B)}</b></td><td class="rednum"><b>${money(winBy.N+winBy.T+winBy.B)}</b></td><td class="${total<0?'rednum':'greenmoney'}"><b>${money(total)}</b></td></tr>
+ </tbody></table>
+ <div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center">
+  <b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldValue}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(total+oldValue)}</div>
+ </div>
+ <div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div>
+ </section>`;
+ if(errors.length) html+=`<section class="card err"><b>Dòng chưa đọc:</b><br>${errors.map(x=>x.replace(/</g,"&lt;")).join("<br>")}</section>`;
+ $("out").innerHTML=html;
+ const rw=$("resultWrap"); if(rw) rw.open=true;
+}
+
+
+
+// ===== TRA KẾT QUẢ 3 MIỀN / TỰ DÒ =====
+const RESULTS_FUNCTION_URL = SUPABASE_URL + "/functions/v1/xoso-results";
+let lotteryResults = {N:[], T:[], B:[]};
+
+function normalizeDateKey(v){
+  if(!v) return "";
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if(m) return `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
+  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+  if(m) return `${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;
+  return s.slice(0,10);
+}
+function flattenDrawPayload(payload, selectedDate){
+  const out=[];
+  const visit=(item,parent={})=>{
+    if(!item) return;
+    if(Array.isArray(item)){ item.forEach(x=>visit(x,parent)); return; }
+    if(typeof item!=="object") return;
+    if(Array.isArray(item.draws)){
+      item.draws.forEach(x=>visit(x,{...parent,...item}));
+      return;
+    }
+    if(Array.isArray(item.data) && !item.prizes){
+      item.data.forEach(x=>visit(x,{...parent,...item}));
+      return;
+    }
+    const d={...parent,...item};
+    if(item.prizes || item.results || item.result || item.province || item.station || item.province_name || item.name){
+      const dateKey=normalizeDateKey(d.date||d.draw_date||d.drawDate||d.formatted_date||d.formattedDate||d.ngay);
+      if(!selectedDate || !dateKey || dateKey===selectedDate || !d.date&&!d.draw_date&&!d.drawDate&&!d.formatted_date&&!d.formattedDate&&!d.ngay) out.push(d);
+    }
+  };
+  visit(payload);
+  const seen=new Set();
+  return out.filter(d=>{
+    const k=[drawProvince(d),normalizeDateKey(d.date||d.draw_date||d.formatted_date||d.ngay),JSON.stringify(d.prizes||d.results||d.result||"")].join("|");
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+}
+// ===================== NGUỒN KẾT QUẢ: XSMN.MOBI =====================
+// Không dùng XoSoAPI nữa. Đọc trực tiếp các trang kết quả theo thứ/ngày
+// của xsmn.mobi. Có 2 lớp fallback CORS để GitHub Pages vẫn lấy được dữ liệu.
+const XSMN_SOURCE='xsmn.mobi';
+
+function xsmnWeekdayPath(region, date){
+  const dt=new Date(date+'T12:00:00');
+  const dow=dt.getDay(); // 0=CN ... 6=Thứ 7
+  const dayMap={0:'chu-nhat',1:'thu-2',2:'thu-3',3:'thu-4',4:'thu-5',5:'thu-6',6:'thu-7'};
+  const d=dayMap[dow];
+  if(region==='MN') return `https://xsmn.mobi/xsmn-${d}.html`;
+  if(region==='MT') return `https://xsmn.mobi/xsmt-${d}.html`;
+  return `https://xsmn.mobi/xsmb-${d}.html`;
+}
+
+async function fetchXsmnMobiPage(sourceUrl){
+  const targets=[
+    sourceUrl,
+    'https://r.jina.ai/'+sourceUrl,
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(sourceUrl)
+  ];
+  let lastErr=null;
+  for(const url of targets){
+    try{
+      const res=await fetch(url,{method:'GET',headers:{'Accept':'text/html,text/plain,*/*'},cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const text=await res.text();
+      if(text && text.length>500) return {text,url};
+    }catch(e){ lastErr=e; }
+  }
+  throw new Error('Không đọc được '+XSMN_SOURCE+' ('+(lastErr?.message||'lỗi kết nối')+').');
+}
+
+function xsmnDateVariants(date){
+  const [y,m,d]=String(date).split('-');
+  return [
+    `${d}-${m}-${y}`, `${Number(d)}-${Number(m)}-${y}`,
+    `${d}/${m}/${y}`, `${Number(d)}/${Number(m)}/${y}`,
+    `${d}-${Number(m)}-${y}`, `${Number(d)}-${m}-${y}`
+  ];
+}
+
+function xsmnFindResultTables(doc, date){
+  const variants=xsmnDateVariants(date);
+  const dateRe=new RegExp(variants.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'));
+  const tables=[...doc.querySelectorAll('table')].filter(t=>{
+    const txt=(t.innerText||'').replace(/\s+/g,' ');
+    return /(?:G8|G\.8)/i.test(txt) && /ĐB/i.test(txt);
+  });
+  if(!tables.length) return [];
+
+  // Tìm các tiêu đề/ngày gần bảng trong cùng trang. Mỗi bảng kết quả
+  // được gán cho ngày gần nhất đứng trước nó trong DOM.
+  const dateEls=[...doc.querySelectorAll('h1,h2,h3,h4,h5,h6,p,div,span,strong,b,a')]
+    .filter(el=>{
+      const t=(el.textContent||'').replace(/\s+/g,' ').trim();
+      return t.length<180 && dateRe.test(t);
+    });
+
+  const before=(a,b)=>!!(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING);
+  const result=[];
+  for(const table of tables){
+    const candidates=dateEls.filter(el=>before(el,table));
+    // Ưu tiên phần tử gần nhất về mặt DOM; nếu nhiều phần tử lồng nhau,
+    // phần tử có ít text hơn thường chính là tiêu đề ngày.
+    let best=null;
+    for(const el of candidates){
+      if(!best || (best.compareDocumentPosition(el)&Node.DOCUMENT_POSITION_FOLLOWING)) best=el;
+    }
+    // Nếu không xác định được tiêu đề, vẫn giữ bảng đầu tiên có ngày hiện tại.
+    if(best || !dateEls.length) result.push({table,dateText:best?.textContent||''});
+  }
+  return result;
+}
+
+function xsmnCellValues(cell){
+  const t=(cell?.innerText||'').replace(/\u00a0/g,' ').trim();
+  return (t.match(/\d{2,6}/g)||[]).map(x=>x.trim());
+}
+
+function xsmnParseTable(table,region,date){
+  const trs=[...table.querySelectorAll('tr')];
+  if(!trs.length) return [];
+  const rows=[];
+  for(const tr of trs){
+    const cells=[...tr.querySelectorAll('th,td')];
+    if(!cells.length) continue;
+    rows.push({label:(cells[0].innerText||'').replace(/\s+/g,' ').trim(),cells});
+  }
+  const g8=rows.find(r=>/^(?:G\.?8)$/i.test(r.label));
+  const db=rows.find(r=>/^ĐB$/i.test(r.label));
+  if(!g8 || !db) return [];
+
+  const out=[];
+  if(region==='B'){
+    const prizes={};
+    for(const r of rows){
+      const k=prizeKey(r.label);
+      if(['g1','g2','g3','g4','g5','g6','g7','db'].includes(k)){
+        prizes[k]=[];
+        for(let i=1;i<r.cells.length;i++) prizes[k].push(...xsmnCellValues(r.cells[i]));
+      }
+    }
+    return [{region:'B',province:'Hà Nội',station_name:'Hà Nội',date,formatted_date:date,prizes}];
+  }
+
+  // MN/MT: hàng đầu là tên các đài; các hàng G8...ĐB chứa kết quả tương ứng.
+  const header=rows.find(r=>r.cells.length>2 && r.cells.slice(1).some(c=>/Đà Nẵng|Quảng Ngãi|Đắc Nông|TP HCM|Long An|Bình Phước|Hậu Giang|Tiền Giang|Kiên Giang|Đà Lạt|Cần Thơ|Vĩnh Long|Bến Tre|Vũng Tàu|Đồng Nai|Tây Ninh|An Giang|Bình Dương/i.test(c.innerText||'')));
+  const stationNames=header ? header.cells.slice(1).map(c=>(c.innerText||'').replace(/\s+/g,' ').trim()) : [];
+  if(!stationNames.length) return [];
+  for(let col=1;col<=stationNames.length;col++){
+    const station=stationNames[col-1];
+    if(!station) continue;
+    const prizes={};
+    for(const r of rows){
+      const k=prizeKey(r.label);
+      if(!['g1','g2','g3','g4','g5','g6','g7','g8','db'].includes(k)) continue;
+      prizes[k]=xsmnCellValues(r.cells[col]||{});
+    }
+    out.push({region,province:station,station_name:station,date,formatted_date:date,prizes});
+  }
+  return out;
+}
+
+async function fetchLotteryRegion(region){
+  const d=$('date').value;
+  if(!d) throw new Error('Chưa chọn ngày.');
+  const sourceUrl=xsmnWeekdayPath(region,d);
+  const fetched=await fetchXsmnMobiPage(sourceUrl);
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(fetched.text,'text/html');
+  const tables=xsmnFindResultTables(doc,d);
+  let rows=[];
+  for(const item of tables){
+    const dateText=item.dateText||'';
+    const vars=xsmnDateVariants(d);
+    if(dateText && !vars.some(v=>dateText.includes(v))) continue;
+    const parsed=xsmnParseTable(item.table,region,d);
+    if(parsed.length){ rows.push(...parsed); break; }
+  }
+  // Nếu proxy Jina trả Markdown thay vì HTML, parse bảng Markdown tối thiểu.
+  if(!rows.length && fetched.text.includes('|')){
+    const lines=fetched.text.split(/\r?\n/);
+    const blocks=[]; let cur=[];
+    for(const line of lines){
+      if(/^\s*\|/.test(line)) cur.push(line); else if(cur.length){blocks.push(cur);cur=[];}
+    }
+    if(cur.length) blocks.push(cur);
+    for(const block of blocks){
+      const joined=block.join('\n');
+      if(!/(?:G8|G\.8)/i.test(joined)||!/ĐB/i.test(joined)) continue;
+      // Chỉ dùng Markdown fallback khi block có đúng ngày cần tra hoặc trang chỉ có một kỳ.
+      const fake=document.createElement('table');
+      fake.innerHTML=block.map((line,i)=>{
+        const cells=line.split('|').slice(1,-1).map(x=>x.trim());
+        if(/^[-\s:]+$/.test(cells.join(''))) return '';
+        return '<tr>'+cells.map(x=>'<td>'+x.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</td>').join('')+'</tr>';
+      }).join('');
+      const parsed=xsmnParseTable(fake,region,d);
+      if(parsed.length){rows=parsed;break;}
+    }
+  }
+  if(!rows.length) throw new Error('xsmn.mobi chưa có KQ '+region+' đúng ngày '+d+'.');
+  return rows;
+}
+
+async function getAllLotteryResults(){
+  setStatus("Đang lấy kết quả từ xsmn.mobi: MN + MT + MB...");
+  // Không để một miền chưa có kết quả (ví dụ MT chưa quay hoặc MB chưa quay)
+  // làm hỏng toàn bộ lần dò. Mỗi miền được lấy độc lập; miền nào đã có KQ
+  // thì vẫn tính/dò ngay, miền chưa có KQ được để trống.
+  const results = await Promise.allSettled([
+    fetchLotteryRegion("MN"),
+    fetchLotteryRegion("MT"),
+    fetchLotteryRegion("MB")
+  ]);
+  const mn = results[0].status === "fulfilled" ? results[0].value : [];
+  const mt = results[1].status === "fulfilled" ? results[1].value : [];
+  const mb = results[2].status === "fulfilled" ? results[2].value : [];
+  lotteryResults = {N:mn, T:mt, B:mb};
+
+  const missing=[];
+  if(results[0].status !== "fulfilled") missing.push("MN");
+  if(results[1].status !== "fulfilled") missing.push("MT");
+  if(results[2].status !== "fulfilled") missing.push("MB");
+
+  const available=[];
+  if(mn.length) available.push(`MN ${mn.length} đài`);
+  if(mt.length) available.push(`MT ${mt.length} đài`);
+  if(mb.length) available.push(`MB/Hà Nội ${mb.length} đài`);
+
+  if(available.length){
+    if(missing.length){
+      setStatus(`Đã lấy KQ ngày ${$("date").value}: ${available.join(" • ")}. Chưa có: ${missing.join(" • ")}. Miền đã có KQ vẫn được dò và tính bình thường.`,"ok");
+    }else{
+      setStatus(`Đã lấy KQ 3 miền ngày ${$("date").value}: ${available.join(" • ")}. Sẽ dò toàn bộ giải.`,"ok");
+    }
+  }else{
+    const msg = results.map((r,i)=>r.status==="rejected" ? `${["MN","MT","MB"][i]}: ${r.reason?.message||"không lấy được KQ"}` : "").filter(Boolean).join(" • ");
+    throw new Error(msg || `Không lấy được KQ ngày ${$("date").value}.`);
+  }
+  return lotteryResults;
+}
+
+function drawProvince(draw){
+  // Chuẩn hóa tên/mã đài XoSoAPI. API có thể trả nhiều dạng:
+  // XSHCM, TP.HCM, TP Hồ Chí Minh, Thành phố Hồ Chí Minh...
+  // Không được lấy "đài đầu tiên" để thay thế khi thiếu TP.HCM,
+  // vì như vậy 2DMN sẽ bị đổi thành Long An + đài khác.
+  const candidates=[];
+  const add=(v)=>{
+    if(v===undefined || v===null) return;
+    if(typeof v==='object'){
+      ['name','code','province_name','provinceName','station_name','station','ma_dai','maDai','short_name','shortName'].forEach(k=>add(v[k]));
+    }else{
+      const z=String(v).trim(); if(z && !candidates.includes(z)) candidates.push(z);
+    }
+  };
+  add(draw?.station_name); add(draw?.station); add(draw?.province_name); add(draw?.provinceName);
+  add(draw?.province_code); add(draw?.provinceCode); add(draw?.code); add(draw?.ma_dai); add(draw?.maDai);
+  add(draw?.province); add(draw?.name);
+  add(draw?.draw?.station_name); add(draw?.draw?.station); add(draw?.draw?.province_name);
+  add(draw?.draw?.provinceCode); add(draw?.draw?.code); add(draw?.draw?.province);
+
+  const codeMap={
+    xshcm:"TP.HCM", tphcm:"TP.HCM", tpchiminh:"TP.HCM", tphochiminh:"TP.HCM",
+    hochiminh:"TP.HCM", hochiminhcity:"TP.HCM", thanhphohochiminh:"TP.HCM",
+    thanhphohcm:"TP.HCM", saigon:"TP.HCM",
+    xsla:"Long An", longan:"Long An", lan:"Long An", la:"Long An",
+    xsbp:"Bình Phước", binhphuoc:"Bình Phước", bphuoc:"Bình Phước", bp:"Bình Phước",
+    xshg:"Hậu Giang", haugiang:"Hậu Giang", hgiang:"Hậu Giang", hg:"Hậu Giang",
+    xsvl:"Vĩnh Long", vinhlong:"Vĩnh Long", vlong:"Vĩnh Long", vl:"Vĩnh Long",
+    xsbd:"Bình Dương", binhduong:"Bình Dương", bduong:"Bình Dương", bd:"Bình Dương",
+    xstv:"Trà Vinh", travinh:"Trà Vinh", tvinh:"Trà Vinh",
+    xsgl:"Gia Lai", gialai:"Gia Lai", glai:"Gia Lai",
+    xsnt:"Ninh Thuận", ninhthuan:"Ninh Thuận",
+    xsdng:"Đà Nẵng", xsdna:"Đà Nẵng", xsdanang:"Đà Nẵng", danang:"Đà Nẵng", dnang:"Đà Nẵng",
+    xsdno:"Đắk Nông", daknong:"Đắk Nông", dnong:"Đắk Nông",
+    xsqng:"Quảng Ngãi", qng:"Quảng Ngãi", qngai:"Quảng Ngãi", quangngai:"Quảng Ngãi",
+    quangngaii:"Quảng Ngãi", quangngaivn:"Quảng Ngãi", quangngaiisland:"Quảng Ngãi",
+    xskh:"Khánh Hòa", khanhhoa:"Khánh Hòa"
+  };
+  for(const value of candidates){
+    const k=value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+    if(codeMap[k]) return codeMap[k];
+    // Một số API dùng chuỗi dài nhưng vẫn chứa tên chuẩn.
+    if(/(?:thanhpho)?hochiminh(?:city)?/.test(k)) return "TP.HCM";
+    if(k.includes("longan")) return "Long An";
+    if(k.includes("binhphuoc")) return "Bình Phước";
+    if(k.includes("haugiang")) return "Hậu Giang";
+    if(k.includes("vinhlong")) return "Vĩnh Long";
+    if(k.includes("binhduong")) return "Bình Dương";
+    if(k.includes("travinh")) return "Trà Vinh";
+    if(k.includes("daknong")) return "Đắk Nông";
+    if(k.includes("quangngai") || k.includes("xsqng") || k==="qng" || k==="qngai") return "Quảng Ngãi";
+  }
+  return String(candidates[0]||"");
+}
+function prizeKey(k){
+  const s=String(k||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+  const map={
+    db:"db",dacbiet:"db",dacbietgiai:"db",special:"db",gdb:"db",
+    g1:"g1",nhat:"g1",giainhat:"g1",
+    g2:"g2",nhi:"g2",giainhi:"g2",
+    g3:"g3",ba:"g3",giaiba:"g3",
+    g4:"g4",tu:"g4",giaitu:"g4",
+    g5:"g5",nam:"g5",giainam:"g5",
+    g6:"g6",sau:"g6",giaisau:"g6",
+    g7:"g7",bay:"g7",giaibay:"g7",
+    g8:"g8",tam:"g8",giaitam:"g8"
+  };
+  return map[s] || s;
+}
+function drawPrizes(draw){
+  // Chuẩn hóa cấu trúc XoSoAPI: prizes là object {db,g1,...};
+  // đồng thời hỗ trợ results/result dạng object hoặc mảng.
+  const out={};
+  const prizeAliases={
+    db:'db',dacbiet:'db',dacbietgiai:'db',special:'db',gdb:'db',
+    g1:'g1',nhat:'g1',giainhat:'g1',
+    g2:'g2',nhi:'g2',giainhi:'g2',
+    g3:'g3',ba:'g3',giaiba:'g3',
+    g4:'g4',tu:'g4',giaitu:'g4',
+    g5:'g5',nam:'g5',giainam:'g5',
+    g6:'g6',sau:'g6',giaisau:'g6',
+    g7:'g7',bay:'g7',giaibay:'g7',
+    g8:'g8',tam:'g8',giaitam:'g8'
+  };
+  const normKey=k=>{
+    const s=String(k||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+    return prizeAliases[s]||s;
+  };
+  const add=(key,val)=>{
+    const k=normKey(key); if(val==null) return;
+    const vals=Array.isArray(val)?val:[val];
+    for(const x of vals){
+      if(x==null) continue;
+      if(typeof x==='object'){
+        for(const y of Object.values(x)) add(k,y);
+      }else{
+        const found=String(x).match(/\d{2,6}/g)||[];
+        if(found.length) out[k]=(out[k]||[]).concat(found);
+      }
+    }
+  };
+  const readObj=o=>{if(o&&typeof o==='object'&&!Array.isArray(o)) for(const k of Object.keys(o)) add(k,o[k]);};
+  // Hỗ trợ API trả results dạng mảng các object, ví dụ:
+  // [{prize:"g8",value:"76"}, {prize:"g7",value:"123"}] hoặc
+  // [{name:"G8",number:"76"}, ...]. Một số đài (đặc biệt Quảng Ngãi)
+  // dùng dạng này nên nếu chỉ đọc object sẽ bị mất toàn bộ giải.
+  const readPrizeArray=arr=>{
+    if(!Array.isArray(arr)) return;
+    for(const item of arr){
+      if(item==null) continue;
+      if(typeof item==='object' && !Array.isArray(item)){
+        const key=item.prize||item.prize_name||item.prizeName||item.name||item.key||item.code||item.giai||item.ten_giai;
+        const val=item.value??item.number??item.numbers??item.result??item.values??item.so;
+        if(key!=null && val!=null) add(key,val);
+        else {
+          for(const [k,v] of Object.entries(item)){
+            if(/^(g\.?[1-8]|db|dacbiet|giai)/i.test(String(k))) add(k,v);
+          }
+        }
+      }
+    }
+  };
+
+  readObj(draw?.prizes);
+  readObj(draw?.result);
+  // Nếu results là object thì key giải được giữ nguyên.
+  readObj(draw?.results);
+  readPrizeArray(draw?.results);
+  readPrizeArray(draw?.result);
+  readPrizeArray(draw?.prizes);
+
+  // Một số nguồn chỉ trả results theo thứ tự giải. Chỉ dùng mapping này
+  // khi results thật sự là mảng và không có prizes object.
+  if(!Object.keys(out).length){
+    const vals=Array.isArray(draw?.results)?draw.results:(Array.isArray(draw?.result)?draw.result:null);
+    if(vals){
+      const keys=['g8','g7','g6','g5','g4','g3','g2','g1','db'];
+      vals.forEach((v,i)=>add(keys[i]||('r'+i),v));
+    }
+  }
+
+  for(const container of [draw?.lottery,draw?.result_data,draw?.data]){
+    if(container&&typeof container==='object'&&!Array.isArray(container)){
+      readObj(container.prizes); readObj(container.results); readObj(container.result);
+    }
+  }
+  for(const k of Object.keys(out)) out[k]=[...new Set(out[k])];
+  return out;
+}
+function cleanDigits(v){return String(v||"").replace(/\D/g,"");}
+function lastN(v,n){const d=cleanDigits(v);return d.length>=n?d.slice(-n):"";}
+function prizeEntries(draw){
+  const p=drawPrizes(draw), out=[];
+  for(const k of Object.keys(p)){
+    for(const v of p[k]){
+      const d=cleanDigits(v);
+      if(d) out.push({prize:k,value:d});
+    }
+  }
+  return out;
+}
+function provinceMatches(label, draw){
+  const q=String(label||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const n=drawProvince(draw).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  if(!q || q==="mac dinh") return true;
+  if(q.includes("long an") || q==="lan" || q==="la") return n.includes("long an");
+  if(q.includes("binh phuoc") || q==="bphuoc" || q==="bp") return n.includes("binh phuoc");
+  if(q.includes("hau giang") || q==="hgiang" || q==="hg") return n.includes("hau giang");
+  if(q.includes("tp.hcm") || q.includes("tphcm") || q.includes("ho chi minh") || q==="tpho") return n.includes("tp.hcm") || n.includes("ho chi minh");
+  if(q.includes("dong nai")) return n.includes("dong nai");
+  if(q.includes("can tho")) return n.includes("can tho");
+  if(q.includes("da nang") || q==="dnang") return n.includes("da nang");
+  if(q.includes("quang ngai") || q==="qngai") return n.includes("quang ngai");
+  if(q.includes("dak nong") || q==="dnong") return n.includes("dak nong");
+  if(q.includes("khanh hoa")) return n.includes("khanh hoa");
+  if(q.includes("soc trang")) return n.includes("soc trang");
+  return n.includes(q) || q.includes(n);
+}
+function drawDateKey(draw){
+  return normalizeDateKey(
+    draw?.date || draw?.draw_date || draw?.drawDate ||
+    draw?.formatted_date || draw?.formattedDate || draw?.ngay ||
+    draw?.draw?.date || draw?.draw?.draw_date || ""
+  );
+}
+function uniqueDrawList(rows){
+  const seen=new Set(), out=[];
+  for(const d of (rows||[])){
+    const station=String(drawProvince(d)||"").trim().toLowerCase();
+    const date=drawDateKey(d);
+    const sig=JSON.stringify(d?.prizes||d?.results||d?.result||"");
+    const key=station+"|"+date+"|"+sig;
+    if(!seen.has(key)){seen.add(key);out.push(d);}
+  }
+  return out;
+}
+function isSaturdayDateKey(key){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(key||''))) return false;
+  const p=String(key).split('-').map(Number);
+  const d=new Date(p[0],p[1]-1,p[2]);
+  return d.getDay()===6;
+}
+function stationIdentityValues(draw){
+  const out=[];
+  const add=(v)=>{
+    if(v==null) return;
+    if(Array.isArray(v)){ for(const x of v) add(x); return; }
+    if(typeof v==='object'){
+      for(const k of ['name','code','province_name','provinceName','station_name','station','ma_dai','maDai','short_name','shortName']) add(v[k]);
+      return;
+    }
+    const z=String(v).trim(); if(z && !out.includes(z)) out.push(z);
+  };
+  const walk=(obj,depth=0)=>{
+    if(!obj || depth>3 || typeof obj!=='object') return;
+    if(Array.isArray(obj)){ for(const x of obj) walk(x,depth+1); return; }
+    for(const k of Object.keys(obj)){
+      const v=obj[k];
+      if(/station|province|ma[_-]?dai|short[_-]?name|^code$|^name$/i.test(k)) add(v);
+      if(v && typeof v==='object') walk(v,depth+1);
+    }
+  };
+  walk(draw);
+  return out;
+}
+function stationAliasMatch(label,draw){
+  const q=String(label||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  if(!q) return true;
+  const aliases={
+    danang:['danang','dnang','xsdng','xsdna','xsdanang','danangcity'],
+    quangngai:['quangngai','qng','qngai','xsqng','quangngaii'],
+    tphcm:['tphcm','tpchiminh','tphochiminh','hochiminh','hochiminhcity','xshcm','saigon','tpho'],
+    longan:['longan','lan','la','xsla'],
+    binhphuoc:['binhphuoc','bphuoc','bp','xsbp'],
+    haugiang:['haugiang','hgiang','hg','xshg'],
+    daknong:['daknong','dnong','xsdno']
+  };
+  let key=q;
+  for(const [k,vals] of Object.entries(aliases)) if(vals.includes(q) || vals.some(v=>q.includes(v))) {key=k;break;}
+  const vals=stationIdentityValues(draw).map(v=>String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''));
+  if(key in aliases) return vals.some(v=>aliases[key].some(a=>v===a || v.includes(a) || a.includes(v)));
+  return vals.some(v=>v===q || v.includes(q) || q.includes(v));
+}
+function findDrawForStation(all,label){
+  const arr=Array.isArray(all)?all:[];
+  // Ưu tiên bộ nhận diện mạnh hơn provinceMatches(), vì XoSoAPI đôi khi
+  // trả mã XSDNG/XSQNG ở một trường khác với trường tên tỉnh.
+  let d=arr.find(x=>stationAliasMatch(label,x));
+  if(d) return d;
+  d=arr.find(x=>provinceMatches(label,x));
+  return d||null;
+}
+function regionDraws(row){
+  const selectedDate=$("date").value;
+  const drawScope=row.scopeStation||row.station;
+  let all=uniqueDrawList(lotteryResults[row.region]||[]);
+  // Nếu máy chủ có ngày trên bản ghi thì tuyệt đối chỉ dùng đúng ngày đang chọn.
+  all=all.filter(d=>{const dk=drawDateKey(d); return !dk || dk===selectedDate;});
+
+  // Phôi 2 Đài (MN/MT) phải luôn dò ĐÚNG 2 đài được khai báo trong
+  // crossProvinces. Đặt nhánh này trước explicit/fixedStations để không
+  // bị scopeStation hoặc thứ tự dữ liệu API làm rơi mất một đài.
+  if(row.cross2 && Array.isArray(row.crossProvinces) && row.crossProvinces.length===2){
+    const picked=[];
+    for(const name of row.crossProvinces){
+      const d=findDrawForStation(all,name);
+      if(d) picked.push(d);
+    }
+    return picked;
+  }
+
+  if(row.region==="B" || drawScope==="Hà Nội/Bắc"){
+    return all.slice(0,1);
+  }
+
+  const explicit=drawScope && !/^\d+ Đài (MN|MT)$/.test(drawScope);
+  if(explicit){
+    // Một đài cụ thể chỉ được phép có đúng 1 kỳ/ngày.
+    return all.filter(d=>provinceMatches(drawScope,d)).slice(0,1);
+  }
+
+  // Một số phôi có số đài cố định. 4DMN của anh là TP.HCM + Long An +
+  // Bình Phước + Hậu Giang; 2DMN là TP.HCM + Long An.
+  if(Array.isArray(row.fixedStations) && row.fixedStations.length){
+    const picked=[];
+    for(const name of row.fixedStations){
+      const d=uniqueDrawList(all).find(x=>provinceMatches(name,x));
+      if(d) picked.push(d);
+    }
+    return picked;
+  }
+
+  // 2DMN chính của phôi: TP.HCM + Long An.
+  // Luôn ưu tiên đúng 2 đài này, không phụ thuộc thứ trong tuần.
+  const unique=[]; const seen=new Set();
+  for(const d of all){
+    const k=String(drawProvince(d)||JSON.stringify(d)).toLowerCase();
+    if(!seen.has(k)){seen.add(k);unique.push(d);}
+  }
+
+  if(row.region==='N' && /^2 Đài MN phụ$/i.test(String(drawScope||''))){
+    const preferred=["Bình Phước","Hậu Giang"];
+    const picked=[];
+    for(const name of preferred){
+      const d=findDrawForStation(unique,name);
+      if(d) picked.push(d);
+    }
+    return picked;
+  }
+
+  if(row.region==='N' && /^2 Đài MN$/i.test(String(drawScope||''))){
+    // 2DMN chính: TP.HCM + Long An.
+    const preferred=['TP.HCM','Long An'];
+    const picked=[];
+    for(const name of preferred){
+      const d=findDrawForStation(unique,name);
+      if(d) picked.push(d);
+    }
+    // Không fallback sang đài khác. 2DMN chính bắt buộc đúng TP.HCM + Long An.
+    return picked;
+  }
+  if(row.region==='N' && /^3 Đài MN$/i.test(String(drawScope||''))){
+    // 3DMN = bắt buộc 3 đài Vĩnh Long + Bình Dương + Trà Vinh.
+    // Không được phụ thuộc vào tên/code mà API trả về và cũng không được
+    // để thiếu Trà Vinh chỉ vì provinceMatches() không nhận ra cách viết.
+    const preferred=['Vĩnh Long','Bình Dương','Trà Vinh'];
+    const picked=[];
+    const pickedKeys=new Set();
+    for(const name of preferred){
+      const d=unique.find(x=>!pickedKeys.has(String(drawProvince(x)||'').toLowerCase()) && provinceMatches(name,x));
+      if(d){
+        const k=String(drawProvince(d)||'').toLowerCase();
+        picked.push(d); pickedKeys.add(k);
+      }
+    }
+    // Nếu API trả tên đài khác (ví dụ code/tên viết tắt), lấy bổ sung
+    // các đài MN còn lại cho đủ đúng 3 đài, theo đúng thứ tự dữ liệu.
+    for(const d of unique){
+      if(picked.length>=3) break;
+      const k=String(drawProvince(d)||'').toLowerCase();
+      if(!pickedKeys.has(k)){ picked.push(d); pickedKeys.add(k); }
+    }
+    return picked.slice(0,3);
+  }
+
+  return unique.slice(0,Math.max(1,Number(row.stations)||1));
+}
+
+function eligibleKeys(row, type){
+  const isB=row.region==="B";
+  if(type==="DA" || type==="B2" || type==="DAO BL"){
+    // MN/MT: ĐÁ phải dò đủ G8, G7, G6, G5, G4, G3, G2, G1 và ĐB.
+    // G4 không được bỏ vì có thể là số quyết định tạo thành cặp ĐÁ.
+    return isB ? ["g7","g6","g5","g4","g3","g2","g1","db"]
+               : ["g8","g7","g6","g5","g4","g3","g2","g1","db"];
+  }
+  if(type==="B3"){
+    return isB ? ["g6","g5","g4","g3","g2","g1","db"]
+               : ["g7","g6","g5","g4","g3","g2","g1","db"];
+  }
+  if(type==="B4"){
+    return isB ? ["g5","g4","g3","g2","g1","db"]
+               : ["g6","g5","g4","g3","g2","g1","db"];
+  }
+  return [];
+}
+function entriesForKeys(draw, keys){
+  const p=drawPrizes(draw), out=[];
+  for(const k of keys||[]){
+    for(const v of (p[k]||[])){
+      const d=cleanDigits(v);
+      if(d) out.push({prize:k,value:d});
+    }
+  }
+  return out;
+}
+
+function resultForB(row,draw){
+  const digits=row.numbers[0]||"", len=digits.length;
+  // Parser tạo type b2/b3/b4 viết thường, trong khi eligibleKeys dùng B2/B3/B4.
+  // Chuẩn hóa type trước khi dò để BAO 2/3/4 luôn nhận đúng kết quả.
+  const t=String(row.type||"").toUpperCase();
+  const keys=eligibleKeys({...row,type:t},t==="DAO BL"?"DAO BL":t);
+  return entriesForKeys(draw,keys).filter(e=>lastN(e.value,len)===digits.padStart(len,"0"));
+}
+
+function resultForXC(row,draw){
+  const want=(row.numbers[0]||"").padStart(3,"0");
+  const isB=row.region==="B";
+  let keys;
+  if(row.type==="XC-ĐẦU") keys=[isB?"g6":"g7"];
+  else if(row.type==="XC-ĐUÔI") keys=["db"];
+  else keys=isB?["g6","db"]:["g7","db"];
+  return entriesForKeys(draw,keys).filter(e=>lastN(e.value,3)===want);
+}
+
+function resultForDD(row,draw){
+  const want=(row.numbers[0]||"").padStart(2,"0");
+  const isB=row.region==="B";
+  let keys;
+  if(row.type==="ĐẦU") keys=[isB?"g7":"g8"];
+  else if(row.type==="ĐUÔI") keys=["db"];
+  else keys=isB?["g7","db"]:["g8","db"];
+  return entriesForKeys(draw,keys).filter(e=>lastN(e.value,2)===want);
+}
+
+function resultForDA(row,draw){
+  const wanted=[...new Set(row.numbers.map(x=>lastN(x,2)).filter(Boolean))];
+  const keys=eligibleKeys(row,"DA");
+  const counts=new Map(wanted.map(n=>[n,0]));
+  for(const e of entriesForKeys(draw,keys)){
+    const n=lastN(e.value,2);
+    if(counts.has(n)) counts.set(n,(counts.get(n)||0)+1);
+  }
+  const hit=wanted.filter(x=>(counts.get(x)||0)>0);
+  // ĐÁ 1 đài — tính theo số CẶP THỰC SỰ CÙNG VỀ:
+  // 2 số về = 1 cặp × điểm; 3 số về = 3 cặp × điểm; 4 số về = 6 cặp × điểm.
+  // Với điểm 0.5n và giá Đá HN 640: 2 số = 0.5×640=320k;
+  // 3 số = 1.5×640=960k; 4 số = 3×640=1.920k.
+  // Ví dụ 47-74-91-32: nếu 47 và 74 cùng về thì cặp 47-74 phải được báo trúng,
+  // dù 91 hoặc 32 không về.
+  const winningPairs=[];
+  for(let i=0;i<wanted.length;i++){
+    for(let j=i+1;j<wanted.length;j++){
+      const a=wanted[i], b=wanted[j];
+      const times=Math.min(counts.get(a)||0,counts.get(b)||0);
+      if(times>0) winningPairs.push({a,b,times});
+    }
+  }
+  const pairCount=winningPairs.reduce((sum,p)=>sum+p.times,0);
+  const pairs=winningPairs.map(p=>`${p.a}–${p.b}`+(p.times>1?` ×${p.times}`:""));
+  return {
+    numbers:hit,
+    pairs,
+    pairCount,
+    counts:Object.fromEntries(wanted.map(n=>[n,counts.get(n)||0]))
+  };
+}
+
+function resultForCross2B(row){
+  // BAO 2 ĐÀI (đặc biệt 2DMT): tuyệt đối không dò qua regionDraws()
+  // rồi phụ thuộc vào thứ tự bản ghi API. Lấy ĐÚNG 2 đài trong crossProvinces,
+  // dò từng đài riêng, sau đó gộp hit lại thành một phôi 2DMT.
+  const selectedDate=$("date").value;
+  const all=uniqueDrawList(lotteryResults[row.region]||[])
+    .filter(d=>{const dk=drawDateKey(d); return !dk || dk===selectedDate;});
+  const stations=Array.isArray(row.crossProvinces)&&row.crossProvinces.length===2
+    ? row.crossProvinces
+    : (row.region==='T' ? ['Đà Nẵng','Quảng Ngãi'] : ['TP.HCM','Long An']);
+  const hits=[];
+  for(const station of stations){
+    const draw=all.find(d=>provinceMatches(station,d));
+    if(!draw) continue;
+    const found=resultForB({...row,cross2:false},draw);
+    if(found.length){
+      const unique=found.filter((x,i,a)=>a.findIndex(y=>y.prize===x.prize&&y.value===x.value)===i);
+      hits.push({
+        province:drawProvince(draw),
+        date:draw.formatted_date||draw.date||selectedDate,
+        count:unique.length,
+        detail:unique.map(x=>(x.prize||'').toUpperCase()+': '+x.value).join(' • ')
+      });
+    }
+  }
+  return hits;
+}
+
+function resultForCross2DA(row){
+  // ĐÁ 2 ĐÀI — dò theo ĐÚNG 2 đài của phôi và gom toàn bộ lô 2 số
+  // từ G8 -> ĐB của cả 2 đài. Một cặp được tính nếu 2 số cùng xuất hiện
+  // trong tập kết quả của 2 đài, kể cả khi cả 2 số cùng nằm ở một đài.
+  // Ví dụ 25/09/2026 XSMT: Ninh Thuận có 86677 và 62825 => cặp 77–25.
+  let draws=[];
+  const selectedDate=$("date").value;
+  const all=uniqueDrawList(lotteryResults[row.region]||[])
+    .filter(d=>{const dk=drawDateKey(d); return !dk || dk===selectedDate;});
+
+  if(Array.isArray(row.crossProvinces) && row.crossProvinces.length===2){
+    // Cặp đài đã được xác định ngay từ lúc nhận diện phôi.
+    // 2DMN chính = TP.HCM + Long An; 2DMN phụ = Bình Phước + Hậu Giang.
+    for(const name of row.crossProvinces){
+      const d=findDrawForStation(all,name);
+      if(d) draws.push(d);
+    }
+  }else if(row.region==='N' && /^2 Đài MN phụ$/i.test(String(row.station||''))){
+    const preferred=["Bình Phước","Hậu Giang"];
+    for(const name of preferred){
+      const d=findDrawForStation(all,name);
+      if(d) draws.push(d);
+    }
+  }else if(row.region==='N' && /^2 Đài MN$/i.test(String(row.station||''))){
+    // 2DMN chính: TP.HCM + Long An.
+    const preferred=['TP.HCM','Long An'];
+    for(const name of preferred){
+      const d=findDrawForStation(all,name);
+      if(d) draws.push(d);
+    }
+    if(draws.length<2){
+      for(const d of all){
+        if(draws.some(x=>String(drawProvince(x)||'').toLowerCase()===String(drawProvince(d)||'').toLowerCase())) continue;
+        draws.push(d);
+        if(draws.length===2) break;
+      }
+    }
+  }else if(row.region==='T' && /^2 Đài MT$/i.test(String(row.station||''))){
+    // 2DMT CHÍNH = ĐÀ NẴNG + QUẢNG NGÃI.
+    // Tuyệt đối không lấy 2 đài đầu tiên API trả về và không dùng Đắk Nông.
+    const preferred=['Đà Nẵng','Quảng Ngãi'];
+    for(const name of preferred){
+      const d=findDrawForStation(all,name);
+      if(d) draws.push(d);
+    }
+  }else{
+    draws=regionDraws(row);
+  }
+
+  // DA chỉ dò 2 số cuối của toàn bộ giải. G4 BẮT BUỘC có mặt.
+  const wanted=[...new Set((row.numbers||[]).map(x=>String(lastN(x,2)).padStart(2,'0')).filter(Boolean))];
+  const counts=new Map(wanted.map(n=>[n,0]));
+  const where=new Map(wanted.map(n=>[n,[]]));
+  const keys=["g8","g7","g6","g5","g4","g3","g2","g1","db"];
+
+  for(const draw of draws){
+    // Dùng entriesForKeys đã chuẩn hóa để đọc được cả prizes/result/results.
+    // Không chỉ đọc lô tô riêng, vì như vậy có thể bỏ sót G4.
+    for(const e of entriesForKeys(draw,keys)){
+      const n=String(lastN(e.value,2)).padStart(2,'0');
+      if(counts.has(n)){
+        counts.set(n,(counts.get(n)||0)+1);
+        where.get(n).push({province:drawProvince(draw),prize:e.prize,value:e.value});
+      }
+    }
+  }
+
+  const hitNumbers=wanted.filter(n=>(counts.get(n)||0)>0);
+  const winningPairs=[];
+  for(let i=0;i<wanted.length;i++){
+    for(let j=i+1;j<wanted.length;j++){
+      const a=wanted[i], b=wanted[j];
+      // Nếu A về 2 lần và B về 1 lần thì chỉ có 1 cặp A-B.
+      const times=Math.min(counts.get(a)||0,counts.get(b)||0);
+      if(times>0) winningPairs.push({a,b,times});
+    }
+  }
+  const pairCount=winningPairs.reduce((sum,p)=>sum+p.times,0);
+
+  const detailParts=[];
+  if(hitNumbers.length){
+    detailParts.push("Số về: "+hitNumbers.map(n=>`${n}(${counts.get(n)||0})`).join(", "));
+  }
+  if(winningPairs.length){
+    detailParts.push("Cặp trúng: "+winningPairs.map(p=>`${p.a}–${p.b}`+(p.times>1?` ×${p.times}`:"")).join(", "));
+  }
+  if(draws.length){
+    detailParts.push("Đài dò: "+draws.map(drawProvince).join(" + "));
+  }
+
+  return {
+    draws,
+    pairCount,
+    numbers:hitNumbers,
+    pairs:winningPairs,
+    detail:detailParts.join(" • "),
+    counts:Object.fromEntries(wanted.map(n=>[n,counts.get(n)||0])),
+    where:Object.fromEntries(wanted.map(n=>[n,where.get(n)||[]]))
+  };
+}
+function expand3DmnCrossDA(rows){
+  const out=[];
+  // Quy ước phôi của anh:
+  // 3DMN = TP.HCM + Long An + Bình Phước.
+  // Khi là DA, 3DMN được bung thành 3 cặp ĐÁ:
+  // TP.HCM-Long An, TP.HCM-Bình Phước, Long An-Bình Phước.
+  // 3DMT = Đà Nẵng + Quảng Ngãi + Đắk Nông.
+  for(const row of rows){
+    if(row.region==='N' && row.type==='DA' && /^3 Đài MN$/i.test(String(row.station||'')) && !row.cross2){
+      const pairs=[
+        ['TP.HCM','Long An'],
+        ['TP.HCM','Bình Phước'],
+        ['Long An','Bình Phước']
+      ];
+      for(const pair of pairs){
+        const per=Number(row.gross||0)/3;
+        out.push({...row,station:pair.join(" + "),crossProvinces:pair,cross2:true,gross:per});
+      }
+    }else if(row.region==='T' && row.type==='DA' && /^3 Đài MT$/i.test(String(row.station||'')) && !row.cross2){
+      const pairs=[
+        ['Đà Nẵng','Quảng Ngãi'],
+        ['Đà Nẵng','Đắk Nông'],
+        ['Quảng Ngãi','Đắk Nông']
+      ];
+      for(const pair of pairs){
+        const per=Number(row.gross||0)/3;
+        out.push({...row,station:pair.join(" + "),crossProvinces:pair,cross2:true,gross:per});
+      }
+    }else{
+      out.push(row);
+    }
+  }
+  return out;
+}
+function expandThreeStationRows(rows){
+  const out=[];
+  for(const row of rows){
+    if(row.cross2 || row.type==='DA') { out.push(row); continue; }
+
+    // 4DMN: một phôi được bung thành 4 đài RIÊNG, giữ nguyên toàn bộ cược
+    // cho từng đài. Không để lại dòng gộp "4 Đài MN" vì như vậy phần dò
+    // kết quả sẽ không biết phải hiển thị TP.HCM / Long An / Bình Phước / Hậu Giang.
+    if(row.region==='N' && /^4 Đài MN$/i.test(String(row.station||''))){
+      const stations=['TP.HCM','Long An','Bình Phước','Hậu Giang'];
+      const per=Number(row.gross||0)/4;
+      for(const name of stations){
+        out.push({...row,station:name,scopeStation:name,fixedStations:[name],stations:1,gross:per});
+      }
+      continue;
+    }
+
+    if(row.region==='N' && /^3 Đài MN$/i.test(String(row.station||''))){
+      const stations=['TP.HCM','Long An','Bình Phước'];
+      const per=Number(row.gross||0)/3;
+      for(const name of stations){
+        out.push({...row,station:name,scopeStation:name,fixedStations:[name],stations:1,gross:per});
+      }
+      continue;
+    }
+    if(row.region==='T' && /^3 Đài MT$/i.test(String(row.station||''))){
+      const stations=['Đà Nẵng','Quảng Ngãi','Đắk Nông'];
+      const per=Number(row.gross||0)/3;
+      for(const name of stations){
+        out.push({...row,station:name,scopeStation:name,fixedStations:[name],stations:1,gross:per});
+      }
+      continue;
+    }
+    out.push(row);
+  }
+  return out;
+}
+function scanRow(row){
+  const draws=regionDraws(row), hits=[];
+  // BAO 2 ĐÀI: dò cứng từng đài trong crossProvinces.
+  // Không dùng kết quả fallback của regionDraws; điều này tránh lỗi 2DMT
+  // khi API trả thứ tự Đà Nẵng/Quảng Ngãi khác nhau.
+  if(String(row.type||"").toUpperCase().startsWith("B") && row.cross2 && Array.isArray(row.crossProvinces) && row.crossProvinces.length===2){
+    return resultForCross2B(row);
+  }
+  // DAO XC: dò toàn bộ hoán vị nhưng gộp kết quả vào đúng 1 dòng DAO XC.
+  if(row.type==="DAO XC"){
+    const scanNumbers=row.scanNumbers?.length?row.scanNumbers:row.numbers;
+    for(const draw of draws){
+      const allHits=[];
+      for(const n of scanNumbers){
+        const temp={...row,numbers:[n]};
+        const rr=resultForXC(temp,draw);
+        allHits.push(...rr.map(x=>({...x,_matched:n})));
+      }
+      const unique=allHits.filter((x,i,a)=>a.findIndex(y=>y.prize===x.prize&&y.value===x.value&&y._matched===x._matched)===i);
+      if(unique.length){
+        hits.push({province:drawProvince(draw),date:draw.formatted_date||draw.date,
+          matchCount:unique.length,
+          detail:unique.map(x=>(x.prize||"").toUpperCase()+": "+x.value).join(" • ")});
+      }
+    }
+    return hits;
+  }
+  // ĐÁ 2 đài MN/MT là trường hợp đặc biệt: dò xuyên 2 đài chính,
+  // không tính đài phụ và không tách thành từng đài.
+  if(row.type==="DA" && (row.cross2 || /^2 Đài (MN|MT)$/i.test(String(row.station||"")))){
+    const r=resultForCross2DA(row);
+    if((r.pairCount||0)>0){
+      hits.push({province:r.draws.map(drawProvince).join(' + '),date:$("date").value,
+        pairCount:r.pairCount||0,detail:r.detail});
+    }
+    return hits;
+  }
+
+  for(const draw of draws){
+    let r=[];
+    if(row.type.startsWith("B")) r=resultForB(row,draw);
+    else if(row.type==="XC"||row.type==="XC-ĐẦU"||row.type==="XC-ĐUÔI") r=resultForXC(row,draw);
+    else if(row.type==="DD"||row.type==="ĐẦU"||row.type==="ĐUÔI") r=resultForDD(row,draw);
+    else if(row.type==="DA") r=resultForDA(row,draw);
+    if(row.type==="DA"){
+      // ĐÁ 1 đài: phải có đủ 2 số tạo thành ít nhất 1 cặp.
+      if((r.pairCount||0)>0) hits.push({province:drawProvince(draw),date:draw.formatted_date||draw.date,
+        pairCount:r.pairCount||0,
+        detail:"Số về: "+r.numbers.join(", ")+(r.pairs.length?" • Cặp: "+r.pairs.join(", "):"")});
+    }else if(r.length){
+      const unique=r.filter((x,i,a)=>a.findIndex(y=>y.prize===x.prize&&y.value===x.value)===i);
+      hits.push({
+        province:drawProvince(draw),
+        date:draw.formatted_date||draw.date,
+        count:unique.length,
+        detail:unique.map(x=>(x.prize||"").toUpperCase()+": "+x.value).join(" • ")
+      });
+    }
+  }
+  return hits;
+}
+function renderScan(){
+  const {rows,errors}=parseBets();
+  if(!rows.length){setStatus("Không đọc được phơi để dò.","err");return;}
+  let html=`<section class="card"><div class="title">🔎 KẾT QUẢ TỰ DÒ — ${$("date").value}</div>`;
+  let totalHits=0;
+  for(const row of rows){
+    const hits=scanRow(row); totalHits+=hits.length;
+    const color=hits.length?"ok":"err";
+    html+=`<div class="line ${color}"><b>${row.numbers.join("–")} ${row.type} ${row.points}n</b> — ${hits.length?"TRÚNG":"CHƯA THẤY TRÚNG"}`;
+    if(hits.length) html+=`<div class="muted">${hits.map(h=>`${h.province}: ${h.detail}`).join("<br>")}</div>`;
+    html+=`</div>`;
+  }
+  if(errors.length) html+=`<div class="line"><b>Dòng chưa đọc:</b><br>${errors.map(x=>x.replace(/</g,"&lt;")).join("<br>")}</div>`;
+  html+=`<div class="total">Tổng dòng có kết quả: ${totalHits}</div></section>`;
+  $("out").innerHTML=html;
+ const rw=$("resultWrap"); if(rw) rw.open=true;
+  setStatus(totalHits?`Đã dò xong: có ${totalHits} dòng có kết quả.`:"Đã dò xong: chưa thấy dòng nào trúng.",totalHits?"ok":"");
+}
+
+if($("get")) $("get").onclick=async()=>{
+  try{await getAllLotteryResults();}catch(e){setStatus(e.message,"err");}
+};
+if($("scan")) $("scan").onclick=async()=>{
+  try{
+    if(!lotteryResults.N.length&&!lotteryResults.T.length&&!lotteryResults.B.length) await getAllLotteryResults();
+    renderScan();
+  }catch(e){setStatus(e.message,"err");}
+};
+
+if($("calc")) $("calc").onclick=renderCalc;
+if($("clear")) $("clear").onclick=()=>{$("bets").value="";$("out").innerHTML="";setStatus("Đã xóa.")};
+$("date").value=(()=>{const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;})();
+syncCustomerSelect();
+boot();
+
+// ===== V3 UI =====
+function scrollToId(id){const el=document.getElementById(id);if(!el)return;if(el.tagName==='DETAILS')el.open=true;el.scrollIntoView({behavior:'smooth'});}
+const V3_CUSTOMER_KEY='phoi_customers_v3';
+const V3_DEFAULT={
+ X74:{xc:640,dd:74,da2:540,dathang:700,b2:74,b3:640,b4:5200,daMB:640,receive:.80,repay:1,c:{xc:630,dd:73,da2:540,dathang:730,b2:73,b3:630,b4:5300,daMB:630}},
+ X79:{xc:640,dd:76,da2:540,dathang:700,b2:75,b3:640,b4:5000,daMB:640,receive:.79,repay:1,c:{xc:630,dd:75,da2:530,dathang:730,b2:74,b3:630,b4:5100,daMB:630}},
+ Hạnh:{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,daMB:650,receive:.76,repay:.95,c:{xc:640,dd:74,da2:540,dathang:740,b2:74,b3:640,b4:5100,daMB:640}},
+ Tuấn:{xc:650,dd:75,da2:550,dathang:730,b2:75,b3:650,b4:5000,daMB:650,receive:.77,repay:.95,c:{xc:640,dd:74,da2:540,dathang:740,b2:74,b3:640,b4:5100,daMB:640}}
+};
+let v3Customers=JSON.parse(localStorage.getItem(V3_CUSTOMER_KEY)||'null')||V3_DEFAULT; let lastCalc=null; let lastSummary=null;
+function v3Save(){localStorage.setItem(V3_CUSTOMER_KEY,JSON.stringify(v3Customers));}
+function fillCustomer(){const name=$('customerSelect').value, c=v3Customers[name]; if(!c)return; for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB']) $('p_'+k).value=c[k]??0; $('p_receive').value=c.receive??0; $('p_repay').value=c.repay??0; const cc=c.c||{}; for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB']) $('c_'+k).value=cc[k]??0; $('c_receive').value=cc.receive??0.80; $('c_repay').value=cc.repay??1; $('rateDisplay').value=`${name} • nhận ${cc.receive??c.receive} • hồi ${cc.repay??1}`; $('customerStatus').textContent='Đang dùng bảng giá: '+name;}
+function renderCustomers(){const s=$('customerSelect');s.innerHTML=Object.keys(v3Customers).map(n=>`<option>${n}</option>`).join(''); if(!v3Customers[currentCustomer])currentCustomer=Object.keys(v3Customers)[0]; s.value=currentCustomer; fillCustomer();}
+$('customerSelect').onchange=()=>{currentCustomer=$('customerSelect').value;fillCustomer();};
+$('newCustomer').onclick=()=>{$('customerName').value='';$('customerName').focus();};
+$('saveCustomer').onclick=()=>{let n=$('customerName').value.trim()||$('customerSelect').value; if(!n)return alert('Nhập tên khách.'); const old=v3Customers[n]||{}; const c={...old,c:{...(old.c||{})}}; for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB'])c[k]=+$('p_'+k).value||0; c.receive=+$('p_receive').value||0;c.repay=+$('p_repay').value||0;for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB'])c.c[k]=+$('c_'+k).value||0; c.c.receive=+$('c_receive').value||0; c.c.repay=+$('c_repay').value||0; v3Customers[n]=c;currentCustomer=n;v3Save();renderCustomers();$('customerSelect').value=n;fillCustomer();$('customerStatus').textContent='Đã lưu khách '+n;};
+$('deleteCustomer').onclick=()=>{const n=$('customerSelect').value;if(Object.keys(v3Customers).length<=1)return alert('Phải giữ ít nhất 1 khách.');if(confirm('Xóa '+n+'?')){delete v3Customers[n];currentCustomer=Object.keys(v3Customers)[0];v3Save();renderCustomers();}};
+$('multiPriceBtn').onclick=()=>alert('Chọn khách rồi sửa các ô “Cò nhận cho khách”, sau đó bấm LƯU KHÁCH.');
+function buildDays(){const bar=$('daybar');bar.innerHTML='';const base=new Date();for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()-i);const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const label=i===0?'Hôm nay':`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;const b=document.createElement('button');b.textContent=label;b.dataset.date=iso;b.onclick=()=>{ $('date').value=iso;document.querySelectorAll('#daybar button').forEach(x=>x.classList.remove('active'));b.classList.add('active');};bar.appendChild(b);if(i===0){$('date').value=iso;b.classList.add('active');}}}
+$('date').addEventListener('change',()=>{lotteryResults={N:[],T:[],B:[]};document.querySelectorAll('#daybar button').forEach(b=>b.classList.toggle('active',b.dataset.date===$('date').value));});
+function priceForRow(row,c){
+  let k=row.type.toLowerCase();
+  if(row.type==='BAO 7') k='b7';
+  if(row.type==='DA'){
+    if(row.region==='B') k='daMB';
+    else if((row.station||'').startsWith('1 Đài')) k='dathang';
+    else k='da2';
+  }
+  if(row.type==='XC'||row.type==='DAO XC'||row.type==='XC-ĐẦU'||row.type==='XC-ĐUÔI') k='xc';
+  if(row.type==='DD'||row.type==='ĐẦU'||row.type==='ĐUÔI') k='dd';
+  return +(c[k]||0);
+}
+function calcWinning(rows){
+  let wins=0, by={N:{win:0},T:{win:0},B:{win:0}};
+  const details=[];
+  const cp=v3Customers[$('customerSelect').value]?.c||{};
+  for(const row of rows){
+    if(row.hidden){ details.push({row,hits:[],payout:0}); continue; }
+    const hits=row.nonWinning?[]:scanRow(row);
+    let payout=0;
+    if(row.nonWinning){
+      // Dòng cân bằng sinh ra từ dau/duoi chỉ là dòng hiển thị phần điểm
+      // giao nhau theo phần mềm chuẩn; tiền xác vẫn tính nhưng không phải
+      // một phôi DD độc lập để trả thưởng. Vì vậy dòng 52 DD 50n-50n trong
+      // mẫu chuẩn phải hiện X dù 52 có về đuôi.
+      details.push({row,hits,payout:0});
+      continue;
+    }
+    if(row.type==='DA'){
+      // THƯỞNG ĐÁ: giá thưởng × điểm × số CẶP thực tế trúng.
+      // Mỗi đài được tính riêng; 1 cặp trúng ở 1 đài = 1 lần thưởng.
+      // Ví dụ DA 2 đài, 0,5n, giá Đá 2 đài 540:
+      // 1 cặp trúng 1 đài => 540 × 0,5 = 270k.
+      // 1 cặp trúng cả 2 đài => 540 × 0,5 × 2 = 540k.
+      const winningPairs=hits.reduce((sum,h)=>sum+(Number(h.pairCount)||0),0);
+      payout=priceForRow(row,cp)*Number(row.points||0)*winningPairs;
+    }else if(row.type==='DAO XC'){
+      // Đảo XC: mỗi hoán vị thực tế trúng là một lần thưởng.
+      const winningPerms=hits.reduce((sum,h)=>sum+(Number(h.matchCount)||0),0);
+      payout=priceForRow(row,cp)*row.points*winningPerms;
+    }else{
+      // TIỀN TRÚNG = SỐ ĐIỂM THỰC TẾ TRÚNG × SỐ THƯỞNG.
+      // Tuyệt đối không lấy TIỀN XÁC (gross) để nhân với số thưởng.
+      // Mỗi kết quả khớp trong đúng đài/đúng giải = 1 đơn vị điểm trúng.
+      const winningUnits=hits.reduce((sum,h)=>sum+(Number(h.count)||1),0);
+      payout=priceForRow(row,cp)*Number(row.points||0)*winningUnits;
+    }
+    wins+=payout;
+    by[row.region].win+=payout;
+    details.push({row,hits,payout});
+  }
+  return{wins,by,details};
+}
+
+
+function typeLabel(t){
+  if(/^B2$/.test(t)) return "Bao 2";
+  if(/^B3$/.test(t)) return "Bao 3";
+  if(/^B4$/.test(t)) return "Bao 4";
+  if(t==="DA") return "DA";
+  if(t==="XC") return "XC";
+  // Phần mềm chuẩn hiển thị ĐẦU/ĐUÔI như một dòng DD tách 2 phía.
+  if(t==="DD"||t==="ĐẦU"||t==="ĐUÔI") return "DD";
+  return t;
+}
+function displayPoints(row){
+  if(row.type==="ĐẦU") return `${row.points}n-0n`;
+  if(row.type==="ĐUÔI") return `0n-${row.points}n`;
+  return `${row.points}n`;
+}
+function regionTitle(r){
+  return r==="N" ? "🄽 MIỀN NAM" : r==="T" ? "🅃 MIỀN TRUNG" : "🅱 MIỀN BẮC";
+}
+function regionTag(r,arr){
+  const labels=(arr||[]).map(x=>x.station||"");
+  if(r==="B") return "MB";
+  const count=Math.max(1,new Set(labels).size);
+  return `${count}ĐM${r}`;
+}
+
+function htmlEsc(v){
+  return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function stationDisplayName(v){
+  const s=String(v||'').trim();
+  if(!s) return 'Đài';
+  const map={
+    vlong:'Vĩnh Long',vl:'Vĩnh Long',tvinh:'Trà Vinh',travin:'Trà Vinh',travinh:'Trà Vinh',tv:'Trà Vinh',
+    bduong:'Bình Dương',bd:'Bình Dương',binhduong:'Bình Dương',
+    dongnai:'Đồng Nai',dn:'Đồng Nai',
+    tiengiang:'Tiền Giang',tg:'Tiền Giang',
+    tphcm:'TP.HCM',hcm:'TP.HCM',tp:'TP.HCM',
+    longan:'Long An',la:'Long An',
+    danang:'Đà Nẵng',dnang:'Đà Nẵng',dnang:'Đà Nẵng',
+    quangnam:'Quảng Nam',qn:'Quảng Nam',
+    quangngai:'Quảng Ngãi',qng:'Quảng Ngãi',
+    binhdinh:'Bình Định',bdinh:'Bình Định',
+    phuyen:'Phú Yên',py:'Phú Yên',
+    khanhhoa:'Khánh Hòa',kh:'Khánh Hòa',
+    daklak:'Đắk Lắk',dl:'Đắk Lắk',
+    gialai:'Gia Lai',glai:'Gia Lai',
+    kontum:'Kon Tum',kt:'Kon Tum',
+    hanoi:'Hà Nội',hn:'Hà Nội',mb:'Miền Bắc'
+  };
+  const k=s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  return map[k]||s;
+}
+// QUY TẮC TIỀN TRÚNG: điểm trúng × số thưởng; TIỀN XÁC chỉ dùng để tính thu/bù.
+function calcRowResultText(d){
+  if(!d.hits.length) return 'X';
+  const p=Math.round(Number(d.payout)||0);
+  const extra=d.hits.map(h=>h.detail||'').filter(Boolean).join(' • ');
+  return p ? money(p)+(extra?`<div class="muted" style="font-size:11px;margin-top:3px">${htmlEsc(extra)}</div>`:'') : '✓';
+}
+function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
+  const outEl=$("out"); if(outEl) outEl.style.display="block";
+  const gross={N:0,T:0,B:0};
+  const by={N:{win:0},T:{win:0},B:{win:0}};
+  const details=[];
+  for(const r of rows) if(!r.hidden) gross[r.region]+=Number(r.gross)||0;
+  if(winData){
+    for(const d of winData.details){ details.push(d); by[d.row.region].win+=Number(d.payout)||0; }
+  }else{
+    for(const r of rows) details.push({row:r,hits:[],payout:0});
+  }
+
+  // Các dòng hidden chỉ là dữ liệu nội bộ để dò hoán vị của DAO XC.
+  // Không được cộng tiền xác và không được hiển thị ra bảng.
+  const visibleRows=rows.filter(x=>!x.hidden);
+  const visibleDetails=details.filter(x=>!x.row.hidden);
+
+  // Giữ đúng thứ tự nhóm xuất hiện trong phôi: Vĩnh Long -> 2 Đài MN -> 3 Đài MN...
+  // Phải tạo SAU visibleDetails; nếu tạo trước sẽ làm JS dừng và không tính tiền.
+  const order=[];
+  for(const d of visibleDetails){
+    const r=d.row;
+    const key=r.region+'|'+String(r.station||'Đài');
+    if(!order.includes(key)) order.push(key);
+  }
+
+  let html='';
+  const grossVisible={N:0,T:0,B:0};
+  for(const r of visibleRows) grossVisible[r.region]+=Number(r.gross)||0;
+  gross.N=grossVisible.N; gross.T=grossVisible.T; gross.B=grossVisible.B;
+
+  // QUY TẮC THU/BÙ CHUẨN: phôi KHÔNG TRÚNG được nhân Hồi; phôi TRÚNG
+  // không nhân Hồi nữa. Tiền trúng được trừ trực tiếp khỏi phần thu của
+  // chính phôi trúng. Vì vậy phải tính theo TỪNG PHÔI, không thể lấy
+  // tổng tiền xác của cả miền rồi nhân một lần.
+  // Ví dụ với Nhận 0.76, Hồi 0.95:
+  //   - phôi không trúng: gross × 0.76 × 0.95
+  //   - phôi trúng:       gross × 0.76 - tiền trúng
+  const thuBy={N:0,T:0,B:0};
+  for(const d of visibleDetails){
+    const r=d.row;
+    const g=Number(r.gross)||0;
+    const win=Number(d.payout)||0;
+    const rowThu=d.hits.length ? (g*Number(c.receive||0)-win)
+                                : (g*Number(c.receive||0)*Number(c.repay||0));
+    thuBy[r.region]+=rowThu;
+  }
+
+  for(const r of ['N','T','B']){
+    if(!gross[r] && !by[r].win) continue;
+    const thu=thuBy[r];
+    const regionRows=visibleRows.filter(x=>x.region===r);
+    const regionDetails=visibleDetails.filter(x=>x.row.region===r);
+    const regionName=r==='N'?'Miền Nam':r==='T'?'Miền Trung':'Miền Bắc';
+    const tag=regionTag(r,regionRows);
+
+    html+=`<section class="legacy-calc-region">
+      <div class="legacy-region-title">${regionName}</div>
+      <div class="legacy-summary">
+        <div>Tiền Xác: <b>${money(gross[r])}</b></div>
+        <div>Tiền trúng: <b class="${by[r].win?'legacy-red':'legacy-blue'}">${money(by[r].win)}</b></div>
+        <div>Tổng Tiền ${thu<0?'Bù':'Thu'} : <b class="${thu<0?'legacy-red':'legacy-green'}">${money(thu)}</b></div>
+      </div>`;
+
+    const groupKeys=order.filter(k=>k.startsWith(r+'|'));
+    for(const key of groupKeys){
+      const station=key.split('|').slice(1).join('|');
+      const ds=regionDetails.filter(d=>String(d.row.station||'Đài')===station);
+      if(!ds.length) continue;
+      const stationGross=ds.reduce((sum,d)=>sum+(Number(d.row.gross)||0),0);
+      const stationWin=ds.reduce((sum,d)=>sum+(Number(d.payout)||0),0);
+      const title=stationDisplayName(station);
+      html+=`<div class="legacy-station-title">${htmlEsc(title)}</div>
+        <div class="legacy-table-wrap"><table class="legacy-calc-table">
+          <thead><tr><th>Số</th><th>Loại</th><th>Điểm</th><th>Tiền xác</th><th>Trúng</th></tr></thead><tbody>`;
+      for(const d of ds){
+        const rr=d.row, hit=d.hits.length>0;
+        const numsText=htmlEsc(rr.numbers.join('–'));
+        const result=htmlEsc(calcRowResultText(d));
+        html+=`<tr class="${hit?'legacy-hit':'legacy-miss'}"><td><b>${numsText}</b></td><td>${htmlEsc(typeLabel(rr.type))}</td><td>${htmlEsc(displayPoints(rr))}</td><td>= ${money(rr.gross)}</td><td>${result}</td></tr>`;
+      }
+      html+=`</tbody><tfoot><tr><td colspan="3"><b>TỔNG ĐÀI</b></td><td><b>${money(stationGross)}</b></td><td><b>${stationWin?money(stationWin):'X'}</b></td></tr></tfoot></table></div>`;
+    }
+
+    html+=`<div class="legacy-region-total">
+      <div>Tiền Xác: <b>${money(gross[r])}</b></div>
+      <div>Tiền trúng: <b class="${by[r].win?'legacy-red':'legacy-blue'}">${money(by[r].win)}</b></div>
+      <div>Tổng Tiền ${thu<0?'Bù':'Thu'} : <b class="${thu<0?'legacy-red':'legacy-green'}">${money(thu)}</b></div>
+    </div></section>`;
+  }
+
+  const totalGross=gross.N+gross.T+gross.B;
+  const totalWin=by.N.win+by.T.win+by.B.win;
+  const totalThu=thuBy.N+thuBy.T+thuBy.B;
+  const oldKey='oldBalance_'+($('customerSelect')?.value||currentCustomer);
+  const oldBalance=Number(localStorage.getItem(oldKey)||0);
+  const finalTotal=totalThu+oldBalance;
+  html+=`<section class="card total-card">
+    <div class="section-title">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}</div>
+    <table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody>
+    <tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr>
+    <tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr>
+    <tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr>
+    </tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table>
+    <div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center">
+      <b style="font-size:17px">CŨ</b>
+      <div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div>
+      <b style="font-size:20px;text-align:center">=</b>
+      <div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div>
+    </div>
+    <div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div>
+  </section>`;
+
+  if(errors.length) html+=`<section class="card err"><b>Dòng chưa đọc:</b><br>${errors.map(x=>String(x).replace(/</g,'&lt;')).join('<br>')}</section>`;
+  if(apiMessage) html+=`<section class="card"><b>ℹ️ Tự dò kết quả:</b><br>${apiMessage}</section>`;
+  $('out').innerHTML=html;
+  lastCalc={date:$('date').value,html};
+  lastSummary={date:$('date').value,name:$('customerSelect').value,receive:Number(c.receive)||0,repay:Number(c.repay)||0,
+    N:{gross:Number(gross.N)||0,win:Number(by.N.win)||0,thu:Number(thuBy.N)||0},
+    T:{gross:Number(gross.T)||0,win:Number(by.T.win)||0,thu:Number(thuBy.T)||0},
+    B:{gross:Number(gross.B)||0,win:Number(by.B.win)||0,thu:Number(thuBy.B)||0},
+    totalGross:Number(totalGross)||0,totalWin:Number(totalWin)||0,totalThu:Number(totalThu)||0,old:Number(oldBalance)||0,finalTotal:Number(finalTotal)||0};
+
+  bindOldBalanceInput(totalThu,oldKey);
+  return {totalGross,totalWin,totalThu,oldBalance,finalTotal};
+}
+
+async function runAll(){
+  const {rows,errors}=parseBets();
+  if(!rows.length){setStatus('Chưa đọc được phơi.','err');return;}
+  const c=v3Customers[$('customerSelect').value]||V3_DEFAULT.X74;
+
+  // Tính tiền ngay, hoàn toàn độc lập với API.
+  renderCalculation(rows,errors,c,null);
+  setStatus('Đã tính phơi. Đang thử lấy kết quả 3 miền...');
+
+  // Nếu API hết hạn/lỗi, vẫn giữ nguyên phần tính tiền.
+  try{
+    await getAllLotteryResults();
+    const win=calcWinning(rows);
+    const result=renderCalculation(rows,errors,c,win,null);
+    setStatus(`Đã hoàn tất: tính + tự dò KQ 3 miền. Tổng xác ${money(result.totalGross)} • Thu/Bù ${money(result.totalThu)}.`,'ok');
+  }catch(e){
+    const msg=e?.message||String(e);
+    renderCalculation(rows,errors,c,null,`Không lấy được kết quả tự động: ${msg}. Phần tính tiền vẫn hoạt động bình thường. Khi API hoạt động lại, anh chỉ cần bấm OK lần nữa để dò.`);
+    setStatus('Đã tính phơi. API kết quả hiện không khả dụng — không ảnh hưởng phần tính tiền.','ok');
+  }
+}
+$('okAll').onclick=runAll;
+// Tự nhận diện phôi ngay khi người dùng COPY/DÁN hoặc nhập nội dung.
+// Không cần sửa lại cú pháp; chỉ báo trạng thái đọc được bao nhiêu dòng.
+function autoReadPhoi(){
+  const ta=$('bets');
+  if(!ta) return;
+  const raw=ta.value||'';
+  if(!raw.trim()){
+    const el=$('status');
+    if(el){ el.textContent='Chưa có phôi. Dán nguyên nội dung phôi vào ô trên.'; el.className='status'; }
+    return;
+  }
+  try{
+    const cleaned=cleanTelegramPhoiText(raw);
+    if(cleaned && cleaned!==raw){ ta.value=cleaned; }
+    const r=parseBets();
+    const el=$('status');
+    if(el){
+      if(r.rows.length){
+        const regions=[...new Set(r.rows.map(x=>x.region))].join(', ');
+        el.textContent=`✓ Đã tự nhận diện ${r.rows.length} dòng phôi • Miền: ${regions}${r.errors.length?` • Chưa đọc ${r.errors.length} dòng`:''}. Bấm OK để tính + dò kết quả.`;
+        el.className='status ok';
+      }else{
+        el.textContent='⚠️ Chưa nhận diện được phôi. Hãy dán nguyên phôi, không cần sửa.';
+        el.className='status err';
+      }
+    }
+  }catch(e){
+    const el=$('status');
+    if(el){ el.textContent='⚠️ Phôi có lỗi định dạng: '+(e?.message||e); el.className='status err'; }
+  }
+}
+$('bets').addEventListener('paste',function(e){
+  // Safari/iPhone: lấy trực tiếp text/plain từ clipboard để tránh paste bị cắt/format từ app nguồn.
+  const clip=e.clipboardData || window.clipboardData;
+  const txt=clip ? clip.getData('text/plain') : '';
+  if(txt){
+    e.preventDefault();
+    const ta=this;
+    const start=ta.selectionStart ?? ta.value.length;
+    const end=ta.selectionEnd ?? ta.value.length;
+    ta.value=ta.value.slice(0,start)+txt+ta.value.slice(end);
+    const pos=start+txt.length;
+    ta.setSelectionRange(pos,pos);
+    ta.dispatchEvent(new Event('input',{bubbles:true}));
+    setTimeout(autoReadPhoi,0);
+  } else setTimeout(autoReadPhoi,0);
+});
+$('bets').addEventListener('input',autoReadPhoi);
+$('pasteAll').onclick=async function(){
+  const ta=$('bets');
+  let txt='';
+  try{
+    if(navigator.clipboard && navigator.clipboard.readText) txt=await navigator.clipboard.readText();
+  }catch(e){}
+  if(!txt){
+    alert('iPhone chưa cho phép đọc Clipboard. Hãy nhấn giữ trong ô phơi → Dán, hoặc cấp quyền Clipboard cho trang.');
+    ta.focus();
+    return;
+  }
+  ta.value=txt;
+  ta.focus();
+  ta.setSelectionRange(ta.value.length,ta.value.length);
+  autoReadPhoi();
+  setStatus(`Đã dán toàn bộ ${txt.length.toLocaleString('vi-VN')} ký tự từ Clipboard. Bấm OK để tính.`,'ok');
+};
+$('clearBets').onclick=function(){ $('bets').value=''; autoReadPhoi(); $('bets').focus(); };
+
+// Chế độ HN: khi dòng hiện tại bắt đầu bằng 'hn' thì không cho gõ
+// khoảng trắng hoặc xuống dòng. Có thể gõ liền: hn98duoi100.855b1nxc25...
+// Việc dán nguyên phôi từ Telegram vẫn giữ nguyên và parser vẫn tự nhận diện.
+$('bets').addEventListener('keydown', function(e){
+  if(e.key !== ' ' && e.key !== 'Enter') return;
+  const ta = this;
+  const pos = ta.selectionStart || 0;
+  const before = (ta.value || '').slice(0, pos);
+  const lineStart = before.lastIndexOf('\n') + 1;
+  const currentLine = before.slice(lineStart).trimStart();
+  if(/^hn(?:\s|$)/i.test(currentLine) || /^hn/i.test(currentLine)){
+    e.preventDefault();
+  }
+});
+function evalOldExpression(raw){
+  const s=String(raw??'').replace(/,/g,'.').replace(/\s+/g,'');
+  if(!s) return 0;
+  // Chỉ cho phép số và + / - , không cho phép code hay ký tự khác.
+  if(!/^[+-]?(?:\d+(?:\.\d+)?)(?:[+-]\d+(?:\.\d+)?)*$/.test(s)) return null;
+  try{
+    let total=0, sign=1, i=0;
+    while(i<s.length){
+      if(s[i]==='+'||s[i]==='-'){ sign=s[i]==='-'?-1:1; i++; }
+      const m=s.slice(i).match(/^\d+(?:\.\d+)?/);
+      if(!m) return null;
+      total += sign*Number(m[0]);
+      i += m[0].length;
+      sign=1;
+    }
+    return Number.isFinite(total)?Math.round(total):null;
+  }catch(_){ return null; }
+}
+function bindOldBalanceInput(totalThu, oldKey){
+  const oldInput=$('oldBalanceInput');
+  if(!oldInput) return;
+  const update=()=>{
+    const parsed=evalOldExpression(oldInput.value);
+    if(parsed===null){
+      oldInput.style.borderColor='#d72626';
+      return;
+    }
+    oldInput.style.borderColor='#bfc7d4';
+    localStorage.setItem(oldKey,String(parsed));
+    const final=Number(totalThu||0)+parsed;
+    if(lastSummary){lastSummary.old=parsed;lastSummary.finalTotal=final;}
+    const box=$('finalTotalBox');
+    if(box) box.innerHTML=`<span class="${final<0?'rednum':'greenmoney'}">${money(final)}</span>`;
+  };
+  oldInput.addEventListener('input',update);
+  oldInput.addEventListener('blur',update);
+  update();
+}
+function totalCopyText(){
+  if(!lastSummary) return '';
+  const x=lastSummary;
+  const date=x.date.split('-').reverse().join('-');
+  const line=(r)=>{
+    const g=Math.round(r.gross||0), w=Math.round(r.win||0), t=Math.round(r.thu||0);
+    return `${g||w ? `  ${g}  -  ${w}  =  ${t}` : '  —————————'} `;
+  };
+  const tc=Math.round(x.totalThu||0);
+  const old=Math.round(x.old||0);
+  const final=Math.round((x.finalTotal ?? (tc+old))||0);
+  return `Tên:   ${x.name || 'Gốc X74'}\n→     Ngày: ${date}\n🄽:${line(x.N)}\n🅃:${line(x.T)}\n🄱:${line(x.B)}\n→       ${tc<0?'Bù':'Thu'}: ${tc}\n→       Cũ: ${old}\n→ Tổng cuối: ${final}`;
+}
+function handleCopyTotal(){
+  if(!lastSummary){alert('Chưa có bảng tổng. Bấm OK trước.');return;}
+  const text=totalCopyText();
+  const old=document.getElementById('copyTextModal'); if(old) old.remove();
+  const modal=document.createElement('div'); modal.id='copyTextModal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100000;padding:18px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML=`<div style="width:min(520px,100%);background:#fff;border-radius:16px;padding:16px;box-sizing:border-box"><div style="font-size:22px;font-weight:800;margin-bottom:10px">COPY TỔNG</div><textarea id="copyTextArea" readonly style="width:100%;height:260px;box-sizing:border-box;font-size:17px;line-height:1.5;padding:12px;border:2px solid #ccd3df;border-radius:10px"></textarea><div style="display:flex;gap:8px;margin-top:10px"><button id="doCopyNow" style="flex:1;background:#111827;color:#fff;border:0;border-radius:10px;padding:13px;font-weight:800">SAO CHÉP</button><button id="closeCopy" style="flex:1;background:#eee;color:#111;border:0;border-radius:10px;padding:13px;font-weight:800">ĐÓNG</button></div><div style="font-size:13px;margin-top:10px;color:#666">Nếu iPhone không cho sao chép tự động, nhấn giữ trong ô chữ → Sao chép.</div></div>`;
+  document.body.appendChild(modal);
+  const area=document.getElementById('copyTextArea'); area.value=text; area.focus(); area.select(); area.setSelectionRange(0,area.value.length);
+  document.getElementById('closeCopy').onclick=()=>modal.remove();
+  document.getElementById('doCopyNow').onclick=async()=>{let ok=false; try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);ok=true;}}catch(_){} if(!ok){try{area.focus();area.select();area.setSelectionRange(0,area.value.length);ok=document.execCommand('copy');}catch(_){}} setStatus(ok?'Đã sao chép tổng.':'Đã chọn sẵn nội dung — nhấn giữ để Sao chép.','ok');};
+}
+
+function escSvg(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+function fmtK(v){return Math.round(Number(v)||0).toLocaleString('vi-VN');}
+function openCutImage(){
+  if(!lastSummary)return alert('Chưa có bảng tổng. Bấm OK trước.');
+  const x=lastSummary;
+  const date=x.date.split('-').reverse().join('-');
+  const tcLabel=x.totalThu<0?'Bù':'Thu';
+  const tcValue=Math.abs(Math.round(x.totalThu||0));
+  const rows=[['N',x.N.gross,x.N.win,x.N.thu],['T',x.T.gross,x.T.win,x.T.thu],['B',x.B.gross,x.B.win,x.B.thu]];
+
+  const old=document.getElementById('cutImageModal'); if(old)old.remove();
+  const modal=document.createElement('div'); modal.id='cutImageModal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;padding:10px;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;box-sizing:border-box;';
+  modal.innerHTML=`
+    <div style="color:#fff;font-size:18px;font-weight:800;text-align:center">LƯU ẢNH — kéo khung rồi lưu thẳng vào Ảnh</div>
+    <div id="cropStage" style="position:relative;width:min(700px,96vw);height:auto;background:#fff;border-radius:10px;overflow:hidden;touch-action:none;user-select:none;aspect-ratio:7/7">
+      <canvas id="cropSource" style="display:block;width:100%;height:100%;touch-action:none"></canvas>
+      <div id="cropBox" style="position:absolute;left:0;top:0;width:100%;height:100%;border:3px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.40);box-sizing:border-box;touch-action:none">
+        <div class="crop-h" data-dir="nw" style="position:absolute;left:-14px;top:-14px;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid #2563eb;box-sizing:border-box"></div>
+        <div class="crop-h" data-dir="ne" style="position:absolute;right:-14px;top:-14px;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid #2563eb;box-sizing:border-box"></div>
+        <div class="crop-h" data-dir="sw" style="position:absolute;left:-14px;bottom:-14px;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid #2563eb;box-sizing:border-box"></div>
+        <div class="crop-h" data-dir="se" style="position:absolute;right:-14px;bottom:-14px;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid #2563eb;box-sizing:border-box"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;width:min(700px,96vw)">
+      <button id="cropAll" style="background:#fff;color:#111;border:0;border-radius:10px;padding:12px 16px;font-weight:800">CHỌN HẾT</button>
+      <button id="savePhoto" style="background:#2563eb;color:#fff;border:0;border-radius:10px;padding:12px 16px;font-weight:900">LƯU VÀO ẢNH</button>
+      <button id="closeCrop" style="background:#fff;color:#111;border:0;border-radius:10px;padding:12px 16px;font-weight:800">ĐÓNG</button>
+    </div>
+    <div style="color:#fff;font-size:13px;text-align:center;line-height:1.45">Bấm LƯU VÀO ẢNH → bảng chia sẻ của iPhone → chọn “Lưu hình ảnh”. Ảnh PNG sẽ được lưu vào ứng dụng Ảnh.</div>`;
+  document.body.appendChild(modal);
+
+  const stage=document.getElementById('cropStage'), source=document.getElementById('cropSource'), box=document.getElementById('cropBox');
+  const ctx=source.getContext('2d');
+  const LOGW=700, LOGH=700;
+  function resizeCanvas(){
+    const w=stage.clientWidth, h=stage.clientHeight, d=Math.min(window.devicePixelRatio||1,2);
+    source.width=Math.round(LOGW*d); source.height=Math.round(LOGH*d);
+    source.style.width=w+'px'; source.style.height=h+'px';
+    ctx.setTransform(d,0,0,d,0,0); drawSource();
+  }
+  function text(ctx,t,x,y,size,weight='500',align='center',fill='#111'){ctx.fillStyle=fill;ctx.font=`${weight} ${size}px Arial,sans-serif`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(t,x,y);}
+  function drawSource(){
+    ctx.clearRect(0,0,LOGW,LOGH); ctx.fillStyle='#fff';ctx.fillRect(0,0,LOGW,LOGH);
+    ctx.fillStyle='#6f9fe9';ctx.fillRect(0,0,700,165);ctx.strokeStyle='#222';ctx.lineWidth=3;ctx.strokeRect(0,0,700,165);
+    text(ctx,'Ngày: '+date,350,78,34,'500'); text(ctx,'福',70,84,42); text(ctx,'福',630,84,42);
+    const y0=165;
+    rows.forEach((r,i)=>{
+      const y=y0+i*105, thu=Math.round(r[3]);
+      ctx.fillStyle='#f8f8f8';ctx.fillRect(0,y,700,105);ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.strokeRect(0,y,700,105);
+      [175,350,525].forEach(v=>{ctx.beginPath();ctx.moveTo(v,y);ctx.lineTo(v,y+105);ctx.stroke();});
+      text(ctx,r[0],87.5,y+53,38,'500');text(ctx,fmtK(r[1]),262.5,y+53,34,'500');text(ctx,fmtK(r[2]),437.5,y+53,34,'500','center','#c00');text(ctx,fmtK(thu),612.5,y+53,34,'500','center',thu<0?'#c00':'#111');
+    });
+    ctx.fillStyle='#eee';ctx.fillRect(0,480,175,105);ctx.fillRect(175,480,525,105);ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.strokeRect(0,480,700,105);ctx.strokeRect(175,480,700-175,105);
+    text(ctx,'TC',87.5,532,38,'500');text(ctx,tcLabel+' : '+fmtK(tcValue),437.5,532,34,'500');
+    ctx.fillStyle='#eee';ctx.fillRect(0,585,175,115);ctx.fillStyle='#fff';ctx.fillRect(175,585,525,115);ctx.strokeStyle='#222';ctx.strokeRect(0,585,175,115);ctx.strokeRect(175,585,525,115);
+    text(ctx,'Cũ',87.5,642,38,'500');ctx.strokeStyle='#555';ctx.strokeRect(255,610,170,65);text(ctx,fmtK(x.old||0),340,643,30,'500');text(ctx,'=',450,643,34,'700');text(ctx,fmtK(x.finalTotal ?? ((x.totalThu||0)+(x.old||0)))+'k',585,643,30,'700');
+  }
+  resizeCanvas();
+  window.addEventListener('resize',resizeCanvas);
+
+  let drag=null;
+  function dims(){const sr=stage.getBoundingClientRect(),br=box.getBoundingClientRect();return {sw:sr.width,sh:sr.height,l:br.left-sr.left,t:br.top-sr.top,w:br.width,h:br.height};}
+  function setBox(l,t,w,h){const {sw,sh}=dims();w=Math.max(70,Math.min(w,sw));h=Math.max(60,Math.min(h,sh));l=Math.max(0,Math.min(l,sw-w));t=Math.max(0,Math.min(t,sh-h));box.style.left=l/sw*100+'%';box.style.top=t/sh*100+'%';box.style.width=w/sw*100+'%';box.style.height=h/sh*100+'%';}
+  function pos(e){const r=stage.getBoundingClientRect();return{x:Math.max(0,Math.min(r.width,e.clientX-r.left)),y:Math.max(0,Math.min(r.height,e.clientY-r.top))};}
+  stage.addEventListener('pointerdown',e=>{
+    const h=e.target.closest('.crop-h'); const p=pos(e); const d=dims();
+    if(h){drag={mode:h.dataset.dir,sx:p.x,sy:p.y,...d};}
+    else if(e.target===box){drag={mode:'move',sx:p.x,sy:p.y,...d};}
+    else return;
+    e.preventDefault(); box.setPointerCapture?.(e.pointerId);
+  });
+  stage.addEventListener('pointermove',e=>{if(!drag)return;e.preventDefault();const p=pos(e),dx=p.x-drag.sx,dy=p.y-drag.sy;let {l,t,w,h}=drag;
+    if(drag.mode==='move'){setBox(l+dx,t+dy,w,h);return;}
+    if(drag.mode.includes('w')){l=drag.l+dx;w=drag.w-dx;} else if(drag.mode.includes('e')){w=drag.w+dx;}
+    if(drag.mode.includes('n')){t=drag.t+dy;h=drag.h-dy;} else if(drag.mode.includes('s')){h=drag.h+dy;}
+    setBox(l,t,w,h);
+  });
+  stage.addEventListener('pointerup',()=>drag=null);stage.addEventListener('pointercancel',()=>drag=null);
+  document.getElementById('cropAll').onclick=()=>setBox(0,0,stage.clientWidth,stage.clientHeight);
+
+  function cropCanvas(){
+    const sr=stage.getBoundingClientRect(),br=box.getBoundingClientRect();
+    const sx=Math.max(0,br.left-sr.left),sy=Math.max(0,br.top-sr.top),sw=Math.min(sr.width,br.width),sh=Math.min(sr.height,br.height);
+    const out=document.createElement('canvas');
+    // Luôn xuất ảnh theo tọa độ LOGICAL 700x700, không dùng trực tiếp tọa độ pixel
+    // của canvas nguồn (canvas nguồn có thể đang 2x trên iPhone). Đây là nguyên nhân
+    // bản cũ chỉ lưu được phần trên của bảng.
+    const sxL=Math.max(0,Math.min(LOGW,sx/sr.width*LOGW));
+    const syL=Math.max(0,Math.min(LOGH,sy/sr.height*LOGH));
+    const swL=Math.max(1,Math.min(LOGW-sxL,sw/sr.width*LOGW));
+    const shL=Math.max(1,Math.min(LOGH-syL,sh/sr.height*LOGH));
+    const px=3;
+    out.width=Math.max(1,Math.round(swL*px));
+    out.height=Math.max(1,Math.round(shL*px));
+    const oc=out.getContext('2d');
+    const srcScaleX=source.width/LOGW;
+    const srcScaleY=source.height/LOGH;
+    oc.fillStyle='#fff';oc.fillRect(0,0,out.width,out.height);
+    oc.imageSmoothingEnabled=true;oc.imageSmoothingQuality='high';
+    // QUAN TRỌNG: chuyển tọa độ logical sang pixel thật của canvas nguồn.
+    oc.drawImage(source,
+      sxL*srcScaleX, syL*srcScaleY, swL*srcScaleX, shL*srcScaleY,
+      0, 0, out.width, out.height);
+    return out;
+  }
+  async function canvasBlob(c){return await new Promise(r=>c.toBlob(r,'image/png',1));}
+  async function savePhotoImage(){
+    try{
+      const blob=await canvasBlob(cropCanvas());
+      if(!blob) throw new Error('Không tạo được ảnh');
+      const f=new File([blob],`tong-${x.date}.png`,{type:'image/png',lastModified:Date.now()});
+      // iPhone/iPad Safari không cho trang web ghi trực tiếp vào Photos.
+      // Web Share file sẽ mở bảng chia sẻ hệ thống; chọn “Lưu hình ảnh” để lưu thẳng vào Ảnh.
+      if(navigator.share && (!navigator.canShare || navigator.canShare({files:[f]}))){
+        await navigator.share({files:[f],title:'Kết quả '+date});
+        return true;
+      }
+      // Fallback: mở ảnh PNG nguyên vẹn để người dùng nhấn giữ > Lưu vào Ảnh.
+      const url=URL.createObjectURL(blob);
+      const w=window.open(url,'_blank');
+      if(!w){
+        const a=document.createElement('a');a.href=url;a.download=f.name;a.click();
+      }
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      return true;
+    }catch(e){
+      if(e?.name!=='AbortError') alert('Không mở được chức năng Lưu Ảnh trên thiết bị này.');
+      return false;
+    }
+  }
+  document.getElementById('savePhoto').onclick=savePhotoImage;
+  document.getElementById('closeCrop').onclick=()=>{window.removeEventListener('resize',resizeCanvas);modal.remove();};
+}
+
+document.addEventListener('click',async(e)=>{
+  const op=e.target.closest('.old-op');
+  if(op){
+    e.preventDefault();
+    const input=document.getElementById('oldBalanceInput');
+    if(input){
+      const sign=op.dataset.op==='-'?'-':'+';
+      const v=input.value.trim();
+      if(!v){ input.value=sign; }
+      else if(/[+-]$/.test(v)){ input.value=v.slice(0,-1)+sign; }
+      else { input.value=v+sign; }
+      input.focus();
+      input.setSelectionRange(input.value.length,input.value.length);
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+    return;
+  }
+  const copy=e.target.closest('#copyTotal');
+  if(copy){e.preventDefault();await handleCopyTotal();return;}
+  const shot=e.target.closest('#shotTotal');
+  if(shot){e.preventDefault();openCutImage();return;}
+});
+$('logoutBtn2').onclick=async()=>{await sb.auth.signOut();showLogin();};
+renderCustomers();buildDays();
+
+function mainDrawsForCross2(row){
+  const selectedDate=$("date").value;
+  const all=uniqueDrawList(lotteryResults[row.region]||[])
+    .filter(d=>{const dk=drawDateKey(d); return !dk || dk===selectedDate;});
+  const unique=[]; const seen=new Set();
+  for(const d of all){
+    const key=String(drawProvince(d)||JSON.stringify(d)).toLowerCase();
+    if(seen.has(key)) continue;
+    seen.add(key); unique.push(d);
+  }
+  // ĐÁ 2DMN phụ: Bình Phước + Hậu Giang.
+  if(row.region==='N' && /^2 Đài MN phụ$/i.test(String(row.station||row.scopeStation||''))){
+    const preferred=["Bình Phước","Hậu Giang"];
+    const picked=[];
+    for(const name of preferred){
+      const d=findDrawForStation(unique,name);
+      if(d) picked.push(d);
+    }
+    return picked;
+  }
+  // ĐÁ 2DMT chính: Đà Nẵng + Quảng Ngãi.
+  if(row.region==='T'){
+    const preferred=['Đà Nẵng','Quảng Ngãi'];
+    const picked=[];
+    for(const name of preferred){
+      const d=findDrawForStation(unique,name);
+      if(d) picked.push(d);
+    }
+    return picked;
+  }
+  // ĐÁ 2DMN chính: TP.HCM + Long An.
+  if(row.region==='N'){
+    const preferred=['TP.HCM','Long An'];
+    const picked=[];
+    for(const name of preferred){
+      const d=findDrawForStation(unique,name);
+      if(d) picked.push(d);
+    }
+    // Không fallback sang đài khác. 2DMN chính bắt buộc đúng TP.HCM + Long An.
+    return picked;
+  }
+  return unique.slice(0,2);
+}
+</script>
+</body>
+</html>

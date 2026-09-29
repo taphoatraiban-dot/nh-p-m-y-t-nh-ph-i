@@ -82,7 +82,7 @@ button{border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:poin
 @media(max-width:600px){.calc-head{font-size:24px}.calc-summary{font-size:17px}.station-title{font-size:18px}.calc-detail-table{font-size:13px}.calc-detail-table th,.calc-detail-table td{padding:6px 2px}.calc-region-total{font-size:16px}}
 
 /* ===== PHOM BANG CHUAN TIMKIEM ===== */
-.legacy-calc-region{background:#fff;border:1px solid #d7d7d7;margin:14px 0 18px;overflow:hidden}
+.legacy-calc-region{background:#fff;border:1px solid #d7d7d7;margin:0 0 10px;overflow:hidden}
 .legacy-region-title{text-align:center;font-family:Georgia,serif;font-size:30px;font-weight:700;padding:12px 8px;border-bottom:1px solid #d66;color:#222}
 .legacy-summary{text-align:center;padding:12px 8px;border-bottom:1px solid #d66;font-size:21px;line-height:1.45;color:#344bb4;font-weight:600}
 .legacy-summary b{font-weight:800}
@@ -113,7 +113,7 @@ body{background:#fff7ee}
 .quick-box input{font-size:16px}
 .quick-box select{appearance:none;-webkit-appearance:none;width:100%}
 .quick-box .qsub{font-size:11px;color:#667085;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.drawer-edge{position:fixed;left:0;top:45%;transform:translateY(-50%);z-index:100001;width:24px;height:86px;border-radius:0 14px 14px 0;background:linear-gradient(180deg,#f59e0b,#d97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:900;box-shadow:0 3px 14px rgba(0,0,0,.2);cursor:pointer}
+.drawer-edge{position:fixed;left:0;top:70%;transform:translateY(-50%);z-index:100001;width:24px;height:86px;border-radius:0 14px 14px 0;background:linear-gradient(180deg,#f59e0b,#d97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:900;box-shadow:0 3px 14px rgba(0,0,0,.2);cursor:pointer}
 .swipe-hint{font-size:10px;text-align:center;color:#8a5a10;margin-top:5px}
 #betsCard{display:block!important;border:1px solid #d9eadf;border-radius:17px;background:#fff;box-shadow:0 3px 14px rgba(22,101,52,.08);overflow:hidden;margin-top:9px}
 #betsCard>summary{display:block!important;background:linear-gradient(90deg,#e8fff0,#f7fff9);color:#166534;border:0;border-bottom:1px solid #cde8d6;padding:11px 13px;font-size:17px}
@@ -306,10 +306,11 @@ body{background:#fff7ee}
  .reference-title{font-size:16px}.price-reference-table{font-size:13px}
 }
 /* ===== THONG KE CHI TIET THEO MAU TIMKIEM.ONLINE ===== */
-.region-picker-sample{margin:14px 0;background:#fff;border:1px solid #d7d7d7;overflow:hidden}
-.region-picker-title{font-size:24px;font-weight:900;text-align:center;padding:12px 8px;border-bottom:1px solid #ddd;color:#a33b22}
-.region-picker-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}.region-pick{background:#fff;border:1px solid #cfd5dc;color:#555;font-size:18px}.region-pick.active{background:#c23a2f;color:#fff;border-color:#a92d24}
-.region-detail-panel{margin-top:10px}.region-detail-panel[hidden]{display:none!important}.sample-type-title{background:#505762;color:#fff;text-align:center;font-weight:900;font-size:22px;padding:9px;border-top:1px solid #777}
+/* Thanh chọn miền gọn, đặt sát BẢNG NHÂN */
+.region-picker-sample{margin:4px 0 0;background:#fff;border:1px solid #d7d7d7;border-radius:9px;overflow:hidden}
+.region-picker-title{font-size:14px;font-weight:900;text-align:center;padding:6px 8px 3px;color:#6b7280}
+.region-picker-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:5px 7px 7px}.region-pick{background:#fff;border:1px solid #cfd5dc;color:#555;font-size:15px;font-weight:900;padding:7px 3px;border-radius:7px}.region-pick.active{background:#c23a2f;color:#fff;border-color:#a92d24}
+.region-detail-panel{margin-top:0}.sample-type-title{background:#505762;color:#fff;text-align:center;font-weight:900;font-size:22px;padding:9px;border-top:1px solid #777}
 .sample-type-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:17px;background:#fff}.sample-type-table th,.sample-type-table td{border:1px solid #777;padding:7px 5px;text-align:center}.sample-type-table th{background:#f1f1f1;color:#3456a3;font-weight:900}.sample-type-table th:first-child,.sample-type-table td:first-child{text-align:left}.sample-win{color:#d12c20;font-weight:900}.sample-loss{color:#c52c24;font-weight:900}.sample-gain{color:#222;font-weight:900}.sample-total-row td{font-weight:900;background:#f4f4f4}
 .top10-box{margin:12px 0;padding:14px 10px;background:#fff;border:2px dashed #333;border-radius:8px;font-family:Arial,"Helvetica Neue",sans-serif;overflow:hidden}
 .top10-title{text-align:center;color:#b13624;font-weight:900;font-size:20px;line-height:1.25;font-family:Arial,"Helvetica Neue",sans-serif;white-space:normal;word-break:normal;overflow-wrap:normal}.top10-sub{text-align:center;color:#8d3a2d;font-weight:800;font-style:italic;margin:7px 0;font-family:Arial,"Helvetica Neue",sans-serif}.top10-buttons{display:flex;justify-content:center;gap:6px}.top10-buttons button{background:#fff;border:1px solid #888;padding:6px 12px;color:#222}.top10-buttons button.active{background:#eee}.top10-list{margin-top:9px}.top10-type{padding:7px 4px;border-bottom:1px dashed #ccc;font-size:13px;font-family:Arial,"Helvetica Neue",sans-serif}.top10-type b{display:inline-block;min-width:70px;color:#a83224}
@@ -317,7 +318,7 @@ body{background:#fff7ee}
 .top10-bottom-box .top10-title,.top10-bottom-box .top10-sub{text-align:center}
 .top10-bottom-box .top10-buttons{margin-bottom:6px}
 .top10-type span{color:#333}
-.station-block{margin-top:12px}.station-mini-total{text-align:right;padding:5px 8px;background:#fff;border:1px solid #777;border-top:0;font-size:14px;font-weight:800}
+.station-block{margin-top:0}.station-block+.station-block{margin-top:0}.station-mini-total{text-align:right;padding:5px 8px;background:#fff;border:1px solid #777;border-top:0;font-size:14px;font-weight:800}
 .bang-nhan-box{margin:14px 0;background:#fff;border:2px solid #777;border-radius:10px;overflow:hidden}.bang-nhan-box>summary{cursor:pointer;list-style:none;text-align:center;font-size:19px;font-weight:900;padding:11px 12px;background:#f5f7fa;color:#1f2937}.bang-nhan-box>summary::-webkit-details-marker{display:none}.bang-nhan-box>summary:after{content:"＋";float:right;font-size:20px}.bang-nhan-box[open]>summary:after{content:"−"}.bang-nhan-box .sample-price-box{margin:0;border:0;border-top:1px solid #ddd;border-radius:0}
 .sample-price-box{margin:14px 0;background:#fff;border:1px solid #777;padding:8px}.sample-toggle-row{display:flex;justify-content:center;gap:10px;margin:4px 0 10px}.sample-toggle{background:#eee;border:1px solid #bbb;color:#333;padding:8px 18px}.sample-toggle.active{background:#f6f6f6}.sample-price-table{width:100%;border-collapse:collapse;font-size:16px}.sample-price-table th,.sample-price-table td{border:1px solid #777;padding:7px;text-align:left}.sample-price-table th{width:48%;font-weight:900;background:#f5f5f5}.sample-price-table td{text-align:center;font-weight:800}.sample-name-cell{color:#b13624;font-size:18px}
 @media(max-width:600px){.region-picker-title{font-size:21px}.sample-type-table{font-size:15px}.sample-type-table th,.sample-type-table td{padding:6px 3px}.top10-title{font-size:18px}.top10-type{font-size:12px}.sample-price-table{font-size:15px}}
@@ -329,13 +330,45 @@ body{background:#fff7ee}
 #logoutBelowPhoi:active{transform:scale(.99)}
 
 #betsCard .phoi-solo{margin:6px 2px 10px;text-align:center;font-size:13px;font-weight:700;color:#7a5a20;font-style:italic}
+
+/* Bản gọn: TOP 10 chỉ hiện thanh tiêu đề, bấm mới bung nội dung */
+#top10Bottom{padding:0;overflow:hidden}
+#top10Bottom>summary{padding:14px 12px;margin:0;background:#fff;border:0}
+#top10Bottom[open]>summary span{transform:rotate(45deg);display:inline-block}
+#top10Bottom:not([open]) .top10-sub,#top10Bottom:not([open]) .top10-buttons,#top10Bottom:not([open]) .top10-region-content{display:none!important}
+#top10Bottom[open]{padding-bottom:12px}
 </style>
 
 <style>
 .sample-rule-note{margin:7px 0 9px;padding:9px 10px;border-radius:9px;background:#f7f9fc;border:1px solid #dce2ea;font-size:12px;line-height:1.45;color:#44506a}
+
+/* Gọn khu nhập phơi + chức năng phụ trong menu sườn */
+.phoi-quick-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin:6px 0 8px}
+.phoi-quick-actions button{margin:0!important}
+#betsCard .phoi-mini-clear,#betsCard .phoi-mini-check{flex:0 0 auto;width:auto!important;min-width:76px;padding:8px 10px!important;border-radius:9px;font-size:12px;font-weight:900;line-height:1.1}
+#betsCard .phoi-mini-clear{background:#fff0f0;color:#b42318;border:1px solid #f5b8b4}
+#betsCard .phoi-mini-check{background:#fff1f2;color:#a91524;border:1px solid #f0a8ae}
+#betsCard .phoi-quick-actions .bigok{flex:1;min-width:110px;padding:11px 14px!important;border-radius:10px;font-size:18px}
+.drawer-logout{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #f0b4b0;background:#fff1f0;color:#b42318;font-weight:900;font-size:14px}
+.phoi-guide-drawer .phoi-guide{margin:0;border:0;box-shadow:none}
+.phoi-guide-drawer .phoi-guide>summary{display:none}
+.phoi-guide-drawer .phoi-guide-body{padding:0}
+.bang-nhan-bottom{margin-top:10px}
+
+/* FIX DỨT ĐIỂM GIAO DIỆN NHẬP PHƠI */
+#betsCard .phoi-input-wrap{position:relative}
+#betsCard .phoi-input-wrap textarea{padding-top:42px}
+#betsCard .phoi-corner-actions{position:absolute;top:6px;right:6px;z-index:3;display:flex;gap:5px}
+#betsCard .phoi-corner-actions button{width:auto!important;min-width:0!important;padding:6px 8px!important;border-radius:7px!important;font-size:11px!important;line-height:1!important;font-weight:900!important;box-shadow:0 1px 3px #0002}
+#betsCard .phoi-ok-row{margin-top:7px}
+#betsCard .phoi-ok-row .bigok{width:100%;padding:10px 12px!important;border-radius:10px;font-size:18px}
+.drawer-logout{width:auto!important;min-width:0!important;padding:7px 11px!important;font-size:12px!important;display:inline-block}
+.phoi-guide-drawer h3{margin-bottom:6px}
+
 </style>
 </head>
 <body>
+<!-- UI_FIX_2026_09_29: solo removed; guide+logout in drawer; mini clear/check at textarea corner; BANG NHAN bottom -->
 <div class="wrap">
 
 <section id="loginCard" class="card">
@@ -435,46 +468,7 @@ body{background:#fff7ee}
    <div class="muted" style="margin-top:8px;font-size:11px">“ĐỔI MÁY” sẽ hủy liên kết máy hiện tại của đúng tài khoản đó. Sau đó khách đăng nhập trên máy mới để máy mới được nhận quyền.</div>
   </div>
  </div>
- <div class="drawer-tip">Vuốt thanh menu sang phải hoặc bấm × để đóng.</div>
-</aside>
-
-<div id="customerCardHost"></div>
-
-<details class="compact-section gray" id="adminWrap">
- <summary>👑 QUẢN LÝ KHÁCH HÀNG</summary>
- <div class="compact-body">
-  <div class="card hidden" id="adminCard">
-   <div class="grid">
-    <label>Email khách<input id="adminEmail" type="email" autocomplete="email" placeholder="khach@example.com"></label>
-    <label>Số ngày cấp<input id="adminDays" type="number" min="1" value="30"></label>
-    <label>Ghi chú<input id="adminNote" placeholder="Ví dụ: Khách A"></label>
-   </div>
-   <div class="buttons"><button class="green" id="createCustomerBtn">＋ CẤP EMAIL + LICENSE</button></div>
-   <div id="adminStatus" class="status">Admin cấp trước Email. Khách sẽ tự đặt mật khẩu ở lần đăng ký đầu tiên.</div>
-  </div>
- </div>
-</details>
-
-<details class="compact-section red" id="customerCard">
- <summary>🧮 BẢNG TÍNH</summary>
- <div class="compact-body">
-  <div class="grid"><label>Khách đang tính<select id="customerSelect"></select></label><label>Tên khách mới<input id="customerName" placeholder="Nhập tên khách"></label></div>
-  <div class="price-original"><b>GỐC ĐANG DÙNG</b><div class="price-grid v3" style="margin-top:8px">
-   <label>DD<input id="p_dd" type="number" step=".01"></label><label>XC<input id="p_xc" type="number" step=".01"></label><label>BL 2<input id="p_b2" type="number" step=".01"></label><label>BL 3<input id="p_b3" type="number" step=".01"></label><label>BL 4<input id="p_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="p_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="p_dathang" type="number" step=".01"></label><label>Đá MB<input id="p_daMB" type="number" step=".01" value="640"></label><label>Giá nhận<input id="p_receive" type="number" step=".01"></label><label>Hồi khi thu<input id="p_repay" type="number" step=".01"></label></div></div>
-  <div class="price-customer"><b>↓ CÒ NHẬN CHO KHÁCH ↓</b><div class="price-grid v3" style="margin-top:8px"><label>DD<input id="c_dd" type="number" step=".01"></label><label>XC<input id="c_xc" type="number" step=".01"></label><label>BL 2<input id="c_b2" type="number" step=".01"></label><label>BL 3<input id="c_b3" type="number" step=".01"></label><label>BL 4<input id="c_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="c_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="c_dathang" type="number" step=".01"></label><label>Đá MB<input id="c_daMB" type="number" step=".01"></label><label>Giá nhận<input id="c_receive" type="number" step=".01"></label><label>Hồi khi thu<input id="c_repay" type="number" step=".01"></label></div></div>
-  <div class="action-mini"><button class="green" id="saveCustomer">💾 LƯU KHÁCH</button><button class="soft" id="newCustomer">＋ KHÁCH MỚI</button><button class="danger" id="deleteCustomer">🗑 XÓA KHÁCH</button><button class="blue" id="multiPriceBtn">NHẬN NHIỀU GIÁ</button></div><div id="customerStatus" class="status">Sẵn sàng.</div>
- </div>
-</details>
-
-<details class="compact-section green" id="betsCard">
- <summary>📝 NHẬP PHƠI</summary>
- <div class="compact-body">
-  <div class="daybar" id="daybar"></div>
-  <div class="grid"><label style="display:block">Ngày đang tính<input id="date" type="date"></label><label style="display:none">Khách / Giá nhận<input id="rateDisplay" readonly></label></div>
-  <textarea id="bets" rows="30" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" style="white-space:pre;overflow:auto;width:100%;box-sizing:border-box" placeholder="DÁN TOÀN BỘ PHƠI VÀO ĐÂY..."></textarea>
-  <div class="phoi-solo">😎 Dán phơi vào đi, đừng bắt máy đoán ý — máy không biết đọc lòng người đâu 😂</div>
-
-  <details class="phoi-guide">
+ <div class="drawer-section phoi-guide-drawer"><h3>📖 HƯỚNG DẪN PHÔI</h3><div class="drawer-body"><details class="phoi-guide" open>
     <summary>📖 HƯỚNG DẪN PHÔI</summary>
     <div class="phoi-guide-body">
       <p class="phoi-guide-note">Bấm vào từng nút để mở/thu gọn. Các cú pháp dưới đây là dạng PM đang nhận diện.</p>
@@ -521,18 +515,52 @@ body{background:#fff7ee}
         <b>Viết nhanh:</b> <code>014keo914b2,5</code> → 014,114,214,...,914 cùng mức B2,5. &nbsp; <code>x</code> → XC. &nbsp; <code>xdui</code> → XĐUÔI.
       </div>
     </div>
-  </details>
+</details></div></div>
+ <div class="drawer-section"><div class="drawer-body"><button type="button" id="logoutBelowPhoi" class="drawer-logout">🚪 ĐĂNG XUẤT</button></div></div>
+ <div class="drawer-tip">Bấm × hoặc tay gạt để đóng menu.</div>
+</aside>
 
-  <div class="bets-error-help">⚠️ Nếu có lỗi, PM sẽ báo <b>DÒNG 1, DÒNG 2...</b> bên dưới. Không dùng ký tự màu đỏ nữa.</div>
-  <div style="display:flex;gap:8px;margin:8px 0">
-    <button type="button" id="pasteAll" class="soft" style="flex:1">📋 DÁN TOÀN BỘ</button>
-    <button type="button" id="clearBets" class="soft" style="flex:1">XÓA PHƠI</button>
-  </div>
-  <div class="muted">Ô phơi không giới hạn số dòng. Nội dung COPY từ Telegram/Zalo được giữ nguyên đầy đủ; PM chỉ chuẩn hóa khi phân tích.</div>
-  <div style="display:flex;gap:8px;margin:8px 0">
-    <button type="button" id="checkPhoi" class="danger" style="flex:1">🔎 DÒ CHỖ SAI</button>
-    <button type="button" class="bigok" id="okAll" style="flex:1;margin:0">OK</button>
+<div id="customerCardHost"></div>
+
+<details class="compact-section gray" id="adminWrap">
+ <summary>👑 QUẢN LÝ KHÁCH HÀNG</summary>
+ <div class="compact-body">
+  <div class="card hidden" id="adminCard">
+   <div class="grid">
+    <label>Email khách<input id="adminEmail" type="email" autocomplete="email" placeholder="khach@example.com"></label>
+    <label>Số ngày cấp<input id="adminDays" type="number" min="1" value="30"></label>
+    <label>Ghi chú<input id="adminNote" placeholder="Ví dụ: Khách A"></label>
    </div>
+   <div class="buttons"><button class="green" id="createCustomerBtn">＋ CẤP EMAIL + LICENSE</button></div>
+   <div id="adminStatus" class="status">Admin cấp trước Email. Khách sẽ tự đặt mật khẩu ở lần đăng ký đầu tiên.</div>
+  </div>
+ </div>
+</details>
+
+<details class="compact-section red" id="customerCard">
+ <summary>🧮 BẢNG TÍNH</summary>
+ <div class="compact-body">
+  <div class="grid"><label>Khách đang tính<select id="customerSelect"></select></label><label>Tên khách mới<input id="customerName" placeholder="Nhập tên khách"></label></div>
+  <div class="price-original"><b>GỐC ĐANG DÙNG</b><div class="price-grid v3" style="margin-top:8px">
+   <label>DD<input id="p_dd" type="number" step=".01"></label><label>XC<input id="p_xc" type="number" step=".01"></label><label>BL 2<input id="p_b2" type="number" step=".01"></label><label>BL 3<input id="p_b3" type="number" step=".01"></label><label>BL 4<input id="p_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="p_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="p_dathang" type="number" step=".01"></label><label>Đá MB<input id="p_daMB" type="number" step=".01" value="640"></label><label>Giá nhận<input id="p_receive" type="number" step=".01"></label><label>Hồi khi thu<input id="p_repay" type="number" step=".01"></label></div></div>
+  <div class="price-customer"><b>↓ CÒ NHẬN CHO KHÁCH ↓</b><div class="price-grid v3" style="margin-top:8px"><label>DD<input id="c_dd" type="number" step=".01"></label><label>XC<input id="c_xc" type="number" step=".01"></label><label>BL 2<input id="c_b2" type="number" step=".01"></label><label>BL 3<input id="c_b3" type="number" step=".01"></label><label>BL 4<input id="c_b4" type="number" step=".01"></label><label>Đá 2 đài<input id="c_da2" type="number" step=".01"></label><label>Đá 1 đài<input id="c_dathang" type="number" step=".01"></label><label>Đá MB<input id="c_daMB" type="number" step=".01"></label><label>Giá nhận<input id="c_receive" type="number" step=".01"></label><label>Hồi khi thu<input id="c_repay" type="number" step=".01"></label></div></div>
+  <div class="action-mini"><button class="green" id="saveCustomer">💾 LƯU KHÁCH</button><button class="soft" id="newCustomer">＋ KHÁCH MỚI</button><button class="danger" id="deleteCustomer">🗑 XÓA KHÁCH</button><button class="blue" id="multiPriceBtn">NHẬN NHIỀU GIÁ</button></div><div id="customerStatus" class="status">Sẵn sàng.</div>
+ </div>
+</details>
+
+<details class="compact-section green" id="betsCard">
+ <summary>📝 NHẬP PHƠI</summary>
+ <div class="compact-body">
+  <div class="daybar" id="daybar"></div>
+  <div class="grid"><label style="display:block">Ngày đang tính<input id="date" type="date"></label><label style="display:none">Khách / Giá nhận<input id="rateDisplay" readonly></label></div>
+  <div class="phoi-input-wrap">
+    <textarea id="bets" rows="30" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" style="white-space:pre;overflow:auto;width:100%;box-sizing:border-box" placeholder="DÁN TOÀN BỘ PHƠI VÀO ĐÂY..."></textarea>
+    <div class="phoi-corner-actions">
+      <button type="button" id="clearBets" class="phoi-mini-clear" title="Xóa phơi">XÓA</button>
+      <button type="button" id="checkPhoi" class="phoi-mini-check" title="Dò chỗ sai">🔎 SAI</button>
+    </div>
+  </div>
+  <div class="phoi-ok-row"><button type="button" class="bigok" id="okAll">OK</button></div>
    <div id="phoiErrorBox"></div>
    <div class="source-box">
     <b>🔎 NGUỒN KẾT QUẢ</b>
@@ -543,7 +571,6 @@ body{background:#fff7ee}
     <div id="sourceCompare" class="muted" style="margin-top:7px">XSMN.mobi được dùng làm nguồn đối chiếu cho kết quả miền Nam.</div>
    </div>
   <div id="status" class="status">Sẵn sàng.</div>
-  <button type="button" id="logoutBelowPhoi">🚪 ĐĂNG XUẤT</button>
  </div>
 </details>
 
@@ -1537,11 +1564,7 @@ function addBet(rows,st,raw,type,p){
  }
  else if(type==="da"){
    const g=isB?54:36;
-   // DA xuyên 2 đài MN/MT luôn phải tính đủ 2 đài.
-   // Ví dụ 3DMN + 550099da1 -> mỗi cặp đài: C(3,2) × 36 × 2 × 1 = 216k.
-   // Không phụ thuộc giá trị stations trung gian để tránh bị hụt còn 108k.
-   const daStations = (!isB && st.cross2) ? 2 : stations;
-   gross=(ns.length*(ns.length-1)/2)*g*daStations*p;label="DA";
+   gross=(ns.length*(ns.length-1)/2)*g*stations*p;label="DA";
  }
  else return;
  // 4DMN là viết tắt: một phôi phải bung ngay thành 4 đài riêng.
@@ -2870,7 +2893,9 @@ function expand3DmnCrossDA(rows){
       const s3=(Array.isArray(row.fixedStations)&&row.fixedStations.length===3)
         ? row.fixedStations.slice() : weeklyThreeMNStations(document.getElementById('date')?.value);
       const pairs=[[s3[0],s3[1]],[s3[0],s3[2]],[s3[1],s3[2]]];
-      const per=Number(row.gross||0)/3;
+      // 3DMN + DA bung thành 3 cặp đài. Mỗi cặp là 2 đài nên tiền xác
+      // phải giữ hệ số 2 đài. Ví dụ 550099da1: C(3,2) × 36 × 2 = 216k/cặp.
+      const per=(Number(row.gross||0)/3)*2;
       for(const pair of pairs){
         const alias=pairAlias(pair[0],pair[1]);
         out.push({...row,station:pair.join(" + "),scopeStation:pair.join(" + "),crossAlias:alias,crossProvinces:pair,fixedStations:pair,stations:2,cross2:true,gross:per});
@@ -3299,9 +3324,9 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   let html='', regionPanelsHtml='';
   // Nút chọn miền đặt ngay đầu phần thống kê; mỗi lần chỉ mở một miền.
   const regionPickerHtml=`<section class="region-picker-sample"><div class="region-picker-title">XEM CHI TIẾT</div><div class="region-picker-buttons">
-    <button type="button" class="region-pick" data-region="N" aria-expanded="false">NAM</button>
-    <button type="button" class="region-pick" data-region="T" aria-expanded="false">TRUNG</button>
-    <button type="button" class="region-pick" data-region="B" aria-expanded="false">BẮC</button>
+    <button type="button" class="region-pick active" data-region="N">NAM</button>
+    <button type="button" class="region-pick" data-region="T">TRUNG</button>
+    <button type="button" class="region-pick" data-region="B">BẮC</button>
   </div></section>`;
 
   for(const r of ['N','T','B']){
@@ -3314,7 +3339,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     const types=[...typeOrder,...Object.keys(ts).filter(x=>!typeOrder.includes(x))].filter((v,i,a)=>a.indexOf(v)===i).filter(k=>ts[k]);
     const regionClass=r==='N'?'region-panel-n':r==='T'?'region-panel-t':'region-panel-b';
 
-    regionPanelsHtml+=`<section class="legacy-calc-region region-detail-panel ${regionClass}" data-region-panel="${r}" hidden>
+    regionPanelsHtml+=`<section class="legacy-calc-region region-detail-panel ${regionClass}" data-region-panel="${r}">
       <div class="legacy-region-title">${regionName[r]}</div>
       <div class="legacy-summary">
         <div>Tiền Xác: <b>${money(gross[r])}</b></div>
@@ -3350,9 +3375,9 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     </section>`;
   }
 
-  // TOP 10: một bảng duy nhất, đặt sau toàn bộ chi tiết Nam/Trung/Bắc.
-  const top10BottomHtml = `<section class="top10-box top10-bottom-box" id="top10Bottom">
-    <div class="top10-title">TOP 10 SỐ LỚN NHẤT<br>MỖI LOẠI TẤT CẢ CÁC BẢNG</div>
+  // TOP 10: thu gọn thành một thanh, chỉ bung nội dung khi người dùng bấm xem.
+  const top10BottomHtml = `<details class="top10-box top10-bottom-box" id="top10Bottom">
+    <summary class="top10-title" style="cursor:pointer;list-style:none">TOP 10 SỐ LỚN NHẤT <span style="float:right">+</span></summary>
     <div class="top10-sub">↓ Chọn miền ↓</div>
     <div class="top10-buttons">
       <button type="button" class="top10-bottom-btn active" data-top-region="N">NAM</button>
@@ -3367,7 +3392,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
         </div>
       </div>`;
     }).join('')}
-  </section>`;
+  </details>`;
 
   const totalGross=gross.N+gross.T+gross.B;
   const totalWin=by.N.win+by.T.win+by.B.win;
@@ -3375,33 +3400,31 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   const oldKey='oldBalance_'+($('customerSelect')?.value||currentCustomer);
   const oldBalance=Number(localStorage.getItem(oldKey)||0);
   const finalTotal=totalThu+oldBalance;
-  html+=`<section class="card total-card"><div class="section-title">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}</div><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody><tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr><tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr><tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr></tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table><div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center"><b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div></div><div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div></section>`;
-  // Thứ tự hiển thị: TỔNG NGÀY trước, sau đó mới đến chọn NAM/TRUNG/BẮC và bảng chi tiết.
-  html+=regionPickerHtml+regionPanelsHtml+`<details class="bang-nhan-box"><summary>BẢNG NHÂN</summary>${priceReference()}</details>`+top10BottomHtml;
+  const totalDayHtml=`<section class="card total-card"><div class="section-title">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}</div><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody><tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr><tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr><tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr></tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table><div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center"><b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div></div><div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div></section>`;
+  // Thứ tự: BẢNG NHÂN -> TOP 10 -> thông báo -> XEM CHI TIẾT -> TỔNG NGÀY.
+  // XEM CHI TIẾT được đặt sát ngay phía trên TỔNG NGÀY theo yêu cầu.
+  html+=top10BottomHtml;
 
   if(errors.length) html+=`<section class="card err"><b>Dòng chưa đọc:</b><br>${errors.map(x=>String(x).replace(/</g,'&lt;')).join('<br>')}</section>`;
   if(apiMessage) html+=`<section class="card"><b>ℹ️ Tự dò kết quả:</b><br>${apiMessage}</section>`;
+  // Thanh chọn miền và phần chi tiết nằm ngay trước TỔNG NGÀY.
+  html+=regionPickerHtml+regionPanelsHtml;
+  // TỔNG NGÀY luôn là khối cuối cùng của phần kết quả.
+  html+=totalDayHtml;
+  // BẢNG NHÂN đặt dưới cùng theo yêu cầu.
+  html+=`<details class="bang-nhan-box bang-nhan-bottom"><summary>BẢNG NHÂN</summary>${priceReference()}</details>`;
   $('out').innerHTML=html;
 
-  // CHI TIẾT 3 MIỀN: luôn đóng khi vừa tính xong. Chỉ mở đúng miền người dùng bấm.
-  let openRegion=null;
-  const detailPanels=[...document.querySelectorAll('.region-detail-panel')];
-  const regionButtons=[...document.querySelectorAll('.region-pick')];
-  const closeAllRegionDetails=()=>{
-    detailPanels.forEach(el=>{ el.hidden=true; el.style.setProperty('display','none','important'); });
-    regionButtons.forEach(x=>{ x.classList.remove('active'); x.setAttribute('aria-expanded','false'); });
-  };
-  closeAllRegionDetails();
-  regionButtons.forEach(btn=>btn.addEventListener('click',()=>{
+  // Chi tiết miền mặc định thu gọn. Bấm miền để mở; bấm lại để đóng.
+  document.querySelectorAll('.region-detail-panel').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.region-pick').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.region-pick').forEach(btn=>btn.addEventListener('click',()=>{
     const r=btn.dataset.region;
-    const same=openRegion===r;
-    closeAllRegionDetails();
-    if(same){ openRegion=null; return; }
-    openRegion=r;
-    const panel=detailPanels.find(el=>el.dataset.regionPanel===r);
-    if(panel){ panel.hidden=false; panel.style.setProperty('display','block','important'); }
-    btn.classList.add('active');
-    btn.setAttribute('aria-expanded','true');
+    const panel=document.querySelector('.region-detail-panel[data-region-panel="'+r+'"]');
+    const isOpen=panel && panel.style.display!=='none';
+    document.querySelectorAll('.region-detail-panel').forEach(el=>el.style.display='none');
+    document.querySelectorAll('.region-pick').forEach(x=>x.classList.remove('active'));
+    if(!isOpen && panel){ panel.style.display='block'; btn.classList.add('active'); }
     document.querySelectorAll('.top10-bottom-btn').forEach(x=>x.classList.toggle('active',x.dataset.topRegion===r));
     document.querySelectorAll('.top10-region-content').forEach(x=>x.style.display=x.dataset.topContent===r?'block':'none');
   }));
@@ -4226,11 +4249,8 @@ window.showHistoryItem=showHistoryItem;
  window.renderRecentHistory=renderHistory;
  window.addEventListener('ts-history-updated',renderHistory);
  renderHistory();
- // Swipe: from left edge inward opens; swipe on drawer outward closes.
- let sx=0,sy=0,tracking=false;
- document.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;tracking=(sx<35||drawer.classList.contains('open'));},{passive:true});
- document.addEventListener('touchend',e=>{if(!tracking)return;const t=e.changedTouches[0];const dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.25)return;if(!drawer.classList.contains('open')&&sx<35&&dx>70)openDrawer();else if(drawer.classList.contains('open')&&dx>70)closeDrawer();tracking=false;},{passive:true});
- // Second swipe gesture from main can open; a second outward swipe closes.
+ // Menu sườn: chỉ bấm tay nắm hoặc nút × để mở/đóng.
+ // Tắt thao tác vuốt để tránh cảm ứng nhạy làm đóng menu khi đang bấm dữ liệu bên trong.
  window.addEventListener('resize',syncQuick);
 })();
 </script>

@@ -1537,11 +1537,7 @@ function addBet(rows,st,raw,type,p){
  }
  else if(type==="da"){
    const g=isB?54:36;
-   // DA xuyên 2 đài MN/MT luôn phải tính đủ 2 đài.
-   // Ví dụ 3DMN + 550099da1 -> mỗi cặp đài: C(3,2) × 36 × 2 × 1 = 216k.
-   // Không phụ thuộc giá trị stations trung gian để tránh bị hụt còn 108k.
-   const daStations = (!isB && st.cross2) ? 2 : stations;
-   gross=(ns.length*(ns.length-1)/2)*g*daStations*p;label="DA";
+   gross=(ns.length*(ns.length-1)/2)*g*stations*p;label="DA";
  }
  else return;
  // 4DMN là viết tắt: một phôi phải bung ngay thành 4 đài riêng.

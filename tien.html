@@ -2870,7 +2870,9 @@ function expand3DmnCrossDA(rows){
       const s3=(Array.isArray(row.fixedStations)&&row.fixedStations.length===3)
         ? row.fixedStations.slice() : weeklyThreeMNStations(document.getElementById('date')?.value);
       const pairs=[[s3[0],s3[1]],[s3[0],s3[2]],[s3[1],s3[2]]];
-      const per=Number(row.gross||0)/3;
+      // 3DMN/3DMT DA: mỗi bảng cặp đài phải giữ đủ tiền của 2 đài.
+      // Ví dụ 121314da1 => C(3,2) × 36 × 2 × 1 = 216k / mỗi cặp đài.
+      const per=(Number(row.gross||0)/3)*2;
       for(const pair of pairs){
         const alias=pairAlias(pair[0],pair[1]);
         out.push({...row,station:pair.join(" + "),scopeStation:pair.join(" + "),crossAlias:alias,crossProvinces:pair,fixedStations:pair,stations:2,cross2:true,gross:per});
@@ -3442,10 +3444,23 @@ async function runAll(){
   }
 
   const c=v3Customers[$('customerSelect').value]||V3_DEFAULT.X74;
-  setStatus('Đang tính phôi và dò kết quả...');
+
+  // Hiển thị phần TÍNH TIỀN NGAY khi bấm OK, không chờ API xổ số.
+  // Nhờ vậy dù nguồn KQ chậm/lỗi thì bảng vẫn luôn xuất hiện.
+  let firstResult=null;
+  try{
+    firstResult=renderCalculation(rows,[],c,null,'Đang dò kết quả tự động...');
+    setStatus(`Đã tính phôi. Đang dò KQ 3 miền... Tổng xác ${money(firstResult.totalGross)} • Thu/Bù ${money(firstResult.totalThu)}.`,'ok');
+    setTimeout(()=>{ const el=$('out'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },50);
+  }catch(firstErr){
+    const el=$('out');
+    if(el){ el.style.display='block'; el.innerHTML=`<section class=\"card err\"><b>Lỗi hiển thị bảng tính:</b><br>${htmlEsc(firstErr?.message||String(firstErr))}</section>`; }
+    setStatus(`Lỗi hiển thị bảng: ${firstErr?.message||firstErr}`,'err');
+    return;
+  }
 
   try{
-    // Luôn có thời gian chờ để OK không bị treo nếu nguồn KQ phản hồi chậm.
+    // Dò KQ sau khi bảng tính đã hiện. Nguồn chậm không làm màn hình trống.
     await Promise.race([
       getAllLotteryResults(),
       new Promise((_,reject)=>setTimeout(()=>reject(new Error('Nguồn kết quả phản hồi quá lâu (8 giây).')),8000))

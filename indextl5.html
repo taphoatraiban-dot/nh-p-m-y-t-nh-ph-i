@@ -82,7 +82,7 @@ button{border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:poin
 @media(max-width:600px){.calc-head{font-size:24px}.calc-summary{font-size:17px}.station-title{font-size:18px}.calc-detail-table{font-size:13px}.calc-detail-table th,.calc-detail-table td{padding:6px 2px}.calc-region-total{font-size:16px}}
 
 /* ===== PHOM BANG CHUAN TIMKIEM ===== */
-.legacy-calc-region{background:#fff;border:1px solid #d7d7d7;margin:14px 0 18px;overflow:hidden}
+.legacy-calc-region{background:#fff;border:1px solid #d7d7d7;margin:0 0 10px;overflow:hidden}
 .legacy-region-title{text-align:center;font-family:Georgia,serif;font-size:30px;font-weight:700;padding:12px 8px;border-bottom:1px solid #d66;color:#222}
 .legacy-summary{text-align:center;padding:12px 8px;border-bottom:1px solid #d66;font-size:21px;line-height:1.45;color:#344bb4;font-weight:600}
 .legacy-summary b{font-weight:800}
@@ -306,10 +306,11 @@ body{background:#fff7ee}
  .reference-title{font-size:16px}.price-reference-table{font-size:13px}
 }
 /* ===== THONG KE CHI TIET THEO MAU TIMKIEM.ONLINE ===== */
-.region-picker-sample{margin:14px 0;background:#fff;border:1px solid #d7d7d7;overflow:hidden}
-.region-picker-title{font-size:24px;font-weight:900;text-align:center;padding:12px 8px;border-bottom:1px solid #ddd;color:#a33b22}
-.region-picker-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}.region-pick{background:#fff;border:1px solid #cfd5dc;color:#555;font-size:18px}.region-pick.active{background:#c23a2f;color:#fff;border-color:#a92d24}
-.region-detail-panel{margin-top:10px}.region-detail-panel[hidden]{display:none!important}.sample-type-title{background:#505762;color:#fff;text-align:center;font-weight:900;font-size:22px;padding:9px;border-top:1px solid #777}
+/* Thanh chọn miền gọn, đặt sát BẢNG NHÂN */
+.region-picker-sample{margin:4px 0 0;background:#fff;border:1px solid #d7d7d7;border-radius:9px;overflow:hidden}
+.region-picker-title{font-size:14px;font-weight:900;text-align:center;padding:6px 8px 3px;color:#6b7280}
+.region-picker-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:5px 7px 7px}.region-pick{background:#fff;border:1px solid #cfd5dc;color:#555;font-size:15px;font-weight:900;padding:7px 3px;border-radius:7px}.region-pick.active{background:#c23a2f;color:#fff;border-color:#a92d24}
+.region-detail-panel{margin-top:0}.sample-type-title{background:#505762;color:#fff;text-align:center;font-weight:900;font-size:22px;padding:9px;border-top:1px solid #777}
 .sample-type-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:17px;background:#fff}.sample-type-table th,.sample-type-table td{border:1px solid #777;padding:7px 5px;text-align:center}.sample-type-table th{background:#f1f1f1;color:#3456a3;font-weight:900}.sample-type-table th:first-child,.sample-type-table td:first-child{text-align:left}.sample-win{color:#d12c20;font-weight:900}.sample-loss{color:#c52c24;font-weight:900}.sample-gain{color:#222;font-weight:900}.sample-total-row td{font-weight:900;background:#f4f4f4}
 .top10-box{margin:12px 0;padding:14px 10px;background:#fff;border:2px dashed #333;border-radius:8px;font-family:Arial,"Helvetica Neue",sans-serif;overflow:hidden}
 .top10-title{text-align:center;color:#b13624;font-weight:900;font-size:20px;line-height:1.25;font-family:Arial,"Helvetica Neue",sans-serif;white-space:normal;word-break:normal;overflow-wrap:normal}.top10-sub{text-align:center;color:#8d3a2d;font-weight:800;font-style:italic;margin:7px 0;font-family:Arial,"Helvetica Neue",sans-serif}.top10-buttons{display:flex;justify-content:center;gap:6px}.top10-buttons button{background:#fff;border:1px solid #888;padding:6px 12px;color:#222}.top10-buttons button.active{background:#eee}.top10-list{margin-top:9px}.top10-type{padding:7px 4px;border-bottom:1px dashed #ccc;font-size:13px;font-family:Arial,"Helvetica Neue",sans-serif}.top10-type b{display:inline-block;min-width:70px;color:#a83224}
@@ -317,7 +318,7 @@ body{background:#fff7ee}
 .top10-bottom-box .top10-title,.top10-bottom-box .top10-sub{text-align:center}
 .top10-bottom-box .top10-buttons{margin-bottom:6px}
 .top10-type span{color:#333}
-.station-block{margin-top:12px}.station-mini-total{text-align:right;padding:5px 8px;background:#fff;border:1px solid #777;border-top:0;font-size:14px;font-weight:800}
+.station-block{margin-top:0}.station-block+.station-block{margin-top:0}.station-mini-total{text-align:right;padding:5px 8px;background:#fff;border:1px solid #777;border-top:0;font-size:14px;font-weight:800}
 .bang-nhan-box{margin:14px 0;background:#fff;border:2px solid #777;border-radius:10px;overflow:hidden}.bang-nhan-box>summary{cursor:pointer;list-style:none;text-align:center;font-size:19px;font-weight:900;padding:11px 12px;background:#f5f7fa;color:#1f2937}.bang-nhan-box>summary::-webkit-details-marker{display:none}.bang-nhan-box>summary:after{content:"＋";float:right;font-size:20px}.bang-nhan-box[open]>summary:after{content:"−"}.bang-nhan-box .sample-price-box{margin:0;border:0;border-top:1px solid #ddd;border-radius:0}
 .sample-price-box{margin:14px 0;background:#fff;border:1px solid #777;padding:8px}.sample-toggle-row{display:flex;justify-content:center;gap:10px;margin:4px 0 10px}.sample-toggle{background:#eee;border:1px solid #bbb;color:#333;padding:8px 18px}.sample-toggle.active{background:#f6f6f6}.sample-price-table{width:100%;border-collapse:collapse;font-size:16px}.sample-price-table th,.sample-price-table td{border:1px solid #777;padding:7px;text-align:left}.sample-price-table th{width:48%;font-weight:900;background:#f5f5f5}.sample-price-table td{text-align:center;font-weight:800}.sample-name-cell{color:#b13624;font-size:18px}
 @media(max-width:600px){.region-picker-title{font-size:21px}.sample-type-table{font-size:15px}.sample-type-table th,.sample-type-table td{padding:6px 3px}.top10-title{font-size:18px}.top10-type{font-size:12px}.sample-price-table{font-size:15px}}
@@ -329,6 +330,13 @@ body{background:#fff7ee}
 #logoutBelowPhoi:active{transform:scale(.99)}
 
 #betsCard .phoi-solo{margin:6px 2px 10px;text-align:center;font-size:13px;font-weight:700;color:#7a5a20;font-style:italic}
+
+/* Bản gọn: TOP 10 chỉ hiện thanh tiêu đề, bấm mới bung nội dung */
+#top10Bottom{padding:0;overflow:hidden}
+#top10Bottom>summary{padding:14px 12px;margin:0;background:#fff;border:0}
+#top10Bottom[open]>summary span{transform:rotate(45deg);display:inline-block}
+#top10Bottom:not([open]) .top10-sub,#top10Bottom:not([open]) .top10-buttons,#top10Bottom:not([open]) .top10-region-content{display:none!important}
+#top10Bottom[open]{padding-bottom:12px}
 </style>
 
 <style>
@@ -1537,11 +1545,7 @@ function addBet(rows,st,raw,type,p){
  }
  else if(type==="da"){
    const g=isB?54:36;
-   // DA xuyên 2 đài MN/MT luôn phải tính đủ 2 đài.
-   // Ví dụ 3DMN + 550099da1 -> mỗi cặp đài: C(3,2) × 36 × 2 × 1 = 216k.
-   // Không phụ thuộc giá trị stations trung gian để tránh bị hụt còn 108k.
-   const daStations = (!isB && st.cross2) ? 2 : stations;
-   gross=(ns.length*(ns.length-1)/2)*g*daStations*p;label="DA";
+   gross=(ns.length*(ns.length-1)/2)*g*stations*p;label="DA";
  }
  else return;
  // 4DMN là viết tắt: một phôi phải bung ngay thành 4 đài riêng.
@@ -3299,9 +3303,9 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   let html='', regionPanelsHtml='';
   // Nút chọn miền đặt ngay đầu phần thống kê; mỗi lần chỉ mở một miền.
   const regionPickerHtml=`<section class="region-picker-sample"><div class="region-picker-title">XEM CHI TIẾT</div><div class="region-picker-buttons">
-    <button type="button" class="region-pick" data-region="N" aria-expanded="false">NAM</button>
-    <button type="button" class="region-pick" data-region="T" aria-expanded="false">TRUNG</button>
-    <button type="button" class="region-pick" data-region="B" aria-expanded="false">BẮC</button>
+    <button type="button" class="region-pick active" data-region="N">NAM</button>
+    <button type="button" class="region-pick" data-region="T">TRUNG</button>
+    <button type="button" class="region-pick" data-region="B">BẮC</button>
   </div></section>`;
 
   for(const r of ['N','T','B']){
@@ -3314,7 +3318,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     const types=[...typeOrder,...Object.keys(ts).filter(x=>!typeOrder.includes(x))].filter((v,i,a)=>a.indexOf(v)===i).filter(k=>ts[k]);
     const regionClass=r==='N'?'region-panel-n':r==='T'?'region-panel-t':'region-panel-b';
 
-    regionPanelsHtml+=`<section class="legacy-calc-region region-detail-panel ${regionClass}" data-region-panel="${r}" hidden>
+    regionPanelsHtml+=`<section class="legacy-calc-region region-detail-panel ${regionClass}" data-region-panel="${r}">
       <div class="legacy-region-title">${regionName[r]}</div>
       <div class="legacy-summary">
         <div>Tiền Xác: <b>${money(gross[r])}</b></div>
@@ -3350,9 +3354,9 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     </section>`;
   }
 
-  // TOP 10: một bảng duy nhất, đặt sau toàn bộ chi tiết Nam/Trung/Bắc.
-  const top10BottomHtml = `<section class="top10-box top10-bottom-box" id="top10Bottom">
-    <div class="top10-title">TOP 10 SỐ LỚN NHẤT<br>MỖI LOẠI TẤT CẢ CÁC BẢNG</div>
+  // TOP 10: thu gọn thành một thanh, chỉ bung nội dung khi người dùng bấm xem.
+  const top10BottomHtml = `<details class="top10-box top10-bottom-box" id="top10Bottom">
+    <summary class="top10-title" style="cursor:pointer;list-style:none">TOP 10 SỐ LỚN NHẤT <span style="float:right">+</span></summary>
     <div class="top10-sub">↓ Chọn miền ↓</div>
     <div class="top10-buttons">
       <button type="button" class="top10-bottom-btn active" data-top-region="N">NAM</button>
@@ -3367,7 +3371,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
         </div>
       </div>`;
     }).join('')}
-  </section>`;
+  </details>`;
 
   const totalGross=gross.N+gross.T+gross.B;
   const totalWin=by.N.win+by.T.win+by.B.win;
@@ -3375,33 +3379,26 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   const oldKey='oldBalance_'+($('customerSelect')?.value||currentCustomer);
   const oldBalance=Number(localStorage.getItem(oldKey)||0);
   const finalTotal=totalThu+oldBalance;
-  html+=`<section class="card total-card"><div class="section-title">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}</div><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody><tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr><tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr><tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr></tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table><div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center"><b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div></div><div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div></section>`;
-  // Thứ tự hiển thị: TỔNG NGÀY trước, sau đó mới đến chọn NAM/TRUNG/BẮC và bảng chi tiết.
-  html+=regionPickerHtml+regionPanelsHtml+`<details class="bang-nhan-box"><summary>BẢNG NHÂN</summary>${priceReference()}</details>`+top10BottomHtml;
+  const totalDayHtml=`<section class="card total-card"><div class="section-title">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}</div><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody><tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr><tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr><tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr></tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table><div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center"><b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div></div><div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div></section>`;
+  // Thứ tự: BẢNG NHÂN -> chọn miền -> chi tiết miền -> TOP 10 (thu gọn). TỔNG NGÀY sẽ nằm dưới cùng.
+  html+=`<details class="bang-nhan-box"><summary>BẢNG NHÂN</summary>${priceReference()}</details>`+regionPickerHtml+regionPanelsHtml+top10BottomHtml;
 
   if(errors.length) html+=`<section class="card err"><b>Dòng chưa đọc:</b><br>${errors.map(x=>String(x).replace(/</g,'&lt;')).join('<br>')}</section>`;
   if(apiMessage) html+=`<section class="card"><b>ℹ️ Tự dò kết quả:</b><br>${apiMessage}</section>`;
+  // TỔNG NGÀY luôn là khối cuối cùng của phần kết quả.
+  html+=totalDayHtml;
   $('out').innerHTML=html;
 
-  // CHI TIẾT 3 MIỀN: luôn đóng khi vừa tính xong. Chỉ mở đúng miền người dùng bấm.
-  let openRegion=null;
-  const detailPanels=[...document.querySelectorAll('.region-detail-panel')];
-  const regionButtons=[...document.querySelectorAll('.region-pick')];
-  const closeAllRegionDetails=()=>{
-    detailPanels.forEach(el=>{ el.hidden=true; el.style.setProperty('display','none','important'); });
-    regionButtons.forEach(x=>{ x.classList.remove('active'); x.setAttribute('aria-expanded','false'); });
-  };
-  closeAllRegionDetails();
-  regionButtons.forEach(btn=>btn.addEventListener('click',()=>{
+  // Chi tiết miền mặc định thu gọn. Bấm miền để mở; bấm lại để đóng.
+  document.querySelectorAll('.region-detail-panel').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.region-pick').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.region-pick').forEach(btn=>btn.addEventListener('click',()=>{
     const r=btn.dataset.region;
-    const same=openRegion===r;
-    closeAllRegionDetails();
-    if(same){ openRegion=null; return; }
-    openRegion=r;
-    const panel=detailPanels.find(el=>el.dataset.regionPanel===r);
-    if(panel){ panel.hidden=false; panel.style.setProperty('display','block','important'); }
-    btn.classList.add('active');
-    btn.setAttribute('aria-expanded','true');
+    const panel=document.querySelector('.region-detail-panel[data-region-panel="'+r+'"]');
+    const isOpen=panel && panel.style.display!=='none';
+    document.querySelectorAll('.region-detail-panel').forEach(el=>el.style.display='none');
+    document.querySelectorAll('.region-pick').forEach(x=>x.classList.remove('active'));
+    if(!isOpen && panel){ panel.style.display='block'; btn.classList.add('active'); }
     document.querySelectorAll('.top10-bottom-btn').forEach(x=>x.classList.toggle('active',x.dataset.topRegion===r));
     document.querySelectorAll('.top10-region-content').forEach(x=>x.style.display=x.dataset.topContent===r?'block':'none');
   }));

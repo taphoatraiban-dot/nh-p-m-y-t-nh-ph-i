@@ -309,7 +309,7 @@ body{background:#fff7ee}
 .region-picker-sample{margin:14px 0;background:#fff;border:1px solid #d7d7d7;overflow:hidden}
 .region-picker-title{font-size:24px;font-weight:900;text-align:center;padding:12px 8px;border-bottom:1px solid #ddd;color:#a33b22}
 .region-picker-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}.region-pick{background:#fff;border:1px solid #cfd5dc;color:#555;font-size:18px}.region-pick.active{background:#c23a2f;color:#fff;border-color:#a92d24}
-.region-detail-panel{margin-top:10px}.region-detail-panel[hidden]{display:none!important}.sample-type-title{background:#505762;color:#fff;text-align:center;font-weight:900;font-size:22px;padding:9px;border-top:1px solid #777}
+.region-detail-panel{margin-top:10px}.sample-type-title{background:#505762;color:#fff;text-align:center;font-weight:900;font-size:22px;padding:9px;border-top:1px solid #777}
 .sample-type-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:17px;background:#fff}.sample-type-table th,.sample-type-table td{border:1px solid #777;padding:7px 5px;text-align:center}.sample-type-table th{background:#f1f1f1;color:#3456a3;font-weight:900}.sample-type-table th:first-child,.sample-type-table td:first-child{text-align:left}.sample-win{color:#d12c20;font-weight:900}.sample-loss{color:#c52c24;font-weight:900}.sample-gain{color:#222;font-weight:900}.sample-total-row td{font-weight:900;background:#f4f4f4}
 .top10-box{margin:12px 0;padding:14px 10px;background:#fff;border:2px dashed #333;border-radius:8px;font-family:Arial,"Helvetica Neue",sans-serif;overflow:hidden}
 .top10-title{text-align:center;color:#b13624;font-weight:900;font-size:20px;line-height:1.25;font-family:Arial,"Helvetica Neue",sans-serif;white-space:normal;word-break:normal;overflow-wrap:normal}.top10-sub{text-align:center;color:#8d3a2d;font-weight:800;font-style:italic;margin:7px 0;font-family:Arial,"Helvetica Neue",sans-serif}.top10-buttons{display:flex;justify-content:center;gap:6px}.top10-buttons button{background:#fff;border:1px solid #888;padding:6px 12px;color:#222}.top10-buttons button.active{background:#eee}.top10-list{margin-top:9px}.top10-type{padding:7px 4px;border-bottom:1px dashed #ccc;font-size:13px;font-family:Arial,"Helvetica Neue",sans-serif}.top10-type b{display:inline-block;min-width:70px;color:#a83224}
@@ -1050,30 +1050,6 @@ function splitGroupedPhoiCodes(line){
   });
 }
 
-// ===== LỌC CLIPBOARD TELEGRAM/ZALO TRƯỚC KHI ĐƯA VÀO PARSER =====
-// Chỉ bỏ metadata/rác giao diện; KHÔNG tự đổi ý nghĩa cược ở bước này.
-// Nhờ vậy có thể copy một lần rất nhiều tin Telegram mà không mất phôi.
-function stripChatClipboardMetadata(text){
-  let s=String(text||'')
-    .replace(/\r\n?/g,'\n')
-    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,'')
-    .replace(/\u00A0/g,' ');
-  const kept=[];
-  for(let raw of s.split('\n')){
-    let line=raw.trim();
-    if(!line) { if(kept.length && kept[kept.length-1]!== '') kept.push(''); continue; }
-    // Telegram desktop/iPhone: "Tên, [Th. 9 28, 16:00 2026]"
-    // Chấp nhận cả [28/09/2026 16:00], [Sep 28, 2026 at 16:00]... miễn là ngoặc có ngày/giờ.
-    if(/^.{1,160},\s*\[[^\]]*(?:\d{1,2}:\d{2}|\d{1,2}[\/.\-]\d{1,2}|th\.?\s*\d+)[^\]]*\]\s*$/iu.test(line)) continue;
-    // Một số kiểu export đặt timestamp sau cùng dòng tên.
-    line=line.replace(/^.{1,160},\s*\[[^\]]*(?:\d{1,2}:\d{2}|\d{1,2}[\/.\-]\d{1,2}|th\.?\s*\d+)[^\]]*\]\s*/iu,'').trim();
-    // Bỏ timestamp đứng riêng, không đụng các dòng cược có ngoặc/số bình thường.
-    if(/^\[?\s*(?:th\.?\s*\d+\s+\d{1,2}|\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?)[^\n]{0,45}\d{1,2}:\d{2}[^\n]{0,20}\]?$/iu.test(line)) continue;
-    kept.push(line);
-  }
-  return kept.join('\n').replace(/\n{3,}/g,'\n\n').trim();
-}
-
 function cleanTelegramPhoiText(text){
  let out=[];
  const lines=String(text||"").replace(/\r/g,"").split("\n");
@@ -1537,11 +1513,7 @@ function addBet(rows,st,raw,type,p){
  }
  else if(type==="da"){
    const g=isB?54:36;
-   // DA xuyên 2 đài MN/MT luôn phải tính đủ 2 đài.
-   // Ví dụ 3DMN + 550099da1 -> mỗi cặp đài: C(3,2) × 36 × 2 × 1 = 216k.
-   // Không phụ thuộc giá trị stations trung gian để tránh bị hụt còn 108k.
-   const daStations = (!isB && st.cross2) ? 2 : stations;
-   gross=(ns.length*(ns.length-1)/2)*g*daStations*p;label="DA";
+   gross=(ns.length*(ns.length-1)/2)*g*stations*p;label="DA";
  }
  else return;
  // 4DMN là viết tắt: một phôi phải bung ngay thành 4 đài riêng.
@@ -1828,20 +1800,23 @@ function parseBets(){
   if(!found) errors.push(line);
  }
 
- // FIX ĐÚNG NGỮ CẢNH ĐÀI: không được quét lại toàn bộ dòng 4 số+b rồi tự gán vào HN.
- // Parser phía trên đã giữ biến `st` theo từng tiêu đề đài (HN, Tgiang, ...), nên 7733b1
- // nằm dưới Tgiang phải chỉ thuộc Tiền Giang. Lớp hậu kiểm cũ từng thêm mọi phôi 4 số+b
- // vào Hà Nội/Bắc, gây ra dòng 7733 giả ở HN.
- // Chỉ hiệu chỉnh tiền B4 cho những row ĐÃ được parser xác định là miền Bắc; tuyệt đối
- // không tạo row Hà Nội mới từ rawLine nếu không có ngữ cảnh đài.
- for(const r of rows){
-   if(r.region!=="B") continue;
-   if(!(r.type==="B4" || r.type==="b4")) continue;
-   if(!Array.isArray(r.numbers) || r.numbers.length!==1) continue;
-   const num=String(r.numbers[0]||"");
-   if(!/^\d{4}$/.test(num)) continue;
-   const point=Number(r.points)||0;
-   r.gross=20*point;
+ // FIX PM CHUẨN: phôi miền Bắc dạng 4 chữ số + b2 là BAO 4.
+ // Ví dụ 3333b2 = 2n × 20k = 40k. Kiểm tra trực tiếp phôi gốc để
+ // tránh trường hợp parser biến thể bỏ qua dòng B4 hoặc tính thiếu.
+ for(const rawLine of text.split("\n")){
+   const lineB4=String(rawLine||"").trim();
+   const mB4=lineB4.match(/^([0-9]{4})b(\d+(?:[.,]\d+)?)(?:n)?[.;]?$/i);
+   if(!mB4) continue;
+   const numB4=mB4[1];
+   const pointB4=parseFloat(mB4[2].replace(",",".")); 
+   const matches=rows.filter(r=>r.region==="B" && (r.type==="B4" || r.type==="b4")
+     && Array.isArray(r.numbers) && r.numbers.map(String).includes(numB4)
+     && Number(r.points)===pointB4);
+   if(matches.length){
+     for(const r of matches) r.gross=20*pointB4;
+   }else{
+     addBet(rows,{region:"B",stations:1,label:"Hà Nội/Bắc"},numB4,"b4",pointB4);
+   }
  }
 
  // Chốt vùng theo cặp đài: Đà Nẵng + Quảng Ngãi luôn thuộc Miền Trung.
@@ -3298,10 +3273,10 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
 
   let html='', regionPanelsHtml='';
   // Nút chọn miền đặt ngay đầu phần thống kê; mỗi lần chỉ mở một miền.
-  const regionPickerHtml=`<section class="region-picker-sample"><div class="region-picker-title">XEM CHI TIẾT</div><div class="region-picker-buttons">
-    <button type="button" class="region-pick" data-region="N" aria-expanded="false">NAM</button>
-    <button type="button" class="region-pick" data-region="T" aria-expanded="false">TRUNG</button>
-    <button type="button" class="region-pick" data-region="B" aria-expanded="false">BẮC</button>
+  const regionPickerHtml=`<section class="region-picker-sample"><div class="region-picker-title">CHỌN MIỀN XEM CHI TIẾT</div><div class="region-picker-buttons">
+    <button type="button" class="region-pick active" data-region="N">NAM</button>
+    <button type="button" class="region-pick" data-region="T">TRUNG</button>
+    <button type="button" class="region-pick" data-region="B">BẮC</button>
   </div></section>`;
 
   for(const r of ['N','T','B']){
@@ -3314,7 +3289,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     const types=[...typeOrder,...Object.keys(ts).filter(x=>!typeOrder.includes(x))].filter((v,i,a)=>a.indexOf(v)===i).filter(k=>ts[k]);
     const regionClass=r==='N'?'region-panel-n':r==='T'?'region-panel-t':'region-panel-b';
 
-    regionPanelsHtml+=`<section class="legacy-calc-region region-detail-panel ${regionClass}" data-region-panel="${r}" hidden>
+    regionPanelsHtml+=`<section class="legacy-calc-region region-detail-panel ${regionClass}" data-region-panel="${r}">
       <div class="legacy-region-title">${regionName[r]}</div>
       <div class="legacy-summary">
         <div>Tiền Xác: <b>${money(gross[r])}</b></div>
@@ -3383,25 +3358,13 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   if(apiMessage) html+=`<section class="card"><b>ℹ️ Tự dò kết quả:</b><br>${apiMessage}</section>`;
   $('out').innerHTML=html;
 
-  // CHI TIẾT 3 MIỀN: luôn đóng khi vừa tính xong. Chỉ mở đúng miền người dùng bấm.
-  let openRegion=null;
-  const detailPanels=[...document.querySelectorAll('.region-detail-panel')];
-  const regionButtons=[...document.querySelectorAll('.region-pick')];
-  const closeAllRegionDetails=()=>{
-    detailPanels.forEach(el=>{ el.hidden=true; el.style.setProperty('display','none','important'); });
-    regionButtons.forEach(x=>{ x.classList.remove('active'); x.setAttribute('aria-expanded','false'); });
-  };
-  closeAllRegionDetails();
-  regionButtons.forEach(btn=>btn.addEventListener('click',()=>{
+  // Chỉ hiện một miền tại một thời điểm.
+  const activeRegion=['N','T','B'].find(x=>gross[x]||by[x].win)||'N';
+  document.querySelectorAll('.region-detail-panel').forEach(el=>el.style.display=el.dataset.regionPanel===activeRegion?'block':'none');
+  document.querySelectorAll('.region-pick').forEach(btn=>btn.addEventListener('click',()=>{
     const r=btn.dataset.region;
-    const same=openRegion===r;
-    closeAllRegionDetails();
-    if(same){ openRegion=null; return; }
-    openRegion=r;
-    const panel=detailPanels.find(el=>el.dataset.regionPanel===r);
-    if(panel){ panel.hidden=false; panel.style.setProperty('display','block','important'); }
-    btn.classList.add('active');
-    btn.setAttribute('aria-expanded','true');
+    document.querySelectorAll('.region-detail-panel').forEach(el=>el.style.display=el.dataset.regionPanel===r?'block':'none');
+    document.querySelectorAll('.region-pick').forEach(x=>x.classList.toggle('active',x.dataset.region===r));
     document.querySelectorAll('.top10-bottom-btn').forEach(x=>x.classList.toggle('active',x.dataset.topRegion===r));
     document.querySelectorAll('.top10-region-content').forEach(x=>x.style.display=x.dataset.topContent===r?'block':'none');
   }));
@@ -3653,7 +3616,7 @@ $('bets').addEventListener('paste',function(e){
     // vì cleanTelegramPhoiText() có các bước tách phôi dùng chung số; chạy ngay lúc
     // paste có thể làm mất dấu chấm giữa 49 và 94 trong chuỗi 4994da1.b3.
     // Ví dụ phải được parser hiểu thành: 4994da1. + 49b3. + 94b3.
-    const pasted=stripChatClipboardMetadata(txt);
+    const pasted=txt;
     ta.value=ta.value.slice(0,start)+pasted+ta.value.slice(end);
     const pos=start+pasted.length;
     ta.setSelectionRange(pos,pos);
@@ -3673,12 +3636,12 @@ $('pasteAll').onclick=async function(){
     ta.focus();
     return;
   }
-  // DÁN TOÀN BỘ: lọc tên/ngày/giờ Telegram, giữ nguyên nội dung cược; parser chuẩn hóa khi tính.
-  ta.value=stripChatClipboardMetadata(txt);
+  // DÁN TOÀN BỘ: giữ nguyên clipboard; parser tự chuẩn hóa khi tính.
+  ta.value=txt;
   ta.focus();
   ta.setSelectionRange(ta.value.length,ta.value.length);
   autoReadPhoi();
-  setStatus(`✓ Đã dán và lọc Telegram. Bộ đọc phơi đang kiểm tra toàn bộ nội dung; bấm OK khi trạng thái báo đọc đúng.`,'ok');
+  setStatus(`Đã dán toàn bộ ${txt.length.toLocaleString('vi-VN')} ký tự từ Clipboard. Bấm OK để tính.`,'ok');
 };
 $('clearBets').onclick=function(){ $('bets').value=''; clearBetsHighlights(); autoReadPhoi(); $('bets').focus(); };
 

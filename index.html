@@ -4764,29 +4764,18 @@ let __phoiPasting=false;
 // KHONG chuan hoa cu phap cuoc tai day de tranh lam sai parser.
 function stripTelegramMetadataOnly(text){
   const src=String(text??'').replace(/\r\n?/g,'\n');
-  const out=[];
-  for(const raw of src.split('\n')){
-    let line=raw.trim();
-    if(!line) continue;
 
-    // Telegram desktop: Mr Kbis, [Th. 9 30, 16:01 2026]
-    // Cung chap nhan cac ten nguoi gui khac, mien la sau dau phay la [..ngay/gio..].
-    if(/^.{1,160},\s*\[[^\]]*(?:\d{1,2}:\d{2}|\d{1,2}[\/.\-]\d{1,2}|Th\.)[^\]]*\]\s*$/iu.test(line)) continue;
-
-    // Timestamp / ngay gio bi copy thanh mot dong rieng.
-    if(/^\[?\s*(?:(?:Th\.?\s*)?\d{1,2}[\/.\-\s]+\d{1,2}(?:[\/.\-\s]+\d{2,4})?[,\s]*)?\d{1,2}:\d{2}(?::\d{2})?\s*\]?\s*(?:✓✓?|✔✔?)?\s*$/iu.test(line)) continue;
-
-    // Gio Telegram bi dinh o CUOI mot dong cuoc: "07b20. 17:04 ✓✓"
-    // Chi cat khi truoc gio co khoang trang; khong cham vao diem cuoc.
-    line=line.replace(/\s+(?:\[?\s*)?\d{1,2}:\d{2}(?::\d{2})?\s*(?:\]?\s*)?(?:✓✓?|✔✔?)?\s*$/u,'').trim();
-
-    // Truong hop header Telegram bi dinh sau mot dong trong qua trinh copy.
-    line=line.replace(/\s+.{1,160},\s*\[[^\]]*(?:\d{1,2}:\d{2}|\d{1,2}[\/.\-]\d{1,2}|Th\.)[^\]]*\]\s*$/iu,'').trim();
-    if(line) out.push(line);
-  }
-  return out.join('\n');
+  // Giữ nguyên toàn bộ nội dung khi copy gộp nhiều tin Telegram.
+  // Chỉ bỏ dòng header dạng: Tên, [Th. 10 3, 17:54 2026]
+  return src
+    .split('\n')
+    .filter(line=>{
+      const s=line.trim();
+      if(!s) return true;
+      return !/^.{1,160},\s*\[[^\]]*(?:\d{1,2}:\d{2})[^\]]*\]\s*$/u.test(s);
+    })
+    .join('\n');
 }
-
 // ===== KHOA HIEN THI: TOI DA 3 HAM / 1 HANG =====
 // Chi sap xep lai xuong dong SAU KHI dan xong. KHONG gioi han parser, KHONG xoa/doi cuoc.
 // Moi "ham" la mot cum cuoc hoan chinh cach nhau boi khoang trang, vd:

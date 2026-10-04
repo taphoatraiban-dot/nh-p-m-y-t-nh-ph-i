@@ -4782,27 +4782,10 @@ function stripTelegramMetadataOnly(text){
 // 25b212. | 98duoi220. | 93b22.
 // Cac nhom so ben trong mot ham nhu 10.14.41b10. hay 636819.5136.3669da1. van giu nguyen.
 function formatPhoiMax3PerLine(text){
-  const src=String(text??'').replace(/\r\n?/g,'\n');
-  const out=[];
-  for(const originalLine of src.split('\n')){
-    const line=originalLine.trim();
-    if(!line){ out.push(''); continue; }
-    const parts=line.split(/\s+/).filter(Boolean);
-    // Dong tieu de dai/nhom (HN., 2dmn, Btre, Blieu, 2dmt...) de nguyen.
-    // Neu tieu de va cuoc bi dan chung mot dong, tach tieu de ra rieng truoc khi chia 3 ham.
-    const isHeader=t=>/^(?:hn|mb|hanoi|mbac|[234](?:d|đ)?mn|[234](?:d|đ)?mt|2dn|2dt|2mt|tpho|hcm|btre|blieu|dthap|cmau|tgiang|kgiang|dlat|hue|dnang|qngai|ktum|glai|qnam|dlak|khoa|bduong|vlong|tninh|tayninh|agiang|angiang|dongnai|ctho|longan|pyen|bđinh|bdinh|qtri|nthu|nthuan|ninhthuan)\.?$/i.test(t);
-    let idx=0;
-    if(parts.length && isHeader(parts[0])){
-      out.push(parts[0]);
-      idx=1;
-    }
-    if(idx===parts.length) continue;
-    for(let i=idx;i<parts.length;i+=3) out.push(parts.slice(i,i+3).join(' '));
-  }
-  // Khong de viec dinh dang tao qua nhieu dong trong lien tiep.
-  return out.join('\n').replace(/\n{3,}/g,'\n\n');
-}
-// ===== FIX RIENG DUONG DAN PASTE: GIU B + DA CUNG CUM =====
+  // Không chia/cắt phơi khi copy nhiều tin Telegram.
+  // Giữ nguyên 100% số dòng và thứ tự.
+  return String(text ?? '').replace(/\r\n?/g, '\n');
+}// ===== FIX RIENG DUONG DAN PASTE: GIU B + DA CUNG CUM =====
 // iOS/Telegram paste di qua lop dinh dang truoc parser. Chuyen rieng mau
 // 15.51b10.da2. => 15.51b10. 1551da2. ngay SAU khi loc metadata.
 // Chi ap dung khi paste/format; nhap tay giu nguyen vi parser da doc dung.

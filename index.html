@@ -4872,8 +4872,7 @@ $('bets').addEventListener('paste',function(e){
     // Cho iOS hoàn tất UI trước, sau đó mới lọc metadata/parse một lần.
     __phoiInputTimer=setTimeout(()=>{
       __phoiPasting=false;
-      applyPhoiMax3PerLine();
-      clearBetsHighlights();
+     // applyPhoiMax3PerLine();      clearBetsHighlights();
       autoReadPhoi();
     },350);
     return;

@@ -5608,7 +5608,7 @@ window.showHistoryItem=showHistoryItem;
 (function(){
   function isStationLine(s){
     s=(s||"").trim().toLowerCase().replace(/[.:\s]+$/g,"");
-    return /^(hn|mb|hanoi|mbac|2dmn|3dmn|4dmn|2dn|3dn|2dmt|2dt|2mt|2đmn|2đmt|tpho|hcm|dthap|cmau|btre|blieu|tninh|tayninh|tn|agiang|angiang|ag|bthuan|binhthuan|qbinh|quangbinh|tgiang|kgiang|dlat|hue|dnang|qngai|ktum|glai|py|pyen|dlac|dlak|qnam|kh|khoa|bdinh|qtri|qbinh|quangbinh|bthuan|binhthuan|nthu|nthuan|dnong)$/i.test(s);
+    return /^(tp|tph|la|bp|hg|tn|bt|bth|bl|ag|vt|st|dl|dt|cm|ct|vl|bd|tv|tg|kg|qn|py|gl|nt|qt|qb|mb|hanoi|mbac|2dmn|3dmn|4dmn|2dn|3dn|2dmt|2dt|2mt|2đmn|2đmt|tpho|hcm|dthap|cmau|btre|blieu|tninh|tayninh|tn|agiang|angiang|ag|bthuan|binhthuan|qbinh|quangbinh|tgiang|kgiang|dlat|hue|dnang|qngai|ktum|glai|py|pyen|dlac|dlak|qnam|kh|khoa|bdinh|qtri|qbinh|quangbinh|bthuan|binhthuan|nthu|nthuan|dnong)$/i.test(s);
   }
 
   // Một cụm chỉ kết thúc khi gặp MÃ CƯỢC + ĐIỂM [+ n] + dấu chấm.

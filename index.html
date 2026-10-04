@@ -4860,7 +4860,7 @@ $('bets').addEventListener('paste',function(e){
   let txt='';
   try{ txt=e.clipboardData?.getData('text/plain')||e.clipboardData?.getData('text')||''; }catch(_){}
   if(txt){
-    e.preventDefault();
+    //e.preventDefault();
     __phoiPasting=true;
     clearTimeout(__phoiInputTimer);
     const start=Number.isFinite(ta.selectionStart)?ta.selectionStart:ta.value.length;

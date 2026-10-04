@@ -1463,7 +1463,8 @@ function splitChainedSameNumbers(line){
 
   const firstRe=new RegExp('^(\\d+(?:\\.\\d+)*)\\s*('+type+')\\s*(\\d+(?:[.,]\\d+)?)(n?)\\.\\s*(.*)$','i');
   const tailRe=new RegExp('^((?:'+type+')\\s*\\d+(?:[.,]\\d+)?n?\\.)+$','i');
-  const sharedNumbers=(raw)=>raw.split('.').filter(Boolean).flatMap(x=>/^\\d{4}$/.test(x)?(x.match(/\\d{2}/g)||[]):[x]).join('.');
+ if(/^\d{4}b\d+(?:[.,]\d+)?n?\.?$/i.test(s)) return s;
+ const sharedNumbers=(raw)=>raw.split('.').filter(Boolean).flatMap(x=>/^\\d{4}$/.test(x)?(x.match(/\\d{2}/g)||[]):[x]).join('.');
   const m=s.match(firstRe);
   if(!m || !tailRe.test(m[5])) return s;
   const numsPart=sharedNumbers(m[1]);

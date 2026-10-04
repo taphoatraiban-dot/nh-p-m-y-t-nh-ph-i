@@ -2422,7 +2422,11 @@ function parseBets(){
   // Điểm thập phân chuẩn dùng dấu phẩy (0,5 / 2,5), nên dấu chấm ở đây chỉ phân cách số/kết thúc mã.
   {
     const locked=[];
-    const listBetRe=/(^|\s)((?:\d{2,4}\.)+\d{2,4})\s*(b|bao2|bl2|duoi|dui|dau|xc|x|xcdau|xcduoi|xdau|xduoi|xdao|xcdao|daoxc|dxc)\s*(\d+(?:,\d+)?)(n?)\.(?=\s|$)/gi;
+if(/^\d{4}b\d+(?:[.,]\d+)?n?\.?$/i.test(s)){
+  const m=s.match(/^(\d{4})b(\d+(?:[.,]\d+)?)(?:n)?\.?$/i);
+  addBet(rows,st,m[1],'b4',parseFloat(m[2].replace(',','.')));
+  continue;
+}const listBetRe=/(^|\s)((?:\d{2,4}\.)+\d{2,4})\s*(b|bao2|bl2|duoi|dui|dau|xc|x|xcdau|xcduoi|xdau|xduoi|xdao|xcdao|daoxc|dxc)\s*(\d+(?:,\d+)?)(n?)\.(?=\s|$)/gi;
     s=s.replace(listBetRe,(whole,lead,rawList,typ,pt,nf)=>{
       locked.push({rawList,typ:typ.toLowerCase(),points:parseFloat(String(pt).replace(',','.'))});
       return lead;

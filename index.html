@@ -4914,8 +4914,7 @@ $('pasteAll').onclick=async function(){
     return;
   }
   // DÁN TOÀN BỘ: lọc tên/ngày/giờ Telegram, giữ nguyên nội dung cược; parser chuẩn hóa khi tính.
-  ta.value=normalizeLoosePhoiWithoutChangingFunctionCount(preserveBThenDaOnPaste(stripTelegramMetadataOnly(String(txt).replace(/\r\n?/g,'\n'))));
-  ta.focus();
+  ta.value=String(txt||'').replace(/\r\n?/g,'\n');  ta.focus();
   ta.setSelectionRange(ta.value.length,ta.value.length);
   autoReadPhoi();
   setStatus(`✓ Đã dán và lọc Telegram. Bộ đọc phơi đang kiểm tra toàn bộ nội dung; bấm OK khi trạng thái báo đọc đúng.`,'ok');

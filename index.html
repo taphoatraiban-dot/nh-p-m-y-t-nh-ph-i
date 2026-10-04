@@ -4853,40 +4853,54 @@ function applyPhoiMax3PerLine(){
     try{ta.setSelectionRange(after.length,after.length)}catch(e){}
   }
 }
-$('bets').addEventListener('paste',function(e){
-  // FIX iPhone/Telegram: lấy TOÀN BỘ text clipboard ngay trong sự kiện paste.
-  // Không chạy parser giữa lúc dán; chỉ xử lý sau khi toàn bộ nội dung đã vào ô.
-  const ta=$('bets');
-  let txt='';
-  try{ txt=e.clipboardData?.getData('text/plain')||e.clipboardData?.getData('text')||''; }catch(_){}
-  if(txt){
-    //e.preventDefault();
-    __phoiPasting=true;
-    clearTimeout(__phoiInputTimer);
-    const start=Number.isFinite(ta.selectionStart)?ta.selectionStart:ta.value.length;
-    const end=Number.isFinite(ta.selectionEnd)?ta.selectionEnd:start;
-    const full=ta.value.slice(0,start)+String(txt).replace(/\r\n?/g,'\n')+ta.value.slice(end);
-    ta.value=full;
-    const pos=start+String(txt).replace(/\r\n?/g,'\n').length;
-    try{ta.setSelectionRange(pos,pos)}catch(_){}
-    // Cho iOS hoàn tất UI trước, sau đó mới lọc metadata/parse một lần.
-    __phoiInputTimer=setTimeout(()=>{
-      __phoiPasting=false;
-     // applyPhoiMax3PerLine();      clearBetsHighlights();
-      autoReadPhoi();
-    },350);
-    return;
-  }
-  // Nếu Safari không cấp clipboardData, để thao tác Dán gốc của iOS tự chèn.
-  __phoiPasting=true;
+ // ===== PASTE NHIỀU TIN TELEGRAM - GIỮ NGUYÊN 100% =====
+$('bets').addEventListener('paste', function(e){
+  const ta = e.currentTarget;
+
+  let txt = '';
+  try {
+    txt = e.clipboardData.getData('text/plain');
+  } catch(err) {}
+
+  if (!txt) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  txt = String(txt).replace(/\r\n?/g, '\n');
+
+  const start = Number.isFinite(ta.selectionStart)
+    ? ta.selectionStart
+    : ta.value.length;
+
+  const end = Number.isFinite(ta.selectionEnd)
+    ? ta.selectionEnd
+    : start;
+
+  const before = ta.value.slice(0, start);
+  const after  = ta.value.slice(end);
+
+  const sep =
+    before.length && !before.endsWith('\n')
+      ? '\n'
+      : '';
+
+  ta.value = before + sep + txt + after;
+
+  const pos = (before + sep + txt).length;
+  try {
+    ta.setSelectionRange(pos, pos);
+  } catch(err) {}
+
   clearTimeout(__phoiInputTimer);
-  __phoiInputTimer=setTimeout(()=>{
-    __phoiPasting=false;
-    //applyPhoiMax3PerLine();
+
+  setTimeout(function(){
     clearBetsHighlights();
     autoReadPhoi();
-  },900);
-});
+  }, 500);
+
+}, true);
+
 $('bets').addEventListener('beforeinput',function(e){
   if(e && (e.inputType==='insertFromPaste' || e.inputType==='insertFromDrop')){
     __phoiPasting=true;

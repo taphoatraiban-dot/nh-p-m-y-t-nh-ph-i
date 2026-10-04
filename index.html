@@ -4897,7 +4897,7 @@ $('bets').addEventListener('input',function(){
   clearTimeout(__phoiInputTimer);
   // Khi iPhone đang dán: chỉ chờ, tuyệt đối không chuẩn hóa/parse giữa chừng.
   if(__phoiPasting){
-    __phoiInputTimer=setTimeout(()=>{__phoiPasting=false;applyPhoiMax3PerLine();clearBetsHighlights();autoReadPhoi();},1200);
+    __phoiInputTimer=setTimeout(()=>{__phoiPasting=false;;clearBetsHighlights();autoReadPhoi();},1200);
     return;
   }
   __phoiInputTimer=setTimeout(autoReadPhoi,650);

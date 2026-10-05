@@ -7012,5 +7012,63 @@ window.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+<style id="tsh-final-0610-ui">
+/* FINAL UI 06-10-2026 */
+.quick-head{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin:6px 0!important;align-items:stretch!important}
+.quick-head>.quick-box{height:70px!important;min-height:70px!important;max-height:70px!important;padding:7px 9px!important;overflow:hidden!important}
+.quick-head>.quick-box label{font-size:11px!important;line-height:13px!important;margin:0 0 3px!important}
+.quick-head>.quick-box:first-child label{font-size:0!important}
+.quick-head>.quick-box:first-child label:after{content:'BẢNG GIÁ';font-size:11px!important}
+#quickRateText{display:none!important}
+#quickCustomerSlot{height:42px!important;max-height:42px!important;overflow-y:auto!important;overflow-x:hidden!important}
+#quickCustomerSlot select,#quickCustomerSlot #customerSelect{height:42px!important;min-height:42px!important;margin:0!important;padding:3px 24px 3px 2px!important;border:0!important;background:transparent!important;font-size:17px!important;font-weight:900!important}
+#quickDateSlot{height:42px!important;min-height:42px!important;max-height:42px!important;padding:0!important;overflow:hidden!important}
+#quickDateSlot #daybar{display:flex!important;flex-direction:column!important;gap:0!important;height:42px!important;max-height:42px!important;overflow-y:auto!important;overflow-x:hidden!important;margin:0!important;padding:0!important;scroll-snap-type:y mandatory!important;-webkit-overflow-scrolling:touch!important}
+#quickDateSlot #daybar button{display:block!important;flex:0 0 42px!important;width:100%!important;min-width:100%!important;height:42px!important;min-height:42px!important;max-height:42px!important;margin:0!important;padding:4px 3px!important;border-radius:9px!important;font-size:14px!important;font-weight:900!important;scroll-snap-align:start!important}
+.swipe-hint{display:none!important}
+#okAll{background:#d51f2b!important;background-image:none!important;color:#fff!important;border-color:#d51f2b!important}
+#tshThreeActions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;width:100%!important;margin:7px 0 2px!important}
+#tshThreeActions button{position:static!important;inset:auto!important;transform:none!important;float:none!important;width:100%!important;min-width:0!important;max-width:none!important;height:44px!important;margin:0!important;padding:6px 3px!important;border-radius:10px!important;font-size:11px!important;line-height:1.1!important;white-space:normal!important;box-shadow:none!important}
+#qrScanBtn{position:static!important;inset:auto!important;transform:none!important}
+</style>
+<script id="tsh-final-0610-ui-js">
+(function(){
+ function txt(e){return String(e&&e.textContent||'').replace(/\s+/g,' ').trim().toUpperCase()}
+ function applyFinalUI(){
+   var priceLabel=document.querySelector('.quick-head .quick-box:first-child label');
+   if(priceLabel) priceLabel.textContent='BẢNG GIÁ';
+   var rate=document.getElementById('quickRateText'); if(rate) rate.style.display='none';
+   document.querySelectorAll('.swipe-hint').forEach(function(e){e.style.display='none'});
+
+   var slot=document.getElementById('quickDateSlot'), day=document.getElementById('daybar');
+   if(slot&&day&&day.parentElement!==slot) slot.appendChild(day);
+   if(day){
+     day.style.display='flex';
+     var active=day.querySelector('button.active');
+     if(active) setTimeout(function(){day.scrollTop=active.offsetTop},0);
+   }
+
+   var ok=document.getElementById('okAll');
+   if(ok){ok.style.setProperty('background','#d51f2b','important');ok.style.setProperty('background-image','none','important');ok.style.setProperty('color','#fff','important')}
+
+   var p=document.getElementById('printPhoiPOS');
+   var h=document.getElementById('openPrintHistory');
+   var q=document.getElementById('qrScanBtn');
+   if(p&&h&&q){
+     var row=document.getElementById('tshThreeActions');
+     if(!row){row=document.createElement('div');row.id='tshThreeActions';p.parentNode.insertBefore(row,p)}
+     [p,h,q].forEach(function(b){if(b.parentNode!==row)row.appendChild(b);b.style.setProperty('position','static','important')});
+     var old=document.querySelector('.phoi-quick-actions');
+     if(old && old!==row && old.children.length===0) old.remove();
+   }
+
+   var title=document.getElementById('drawerBangTinhTitle');
+   if(title) title.textContent='💎 BẢNG GIÁ ↗';
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',applyFinalUI); else applyFinalUI();
+ setTimeout(applyFinalUI,300);setTimeout(applyFinalUI,1000);setTimeout(applyFinalUI,2000);
+})();
+</script>
+
 </body>
 </html>

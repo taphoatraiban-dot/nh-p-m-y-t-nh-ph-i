@@ -10525,7 +10525,27 @@ window.tsAttachBackupTools=function(ov){
 (function(){
  const root=document.getElementById('lotteryNative');if(!root)return;
  const $=id=>document.getElementById(id), tabs=[...root.querySelectorAll('[data-region]')];
- let region='MN',selectedProvince='',requestId=0;
+ let region='MN',selectedProvince='',requestId=0,liveBusy=false,liveDone=false,liveSignature='',liveCache={};
+ const todayVN=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const liveWindow=()=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date()).split(':');const m=Number(p[0])*60+Number(p[1]);return dateInput.value===todayVN()&&m>=({MN:960,MT:1020,MB:1080}[region])&&m<=({MN:1035,MT:1095,MB:1155}[region]);};
+ const prizeCounts={MB:{db:1,g1:1,g2:2,g3:6,g4:4,g5:6,g6:3,g7:4},MN:{db:1,g1:1,g2:1,g3:2,g4:7,g5:1,g6:3,g7:1,g8:1},MT:{db:1,g1:1,g2:1,g3:2,g4:7,g5:1,g6:3,g7:1,g8:1}};
+ const numbers=x=>Array.isArray(x)?x.flatMap(numbers):x&&typeof x==='object'?Object.values(x).flatMap(numbers):String(x??'').split(/[,;\\s]+/).filter(v=>/^\\d{2,6}$/.test(v));
+ function resetLive(){liveCache={};liveSignature='';liveDone=false;}
+ function mergeLive(payload){
+   for(const e of normalize(payload)){
+     const station=String(e?.province??e?.station??e?.name??e?.tinh??e?.province_name??'').trim();if(!station)continue;
+     const key=provinceKey(station),previous=liveCache[key]||{province:station,prizes:{}},prizes={...previous.prizes};
+     for(const row of extractRows(e)){
+       const prize=String(row.name||'').toLowerCase();if(!Object.prototype.hasOwnProperty.call(prizeCounts[region],prize))continue;
+       const incoming=numbers(row.numbers),prior=numbers(prizes[prize]);
+       if(incoming.length>prior.length||(incoming.length&&incoming.length===prior.length&&incoming.join(',')!==prior.join(',')))prizes[prize]=incoming;
+     }
+     liveCache[key]={province:station,prizes};
+   }
+   return Object.values(liveCache);
+ }
+ function allDone(entries){return entries.length>0&&entries.every(e=>Object.entries(prizeCounts[region]).every(([k,n])=>numbers(e.prizes?.[k]).length>=n));}
+
  const dateInput=$('lotteryDate');
  const now=new Date();dateInput.value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
  const labels={MN:'MIỀN NAM',MT:'MIỀN TRUNG',MB:'MIỀN BẮC'};
@@ -10643,22 +10663,31 @@ window.tsAttachBackupTools=function(ov){
    const detail=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Xem nhanh lô tô đầu 0–9';detail.appendChild(summary);detail.appendChild(lotoTable);quick.appendChild(detail);results.appendChild(quick);
    setStatus('Đã nhận dữ liệu '+valid.length+' đài. Xem nhanh lô tô ở dưới bảng kết quả.');
  }
- async function load(){
-   const id=++requestId;const date=dateInput.value;if(!date)return;
+ async function load(silent=false){
+   if(liveBusy)return;
+   const id=++requestId,date=dateInput.value,requestedRegion=region;if(!date)return;
+   liveBusy=true;
    $('lotteryHeading').textContent='KẾT QUẢ XỔ SỐ '+labels[region];
-   $('lotteryResults').innerHTML='';$('lotteryProvinceTabs').innerHTML='';setStatus('Đang tải dữ liệu '+date+'...');
+   if(!silent&&!Object.keys(liveCache).length)setStatus('Đang tải dữ liệu '+date+'...');
    try{
-     const url='https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/xosoapi?region='+encodeURIComponent(region)+'&date='+encodeURIComponent(date);
-     const response=await fetch(url,{headers:{'Accept':'application/json'},signal:AbortSignal.timeout(12000)});
+     const url='https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/xosoapi?region='+encodeURIComponent(region)+'&date='+encodeURIComponent(date)+'&_live='+Date.now();
+     const response=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store',signal:AbortSignal.timeout(12000)});
      if(!response.ok)throw new Error('API trả về HTTP '+response.status);
-     const data=await response.json();if(id!==requestId)return;
+     const data=await response.json();if(id!==requestId||requestedRegion!==region||date!==dateInput.value)return;
      if(data.success===false)throw new Error(data.error||data.message||'API chưa có kết quả');
-     render(data?.data && !Array.isArray(data.data) && Array.isArray(data.data.data) ? {...data,data:data.data.data} : data);
-   }catch(e){if(id!==requestId)return;setStatus('Chưa tải được kết quả: '+(e?.message||'Lỗi kết nối')+'. Có thể cần cấu hình CORS/API.');$('lotteryResults').innerHTML='<div style="padding:20px;text-align:center">Không hiển thị số liệu giả. Hãy thử tải lại hoặc mở trang gốc.</div>'}
+     const payload=data?.data&&!Array.isArray(data.data)&&Array.isArray(data.data.data)?data.data.data:data;
+     const merged=mergeLive(payload),signature=JSON.stringify(merged);
+     if(signature!==liveSignature||!$('lotteryResults').children.length){liveSignature=signature;render({data:merged});}
+     liveDone=allDone(merged);
+     if(merged.length)setStatus((liveWindow()&&!liveDone?'🔴 ĐANG TRỰC TIẾP • Tự cập nhật 2 giây/lần':liveDone?'✅ ĐÃ HOÀN TẤT':'Đã nhận kết quả')+' • '+merged.length+' đài');
+     else if(liveWindow())setStatus('🔴 ĐANG TRỰC TIẾP • Đang chờ giải đầu tiên');
+   }catch(e){if(id!==requestId)return;setStatus(Object.keys(liveCache).length?'Đã giữ các giải trước • API tạm gián đoạn':'Chưa tải được kết quả: '+(e?.message||'Lỗi kết nối'));}
+   finally{liveBusy=false;}
  }
- tabs.forEach(b=>b.addEventListener('click',()=>{region=b.dataset.region;selectedProvince='';tabs.forEach(x=>x.classList.toggle('active',x===b));load()}));
- function changeDate(delta){const d=new Date(dateInput.value+'T12:00:00');d.setDate(d.getDate()+delta);dateInput.value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');selectedProvince='';load()}
- $('lotteryPrev').onclick=()=>changeDate(-1);$('lotteryNext').onclick=()=>changeDate(1);$('lotteryRefresh').onclick=load;dateInput.onchange=()=>{selectedProvince='';load()};
+ tabs.forEach(b=>b.addEventListener('click',()=>{region=b.dataset.region;selectedProvince='';resetLive();tabs.forEach(x=>x.classList.toggle('active',x===b));load()}));
+ function changeDate(delta){const d=new Date(dateInput.value+'T12:00:00');d.setDate(d.getDate()+delta);dateInput.value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');selectedProvince='';resetLive();load()}
+ $('lotteryPrev').onclick=()=>changeDate(-1);$('lotteryNext').onclick=()=>changeDate(1);$('lotteryRefresh').onclick=()=>load();dateInput.onchange=()=>{selectedProvince='';resetLive();load()};
+ setInterval(()=>{if(!document.hidden&&liveWindow()&&!liveDone)load(true);},2000);
  load();
 })();
 </script>

@@ -6617,7 +6617,7 @@ function openCutImage(){
   function drawSource(){
     ctx.clearRect(0,0,LOGW,LOGH);
     ctx.fillStyle='#fff';ctx.fillRect(0,0,LOGW,LOGH);
-    ctx.strokeStyle='#f03b45';ctx.lineWidth=2;ctx.strokeRect(7,7,686,456);
+    ctx.strokeStyle='#334155';ctx.lineWidth=1.5;ctx.strokeRect(7,7,686,456);
     text(ctx,'📅',38,43,28,'700');
     text(ctx,'TỔNG KẾT NGÀY',225,35,31,'900','center','#d21c2a');
     text(ctx,date,225,69,21,'800','center','#273244');
@@ -6632,20 +6632,27 @@ function openCutImage(){
     ['Miền','Tiền xác','Trúng','Thu / Bù'].forEach((v,i)=>text(ctx,v,centers[i],133,21,'800','center','#b51b25'));
     rows.forEach((r,i)=>{
       const y=154+i*48,thu=Math.round(r[3]||0);
-      if(i%2) {ctx.fillStyle='#ffffff';ctx.fillRect(17,y,666,48);}
-      ctx.strokeStyle='#e9e9ed';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(17,y+48);ctx.lineTo(683,y+48);ctx.stroke();
+      ctx.fillStyle='#ffffff';ctx.fillRect(17,y,666,48);
+      ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(17,y+48);ctx.lineTo(683,y+48);ctx.stroke();
       [r[0],fmtK(r[1]),fmtK(r[2]),(thu<0?'−':'+')+fmtK(Math.abs(thu))].forEach((v,j)=>text(ctx,v,centers[j],y+24,24,'800','center',j===2?'#db202e':j===3?(thu<0?'#db202e':'#087f5b'):'#202b39'));
     });
     ctx.fillStyle='#f3f5f7';ctx.fillRect(17,298,666,49);
     const totalThu=Math.round(x.totalThu||0);
     ['TỔNG',fmtK(x.totalGross||0),fmtK(x.totalWin||0),(totalThu<0?'−':'+')+fmtK(Math.abs(totalThu))].forEach((v,j)=>text(ctx,v,centers[j],322,24,'900','center',j===2?'#db202e':j===3?(totalThu<0?'#db202e':'#087f5b'):'#202b39'));
+    // Full table grid: four columns, header, N/T/B and total.
+    ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+    const xLines=[17,132,325,493,683];
+    const yLines=[112,154,202,250,298,347];
+    xLines.forEach(xx=>{ctx.beginPath();ctx.moveTo(xx,112);ctx.lineTo(xx,347);ctx.stroke();});
+    yLines.forEach(yy=>{ctx.beginPath();ctx.moveTo(17,yy);ctx.lineTo(683,yy);ctx.stroke();});
     if(x.showCommission)text(ctx,'Cò: '+(Number(x.totalCommission)>0?'+':'')+fmtK(x.totalCommission||0),350,363,16,'700','center','#a34712');
-    ctx.fillStyle='#f0fff8';ctx.fillRect(17,375,666,69);
-    ctx.strokeStyle='#b5e8d4';ctx.lineWidth=1;ctx.strokeRect(17,375,666,69);
+    ctx.fillStyle='#ffffff';ctx.fillRect(17,375,666,69);
+    ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;ctx.strokeRect(17,375,666,69);
+    [165,327,425].forEach(xx=>{ctx.beginPath();ctx.moveTo(xx,375);ctx.lineTo(xx,444);ctx.stroke();});
     text(ctx,'Nợ cũ',91,409,23,'800','center','#253247');
     text(ctx,fmtK(x.old||0),246,409,25,'800');
     text(ctx,'=',354,409,24,'900');
-    ctx.fillStyle='#dff8ea';ctx.fillRect(432,385,235,48);
+    ctx.fillStyle='#ffffff';ctx.fillRect(432,385,235,48);
     const finalValue=Number(x.finalTotal ?? ((x.totalThu||0)+(x.old||0)));
     text(ctx,fmtK(finalValue)+'k',550,409,30,'900','center',finalValue<0?'#db202e':'#087f5b');
     const target=document.getElementById('totalNativeImage');

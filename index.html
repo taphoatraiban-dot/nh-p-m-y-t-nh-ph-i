@@ -1271,7 +1271,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
   </div>
   <div style="display:flex;gap:7px;margin-bottom:8px">
    <button type="button" id="tgSelectAll" class="soft">Chọn tất cả</button>
-   <button type="button" id="tgSelectNone" class="soft">Bỏ chọn</button>
+   <button type="button" id="tgSelectNone" class="soft">Bỏ chọn</button><button type="button" id="tgDeleteSelected" class="soft" style="color:#b91c1c">Xoá đã chọn</button><button type="button" id="tgDeleteAll" class="soft" style="color:#b91c1c">Xoá tất cả</button>
   </div>
   <button type="button" id="tgConnectFive" class="soft" style="width:100%;margin-bottom:8px">🔗 KẾT NỐI 5 BOT (CHỈ CẦN 1 LẦN)</button>
   <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Chọn nhóm để xem tin Telegram.</div>
@@ -10894,15 +10894,33 @@ body.app-unlocked:has(#appDrawer.open) #drawerEdge {
 (function(){
 const $=id=>document.getElementById(id);
 let messages=[],selected=new Set(),loading=false;
+async function deleteTelegram(ids){
+ if(!ids.length)return;
+ if(!confirm("Xoá vĩnh viễn "+ids.length+" tin Telegram đã chọn? Không thể hoàn tác."))return;
+ try{
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session)throw Error("Cần đăng nhập quản trị.");
+ const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-forward-inbox",{method:"POST",headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({action:"delete",ids})});
+ const out=await res.json();if(!res.ok||!out.success)throw Error(out.error||"Không xoá được");
+ const removed=new Set((out.deleted||[]).map(Number));
+ messages=messages.filter(m=>!removed.has(Number(m.id)));
+ removed.forEach(id=>selected.delete(id));draw();
+ $("tgInboxStatus").textContent="Đã xoá "+removed.size+" tin Telegram.";
+ }catch(e){$("tgInboxStatus").textContent="Lỗi xoá tin: "+e.message}
+}
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 function draw(){
  const filter=$("tgGroupFilter").value;
  const rows=messages.filter(m=>!filter||(m.selected_group||m.origin_name||"Không rõ nhóm")===filter);
- $("tgInboxList").innerHTML=rows.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(m.id)?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important;opacity:1!important;visibility:visible!important"><b style="color:#14532d!important">'+esc(m.selected_group||m.origin_name||"Không rõ nhóm")+'</b> · '+esc(m.sender_name||m.origin_name||'Không rõ người gửi')+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="color:#17212f!important;opacity:1!important;visibility:visible!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")||'<div>Chưa có tin trong nhóm này.</div>';
+ $("tgInboxList").innerHTML=rows.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(m.id)?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important;opacity:1!important;visibility:visible!important"><b style="color:#14532d!important">'+esc(m.selected_group||m.origin_name||"Không rõ nhóm")+'</b> · '+esc(m.sender_name||m.origin_name||'Không rõ người gửi')+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="color:#17212f!important;opacity:1!important;visibility:visible!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div><button type="button" class="tg-delete-one" data-delete-id="'+m.id+'" style="margin-top:8px;padding:6px 10px;background:#fee2e2;color:#991b1b;border-radius:7px">Xoá tin này</button></span></label>').join("")||'<div>Chưa có tin trong nhóm này.</div>';
  $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
 }
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});
 $("tgGroupFilter").addEventListener("change",draw);
+$("tgInboxList").addEventListener("click",e=>{const btn=e.target.closest(".tg-delete-one");if(!btn)return;e.preventDefault();deleteTelegram([Number(btn.dataset.deleteId)])});
+$("tgDeleteSelected").addEventListener("click",()=>deleteTelegram([...selected]));
+$("tgDeleteAll").addEventListener("click",()=>{const g=$("tgGroupFilter").value;deleteTelegram(messages.filter(m=>!g||m.selected_group===g).map(m=>Number(m.id)))});
+
 $("tgSelectAll").addEventListener("click",()=>{const g=$("tgGroupFilter").value;messages.filter(m=>!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g).forEach(m=>selected.add(m.id));draw()});
 $("tgSelectNone").addEventListener("click",()=>{selected.clear();draw()});
 $("tgRefresh").addEventListener("click",async()=>{

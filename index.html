@@ -10395,7 +10395,7 @@ window.tsAttachBackupTools=function(ov){
        const isDb=normalizedKey(prize.name)==='db';
        nums(prize.numbers).forEach(n=>{
          const digits=String(n).trim();
-         if(!/^\\d{2,6}$/.test(digits))return;
+         if(!/^\d{2,6}$/.test(digits))return;
          const last=digits.slice(-2),head=Number(last[0]);
          buckets[head].push({tail:last[1],isDb});
        });

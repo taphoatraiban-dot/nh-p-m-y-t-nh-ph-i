@@ -9655,12 +9655,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    try{ta.setSelectionRange(Math.min(at,now.length),Math.min(at,now.length));}catch(_){}
    ta.dispatchEvent(new Event('input',{bubbles:true}));busy=false;
   }
-  ta.addEventListener('paste',function(e){
-   const clip=e.clipboardData?.getData('text/plain');if(!clip||typeof ttUnifiedNormalize!=='function')return;
-   e.preventDefault();e.stopImmediatePropagation();
-   const normalized=ttUnifiedNormalize(clip);
-   ta.setRangeText(normalized,ta.selectionStart,ta.selectionEnd,'end');
-   ta.dispatchEvent(new Event('input',{bubbles:true}));
+  // Let Safari/iOS insert the complete Telegram clipboard natively.
+  // Do not preventDefault or stop other paste handlers: they track multi-message pastes.
+  ta.addEventListener('paste',function(){
+   // No eager normalization here; downstream handlers process after paste completes.
   },true);
   ta.addEventListener('input',function(e){if(busy||e.isComposing)return;
    if(e.inputType==='insertFromPaste'||e.inputType==='insertFromDrop')apply();
@@ -9677,7 +9675,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function apply(){if(typeof ttUnifiedNormalize!=='function')return;const before=ta.value,after=ttUnifiedNormalize(before);if(after!==before){ta.value=after;ta.dispatchEvent(new Event('input',{bubbles:true}));}}
   ta.addEventListener('blur',apply);
   ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
-  ta.addEventListener('paste',()=>setTimeout(apply,30));
+  // Avoid rewriting Telegram multi-message text while the paste is still settling.
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

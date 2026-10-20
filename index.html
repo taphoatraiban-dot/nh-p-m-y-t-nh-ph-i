@@ -969,7 +969,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 </head>
 <body>
 <style id="ott-guide-24-style">
-#ottGuideCorner{position:fixed;right:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2147481000;border:0;border-radius:30px;background:#bd1c2b;color:#fff;padding:10px 15px;font:700 13px system-ui;box-shadow:0 4px 18px #0004;cursor:pointer}
+#ottGuideCorner{display:none!important;position:fixed;right:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2147481000;border:0;border-radius:30px;background:#bd1c2b;color:#fff;padding:10px 15px;font:700 13px system-ui;box-shadow:0 4px 18px #0004;cursor:pointer}
 #ottGuideOverlay{position:fixed;inset:0;z-index:2147482000;background:#07121ff5;display:none;flex-direction:column;align-items:center;justify-content:center;padding:env(safe-area-inset-top,8px) 8px env(safe-area-inset-bottom,8px);box-sizing:border-box}
 #ottGuideOverlay.ott-open{display:flex}
 #ottGuideHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(100%,900px);color:#fff;padding:8px 5px;font:700 15px system-ui}
@@ -990,16 +990,17 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 (function(){
 const get=id=>document.getElementById(id);let current=0,startX=null;
 const overlay=get("ottGuideOverlay"),photo=get("ottGuideImage");
-function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"TELEGRAM • "+(current+1)+"/8":"CÚ PHÁP • "+(current-7)+"/16";}
+function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg?v=20261021-fix10";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"TELEGRAM • "+(current+1)+"/8":"CÚ PHÁP • "+(current-7)+"/16";}
 function open(index){current=index||0;draw();overlay.classList.add("ott-open");overlay.setAttribute("aria-hidden","false");get("ottGuideClose").focus();}
-function close(){overlay.classList.remove("ott-open");overlay.setAttribute("aria-hidden","true");get("ottGuideCorner").focus();}
+function close(){overlay.classList.remove("ott-open");overlay.setAttribute("aria-hidden","true");(get("syntaxGuideOpen")||get("ottGuideCorner")).focus();}
 get("ottGuideCorner").addEventListener("click",()=>open(0));get("ottGuideClose").addEventListener("click",close);
 get("ottGuidePrev").addEventListener("click",()=>{current=(current+23)%24;draw()});
 get("ottGuideNext").addEventListener("click",()=>{current=(current+1)%24;draw()});
 get("ottGuideViewport").addEventListener("touchstart",e=>{startX=e.touches[0]?.clientX??null},{passive:true});
-get("ottGuideViewport").addEventListener("touchend",e=>{if(startX===null)return;const d=(e.changedTouches[0]?.clientX??startX)-startX;if(Math.abs(d)>45){current=(current+(d<0?1:15))%24;draw()}startX=null},{passive:true});
+get("ottGuideViewport").addEventListener("touchend",e=>{if(startX===null)return;const d=(e.changedTouches[0]?.clientX??startX)-startX;if(Math.abs(d)>45){current=(current+(d<0?1:23))%24;draw()}startX=null},{passive:true});
 document.addEventListener("keydown",e=>{if(!overlay.classList.contains("ott-open"))return;if(e.key==="Escape")close();else if(e.key==="ArrowRight"){current=(current+1)%24;draw()}else if(e.key==="ArrowLeft"){current=(current+23)%24;draw()}});
 window.openOttGuideImages=open;
+const originalGuide=document.getElementById("syntaxGuideOpen");if(originalGuide){originalGuide.addEventListener("click",function(e){e.preventDefault();e.stopImmediatePropagation();open(8);},true);originalGuide.textContent="📖 HƯỚNG DẪN";}
 })();
 </script>
 

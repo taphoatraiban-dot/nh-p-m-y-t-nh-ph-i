@@ -3153,10 +3153,11 @@ function expandSimpleGroupPhoi(s){
     chanle:Array.from({length:25},(_,i)=>String(1+Math.floor(i/5)*20+(i%5)*2).padStart(2,'0')),
     lechan:Array.from({length:25},(_,i)=>String(10+Math.floor(i/5)*20+(i%5)*2).padStart(2,'0'))
   };
-  for(const [name,arr] of Object.entries(groups)){
-    const re=new RegExp('(^|[.\\s])'+name+'(?=dd|xc|x|dau|duoi|b(?:7lo|8l|7ldao|7ld|\\d|dao)|da|dv|xcdau|xcduoi|xdao|xcdao|dxc|daoxc)','gi');
-    out=out.replace(re,(m,p)=>p+arr.join('.'));
-  }
+  // Match longest group aliases first; expand only when followed by a wager type and stake.
+  const names=Object.keys(groups).sort((a,b)=>b.length-a.length);
+  const type='(?:xcdau|xcduoi|xcdao|daoxc|xdao|dxc|dau|duoi|dui|dd|xc|x|b7ldao|b7lo|b7ld|b8l|bdao|daob|bao|b|da|dv)';
+  const re=new RegExp('(^|[^a-zA-Z0-9])('+names.join('|')+')(?='+type+'\\s*\\d)','gi');
+  out=out.replace(re,(whole,p,name)=>p+groups[name.toLowerCase()].join('.'));
   return out;
 }
 // ===== KHÓA CÚ PHÁP: CHỈ TÍNH KHI TOÀN BỘ DÒNG HỢP LỆ =====

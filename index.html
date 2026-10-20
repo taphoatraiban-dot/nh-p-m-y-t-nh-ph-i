@@ -9848,49 +9848,7 @@ client.auth.getSession().then(({data})=>{if(data.session)load();});
  });
 })();
 </script>
-<style id="ttRawTelegramPasteStyle">
-#ttRawPasteLayer{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:12px}
-#ttRawPastePanel{background:#fff;color:#111;border-radius:14px;padding:15px;width:min(100%,650px);max-height:95dvh;overflow:auto;box-sizing:border-box}
-#ttRawPasteText{display:block;width:100%;height:48dvh;box-sizing:border-box;font-size:16px;line-height:1.5;white-space:pre-wrap}
-#ttRawPastePanel button{padding:12px;border-radius:9px;margin:5px 3px;font-weight:700}
-</style>
-<div id="ttRawPasteLayer" role="dialog" aria-modal="true" aria-label="Dán nhiều tin Telegram">
- <div id="ttRawPastePanel">
-  <strong>📋 DÁN NHIỀU TIN TELEGRAM</strong>
-  <p>Nhấn giữ trong ô bên dưới → Dán. Nội dung được giữ nguyên, không tự xử lý.</p>
-  <textarea id="ttRawPasteText" spellcheck="false" autocapitalize="off" placeholder="Dán 5–10 tin Telegram tại đây"></textarea>
-  <p id="ttRawPasteCount" role="status">0 dòng • 0 ký tự</p>
-  <button type="button" id="ttRawPasteTransfer">ĐƯA TẤT CẢ VÀO PHƠI</button>
-  <button type="button" id="ttRawPasteClose">ĐÓNG</button>
- </div>
-</div>
-<script id="ttTelegramRawPasteIsolated">
-(function(){
- function setup(){
-  const bets=document.getElementById('bets'),layer=document.getElementById('ttRawPasteLayer');
-  const raw=document.getElementById('ttRawPasteText'),count=document.getElementById('ttRawPasteCount');
-  if(!bets||!layer||!raw||document.getElementById('ttRawPasteOpen'))return;
-  const btn=document.createElement('button');
-  btn.id='ttRawPasteOpen';btn.type='button';btn.textContent='📋 DÁN NHIỀU TIN TELEGRAM';
-  btn.style.cssText='display:block;width:100%;margin:8px 0;padding:12px;border-radius:10px;background:#1f2937;color:white;font-weight:800;border:0';
-  bets.insertAdjacentElement('afterend',btn);
-  btn.addEventListener('click',()=>{layer.style.display='flex';raw.focus()});
-  document.getElementById('ttRawPasteClose').addEventListener('click',()=>{layer.style.display='none'});
-  raw.addEventListener('input',()=>{const t=raw.value;count.textContent=t.split('\n').length+' dòng • '+t.length+' ký tự'});
-  document.getElementById('ttRawPasteTransfer').addEventListener('click',()=>{
-   const value=raw.value;
-   if(!value.trim()){count.textContent='Chưa có nội dung để chuyển';return}
-   bets.value=value;
-   layer.style.display='none';
-   // Do not dispatch input/paste events: legacy handlers may rewrite the message.
-   const t=bets.value,msg=document.getElementById('status');
-   if(msg){msg.textContent='✓ Đã chuyển nguyên văn '+t.split('\n').length+' dòng / '+t.length+' ký tự. Kiểm tra trước khi bấm DÒ SAI hoặc OK.';msg.className='status ok'}
-   bets.focus();
-  });
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
-})();
-</script>
+
 </body>
 </html>
 <style id="v81-style">

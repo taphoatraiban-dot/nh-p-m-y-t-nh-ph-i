@@ -1274,7 +1274,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
   </div>
 
 
-  <button type="button" id="pasteAll" class="soft" style="display:none">📋 DÁN TOÀN BỘ</button>
+  <button type="button" id="pasteAll" class="soft" style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;font-size:12px">📋 DÁN TOÀN BỘ</button>
   <button type="button" class="bigok" id="okAll">OK</button>
 <div id="syntaxGuideEntry" style="display:flex;justify-content:flex-end;margin:5px 2px 9px">
  <span class="tt-license-compact" id="ttLicenseCompact" role="status" aria-live="polite">HẠN: ĐANG KIỂM TRA</span> <span class="tt-release-badge" title="Phiên bản phần mềm">V10.20.01</span> <button type="button" id="syntaxGuideOpen" style="background:#fff;color:#ad2720;border:1px solid #ffad60;border-radius:11px;padding:10px 16px;font-weight:800;font-size:14px">📖 HƯỚNG DẪN</button>
@@ -2199,7 +2199,7 @@ function ttSeparateJoinedBets(value){
     ta.dataset.fixJoinedBaoXc='1';
     const apply=()=>{const next=tshFixJoinedBaoXC(ta.value);if(next!==ta.value)ta.value=next;};
     // Do not rewrite clipboard text during paste; keep blur normalization.
-    ta.addEventListener('blur',apply);
+    // No blur rewrite: switching to Telegram or tapping buttons must not lose messages.
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();
 })();
@@ -6514,10 +6514,10 @@ $('pasteAll').onclick=async function(){
     return;
   }
   // DÁN TOÀN BỘ: lọc tên/ngày/giờ Telegram, giữ nguyên nội dung cược; parser chuẩn hóa khi tính.
-  ta.value=stripTelegramMetadataOnly(String(txt||'').replace(/\r\n?/g,'\n'));  ta.focus();
+  ta.value=String(txt||'').replace(/\r\n?/g,'\n');  ta.focus();
   ta.setSelectionRange(ta.value.length,ta.value.length);
   autoReadPhoi();
-  setStatus(`✓ Đã dán và lọc Telegram. Bộ đọc phơi đang kiểm tra toàn bộ nội dung; bấm OK khi trạng thái báo đọc đúng.`,'ok');
+  setStatus(`✓ Đã dán nguyên văn ${ta.value.split('\n').length} dòng (${ta.value.length} ký tự) từ Clipboard. Kiểm tra đủ tin trước khi bấm OK.`,'ok');
 };
 $('clearBets').onclick=function(){ $('bets').value=''; clearBetsHighlights(); autoReadPhoi(); $('bets').focus(); };
 
@@ -7869,7 +7869,7 @@ window.showHistoryItem=showHistoryItem;
  window.tshNewestNormalize=norm;
  const ta=document.getElementById('bets');
  function apply(){if(!ta)return;const v=norm(ta.value);if(v!==ta.value)ta.value=v}
- if(ta){ta.addEventListener('blur',apply)}
+ // Keep raw pasted text; normalization runs only inside the parser.
  ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
 })();
 </script>
@@ -9664,7 +9664,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   ta.addEventListener('input',function(e){if(busy||e.isComposing)return;
    // Native paste must remain intact until the user chooses DÒ SAI / OK.
   });
-  ta.addEventListener('blur',apply);
+  // Do not rewrite the textarea on blur or during a multi-message paste.
   document.getElementById('okAll')?.addEventListener('click',apply,true);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
@@ -9674,7 +9674,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
  function init(){const ta=document.getElementById('bets');if(!ta)return;
   function apply(){if(typeof ttUnifiedNormalize!=='function')return;const before=ta.value,after=ttUnifiedNormalize(before);if(after!==before){ta.value=after;ta.dispatchEvent(new Event('input',{bubbles:true}));}}
-  ta.addEventListener('blur',apply);
+  // Keep Telegram multi-message input untouched on blur.
   ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
   // Avoid rewriting Telegram multi-message text while the paste is still settling.
  }
@@ -10193,7 +10193,7 @@ function attach(){
  by('ttVoice').onclick=()=>by('v4VoiceBtn')?.click();
  // Keep Telegram clipboard exactly as inserted; no eager line splitting.
  // No line rewrite on insertFromPaste.
- bets.addEventListener('blur',applyLineBreaks);
+ // Avoid splitting multi-message text just because the input loses focus.
  const ok=by('okAll');if(ok)ok.addEventListener('click',applyLineBreaks,true);
  const v5auto=by('v5Auto');if(v5auto)v5auto.checked=false; // Preserve user-entered phoi: only deterministic region breaks automatically.
 }

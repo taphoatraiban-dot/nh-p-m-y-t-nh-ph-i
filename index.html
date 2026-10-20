@@ -1273,18 +1273,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
    <button type="button" id="tgSelectAll" class="soft">Chọn tất cả</button>
    <button type="button" id="tgSelectNone" class="soft">Bỏ chọn</button><button type="button" id="tgDeleteSelected" class="soft" style="color:#b91c1c">Xoá đã chọn</button><button type="button" id="tgDeleteAll" class="soft" style="color:#b91c1c">Xoá tất cả</button>
   </div>
-  <details id="tgCustomerGuide" style="margin:6px 0 9px;border:1px solid #cbd5e1;border-radius:9px;background:#f8fafc">
-<summary style="padding:10px 12px;cursor:pointer;font-weight:700;color:#174ea6">📘 HƯỚNG DẪN KẾT NỐI TELEGRAM (BẤM ĐỂ XEM)</summary>
-<div style="padding:3px 11px 12px;font-size:13px;line-height:1.6;color:#1f2937">
-<div style="padding:7px 0"><b>1. Tạo bot Telegram:</b> Mở <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">@BotFather</a> → nhắn <code>/newbot</code> → nhập tên bot → nhập username kết thúc bằng <code>bot</code>.</div>
-<div style="padding:7px 0;border-top:1px solid #e2e8f0"><b>2. Lấy token:</b> BotFather gửi một mã token. Sao chép mã, không gửi cho người khác.</div>
-<div style="padding:7px 0;border-top:1px solid #e2e8f0"><b>3. Kết nối:</b> Mở <b>Kết nối Telegram của tôi</b> bên dưới → nhập tên (tuỳ chọn) → dán token → bấm <b>Kết nối bot của tôi</b>.</div>
-<div style="padding:7px 0;border-top:1px solid #e2e8f0"><b>4. Nhận tin:</b> Mở bot vừa tạo trên Telegram, bấm <b>Start</b>, rồi chuyển tiếp hoặc gửi tin nhắn cho bot bằng tài khoản Telegram của bạn. Tin mới sẽ xuất hiện trong hộp tin riêng của tài khoản phần mềm.</div>
-<div style="padding:7px 0;border-top:1px solid #e2e8f0"><b>5. Đưa tin vào ô tính:</b> Chọn nhóm, tích các tin cần sử dụng, bấm <b>ĐƯA TIN ĐÃ CHỌN VÀO Ô TÍNH</b>.</div>
-<div style="padding:7px 0;border-top:1px solid #e2e8f0"><b>6. Xoá tin:</b> Có thể xoá từng tin, xoá tin đã chọn hoặc xoá tất cả. Hãy kiểm tra kỹ trước khi xác nhận vì tin đã xoá không tự khôi phục.</div>
-<div style="padding:7px 0;border-top:1px solid #e2e8f0"><b>7. Ngắt bot:</b> Mở danh sách bot của tôi → bấm <b>Ngắt</b>. Ngắt bot không tự xoá các tin đã lưu.</div>
-<div style="padding:9px;border-radius:7px;background:#e8f2ff"><b>🔒 Riêng tư:</b> Mỗi tài khoản chỉ được đọc và quản lý hộp tin của mình. Admin cấp quyền phần mềm không tự động có quyền xem tin riêng của khách.</div>
-</div></details>
+  <details id="tgCustomerGuide" style="margin:6px 0 9px;border:1px solid #cbd5e1;border-radius:9px;background:#f8fafc"><summary style="padding:10px 12px;cursor:pointer;font-weight:700;color:#174ea6">📘 HƯỚNG DẪN TELEGRAM (BẤM XEM ẢNH)</summary><img src="assets/huong-dan-telegram-khach.svg" alt="Hình ảnh hướng dẫn khách hàng kết nối Telegram từng bước" loading="lazy" style="display:block;width:100%;height:auto;border-radius:8px;padding:5px" /></details>
 <details id="tgCustomerSetup" style="margin:5px 0 8px"><summary style="font-size:13px;cursor:pointer">⚙️ Kết nối Telegram của tôi</summary><div style="padding:8px 0"><input id="tgCustomerBotToken" type="password" autocomplete="off" placeholder="Dán token bot từ BotFather" style="width:100%;margin:4px 0"><input id="tgCustomerBotName" placeholder="Tên nhóm / tên khách (tuỳ chọn)" style="width:100%;margin:4px 0"><button type="button" id="tgCustomerAdd" class="soft">Kết nối bot của tôi</button><div id="tgCustomerBotList" style="font-size:13px;margin-top:8px"></div></div></details><button type="button" id="tgConnectFive" class="soft" style="display:none;margin-bottom:6px">🔗 Kết nối 5 bot cũ</button>
   <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Chọn nhóm để xem tin Telegram.</div>
   <div id="tgInboxList" style="max-height:320px;overflow-y:auto;display:grid;gap:7px"></div>

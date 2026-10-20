@@ -1273,6 +1273,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
    <button type="button" id="tgSelectAll" class="soft">Chọn tất cả</button>
    <button type="button" id="tgSelectNone" class="soft">Bỏ chọn</button>
   </div>
+  <button type="button" id="tgConnectFive" class="soft" style="width:100%;margin-bottom:8px">🔗 KẾT NỐI 5 BOT (CHỈ CẦN 1 LẦN)</button>
   <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Chọn nhóm để xem tin Telegram.</div>
   <div id="tgInboxList" style="max-height:320px;overflow-y:auto;display:grid;gap:7px"></div>
   <button type="button" id="tgImport" class="green" style="width:100%;margin-top:9px">ĐƯA TIN ĐÃ CHỌN VÀO Ô TÍNH</button>
@@ -10917,6 +10918,21 @@ $("tgRefresh").addEventListener("click",async()=>{
  draw();
  }catch(e){$("tgInboxStatus").textContent="Lỗi: "+e.message}
  finally{loading=false}
+});
+$("tgConnectFive").addEventListener("click",async()=>{
+ const btn=$("tgConnectFive");btn.disabled=true;btn.textContent="Đang kết nối 5 bot...";
+ try{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)throw Error("Hãy đăng nhập tài khoản quản trị trước.");
+  const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-five-inbox",{headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY}});
+  const data=await response.json();
+  if(!response.ok)throw Error(data.error||"Không có quyền kết nối bot.");
+  const results=data.results||[];
+  const good=results.filter(x=>x.ok).length;
+  $("tgInboxStatus").textContent="Đã kết nối "+good+"/5 bot. "+results.filter(x=>!x.ok).map(x=>x.bot+": "+x.error).join("; ");
+  btn.textContent=good===5?"✓ ĐÃ KẾT NỐI 5 BOT":"↻ THỬ KẾT NỐI LẠI";
+ }catch(e){$("tgInboxStatus").textContent="Kết nối bot: "+e.message;btn.textContent="↻ THỬ KẾT NỐI LẠI"}
+ finally{btn.disabled=false}
 });
 $("tgForwardInbox").open=true;
 $("tgRefresh").click();

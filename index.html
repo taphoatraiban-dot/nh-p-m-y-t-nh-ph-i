@@ -968,7 +968,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 </style>
 </head>
 <body>
-<style id="ott-guide-16-style">
+<style id="ott-guide-24-style">
 #ottGuideCorner{position:fixed;right:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2147481000;border:0;border-radius:30px;background:#bd1c2b;color:#fff;padding:10px 15px;font:700 13px system-ui;box-shadow:0 4px 18px #0004;cursor:pointer}
 #ottGuideOverlay{position:fixed;inset:0;z-index:2147482000;background:#07121ff5;display:none;flex-direction:column;align-items:center;justify-content:center;padding:env(safe-area-inset-top,8px) 8px env(safe-area-inset-bottom,8px);box-sizing:border-box}
 #ottGuideOverlay.ott-open{display:flex}
@@ -977,28 +977,28 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 #ottGuideViewport{width:min(100%,900px);flex:1;min-height:0;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
 #ottGuideImage{display:block;max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;background:white}
 #ottGuideNav{display:flex;gap:12px;justify-content:center;align-items:center;color:#fff;padding:10px;font:600 14px system-ui}
-#ottGuideNav button{border:1px solid #fff8;background:#fff;color:#14233a;border-radius:9px;padding:10px 16px;font-weight:700;cursor:pointer}
+#ottGuideNav button{border:1px solid #fff8;background:#fff;color:#14233a;border-radius:9px;padding:10px 24px;font-weight:700;cursor:pointer}
 @media(max-width:600px){#ottGuideCorner{right:9px;bottom:calc(12px + env(safe-area-inset-bottom,0px));font-size:12px;padding:9px 12px}#ottGuideHeader{font-size:13px}}
 </style>
 <button type="button" id="ottGuideCorner" aria-label="Mở hướng dẫn bằng hình ảnh">📘 HƯỚNG DẪN</button>
 <div id="ottGuideOverlay" role="dialog" aria-modal="true" aria-label="Hướng dẫn bằng hình ảnh" aria-hidden="true">
 <div id="ottGuideHeader"><span id="ottGuideTitle">HƯỚNG DẪN TELEGRAM</span><button type="button" id="ottGuideClose">✕ Đóng</button></div>
-<div id="ottGuideViewport"><img id="ottGuideImage" src="assets/huong-dan/slide-01.svg" alt="Hình hướng dẫn 1 trên 16"></div>
-<div id="ottGuideNav"><button type="button" id="ottGuidePrev" aria-label="Ảnh trước">❮</button><span id="ottGuideCounter">1 / 16</span><button type="button" id="ottGuideNext" aria-label="Ảnh tiếp theo">❯</button></div>
+<div id="ottGuideViewport"><img id="ottGuideImage" src="assets/huong-dan/slide-01.svg" alt="Hình hướng dẫn 1 trên 24"></div>
+<div id="ottGuideNav"><button type="button" id="ottGuidePrev" aria-label="Ảnh trước">❮</button><span id="ottGuideCounter">1 / 24</span><button type="button" id="ottGuideNext" aria-label="Ảnh tiếp theo">❯</button></div>
 </div>
-<script id="ott-guide-16-script">
+<script id="ott-guide-24-script">
 (function(){
 const get=id=>document.getElementById(id);let current=0,startX=null;
 const overlay=get("ottGuideOverlay"),photo=get("ottGuideImage");
-function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 16";get("ottGuideCounter").textContent=(current+1)+" / 16";get("ottGuideTitle").textContent=current<8?"TELEGRAM • "+(current+1)+"/8":"CÚ PHÁP • "+(current-7)+"/8";}
+function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"TELEGRAM • "+(current+1)+"/8":"CÚ PHÁP • "+(current-7)+"/16";}
 function open(index){current=index||0;draw();overlay.classList.add("ott-open");overlay.setAttribute("aria-hidden","false");get("ottGuideClose").focus();}
 function close(){overlay.classList.remove("ott-open");overlay.setAttribute("aria-hidden","true");get("ottGuideCorner").focus();}
 get("ottGuideCorner").addEventListener("click",()=>open(0));get("ottGuideClose").addEventListener("click",close);
-get("ottGuidePrev").addEventListener("click",()=>{current=(current+15)%16;draw()});
-get("ottGuideNext").addEventListener("click",()=>{current=(current+1)%16;draw()});
+get("ottGuidePrev").addEventListener("click",()=>{current=(current+23)%24;draw()});
+get("ottGuideNext").addEventListener("click",()=>{current=(current+1)%24;draw()});
 get("ottGuideViewport").addEventListener("touchstart",e=>{startX=e.touches[0]?.clientX??null},{passive:true});
-get("ottGuideViewport").addEventListener("touchend",e=>{if(startX===null)return;const d=(e.changedTouches[0]?.clientX??startX)-startX;if(Math.abs(d)>45){current=(current+(d<0?1:15))%16;draw()}startX=null},{passive:true});
-document.addEventListener("keydown",e=>{if(!overlay.classList.contains("ott-open"))return;if(e.key==="Escape")close();else if(e.key==="ArrowRight"){current=(current+1)%16;draw()}else if(e.key==="ArrowLeft"){current=(current+15)%16;draw()}});
+get("ottGuideViewport").addEventListener("touchend",e=>{if(startX===null)return;const d=(e.changedTouches[0]?.clientX??startX)-startX;if(Math.abs(d)>45){current=(current+(d<0?1:15))%24;draw()}startX=null},{passive:true});
+document.addEventListener("keydown",e=>{if(!overlay.classList.contains("ott-open"))return;if(e.key==="Escape")close();else if(e.key==="ArrowRight"){current=(current+1)%24;draw()}else if(e.key==="ArrowLeft"){current=(current+23)%24;draw()}});
 window.openOttGuideImages=open;
 })();
 </script>

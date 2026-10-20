@@ -990,7 +990,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 (function(){
 const get=id=>document.getElementById(id);let current=0,startX=null;
 const overlay=get("ottGuideOverlay"),photo=get("ottGuideImage");
-function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg?v=20261021-fix10";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"TELEGRAM • "+(current+1)+"/8":"CÚ PHÁP • "+(current-7)+"/16";}
+function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg?v=20261021-illustrated";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"TELEGRAM • "+(current+1)+"/8":"CÚ PHÁP • "+(current-7)+"/16";}
 function open(index){current=index||0;draw();overlay.classList.add("ott-open");overlay.setAttribute("aria-hidden","false");get("ottGuideClose").focus();}
 function close(){overlay.classList.remove("ott-open");overlay.setAttribute("aria-hidden","true");(get("syntaxGuideOpen")||get("ottGuideCorner")).focus();}
 get("ottGuideCorner").addEventListener("click",()=>open(0));get("ottGuideClose").addEventListener("click",close);
@@ -9908,22 +9908,22 @@ client.auth.getSession().then(({data})=>{if(data.session)load();});
 </script>
 
 <style id="tt-bot-once-style">
-#ttBotNoticeText{display:block;width:max-content;white-space:nowrap;color:#a92320;font-size:13px;font-weight:750;padding-left:100%;animation:ttBotScroll 23s linear 2 both}
-@keyframes ttBotScroll{from{transform:translateX(0)}to{transform:translateX(calc(-100% + 0px))}}
+#ttBotNoticeText{display:block;width:max-content;white-space:nowrap;color:#a92320;font-size:13px;font-weight:750;padding-left:100%;animation:ttBotScroll 23s linear 2}
+@keyframes ttBotScroll{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 @media(prefers-reduced-motion:reduce){#ttBotNoticeText{animation:none;white-space:normal;padding:0 12px;width:auto}}
 </style>
 <script id="tt-bot-once-script">
 (function(){
 const box=document.getElementById('ttBotNotice'),line=document.getElementById('ttBotNoticeText'),bets=document.getElementById('bets');if(!box||!line||!bets)return;
-const key='ott_telegram_notice_20261021_once';
+const key='ott_telegram_notice_20261021_v2_once';
 function showOnce(){
  try{if(localStorage.getItem(key)==='done')return;localStorage.setItem(key,'done')}catch(e){if(box.dataset.shown==='1')return;box.dataset.shown='1'}
  box.style.display='block';
  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){setTimeout(()=>box.style.display='none',16000);return}
  line.addEventListener('animationend',()=>{box.style.display='none'},{once:true});
 }
-bets.addEventListener('focus',showOnce,{once:true});
-bets.addEventListener('input',showOnce,{once:true});
+bets.addEventListener('focus',showOnce);
+bets.addEventListener('input',showOnce);
 })();
 </script>
 </body>

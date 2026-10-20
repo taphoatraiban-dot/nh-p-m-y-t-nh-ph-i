@@ -10272,6 +10272,20 @@ window.tsAttachBackupTools=function(ov){
 };
 })();
 </script>
+<style id="tt-three-draw-style">
+#lotteryNative .tt-three-draw-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e0e0e0;border-radius:8px}
+#lotteryNative .tt-three-draw-table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;background:white}
+#lotteryNative .tt-three-draw-table th,#lotteryNative .tt-three-draw-table td{border:1px solid #dedede;text-align:center;vertical-align:middle;padding:10px 3px;overflow-wrap:anywhere}
+#lotteryNative .tt-three-draw-table thead th{background:#f1f1f1;color:#07569d;font-size:clamp(12px,3.4vw,19px);font-weight:800}
+#lotteryNative .tt-three-draw-table thead th:first-child{width:11%;color:#333}
+#lotteryNative .tt-three-draw-table tbody th{font-weight:700;color:#333;font-size:clamp(13px,3.5vw,20px)}
+#lotteryNative .tt-three-draw-table tbody tr:nth-child(even){background:#f1f1f1}
+#lotteryNative .tt-draw-number{display:block;font-weight:800;font-variant-numeric:tabular-nums;font-size:clamp(14px,4.1vw,25px);line-height:1.55;white-space:nowrap}
+#lotteryNative .tt-draw-highlight .tt-draw-number{color:#d35400;font-size:clamp(17px,5vw,30px)}
+#lotteryNative .tt-three-draw-table td{width:auto}
+#lotteryNative #lotteryProvinceTabs{margin-bottom:12px}
+@media(max-width:380px){#lotteryNative .tt-three-draw-table th,#lotteryNative .tt-three-draw-table td{padding:7px 1px}#lotteryNative .tt-draw-number{font-size:13px}#lotteryNative .tt-draw-highlight .tt-draw-number{font-size:16px}}
+</style>
 <script id="lottery-native-script">
 (function(){
  const root=document.getElementById('lotteryNative');if(!root)return;
@@ -10312,23 +10326,37 @@ window.tsAttachBackupTools=function(ov){
    const rank=n=>{const k=provinceKey(n);return order.findIndex(x=>provinceKey(x)===k)};
    const provinceName=e=>String(e?.province??e?.station??e?.name??e?.tinh??e?.province_name??'');
    const entries=[...raw].sort((a,b)=>{const x=rank(provinceName(a)),y=rank(provinceName(b));return (x<0?99:x)-(y<0?99:y)});
-   const cell=x=>Array.isArray(x)?x.map(escapeHTML).join(' · '):(x&&typeof x==='object'?Object.values(x).map(escapeHTML).join(' · '):escapeHTML(x));
    const provinceTabs=$('lotteryProvinceTabs'),results=$('lotteryResults');provinceTabs.innerHTML='';results.innerHTML='';
    if(!entries.length){setStatus('Chưa có dữ liệu kết quả của ngày này.');return;}
-   let shown=0;
-   entries.forEach((entry,i)=>{
-     const name=provinceName(entry);if(!name)return;
-     const rows=extractRows(entry).sort((a,b)=>{const k=x=>{const v=String(x||'').toLowerCase().replace(/\s/g,'');return v==='đb'||v==='db'||v==='dacbiet'?'db':v};return prizeOrder[region].indexOf(k(a.name))-prizeOrder[region].indexOf(k(b.name))});
-     const available=rows.filter(r=>Array.isArray(r.numbers)?r.numbers.length>0:!!r.numbers);
-     if(!available.length)return;
-     shown++;
-     const id='lottery-station-'+i;
-     const tab=document.createElement('button');tab.textContent=name;tab.className='lottery-station-tab';tab.onclick=()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});provinceTabs.appendChild(tab);
-     const block=document.createElement('section');block.id=id;block.className='lottery-station-block';
-     block.innerHTML='<h3>'+escapeHTML(name)+'</h3><table><thead><tr><th>Giải</th><th>'+escapeHTML(name)+'</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+escapeHTML(r.name)+'</td><td>'+cell(r.numbers)+'</td></tr>').join('')+'</tbody></table>';
-     results.appendChild(block);
+   const normalizedKey=x=>{const v=provinceKey(x);if(['db','dbiet','dacbiet','gdb'].includes(v))return 'db';const m=v.match(/^(?:g|giai)([1-8])$/);return m?'g'+m[1]:v;};
+   const nums=x=>Array.isArray(x)?x.flatMap(nums):x&&typeof x==='object'?Object.values(x).flatMap(nums):String(x??'').split(/[·,;\s]+/).filter(Boolean);
+   const valid=entries.filter(e=>provinceName(e)&&extractRows(e).some(x=>nums(x.numbers).length));
+   if(!valid.length){setStatus('Chưa có giải được công bố.');return;}
+   valid.forEach((entry,i)=>{
+     const name=provinceName(entry),id='lottery-station-'+i;
+     const tab=document.createElement('button');tab.textContent=name;tab.className='lottery-station-tab';tab.onclick=()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'center'});provinceTabs.appendChild(tab);
    });
-   setStatus(shown?'Đã nhận dữ liệu '+shown+' đài. Cuộn xuống để xem đầy đủ kết quả.':'Chưa có giải được công bố.');
+   const table=document.createElement('table');table.className='tt-three-draw-table';
+   const head=document.createElement('thead'),header=document.createElement('tr');
+   ['Giải',...valid.map(provinceName)].forEach(n=>{const th=document.createElement('th');th.textContent=n;header.appendChild(th)});
+   head.appendChild(header);table.appendChild(head);
+   const body=document.createElement('tbody');
+   prizeOrder[region].forEach(key=>{
+     const tr=document.createElement('tr');if(key==='g8'||key==='db')tr.classList.add('tt-draw-highlight');
+     const label=document.createElement('th');label.scope='row';label.textContent=key==='db'?'ĐB':key.toUpperCase();tr.appendChild(label);
+     valid.forEach(entry=>{
+       const td=document.createElement('td');
+       const item=extractRows(entry).find(x=>normalizedKey(x.name)===key);
+       const values=item?nums(item.numbers):[];
+       if(!values.length)td.textContent='—';
+       else values.forEach(n=>{const span=document.createElement('span');span.className='tt-draw-number';span.textContent=n;td.appendChild(span)});
+       tr.appendChild(td);
+     });body.appendChild(tr);
+   });
+   table.appendChild(body);
+   const wrap=document.createElement('div');wrap.className='tt-three-draw-wrap';wrap.appendChild(table);
+   results.appendChild(wrap);
+   setStatus('Đã nhận dữ liệu '+valid.length+' đài. Các giải hiển thị theo cột.');
  }
  async function load(){
    const id=++requestId;const date=dateInput.value;if(!date)return;

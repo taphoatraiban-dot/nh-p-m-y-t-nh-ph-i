@@ -10884,7 +10884,7 @@ body.app-unlocked:has(#appDrawer.open) #drawerEdge {
 <script id="tg-forward-inbox-client">
 (function(){
 const $=id=>document.getElementById(id);
-let messages=[],selected=new Set();
+let messages=[],selected=new Set(),loading=false;
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 function draw(){
  const filter=$("tgGroupFilter").value;
@@ -10893,11 +10893,13 @@ function draw(){
  $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
 }
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});
-$("tgGroupFilter").addEventListener("change",()=>{draw();$("tgRefresh").click()});
+$("tgGroupFilter").addEventListener("change",draw);
 $("tgSelectAll").addEventListener("click",()=>{const g=$("tgGroupFilter").value;messages.filter(m=>!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g).forEach(m=>selected.add(m.id));draw()});
 $("tgSelectNone").addEventListener("click",()=>{selected.clear();draw()});
 $("tgRefresh").addEventListener("click",async()=>{
- $("tgInboxStatus").textContent="Đang tải tin Telegram...";
+ if(loading||document.hidden)return;
+ loading=true;
+ if(!messages.length)$("tgInboxStatus").textContent="Đang tải tin Telegram...";
  try{
  const {data:{session}}=await sb.auth.getSession();
  if(!session)throw Error("Bạn cần đăng nhập phần mềm.");
@@ -10905,15 +10907,21 @@ $("tgRefresh").addEventListener("click",async()=>{
  const data=await res.json();
  if(!res.ok||!data.success)throw Error(res.status===403?"Tài khoản chưa được cấp quyền xem hộp tin Telegram.":data.error||"Không tải được tin");
  const allowedGroups=["C Thảo 78","A Tuân 77","A Hải 75","A Thuật X77","C Ngọc X78"];
- messages=(data.messages||[]).filter(m=>allowedGroups.includes(m.selected_group));selected.clear();
+ messages=(data.messages||[]).filter(m=>allowedGroups.includes(m.selected_group));
+ const valid=new Set(messages.map(m=>Number(m.id)));
+ selected=new Set([...selected].filter(id=>valid.has(id)));
  const names=allowedGroups;
  const previousGroup=$("tgGroupFilter").value;
  $("tgGroupFilter").innerHTML='<option value="">Tất cả nhóm</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
+ if(names.includes(previousGroup))$("tgGroupFilter").value=previousGroup;
  draw();
  }catch(e){$("tgInboxStatus").textContent="Lỗi: "+e.message}
+ finally{loading=false}
 });
 $("tgForwardInbox").open=true;
 $("tgRefresh").click();
+setInterval(()=>{if(!document.hidden)$("tgRefresh").click()},5000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)$("tgRefresh").click()});
 $("tgImport").addEventListener("click",()=>{
  const items=messages.filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date));
  if(!items.length){$("tgInboxStatus").textContent="Hãy chọn ít nhất một tin.";return}

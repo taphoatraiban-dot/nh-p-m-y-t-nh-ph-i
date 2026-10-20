@@ -3154,7 +3154,7 @@ function expandSimpleGroupPhoi(s){
     lechan:Array.from({length:25},(_,i)=>String(10+Math.floor(i/5)*20+(i%5)*2).padStart(2,'0'))
   };
   for(const [name,arr] of Object.entries(groups)){
-    const re=new RegExp('(^|[.\s])'+name+'(?=dd|xc|x|dau|duoi|b(?:7lo|8l|7ldao|7ld|\d|dao)|da|dv|xcdau|xcduoi|xdao|xcdao|dxc|daoxc)','gi');
+    const re=new RegExp('(^|[.\\s])'+name+'(?=dd|xc|x|dau|duoi|b(?:7lo|8l|7ldao|7ld|\\d|dao)|da|dv|xcdau|xcduoi|xdao|xcdao|dxc|daoxc)','gi');
     out=out.replace(re,(m,p)=>p+arr.join('.'));
   }
   return out;

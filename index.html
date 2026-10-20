@@ -990,7 +990,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 (function(){
 const get=id=>document.getElementById(id);let current=0,startX=null;
 const overlay=get("ottGuideOverlay"),photo=get("ottGuideImage");
-function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg?v=20261021-illustrated";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"TELEGRAM • "+(current+1)+"/8":"CÚ PHÁP • "+(current-7)+"/16";}
+function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg?v=20261021-guide-final-2";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"HƯỚNG DẪN TELEGRAM":"HƯỚNG DẪN CÚ PHÁP";}
 function open(index){current=index||0;draw();overlay.classList.add("ott-open");overlay.setAttribute("aria-hidden","false");get("ottGuideClose").focus();}
 function close(){overlay.classList.remove("ott-open");overlay.setAttribute("aria-hidden","true");(get("syntaxGuideOpen")||get("ottGuideCorner")).focus();}
 get("ottGuideCorner").addEventListener("click",()=>open(0));get("ottGuideClose").addEventListener("click",close);

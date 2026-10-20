@@ -6584,7 +6584,12 @@ function openCutImage(){
     text(ctx,'📅',38,43,28,'700');
     text(ctx,'TỔNG KẾT NGÀY',225,35,31,'900','center','#d21c2a');
     text(ctx,date,225,69,21,'800','center','#273244');
-    if(deity.complete && deity.naturalWidth)ctx.drawImage(deity,484,13,172,92);
+    if(deity.complete && deity.naturalWidth){
+      // The embedded deity artwork includes an obsolete, clipped 'HIỆN CÒ' badge on the right.
+      // Crop that right-side badge from the source image while retaining the deity illustration.
+      const cropWidth=Math.floor(deity.naturalWidth*0.77);
+      ctx.drawImage(deity,0,0,cropWidth,deity.naturalHeight,484,13,140,92);
+    }
     ctx.fillStyle='#f3f5f7';ctx.fillRect(17,112,666,42);
     const centers=[71,240,409,585];
     ['Miền','Tiền xác','Trúng','Thu / Bù'].forEach((v,i)=>text(ctx,v,centers[i],133,21,'800','center','#b51b25'));

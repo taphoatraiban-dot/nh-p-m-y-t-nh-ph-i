@@ -7821,7 +7821,7 @@ window.showHistoryItem=showHistoryItem;
   s=s.replace(/mi[eề]n\s*b[aắ]c/gi,'hn').replace(/tphcm/gi,'tpho').replace(/\bgi\s*l[oô]\b/gi,'hn\n');
   s=s.replace(/\bmt\s*[.]?\s*hu[eế]\s*[.]?/gi,'hue\n').replace(/\bmn\s*[.]?\s*c[aà]\s*mau\s*[.]?/gi,'cmau\n').replace(/\bmb\s*[.]?/gi,'hn\n');
   s=s.replace(/(^|\n)\s*(hn|tpho|btre|hue|cmau|dlat|tgiang|kgiang|2dmn|3dmn|4dmn|2dmt|3dmt)\s*[.]\s*(?=\d)/gi,'$1$2\n');
-  s=s.replace(/\bbl[oô]?\s*/gi,'b').replace(/\b(?:d[aá]|đa|xien)\s*/gi,'da').replace(/\bdd\s*/gi,'dd').replace(/\bxc\s*/gi,'xc');
+  s=s.replace(/\bbl[oô]?\s*(?=\d)/gi,'b').replace(/\b(?:d[aá]|đa|xien)\s*/gi,'da').replace(/\bdd\s*/gi,'dd').replace(/\bxc\s*/gi,'xc');
   s=s.replace(/\s+2\s*dai\b/gi,'').replace(/\s+2\s*đai\b/gi,'');
   s=s.replace(/(\d)\s*\*\s*(\d+(?:[.,]\d+)?)/g,'$1b$2');
   // amount before b: 82.83. 5b / 3.5b

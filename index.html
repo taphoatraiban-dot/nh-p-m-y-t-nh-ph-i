@@ -1262,18 +1262,18 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
  </div>
 </details>
 
-<details class="compact-section green" id="tgForwardInbox" style="margin-bottom:9px">
- <summary>📨 TIN TELEGRAM THEO NHÓM</summary>
+<details class="compact-section green" id="tgForwardInbox" open style="margin-bottom:9px">
+ <summary style="display:none">📨 TIN TELEGRAM THEO NHÓM</summary>
  <div class="compact-body" style="padding:12px">
   <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:9px">
-   <select id="tgGroupFilter" style="flex:1;min-width:130px"><option value="">Tất cả nhóm</option></select>
-   <button type="button" id="tgRefresh" class="soft">↻ TẢI TIN</button>
+   <select id="tgGroupFilter" aria-label="Chọn nhóm Telegram" style="flex:1;min-width:130px"><option value="">Tất cả nhóm</option></select>
+   <button type="button" id="tgRefresh" class="soft" style="display:none">↻ TẢI TIN</button>
   </div>
   <div style="display:flex;gap:7px;margin-bottom:8px">
    <button type="button" id="tgSelectAll" class="soft">Chọn tất cả</button>
    <button type="button" id="tgSelectNone" class="soft">Bỏ chọn</button>
   </div>
-  <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Bấm TẢI TIN để lấy tin chuyển tiếp.</div>
+  <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Chọn nhóm để xem tin Telegram.</div>
   <div id="tgInboxList" style="max-height:320px;overflow-y:auto;display:grid;gap:7px"></div>
   <button type="button" id="tgImport" class="green" style="width:100%;margin-top:9px">ĐƯA TIN ĐÃ CHỌN VÀO Ô TÍNH</button>
  </div>
@@ -10893,7 +10893,7 @@ function draw(){
  $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
 }
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});
-$("tgGroupFilter").addEventListener("change",draw);
+$("tgGroupFilter").addEventListener("change",()=>{draw();$("tgRefresh").click()});
 $("tgSelectAll").addEventListener("click",()=>{const g=$("tgGroupFilter").value;messages.filter(m=>!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g).forEach(m=>selected.add(m.id));draw()});
 $("tgSelectNone").addEventListener("click",()=>{selected.clear();draw()});
 $("tgRefresh").addEventListener("click",async()=>{
@@ -10907,10 +10907,13 @@ $("tgRefresh").addEventListener("click",async()=>{
  const allowedGroups=["C Thảo 78","A Tuân 77","A Hải 75","A Thuật X77","C Ngọc X78"];
  messages=(data.messages||[]).filter(m=>allowedGroups.includes(m.selected_group));selected.clear();
  const names=allowedGroups;
+ const previousGroup=$("tgGroupFilter").value;
  $("tgGroupFilter").innerHTML='<option value="">Tất cả nhóm</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
  draw();
  }catch(e){$("tgInboxStatus").textContent="Lỗi: "+e.message}
 });
+$("tgForwardInbox").open=true;
+$("tgRefresh").click();
 $("tgImport").addEventListener("click",()=>{
  const items=messages.filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date));
  if(!items.length){$("tgInboxStatus").textContent="Hãy chọn ít nhất một tin.";return}

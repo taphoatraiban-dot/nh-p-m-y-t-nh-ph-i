@@ -959,7 +959,14 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 #syntaxGuideEntry .tt-release-badge{font-size:clamp(9px,2.6vw,12px);padding:8px 5px}
 #syntaxGuideEntry #syntaxGuideOpen{font-size:clamp(10px,2.8vw,14px)!important;padding:10px 6px!important;white-space:nowrap}
 </style>
-<style id="tt-release-badge-style">.tt-release-badge{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;white-space:nowrap;font-size:12px;font-weight:900;color:#334155;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:9px;padding:8px 9px;min-height:19px}</style></head>
+<style id="tt-release-badge-style">.tt-release-badge{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;white-space:nowrap;font-size:12px;font-weight:900;color:#334155;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:9px;padding:8px 9px;min-height:19px}</style><style id="tt-live-number-reveal-20261020">
+#lotteryNative .tt-live-pending{display:inline-flex;align-items:center;justify-content:center;min-height:32px;color:#94a3b8!important;font-weight:750;letter-spacing:1px;animation:ttWaitingPulse 1.15s ease-in-out infinite}
+#lotteryNative .tt-live-new{animation:ttLiveReveal .75s ease-out both;background:#fff4c5;border-radius:5px;color:#c2410c!important}
+@keyframes ttLiveReveal{0%{opacity:.2;transform:translateY(-8px) scale(1.14);filter:blur(3px)}55%{opacity:1;transform:translateY(1px) scale(1.05);filter:blur(0)}100%{opacity:1;transform:none;filter:none}}
+@keyframes ttWaitingPulse{0%,100%{opacity:.35}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){#lotteryNative .tt-live-new,#lotteryNative .tt-live-pending{animation:none!important}}
+</style>
+</head>
 <body>
 <div class="wrap">
 
@@ -10526,11 +10533,12 @@ window.tsAttachBackupTools=function(ov){
  const root=document.getElementById('lotteryNative');if(!root)return;
  const $=id=>document.getElementById(id), tabs=[...root.querySelectorAll('[data-region]')];
  let region='MN',selectedProvince='',requestId=0,liveBusy=false,liveDone=false,liveSignature='',liveCache={};
+ let previousNumbers=new Set(),hasRendered=false;
  const todayVN=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const liveWindow=()=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date()).split(':');const m=Number(p[0])*60+Number(p[1]);return dateInput.value===todayVN()&&m>=({MN:960,MT:1020,MB:1080}[region])&&m<=({MN:1035,MT:1095,MB:1155}[region]);};
  const prizeCounts={MB:{db:1,g1:1,g2:2,g3:6,g4:4,g5:6,g6:3,g7:4},MN:{db:1,g1:1,g2:1,g3:2,g4:7,g5:1,g6:3,g7:1,g8:1},MT:{db:1,g1:1,g2:1,g3:2,g4:7,g5:1,g6:3,g7:1,g8:1}};
  const numbers=x=>Array.isArray(x)?x.flatMap(numbers):x&&typeof x==='object'?Object.values(x).flatMap(numbers):String(x??'').split(/[,;\s]+/).filter(v=>/^\d{2,6}$/.test(v));
- function resetLive(){liveCache={};liveSignature='';liveDone=false;}
+ function resetLive(){liveCache={};liveSignature='';liveDone=false;previousNumbers=new Set();hasRendered=false;}
  function mergeLive(payload){
    for(const e of normalize(payload)){
      const station=String(e?.province??e?.station??e?.name??e?.tinh??e?.province_name??'').trim();if(!station)continue;
@@ -10547,7 +10555,7 @@ window.tsAttachBackupTools=function(ov){
  function allDone(entries){return entries.length>0&&entries.every(e=>Object.entries(prizeCounts[region]).every(([k,n])=>numbers(e.prizes?.[k]).length>=n));}
 
  const dateInput=$('lotteryDate');
- const now=new Date();dateInput.value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+ dateInput.value=todayVN();
  const labels={MN:'MIỀN NAM',MT:'MIỀN TRUNG',MB:'MIỀN BẮC'};
  const escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const setStatus=(msg)=>{$('lotteryStatus').textContent=msg};
@@ -10582,17 +10590,17 @@ window.tsAttachBackupTools=function(ov){
    const provinceName=e=>String(e?.province??e?.station??e?.name??e?.tinh??e?.province_name??'');
    const entries=[...raw].sort((a,b)=>{const x=rank(provinceName(a)),y=rank(provinceName(b));return (x<0?99:x)-(y<0?99:y)});
    const provinceTabs=$('lotteryProvinceTabs'),results=$('lotteryResults');provinceTabs.innerHTML='';results.innerHTML='';
-   if(!entries.length){setStatus('Chưa có dữ liệu kết quả của ngày này.');return;}
+   if(!entries.length){if(!liveWindow()){setStatus('Chưa có dữ liệu kết quả của ngày này.');return;}}
    const normalizedKey=x=>{const v=provinceKey(x);if(['db','dbiet','dacbiet','gdb'].includes(v))return 'db';const m=v.match(/^(?:g|giai)([1-8])$/);return m?'g'+m[1]:v;};
    const nums=x=>Array.isArray(x)?x.flatMap(nums):x&&typeof x==='object'?Object.values(x).flatMap(nums):String(x??'').split(/[·,;\s]+/).filter(Boolean);
    const valid=entries.filter(e=>provinceName(e)&&extractRows(e).some(x=>nums(x.numbers).length));
-   if(!valid.length){setStatus('Chưa có giải được công bố.');return;}
+   if(!valid.length&&!liveWindow()){setStatus('Chưa có giải được công bố.');return;}
    valid.forEach((entry,i)=>{
      const name=provinceName(entry),id='lottery-station-'+i;
      const tab=document.createElement('button');tab.textContent=name;tab.className='lottery-station-tab';tab.onclick=()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'center'});provinceTabs.appendChild(tab);
    });
    if(region==='MB'){
-     const mbEntry=valid[0],board=document.createElement('div');board.className='tt-mb-board';
+     const mbEntry=valid[0]||{province:'Miền Bắc',prizes:{}},board=document.createElement('div');board.className='tt-mb-board';
      const heading=document.createElement('div');heading.className='tt-mb-title';heading.textContent='XSMB - KẾT QUẢ XỔ SỐ MIỀN BẮC';board.appendChild(heading);
      const mbOrder=['db','g1','g2','g3','g4','g5','g6','g7'];
      const columns={db:1,g1:1,g2:2,g3:3,g4:4,g5:3,g6:3,g7:4};
@@ -10601,8 +10609,8 @@ window.tsAttachBackupTools=function(ov){
        const label=document.createElement('div');label.className='tt-mb-label';label.textContent=key==='db'?'ĐB':'G.'+key.slice(1);row.appendChild(label);
        const cells=document.createElement('div');cells.className='tt-mb-cells';cells.style.gridTemplateColumns='repeat('+columns[key]+',minmax(0,1fr))';
        const item=extractRows(mbEntry).find(x=>normalizedKey(x.name)===key),values=item?nums(item.numbers):[];
-       if(!values.length){const empty=document.createElement('span');empty.textContent='—';cells.appendChild(empty)}
-       else values.forEach(n=>{const cell=document.createElement('span');cell.textContent=n;cells.appendChild(cell)});
+       if(!values.length){for(let j=0;j<prizeCounts.MB[key];j++){const empty=document.createElement('span');empty.className='tt-live-pending';empty.textContent=liveWindow()?'•••••':'—';cells.appendChild(empty)}}
+       else values.forEach((n,j)=>{const cell=document.createElement('span');cell.textContent=n;const id='MB:'+key+':'+j+':'+n;if(hasRendered&&!previousNumbers.has(id))cell.classList.add('tt-live-new');previousNumbers.add(id);cells.appendChild(cell)});
        row.appendChild(cells);board.appendChild(row);
      });
      results.appendChild(board);
@@ -10619,8 +10627,8 @@ window.tsAttachBackupTools=function(ov){
          const td=document.createElement('td');
          const item=extractRows(entry).find(x=>normalizedKey(x.name)===key);
          const values=item?nums(item.numbers):[];
-         if(!values.length)td.textContent='—';
-         else values.forEach(n=>{const span=document.createElement('span');span.className='tt-draw-number';span.textContent=n;td.appendChild(span)});
+         if(!values.length){const pending=document.createElement('span');pending.className='tt-live-pending';pending.textContent=liveWindow()?'•••':'—';td.appendChild(pending)}
+         else values.forEach((n,j)=>{const span=document.createElement('span');span.className='tt-draw-number';span.textContent=n;const id=provinceKey(provinceName(entry))+':'+key+':'+j+':'+n;if(hasRendered&&!previousNumbers.has(id))span.classList.add('tt-live-new');previousNumbers.add(id);td.appendChild(span)});
          tr.appendChild(td);
        });body.appendChild(tr);
      });
@@ -10661,6 +10669,7 @@ window.tsAttachBackupTools=function(ov){
    }
    lotoTable.appendChild(lotoBody);
    const detail=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Xem nhanh lô tô đầu 0–9';detail.appendChild(summary);detail.appendChild(lotoTable);quick.appendChild(detail);results.appendChild(quick);
+   hasRendered=true;
    setStatus('Đã nhận dữ liệu '+valid.length+' đài. Xem nhanh lô tô ở dưới bảng kết quả.');
  }
  async function load(silent=false){
@@ -10680,7 +10689,7 @@ window.tsAttachBackupTools=function(ov){
      if(signature!==liveSignature||!$('lotteryResults').children.length){liveSignature=signature;render({data:merged});}
      liveDone=allDone(merged);
      if(merged.length)setStatus((liveWindow()&&!liveDone?'🔴 ĐANG TRỰC TIẾP • Tự cập nhật 2 giây/lần':liveDone?'✅ ĐÃ HOÀN TẤT':'Đã nhận kết quả')+' • '+merged.length+' đài');
-     else if(liveWindow())setStatus('🔴 ĐANG TRỰC TIẾP • Đang chờ giải đầu tiên');
+     else if(liveWindow()){render({data:[]});setStatus('🔴 ĐANG TRỰC TIẾP • Đang chờ giải đầu tiên từ API');}
    }catch(e){if(id!==requestId)return;setStatus(Object.keys(liveCache).length?'Đã giữ các giải trước • API tạm gián đoạn':'Chưa tải được kết quả: '+(e?.message||'Lỗi kết nối'));}
    finally{liveBusy=false;}
  }

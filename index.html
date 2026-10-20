@@ -1269,14 +1269,14 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
    <select id="tgGroupFilter" aria-label="Chọn nhóm Telegram" style="flex:1;min-width:130px"><option value="">Tất cả nhóm</option></select>
    <button type="button" id="tgRefresh" class="soft" style="display:none">↻ TẢI TIN</button>
   </div>
-  <div style="display:flex;gap:7px;margin-bottom:8px">
+  <div id="tgInboxActions" style="display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap">
    <button type="button" id="tgSelectAll" class="soft">Chọn tất cả</button>
    <button type="button" id="tgSelectNone" class="soft">Bỏ chọn</button><button type="button" id="tgDeleteSelected" class="soft" style="color:#b91c1c">Xoá đã chọn</button><button type="button" id="tgDeleteAll" class="soft" style="color:#b91c1c">Xoá tất cả</button>
   </div>
-  <button type="button" id="tgConnectFive" class="soft" style="width:100%;margin-bottom:8px">🔗 KẾT NỐI 5 BOT (CHỈ CẦN 1 LẦN)</button>
+  <button type="button" id="tgConnectFive" class="soft" style="margin-bottom:6px">🔗 Kết nối bot</button>
   <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Chọn nhóm để xem tin Telegram.</div>
   <div id="tgInboxList" style="max-height:320px;overflow-y:auto;display:grid;gap:7px"></div>
-  <button type="button" id="tgImport" class="green" style="width:100%;margin-top:9px">ĐƯA TIN ĐÃ CHỌN VÀO Ô TÍNH</button>
+  <button type="button" id="tgImport" class="green" style="width:100%;margin-top:6px">ĐƯA TIN ĐÃ CHỌN VÀO Ô TÍNH</button>
  </div>
 </details>
 
@@ -10889,6 +10889,11 @@ body.app-unlocked:has(#appDrawer.open) #drawerEdge {
 #tgInboxList label b{color:#14532d!important;-webkit-text-fill-color:#14532d!important;font-size:14px!important}
 #tgInboxList label .tg-message-body{display:block!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;max-height:none!important;height:auto!important;overflow:visible!important;margin-top:6px!important}
 #tgInboxList input[type=checkbox]{display:block!important;visibility:visible!important;opacity:1!important;flex-shrink:0!important;width:18px!important;height:18px!important;accent-color:#15803d}
+#tgInboxActions button,#tgConnectFive{font-size:12px!important;line-height:1.2!important;padding:7px 9px!important;min-height:32px!important;flex:0 0 auto!important;width:auto!important;white-space:nowrap!important}
+#tgInboxActions{align-items:center!important}
+#tgForwardInbox>div{padding:9px!important}
+#tgInboxStatus{font-size:12px!important}
+#tgGroupFilter{font-size:14px!important;padding:7px!important;min-height:38px!important}
 </style>
 <script id="tg-forward-inbox-client">
 (function(){
@@ -10908,12 +10913,21 @@ async function deleteTelegram(ids){
  $("tgInboxStatus").textContent="Đã xoá "+removed.size+" tin Telegram.";
  }catch(e){$("tgInboxStatus").textContent="Lỗi xoá tin: "+e.message}
 }
+function syncTelegramActions(){
+ const count=messages.length;
+ const actions=$("tgInboxActions");
+ if(actions)actions.style.display=count?"flex":"none";
+ $("tgDeleteSelected").style.display=selected.size?"inline-flex":"none";
+ $("tgSelectNone").style.display=selected.size?"inline-flex":"none";
+ $("tgDeleteAll").style.display=count?"inline-flex":"none";
+ $("tgImport").style.display=selected.size?"block":"none";
+}
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 function draw(){
  const filter=$("tgGroupFilter").value;
  const rows=messages.filter(m=>!filter||(m.selected_group||m.origin_name||"Không rõ nhóm")===filter);
  $("tgInboxList").innerHTML=rows.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(m.id)?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important;opacity:1!important;visibility:visible!important"><b style="color:#14532d!important">'+esc(m.selected_group||m.origin_name||"Không rõ nhóm")+'</b> · '+esc(m.sender_name||m.origin_name||'Không rõ người gửi')+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="color:#17212f!important;opacity:1!important;visibility:visible!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div><button type="button" class="tg-delete-one" data-delete-id="'+m.id+'" style="margin-top:8px;padding:6px 10px;background:#fee2e2;color:#991b1b;border-radius:7px">Xoá tin này</button></span></label>').join("")||'<div>Chưa có tin trong nhóm này.</div>';
- $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
+ $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;syncTelegramActions();
 }
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});
 $("tgGroupFilter").addEventListener("change",draw);
@@ -10960,7 +10974,7 @@ $("tgConnectFive").addEventListener("click",async()=>{
  }catch(e){$("tgInboxStatus").textContent="Kết nối bot: "+e.message;btn.textContent="↻ THỬ KẾT NỐI LẠI"}
  finally{btn.disabled=false}
 });
-$("tgForwardInbox").open=true;
+$("tgForwardInbox").open=true;syncTelegramActions();
 $("tgRefresh").click();
 setInterval(()=>{if(!document.hidden)$("tgRefresh").click()},5000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)$("tgRefresh").click()});

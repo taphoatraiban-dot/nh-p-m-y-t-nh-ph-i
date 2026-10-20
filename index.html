@@ -871,8 +871,11 @@ html body:not(.app-unlocked) #drawerEdge {display:none!important;pointer-events:
 /* Full-viewport PIN lock, independent of public lottery and app menu. */
 body:has(#pinCard:not(.hidden)){background:#fff!important;overflow:hidden!important}
 body:has(#pinCard:not(.hidden))>.wrap{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
-body:has(#pinCard:not(.hidden)) #publicCover,
-body:has(#pinCard:not(.hidden)) #publicAuthTab{display:none!important}
+/* Keep public lottery visible until the existing horizontal swipe opens PIN. */
+body:has(#pinCard:not(.hidden)):not(.public-auth-open):not(.app-unlocked) #publicCover{display:block!important}
+body:has(#pinCard:not(.hidden)):not(.public-auth-open):not(.app-unlocked) #pinCard{display:none!important}
+body:has(#pinCard:not(.hidden)).public-auth-open #publicCover{display:none!important}
+body:has(#pinCard:not(.hidden)).public-auth-open #publicAuthTab{display:none!important}
 #pinCard:not(.hidden){
 position:fixed!important;inset:0!important;z-index:2147483000!important;
 box-sizing:border-box!important;width:100vw!important;max-width:none!important;

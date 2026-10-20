@@ -10286,6 +10286,31 @@ window.tsAttachBackupTools=function(ov){
 #lotteryNative #lotteryProvinceTabs{margin-bottom:12px}
 @media(max-width:380px){#lotteryNative .tt-three-draw-table th,#lotteryNative .tt-three-draw-table td{padding:7px 1px}#lotteryNative .tt-draw-number{font-size:13px}#lotteryNative .tt-draw-highlight .tt-draw-number{font-size:16px}}
 </style>
+<style id="tt-loto-quick-style">
+#lotteryNative .lottery-heading{background:#fff0a9;color:#1d1d1d;border-color:#e8d47e;border-radius:4px 4px 0 0}
+#lotteryNative .lottery-status{background:#fff9dc;border-color:#e8d47e}
+#lotteryNative .tt-three-draw-wrap{border-radius:2px;border-color:#d6d6d6}
+#lotteryNative .tt-three-draw-table thead th{background:#f7f7f7!important;color:#1549a6!important;text-decoration:underline;text-underline-offset:3px}
+#lotteryNative .tt-three-draw-table thead th:first-child{color:#333!important;text-decoration:none}
+#lotteryNative .tt-three-draw-table tbody th{background:transparent!important;color:#252525!important}
+#lotteryNative .tt-three-draw-table tbody td{color:#111!important}
+#lotteryNative .tt-three-draw-table tbody tr:nth-child(even){background:#f3f3f3!important}
+#lotteryNative .tt-three-draw-table .tt-draw-highlight .tt-draw-number{color:#df3030!important}
+#lotteryNative .tt-loto-quick{margin:20px 0 16px}
+#lotteryNative .tt-loto-quick h3{font-size:18px;font-weight:900;color:#1e293b;text-align:center;margin:0;padding:12px;background:#fff0a9}
+#lotteryNative .tt-loto-quick .tt-loto-caption{font-size:12px;text-align:center;padding:8px;color:#475569;background:#fff}
+#lotteryNative .tt-loto-quick table{width:100%;table-layout:fixed;border-collapse:collapse}
+#lotteryNative .tt-loto-quick th,#lotteryNative .tt-loto-quick td{border:1px solid #d7d7d7;padding:8px 4px;text-align:left;vertical-align:middle;font-size:clamp(12px,3.4vw,17px);overflow-wrap:anywhere}
+#lotteryNative .tt-loto-quick thead th{color:#1549a6;text-align:center;background:#f4f4f4;font-weight:800}
+#lotteryNative .tt-loto-quick thead th:first-child{width:11%;color:#333}
+#lotteryNative .tt-loto-quick tbody th{color:#df3030;text-align:center;font-weight:600}
+#lotteryNative .tt-loto-quick tbody tr:nth-child(even){background:#f3f3f3}
+#lotteryNative .tt-loto-quick td{font-weight:800;color:#151515}
+#lotteryNative .tt-loto-quick .tt-loto-db{color:#df3030}
+#lotteryNative .tt-loto-quick details{border:1px solid #ddd;border-radius:5px;background:#fff;margin-top:12px}
+#lotteryNative .tt-loto-quick summary{padding:12px;cursor:pointer;font-weight:800;color:#a21d1d}
+@media(max-width:380px){#lotteryNative .tt-loto-quick th,#lotteryNative .tt-loto-quick td{padding:6px 2px;font-size:12px}}
+</style>
 <script id="lottery-native-script">
 (function(){
  const root=document.getElementById('lotteryNative');if(!root)return;
@@ -10356,7 +10381,40 @@ window.tsAttachBackupTools=function(ov){
    table.appendChild(body);
    const wrap=document.createElement('div');wrap.className='tt-three-draw-wrap';wrap.appendChild(table);
    results.appendChild(wrap);
-   setStatus('Đã nhận dữ liệu '+valid.length+' đài. Các giải hiển thị theo cột.');
+   // Xem nhanh lô tô theo đầu 0–9, dùng duy nhất các số giải đã có trong API.
+   const quick=document.createElement('section');quick.className='tt-loto-quick';
+   const title=document.createElement('h3');title.textContent='XEM NHANH LÔ TÔ '+labels[region];quick.appendChild(title);
+   const caption=document.createElement('div');caption.className='tt-loto-caption';caption.textContent='Lô tô 2 số theo đầu • Ngày '+dateInput.value+' • Số màu đỏ thuộc giải ĐB';quick.appendChild(caption);
+   const lotoTable=document.createElement('table'),lotoHead=document.createElement('thead'),lotoHeader=document.createElement('tr');
+   ['Đầu',...valid.map(provinceName)].forEach(name=>{const th=document.createElement('th');th.textContent=name;lotoHeader.appendChild(th)});
+   lotoHead.appendChild(lotoHeader);lotoTable.appendChild(lotoHead);
+   const lotoBody=document.createElement('tbody');
+   const byStation=valid.map(entry=>{
+     const buckets=Array.from({length:10},()=>[]);
+     extractRows(entry).forEach(prize=>{
+       const isDb=normalizedKey(prize.name)==='db';
+       nums(prize.numbers).forEach(n=>{
+         const digits=String(n).trim();
+         if(!/^\d{2,6}$/.test(digits))return;
+         const last=digits.slice(-2),head=Number(last[0]);
+         buckets[head].push({tail:last[1],isDb});
+       });
+     });return buckets;
+   });
+   for(let head=0;head<10;head++){
+     const tr=document.createElement('tr'),th=document.createElement('th');th.scope='row';th.textContent=String(head);tr.appendChild(th);
+     byStation.forEach(buckets=>{
+       const td=document.createElement('td'),arr=buckets[head];
+       if(!arr.length)td.textContent='—';
+       arr.forEach((item,i)=>{
+         if(i)td.appendChild(document.createTextNode(','));
+         const span=document.createElement('span');span.textContent=item.tail;if(item.isDb)span.className='tt-loto-db';td.appendChild(span);
+       });tr.appendChild(td);
+     });lotoBody.appendChild(tr);
+   }
+   lotoTable.appendChild(lotoBody);
+   const detail=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Xem nhanh lô tô đầu 0–9';detail.appendChild(summary);detail.appendChild(lotoTable);quick.appendChild(detail);results.appendChild(quick);
+   setStatus('Đã nhận dữ liệu '+valid.length+' đài. Xem nhanh lô tô ở dưới bảng kết quả.');
  }
  async function load(){
    const id=++requestId;const date=dateInput.value;if(!date)return;

@@ -932,6 +932,19 @@ body.app-unlocked .total-card #finalTotalBox{background:#ffffff!important;border
 body.app-unlocked .total-card .co-toggle-top{background:#ffffff!important;border-color:#d1d5db!important}
 body.app-unlocked .total-card .total-table tbody tr{background:#ffffff!important}
 </style>
+<style id="tt-three-equal-controls-20261020">
+body.app-unlocked .tt-three-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 14px;align-items:start}
+body.app-unlocked .tt-three-controls>.bang-nhan-box{margin:0!important;width:100%!important;min-width:0}
+body.app-unlocked .tt-three-controls>.bang-nhan-box>summary,
+body.app-unlocked .tt-three-controls>button{display:flex!important;align-items:center;justify-content:center;min-width:0;width:100%!important;min-height:45px!important;box-sizing:border-box!important;margin:0!important;padding:7px 3px!important;border:1px solid #cbd5e1!important;border-radius:11px!important;background:#fff!important;color:#263447!important;font-size:clamp(11px,3.3vw,14px)!important;font-weight:900!important;text-align:center!important;white-space:nowrap!important;box-shadow:0 2px 6px #0f172a0a!important}
+body.app-unlocked .tt-three-controls>button[aria-pressed=true]{border-color:#dc2626!important;color:#b91c1c!important}
+body.app-unlocked .tt-three-controls .sample-price-box{margin-top:8px}
+body.app-unlocked .tt-three-controls{position:relative;padding-bottom:0}
+body.app-unlocked .tt-three-controls>.bang-nhan-box[open]{grid-column:auto}
+body.app-unlocked .tt-three-controls>.bang-nhan-box[open] .sample-price-box{position:absolute;left:0;right:0;top:48px;z-index:10;background:#fff;border:1px solid #d1d5db;border-radius:10px;box-shadow:0 8px 18px #0002;padding:10px}
+body.app-unlocked .tt-customer-name[hidden]{display:none!important}
+body.app-unlocked .co-head-inline{font-size:13px;font-weight:900;color:#991b1b;padding:9px 12px;background:#fff}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -5492,7 +5505,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   function priceReference(){
     const cc=c.c||{};
     return `<section class="sample-price-box" id="priceReference">
-      <div class="sample-toggle-row"><button type="button" class="sample-toggle active" id="showNameBtn">→ Hiện Tên ←</button><button type="button" class="sample-toggle" id="showCommissionBtn">→ Hiện Cò ←</button></div>
+      
       <table class="sample-price-table"><tbody>
         <tr><th>Tên</th><td class="sample-name-cell" id="sampleNameCell">${htmlEsc($('customerSelect')?.value||currentCustomer||'')}</td></tr>
         <tr><th>Đầu Đuôi</th><td>${money(c.dd)}</td></tr>
@@ -5529,7 +5542,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     const regionClass=r==='N'?'region-panel-n':r==='T'?'region-panel-t':'region-panel-b';
 
     regionPanelsHtml+=`<section class="legacy-calc-region region-detail-panel ${regionClass}" data-region-panel="${r}" hidden>
-      <div class="legacy-region-title">${regionName[r]}</div>
+      <div class="legacy-region-title">${regionName[r]} <span class="tt-customer-name" hidden>— ${htmlEsc($('customerSelect')?.value||currentCustomer||'')}</span></div>
       <div class="legacy-summary">
         <div>Tiền Xác: <b>${money(gross[r])}</b></div>
         <div>Tiền trúng: <b class="${by[r].win?'legacy-red':'legacy-blue'}">${money(by[r].win)}</b></div>
@@ -5552,7 +5565,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
         const stationThu=ds.reduce((sum,d)=>sum+(Number(rowThuMap.get(d)||0)),0);
         const title=stationDisplayName(station);
         return `<div class="station-block">
-          <div class="legacy-station-title">${htmlEsc(title)}</div>
+          <div class="legacy-station-title">${htmlEsc(title)} <span class="tt-customer-name" hidden>— ${htmlEsc($('customerSelect')?.value||currentCustomer||'')}</span></div>
           <div class="legacy-table-wrap"><table class="legacy-calc-table"><thead><tr><th>Số</th><th>Loại</th><th>Điểm</th><th>Tiền xác</th><th>Trúng</th></tr></thead><tbody>
           ${ds.map(d=>{const rr=d.row,hit=d.hits.length>0;const detailIdx=visibleDetails.indexOf(d);return `<tr class="${hit?'legacy-hit':'legacy-miss'}"${hit?` data-result-detail="${detailIdx}" title="Bấm để xem bảng kết quả"`:''}><td><b>${htmlEsc((rr.numbers||[]).join('–'))}</b></td><td>${htmlEsc(typeLabel(rr.type))}</td><td>${htmlEsc(displayPoints(rr))}</td><td>= ${money(rr.gross)}</td><td>${calcRowResultText(d)}</td></tr>`;}).join('')}
           </tbody><tfoot><tr><td colspan="3"><b>TỔNG ĐÀI</b></td><td><b>${money(stationGross)}</b></td><td><b>${window.__lotteryResultPending?'CHỜ KQ':(stationWin?money(stationWin):'X')}</b></td></tr></tfoot></table></div>
@@ -5633,9 +5646,9 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   const oldBalance=Number(localStorage.getItem(oldKey)||0);
   const finalTotal=totalThu+oldBalance;
   const signedMoney=v=>`${Number(v)>0?'+':''}${money(v)}`;
-  const totalDayHtml=`<section class="card total-card"><div class="total-day-head">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}<div class="co-head-controls"><span id="coHeadTotal" class="co-head-total">CÒ ${signedMoney(totalCommission)}</span><button type="button" class="co-toggle-top" id="toggleCommission">HIỆN CÒ</button></div></div><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody><tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr><tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr><tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr></tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table><div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center"><b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div></div><div id="coDetailBox" class="co-detail-box hidden"><div class="co-detail-title">CHI TIẾT CÒ</div><table class="co-detail-table"><thead><tr><th>Miền</th><th>Cò thưởng</th><th>Cò Thu/Bù</th><th>Cò tổng</th></tr></thead><tbody>${['N','T','B'].map(rr=>`<tr><td>${rr}</td><td class="${coRewardBy[rr]<0?'rednum':'greenmoney'}">${signedMoney(coRewardBy[rr])}</td><td class="${coThuBuBy[rr]<0?'rednum':'greenmoney'}">${signedMoney(coThuBuBy[rr])}</td><td class="${commissionBy[rr]<0?'rednum':'greenmoney'}"><b>${signedMoney(commissionBy[rr])}</b></td></tr>`).join('')}</tbody><tfoot><tr><td>TỔNG</td><td>${signedMoney(totalCoReward)}</td><td>${signedMoney(totalCoThuBu)}</td><td class="${totalCommission<0?'rednum':'greenmoney'}">${signedMoney(totalCommission)}</td></tr></tfoot></table></div><div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div></section>`;
+  const totalDayHtml=`<section class="card total-card"><div class="total-day-head">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}</div><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody><tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr><tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr><tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr></tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table><div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center"><b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div></div><div id="coDetailBox" class="co-detail-box hidden"><div class="co-head-inline" id="coHeadTotal">CÒ ${signedMoney(totalCommission)}</div><div class="co-detail-title">CHI TIẾT CÒ</div><table class="co-detail-table"><thead><tr><th>Miền</th><th>Cò thưởng</th><th>Cò Thu/Bù</th><th>Cò tổng</th></tr></thead><tbody>${['N','T','B'].map(rr=>`<tr><td>${rr}</td><td class="${coRewardBy[rr]<0?'rednum':'greenmoney'}">${signedMoney(coRewardBy[rr])}</td><td class="${coThuBuBy[rr]<0?'rednum':'greenmoney'}">${signedMoney(coThuBuBy[rr])}</td><td class="${commissionBy[rr]<0?'rednum':'greenmoney'}"><b>${signedMoney(commissionBy[rr])}</b></td></tr>`).join('')}</tbody><tfoot><tr><td>TỔNG</td><td>${signedMoney(totalCoReward)}</td><td>${signedMoney(totalCoThuBu)}</td><td class="${totalCommission<0?'rednum':'greenmoney'}">${signedMoney(totalCommission)}</td></tr></tfoot></table></div><div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div></section>`;
   // Thứ tự gọn: chi tiết -> Top 10 -> Bảng nhân -> TỔNG NGÀY cuối cùng.
-  html+=regionPickerHtml+regionPanelsHtml+top10BottomHtml+`<details class="bang-nhan-box"><summary>BẢNG NHÂN</summary>${priceReference()}</details>`;
+  html+=regionPickerHtml+regionPanelsHtml+top10BottomHtml+`<div class="tt-three-controls"><details class="bang-nhan-box"><summary>BẢNG NHÂN</summary>${priceReference()}</details><button type="button" id="toggleCustomerNames" aria-pressed="false">HIỆN TÊN</button><button type="button" class="co-toggle-top" id="toggleCommission">HIỆN CÒ</button></div>`;
 
   if(errors.length) html+=`<section class="card err"><b>Dòng chưa đọc:</b><br>${errors.map(x=>String(x).replace(/</g,'&lt;')).join('<br>')}</section>`;
   /* Thông báo tự dò ẩn theo yêu cầu; vẫn giữ logic lấy kết quả. */
@@ -5677,12 +5690,20 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     document.querySelectorAll('.sample-toggle').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
   }));
 
+  const nameToggle=$('toggleCustomerNames');
+  if(nameToggle)nameToggle.addEventListener('click',()=>{
+    const showing=nameToggle.getAttribute('aria-pressed')!=='true';
+    nameToggle.setAttribute('aria-pressed',String(showing));
+    nameToggle.textContent=showing?'ẨN TÊN':'HIỆN TÊN';
+    document.querySelectorAll('.tt-customer-name').forEach(el=>el.hidden=!showing);
+    const cell=$('sampleNameCell');if(cell)cell.textContent=showing?($('customerSelect')?.value||currentCustomer||''):'••••';
+  });
   const commissionToggle=$('toggleCommission'), coDetailBox=$('coDetailBox'), coHeadTotal=$('coHeadTotal');
-  if(commissionToggle&&coDetailBox&&coHeadTotal){
+  if(commissionToggle&&coDetailBox){
     commissionToggle.addEventListener('click',()=>{
       const willShow=coDetailBox.classList.contains('hidden');
       coDetailBox.classList.toggle('hidden',!willShow);
-      coHeadTotal.classList.toggle('show',willShow);
+      if(coHeadTotal)coHeadTotal.classList.toggle('show',willShow);
       commissionToggle.textContent=willShow?'TẮT CÒ':'HIỆN CÒ';
       if(lastSummary) lastSummary.showCommission=willShow;
     });

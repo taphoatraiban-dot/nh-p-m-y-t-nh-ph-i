@@ -867,6 +867,41 @@ html body:not(.app-unlocked) #drawerEdge {display:none!important;pointer-events:
 .lottery-station-block th:first-child,.lottery-station-block td:first-child{width:29%}
 .lottery-station-block td{white-space:normal!important;overflow-wrap:anywhere!important}
 </style>
+<style id="tt-pin-fullscreen-20261020">
+/* Full-viewport PIN lock, independent of public lottery and app menu. */
+body:has(#pinCard:not(.hidden)){background:#fff!important;overflow:hidden!important}
+body:has(#pinCard:not(.hidden))>.wrap{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+body:has(#pinCard:not(.hidden)) #publicCover,
+body:has(#pinCard:not(.hidden)) #publicAuthTab{display:none!important}
+#pinCard:not(.hidden){
+position:fixed!important;inset:0!important;z-index:2147483000!important;
+box-sizing:border-box!important;width:100vw!important;max-width:none!important;
+height:100vh!important;height:100dvh!important;min-height:0!important;
+margin:0!important;border:0!important;border-radius:0!important;
+background:#fff!important;box-shadow:none!important;
+display:flex!important;flex-direction:column!important;align-items:center!important;
+justify-content:center!important;gap:0!important;
+padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom))!important;
+overflow-y:auto!important;overscroll-behavior:contain!important
+}
+#pinCard:not(.hidden)>h1{flex-shrink:0}
+#pinCard:not(.hidden) #pinMailCompact{flex-shrink:0}
+#pinCard:not(.hidden) .pin-keypad{
+width:min(100%,370px)!important;max-width:370px!important;
+grid-template-columns:repeat(3,minmax(0,1fr))!important;
+gap:clamp(8px,2.5vh,16px)!important;margin:8px auto!important
+}
+#pinCard:not(.hidden) .pin-key{
+width:min(100%,min(11vh,108px))!important;height:min(11vh,108px)!important;
+min-height:58px!important;aspect-ratio:1/1!important;
+justify-self:center!important;border-radius:50%!important
+}
+#pinCard:not(.hidden) #pinStatus{max-width:94vw!important;margin:12px auto 0!important}
+@media(max-height:650px){
+#pinCard:not(.hidden){justify-content:flex-start!important}
+#pinCard:not(.hidden) .pin-key{height:62px!important;min-height:54px!important}
+}
+</style>
 </head>
 <body>
 <div class="wrap">

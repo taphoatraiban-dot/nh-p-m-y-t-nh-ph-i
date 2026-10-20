@@ -10529,7 +10529,7 @@ window.tsAttachBackupTools=function(ov){
  const todayVN=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const liveWindow=()=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date()).split(':');const m=Number(p[0])*60+Number(p[1]);return dateInput.value===todayVN()&&m>=({MN:960,MT:1020,MB:1080}[region])&&m<=({MN:1035,MT:1095,MB:1155}[region]);};
  const prizeCounts={MB:{db:1,g1:1,g2:2,g3:6,g4:4,g5:6,g6:3,g7:4},MN:{db:1,g1:1,g2:1,g3:2,g4:7,g5:1,g6:3,g7:1,g8:1},MT:{db:1,g1:1,g2:1,g3:2,g4:7,g5:1,g6:3,g7:1,g8:1}};
- const numbers=x=>Array.isArray(x)?x.flatMap(numbers):x&&typeof x==='object'?Object.values(x).flatMap(numbers):String(x??'').split(/[,;\\s]+/).filter(v=>/^\\d{2,6}$/.test(v));
+ const numbers=x=>Array.isArray(x)?x.flatMap(numbers):x&&typeof x==='object'?Object.values(x).flatMap(numbers):String(x??'').split(/[,;\s]+/).filter(v=>/^\d{2,6}$/.test(v));
  function resetLive(){liveCache={};liveSignature='';liveDone=false;}
  function mergeLive(payload){
    for(const e of normalize(payload)){

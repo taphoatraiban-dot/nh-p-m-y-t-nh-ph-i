@@ -10311,6 +10311,19 @@ window.tsAttachBackupTools=function(ov){
 #lotteryNative .tt-loto-quick summary{padding:12px;cursor:pointer;font-weight:800;color:#a21d1d}
 @media(max-width:380px){#lotteryNative .tt-loto-quick th,#lotteryNative .tt-loto-quick td{padding:6px 2px;font-size:12px}}
 </style>
+<style id="tt-mb-grid-style">
+#lotteryNative .tt-mb-board{width:100%;background:#fff;border:1px solid #d6d6d6;overflow:hidden}
+#lotteryNative .tt-mb-title{background:#d45000;color:white;text-align:center;padding:11px 4px;font-size:clamp(15px,4.2vw,20px);font-weight:900}
+#lotteryNative .tt-mb-row{display:grid;grid-template-columns:14% minmax(0,1fr);min-height:56px;border-bottom:1px solid #d3d3d3}
+#lotteryNative .tt-mb-row:nth-of-type(odd){background:#f1f1f1}
+#lotteryNative .tt-mb-label{display:flex;align-items:center;justify-content:center;border-right:1px solid #d3d3d3;font-size:clamp(14px,3.8vw,19px);font-weight:500;color:#333}
+#lotteryNative .tt-mb-cells{display:grid;align-items:stretch;min-width:0}
+#lotteryNative .tt-mb-cells span{display:flex;align-items:center;justify-content:center;min-width:0;padding:11px 1px;border-right:1px solid #d3d3d3;border-bottom:1px solid #d3d3d3;font-size:clamp(15px,4.8vw,27px);font-weight:800;color:#303030;white-space:nowrap;font-variant-numeric:tabular-nums}
+#lotteryNative .tt-mb-cells span:last-child{border-right:0}
+#lotteryNative .tt-mb-red .tt-mb-cells span{color:#d45000;font-size:clamp(19px,5.5vw,32px)}
+#lotteryNative .tt-mb-row:last-child{border-bottom:0}
+@media(max-width:380px){#lotteryNative .tt-mb-cells span{font-size:14px;padding:10px 0}#lotteryNative .tt-mb-red .tt-mb-cells span{font-size:18px}}
+</style>
 <script id="lottery-native-script">
 (function(){
  const root=document.getElementById('lotteryNative');if(!root)return;
@@ -10361,26 +10374,43 @@ window.tsAttachBackupTools=function(ov){
      const name=provinceName(entry),id='lottery-station-'+i;
      const tab=document.createElement('button');tab.textContent=name;tab.className='lottery-station-tab';tab.onclick=()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'center'});provinceTabs.appendChild(tab);
    });
-   const table=document.createElement('table');table.className='tt-three-draw-table';
-   const head=document.createElement('thead'),header=document.createElement('tr');
-   ['Giải',...valid.map(provinceName)].forEach(n=>{const th=document.createElement('th');th.textContent=n;header.appendChild(th)});
-   head.appendChild(header);table.appendChild(head);
-   const body=document.createElement('tbody');
-   prizeOrder[region].forEach(key=>{
-     const tr=document.createElement('tr');if(key==='g8'||key==='db')tr.classList.add('tt-draw-highlight');
-     const label=document.createElement('th');label.scope='row';label.textContent=key==='db'?'ĐB':key.toUpperCase();tr.appendChild(label);
-     valid.forEach(entry=>{
-       const td=document.createElement('td');
-       const item=extractRows(entry).find(x=>normalizedKey(x.name)===key);
-       const values=item?nums(item.numbers):[];
-       if(!values.length)td.textContent='—';
-       else values.forEach(n=>{const span=document.createElement('span');span.className='tt-draw-number';span.textContent=n;td.appendChild(span)});
-       tr.appendChild(td);
-     });body.appendChild(tr);
-   });
-   table.appendChild(body);
-   const wrap=document.createElement('div');wrap.className='tt-three-draw-wrap';wrap.appendChild(table);
-   results.appendChild(wrap);
+   if(region==='MB'){
+     const mbEntry=valid[0],board=document.createElement('div');board.className='tt-mb-board';
+     const heading=document.createElement('div');heading.className='tt-mb-title';heading.textContent='XSMB - KẾT QUẢ XỔ SỐ MIỀN BẮC';board.appendChild(heading);
+     const mbOrder=['db','g1','g2','g3','g4','g5','g6','g7'];
+     const columns={db:1,g1:1,g2:2,g3:3,g4:4,g5:3,g6:3,g7:4};
+     mbOrder.forEach(key=>{
+       const row=document.createElement('div');row.className='tt-mb-row'+((key==='db'||key==='g7')?' tt-mb-red':'');
+       const label=document.createElement('div');label.className='tt-mb-label';label.textContent=key==='db'?'ĐB':'G.'+key.slice(1);row.appendChild(label);
+       const cells=document.createElement('div');cells.className='tt-mb-cells';cells.style.gridTemplateColumns='repeat('+columns[key]+',minmax(0,1fr))';
+       const item=extractRows(mbEntry).find(x=>normalizedKey(x.name)===key),values=item?nums(item.numbers):[];
+       if(!values.length){const empty=document.createElement('span');empty.textContent='—';cells.appendChild(empty)}
+       else values.forEach(n=>{const cell=document.createElement('span');cell.textContent=n;cells.appendChild(cell)});
+       row.appendChild(cells);board.appendChild(row);
+     });
+     results.appendChild(board);
+   }else{
+     const table=document.createElement('table');table.className='tt-three-draw-table';
+     const head=document.createElement('thead'),header=document.createElement('tr');
+     ['Giải',...valid.map(provinceName)].forEach(n=>{const th=document.createElement('th');th.textContent=n;header.appendChild(th)});
+     head.appendChild(header);table.appendChild(head);
+     const body=document.createElement('tbody');
+     prizeOrder[region].forEach(key=>{
+       const tr=document.createElement('tr');if(key==='g8'||key==='db')tr.classList.add('tt-draw-highlight');
+       const label=document.createElement('th');label.scope='row';label.textContent=key==='db'?'ĐB':key.toUpperCase();tr.appendChild(label);
+       valid.forEach(entry=>{
+         const td=document.createElement('td');
+         const item=extractRows(entry).find(x=>normalizedKey(x.name)===key);
+         const values=item?nums(item.numbers):[];
+         if(!values.length)td.textContent='—';
+         else values.forEach(n=>{const span=document.createElement('span');span.className='tt-draw-number';span.textContent=n;td.appendChild(span)});
+         tr.appendChild(td);
+       });body.appendChild(tr);
+     });
+     table.appendChild(body);
+     const wrap=document.createElement('div');wrap.className='tt-three-draw-wrap';wrap.appendChild(table);
+     results.appendChild(wrap);
+   }
    // Xem nhanh lô tô theo đầu 0–9, dùng duy nhất các số giải đã có trong API.
    const quick=document.createElement('section');quick.className='tt-loto-quick';
    const title=document.createElement('h3');title.textContent='XEM NHANH LÔ TÔ '+labels[region];quick.appendChild(title);

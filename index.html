@@ -5649,8 +5649,11 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   const totalCoReward=coRewardBy.N+coRewardBy.T+coRewardBy.B;
   const totalCoThuBu=coThuBuBy.N+coThuBuBy.T+coThuBuBy.B;
   const totalCommission=totalCoReward+totalCoThuBu;
-  const oldKey='oldBalance_'+($('customerSelect')?.value||currentCustomer);
-  const oldBalance=Number(localStorage.getItem(oldKey)||0);
+  const oldCustomer=$('customerSelect')?.value||currentCustomer||'';
+  const oldDate=$('date')?.value||'';
+  const oldKey='oldBalance_'+oldCustomer;
+  const oldBalance=ttDailyCarryBalance(oldCustomer,oldDate);
+
   const finalTotal=totalThu+oldBalance;
   const signedMoney=v=>`${Number(v)>0?'+':''}${money(v)}`;
   const totalDayHtml=`<section class="card total-card"><div class="total-day-head">TỔNG NGÀY ${$('date').value.split('-').reverse().join('-')}<span class="tt-customer-name tt-name-total" ${ttShowNames?'':'hidden'}>— ${ttCustomerName}</span></div><table class="total-table"><thead><tr><th>Miền</th><th>Tiền xác</th><th>Tiền trúng</th><th>Thu / Bù</th></tr></thead><tbody><tr><td>N</td><td>${money(gross.N)}</td><td class="rednum">${money(by.N.win)}</td><td class="${thuBy.N<0?'rednum':'greenmoney'}">${money(thuBy.N)}</td></tr><tr><td>T</td><td>${money(gross.T)}</td><td class="rednum">${money(by.T.win)}</td><td class="${thuBy.T<0?'rednum':'greenmoney'}">${money(thuBy.T)}</td></tr><tr><td>B</td><td>${money(gross.B)}</td><td class="rednum">${money(by.B.win)}</td><td class="${thuBy.B<0?'rednum':'greenmoney'}">${money(thuBy.B)}</td></tr></tbody><tfoot><tr><td>TỔNG</td><td>${money(totalGross)}</td><td class="rednum">${money(totalWin)}</td><td class="${totalThu<0?'rednum':'greenmoney'}">${money(totalThu)}</td></tr></tfoot></table><div style="margin-top:10px;display:grid;grid-template-columns:54px minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center"><b style="font-size:17px">CŨ</b><div style="display:flex;gap:4px;align-items:center;min-width:0"><input id="oldBalanceInput" type="text" inputmode="decimal" value="${oldBalance}" placeholder="Hôm trước" style="flex:1;width:100%;min-width:0;box-sizing:border-box;border:2px solid #bfc7d4;border-radius:10px;padding:10px 9px;font-size:18px;font-weight:700"><button type="button" class="old-op" data-op="-" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">−</button><button type="button" class="old-op" data-op="+" style="width:34px;height:42px;border:0;border-radius:8px;background:#eef1f6;font-size:22px;font-weight:800">+</button></div><b style="font-size:20px;text-align:center">=</b><div id="finalTotalBox" style="padding:10px 8px;border-radius:10px;background:#eef5ff;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-align:center">${money(finalTotal)}</div></div><div id="coDetailBox" class="co-detail-box hidden"><div class="co-head-inline" id="coHeadTotal">CÒ ${signedMoney(totalCommission)}</div><div class="co-detail-title">CHI TIẾT CÒ</div><table class="co-detail-table"><thead><tr><th>Miền</th><th>Cò thưởng</th><th>Cò Thu/Bù</th><th>Cò tổng</th></tr></thead><tbody>${['N','T','B'].map(rr=>`<tr><td>${rr}</td><td class="${coRewardBy[rr]<0?'rednum':'greenmoney'}">${signedMoney(coRewardBy[rr])}</td><td class="${coThuBuBy[rr]<0?'rednum':'greenmoney'}">${signedMoney(coThuBuBy[rr])}</td><td class="${commissionBy[rr]<0?'rednum':'greenmoney'}"><b>${signedMoney(commissionBy[rr])}</b></td></tr>`).join('')}</tbody><tfoot><tr><td>TỔNG</td><td>${signedMoney(totalCoReward)}</td><td>${signedMoney(totalCoThuBu)}</td><td class="${totalCommission<0?'rednum':'greenmoney'}">${signedMoney(totalCommission)}</td></tr></tfoot></table></div><div class="action-mini total-actions"><button class="copybtn" id="copyTotal">COPY TỔNG</button><button class="shotbtn" id="shotTotal">CẮT ẢNH</button></div></section>`;
@@ -5726,6 +5729,32 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
 
 
 const MONTH_STATS_KEY='ts_customer_stats_v1';
+function ttDailyCarryBalanceWithoutOverride(customer,date){
+  const key='tt_old_override_v1_'+encodeURIComponent(customer)+'_'+date;
+  const prior=localStorage.getItem(key);
+  try{localStorage.removeItem(key);return ttDailyCarryBalance(customer,date);}
+  finally{if(prior!==null)localStorage.setItem(key,prior);}
+}
+
+// Carry each customer's prior closing balance into the next date, without mixing price tables.
+// Today's result is read from the saved daily summary only when the next date is calculated.
+function ttDailyCarryBalance(customer,date){
+  if(!customer||!date)return 0;
+  const overrideKey='tt_old_override_v1_'+encodeURIComponent(customer)+'_'+date;
+  try{
+    const override=localStorage.getItem(overrideKey);
+    if(override!==null&&Number.isFinite(Number(override)))return Number(override);
+    const records=readMonthlyStats().filter(v=>v.name===customer&&v.date<date).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    if(records.length){
+      const prev=records[0];
+      const previousOld=ttDailyCarryBalance(customer,prev.date);
+      return Math.round(previousOld+(Number(prev.totalThu)||0));
+    }
+    const legacy=Number(localStorage.getItem('oldBalance_'+customer)||0);
+    return Number.isFinite(legacy)?legacy:0;
+  }catch(e){return 0;}
+}
+
 function readMonthlyStats(){try{const x=JSON.parse(localStorage.getItem(MONTH_STATS_KEY)||'[]');return Array.isArray(x)?x:[]}catch(_){return []}}
 function saveMonthlyStat(x){
   if(!x||!x.date||!x.name)return;
@@ -6490,7 +6519,15 @@ function bindOldBalanceInput(totalThu, oldKey){
       return;
     }
     oldInput.style.borderColor='#bfc7d4';
-    localStorage.setItem(oldKey,String(parsed));
+    // Manual changes apply to this customer's selected date, not every future date.
+    const customer=$('customerSelect')?.value||currentCustomer||'';
+    const date=$('date')?.value||'';
+    if(customer&&date){
+      const overrideKey='tt_old_override_v1_'+encodeURIComponent(customer)+'_'+date;
+      const auto=ttDailyCarryBalanceWithoutOverride(customer,date);
+      if(parsed===auto)localStorage.removeItem(overrideKey);
+      else localStorage.setItem(overrideKey,String(parsed));
+    }
     const final=Number(totalThu||0)+parsed;
     if(lastSummary){lastSummary.old=parsed;lastSummary.finalTotal=final;}
     const box=$('finalTotalBox');

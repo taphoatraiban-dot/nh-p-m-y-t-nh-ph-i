@@ -939,8 +939,9 @@ body.app-unlocked .tt-three-controls>.bang-nhan-box>summary,
 body.app-unlocked .tt-three-controls>button{display:flex!important;align-items:center;justify-content:center;min-width:0;width:100%!important;min-height:45px!important;box-sizing:border-box!important;margin:0!important;padding:7px 3px!important;border:1px solid #cbd5e1!important;border-radius:11px!important;background:#fff!important;color:#263447!important;font-size:clamp(11px,3.3vw,14px)!important;font-weight:900!important;text-align:center!important;white-space:nowrap!important;box-shadow:0 2px 6px #0f172a0a!important}
 body.app-unlocked .tt-three-controls>button[aria-pressed=true]{border-color:#dc2626!important;color:#b91c1c!important}
 body.app-unlocked .tt-three-controls .sample-price-box{margin-top:8px}
-body.app-unlocked .tt-three-controls>.bang-nhan-box[open]{grid-column:1/-1}
-body.app-unlocked .tt-three-controls>.bang-nhan-box[open]>summary{width:33%!important}
+body.app-unlocked .tt-three-controls{position:relative;padding-bottom:0}
+body.app-unlocked .tt-three-controls>.bang-nhan-box[open]{grid-column:auto}
+body.app-unlocked .tt-three-controls>.bang-nhan-box[open] .sample-price-box{position:absolute;left:0;right:0;top:48px;z-index:10;background:#fff;border:1px solid #d1d5db;border-radius:10px;box-shadow:0 8px 18px #0002;padding:10px}
 body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 body.app-unlocked .co-head-inline{font-size:13px;font-weight:900;color:#991b1b;padding:9px 12px;background:#fff}
 </style>

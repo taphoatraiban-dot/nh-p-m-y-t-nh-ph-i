@@ -950,6 +950,15 @@ body.app-unlocked .tt-name-total{display:block;font-size:clamp(12px,3.6vw,16px);
 body.app-unlocked .tt-name-top10{display:block;font-size:clamp(12px,3.6vw,16px);font-weight:800;color:#263447;line-height:1.4;margin-top:5px}
 body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 </style>
+<style id="tt-license-compact-style">
+#syntaxGuideEntry{align-items:center!important;gap:5px!important;flex-wrap:nowrap!important}
+.tt-license-compact{display:inline-flex;align-items:center;justify-content:center;min-width:0;padding:8px 5px;border-radius:9px;border:1px solid #cbd5e1;background:#fff;color:#334155;font-size:clamp(9px,2.6vw,12px);font-weight:900;line-height:1.2;white-space:nowrap}
+.tt-license-compact[data-state="active"]{color:#047857;border-color:#a7f3d0}
+.tt-license-compact[data-state="soon"]{color:#a16207;border-color:#fde68a}
+.tt-license-compact[data-state="expired"]{color:#b91c1c;border-color:#fecaca}
+#syntaxGuideEntry .tt-release-badge{font-size:clamp(9px,2.6vw,12px);padding:8px 5px}
+#syntaxGuideEntry #syntaxGuideOpen{font-size:clamp(10px,2.8vw,14px)!important;padding:10px 6px!important;white-space:nowrap}
+</style>
 <style id="tt-release-badge-style">.tt-release-badge{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;white-space:nowrap;font-size:12px;font-weight:900;color:#334155;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:9px;padding:8px 9px;min-height:19px}</style></head>
 <body>
 <div class="wrap">
@@ -1261,7 +1270,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
   <button type="button" id="pasteAll" class="soft" style="display:none">📋 DÁN TOÀN BỘ</button>
   <button type="button" class="bigok" id="okAll">OK</button>
 <div id="syntaxGuideEntry" style="display:flex;justify-content:flex-end;margin:5px 2px 9px">
- <span class="tt-release-badge" title="Phiên bản phần mềm">V10.20.01</span> <button type="button" id="syntaxGuideOpen" style="background:#fff;color:#ad2720;border:1px solid #ffad60;border-radius:11px;padding:10px 16px;font-weight:800;font-size:14px">📖 HƯỚNG DẪN</button>
+ <span class="tt-license-compact" id="ttLicenseCompact" role="status" aria-live="polite">HẠN: ĐANG KIỂM TRA</span> <span class="tt-release-badge" title="Phiên bản phần mềm">V10.20.01</span> <button type="button" id="syntaxGuideOpen" style="background:#fff;color:#ad2720;border:1px solid #ffad60;border-radius:11px;padding:10px 16px;font-weight:800;font-size:14px">📖 HƯỚNG DẪN</button>
 </div>
 
   <div class="phoi-quick-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%;margin:7px auto 2px;align-items:stretch">
@@ -1367,6 +1376,17 @@ async function cloudClearPin(){
   }catch(e){}
 }
 
+function ttRenderCompactLicense(data){
+ const el=document.getElementById('ttLicenseCompact');if(!el)return;
+ if(!data||!data.success){el.textContent='HẠN: CHƯA RÕ';el.dataset.state='unknown';return;}
+ if(data.is_admin){el.textContent='HẠN: VÔ THỜI HẠN';el.dataset.state='active';return;}
+ const exp=data.expires_at?new Date(data.expires_at):null;
+ const valid=exp&&!Number.isNaN(exp.getTime());
+ const days=valid?Math.max(0,Math.ceil((exp.getTime()-Date.now())/86400000)):Number(data.days_left);
+ if(data.active===false||valid&&exp.getTime()<=Date.now()){el.textContent='ĐÃ HẾT HẠN';el.dataset.state='expired';return;}
+ if(Number.isFinite(days)){el.textContent='CÒN '+Math.max(0,days)+' NGÀY';el.dataset.state=days<=3?'soon':'active';el.title=valid?'Hết hạn: '+exp.toLocaleString('vi-VN'):'';}
+ else{el.textContent='HẠN: CHƯA RÕ';el.dataset.state='unknown';}
+}
 /* Kiểm tra thời hạn bản quyền trên máy chủ khi phần mềm đang mở.
    Không xóa dữ liệu, không thay đổi cơ chế cấp quyền cũ. */
 (function(){
@@ -1377,6 +1397,7 @@ async function cloudClearPin(){
     try{
       const {data,error}=await sb.rpc('check_email_license');
       if(error) return; // Mất mạng tạm thời: không nhầm thành hết hạn.
+      ttRenderCompactLicense(data);
       if(data && data.success && data.active) return;
       // Máy chủ xác nhận hết quyền: khóa giao diện trước khi hiển thị thông báo.
       document.body.classList.remove('app-unlocked');
@@ -1437,6 +1458,7 @@ async function checkLicense(){
   if(error) throw error;
   // RPC check_email_license trả về: success, active, is_admin, email, expires_at, message
   // Không dùng data.allowed vì RPC hiện tại không có trường này.
+  ttRenderCompactLicense(data);
   if(!data?.success || !data?.active){
     throw new Error(data?.message||"Tài khoản chưa có bản quyền.");
   }

@@ -2198,7 +2198,8 @@ function ttSeparateJoinedBets(value){
   function attach(){const ta=document.getElementById('bets');if(!ta||ta.dataset.fixJoinedBaoXc)return;
     ta.dataset.fixJoinedBaoXc='1';
     const apply=()=>{const next=tshFixJoinedBaoXC(ta.value);if(next!==ta.value)ta.value=next;};
-    ta.addEventListener('paste',()=>setTimeout(apply,0));ta.addEventListener('blur',apply);
+    // Do not rewrite clipboard text during paste; keep blur normalization.
+    ta.addEventListener('blur',apply);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();
 })();
@@ -6486,7 +6487,7 @@ $('bets').addEventListener('input',function(){
       __phoiPasting=false;
       const box=$('bets');
       if(box){
-        const cleaned=stripTelegramMetadataOnly(box.value);
+        const cleaned=box.value; // Preserve all pasted Telegram messages verbatim.
         if(cleaned!==box.value){
           const oldPos=box.selectionStart==null?cleaned.length:box.selectionStart;
           box.value=cleaned;
@@ -7868,7 +7869,7 @@ window.showHistoryItem=showHistoryItem;
  window.tshNewestNormalize=norm;
  const ta=document.getElementById('bets');
  function apply(){if(!ta)return;const v=norm(ta.value);if(v!==ta.value)ta.value=v}
- if(ta){ta.addEventListener('paste',()=>setTimeout(apply,1500));ta.addEventListener('blur',apply)}
+ if(ta){ta.addEventListener('blur',apply)}
  ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
 })();
 </script>
@@ -9661,7 +9662,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    // No eager normalization here; downstream handlers process after paste completes.
   },true);
   ta.addEventListener('input',function(e){if(busy||e.isComposing)return;
-   if(e.inputType==='insertFromPaste'||e.inputType==='insertFromDrop')apply();
+   // Native paste must remain intact until the user chooses DÒ SAI / OK.
   });
   ta.addEventListener('blur',apply);
   document.getElementById('okAll')?.addEventListener('click',apply,true);
@@ -10190,8 +10191,8 @@ function attach(){
  
  by('ttSplit').onclick=()=>{applyLineBreaks();by('v5Split')?.click()};
  by('ttVoice').onclick=()=>by('v4VoiceBtn')?.click();
- bets.addEventListener('paste',()=>setTimeout(applyLineBreaks,80));
- bets.addEventListener('input',e=>{if(e.inputType==='insertFromPaste')setTimeout(applyLineBreaks,0)});
+ // Keep Telegram clipboard exactly as inserted; no eager line splitting.
+ // No line rewrite on insertFromPaste.
  bets.addEventListener('blur',applyLineBreaks);
  const ok=by('okAll');if(ok)ok.addEventListener('click',applyLineBreaks,true);
  const v5auto=by('v5Auto');if(v5auto)v5auto.checked=false; // Preserve user-entered phoi: only deterministic region breaks automatically.

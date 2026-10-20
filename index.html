@@ -3416,6 +3416,9 @@ function parseBets(){
   // Áp dụng chung cho HN/MB, MN, MT và các đài riêng.
   s=normalizeExtendedUserSyntax(s, st);
   s=expandKeoRanges(s);
+  // Nhóm tài/xỉu/chẵn/lẻ phải được bung TRƯỚC khi kiểm tra chữ lạ.
+  // Giữ kiểm tra nghiêm ngặt cho các cú pháp không hỗ trợ (12giap, 12nto...).
+  s=expandSimpleGroupPhoi(s);
 
   // FIX STRICT 06-10-2026: alias hợp lệ xdui -> xduoi; mọi chữ cược lạ phải CHẶN TOÀN BỘ DÒNG.
   // Ví dụ 71duau20.duoi62,5 => báo đúng duau20, tuyệt đối không bỏ lỗi rồi tính duoi62,5.

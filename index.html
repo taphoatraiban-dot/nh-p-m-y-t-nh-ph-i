@@ -1273,7 +1273,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
    <button type="button" id="tgSelectAll" class="soft">Chọn tất cả</button>
    <button type="button" id="tgSelectNone" class="soft">Bỏ chọn</button><button type="button" id="tgDeleteSelected" class="soft" style="color:#b91c1c">Xoá đã chọn</button><button type="button" id="tgDeleteAll" class="soft" style="color:#b91c1c">Xoá tất cả</button>
   </div>
-  <button type="button" id="tgConnectFive" class="soft" style="margin-bottom:6px">🔗 Kết nối bot</button>
+  <details id="tgCustomerSetup" style="margin:5px 0 8px"><summary style="font-size:13px;cursor:pointer">⚙️ Kết nối Telegram của tôi</summary><div style="padding:8px 0"><input id="tgCustomerBotToken" type="password" autocomplete="off" placeholder="Dán token bot từ BotFather" style="width:100%;margin:4px 0"><input id="tgCustomerBotName" placeholder="Tên nhóm / tên khách (tuỳ chọn)" style="width:100%;margin:4px 0"><button type="button" id="tgCustomerAdd" class="soft">Kết nối bot của tôi</button><div id="tgCustomerBotList" style="font-size:13px;margin-top:8px"></div></div></details><button type="button" id="tgConnectFive" class="soft" style="display:none;margin-bottom:6px">🔗 Kết nối 5 bot cũ</button>
   <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Chọn nhóm để xem tin Telegram.</div>
   <div id="tgInboxList" style="max-height:320px;overflow-y:auto;display:grid;gap:7px"></div>
   <button type="button" id="tgImport" class="green" style="width:100%;margin-top:6px">ĐƯA TIN ĐÃ CHỌN VÀO Ô TÍNH</button>
@@ -10947,8 +10947,8 @@ $("tgRefresh").addEventListener("click",async()=>{
  const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-forward-inbox?limit=500",{headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY}});
  const data=await res.json();
  if(!res.ok||!data.success)throw Error(res.status===403?"Tài khoản chưa được cấp quyền xem hộp tin Telegram.":data.error||"Không tải được tin");
- const allowedGroups=["C Thảo 78","A Tuân 77","A Hải 75","A Thuật X77","C Ngọc X78"];
- messages=(data.messages||[]).filter(m=>allowedGroups.includes(m.selected_group));
+ messages=(data.messages||[]);
+ const allowedGroups=[...new Set(messages.map(m=>m.selected_group).filter(Boolean))].sort();
  const valid=new Set(messages.map(m=>Number(m.id)));
  selected=new Set([...selected].filter(id=>valid.has(id)));
  const names=allowedGroups;
@@ -10974,6 +10974,26 @@ $("tgConnectFive").addEventListener("click",async()=>{
  }catch(e){$("tgInboxStatus").textContent="Kết nối bot: "+e.message;btn.textContent="↻ THỬ KẾT NỐI LẠI"}
  finally{btn.disabled=false}
 });
+async function tgCustomerRequest(method,payload){
+ const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Bạn cần đăng nhập.");
+ const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-customer-bots",{method,headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY,...(payload?{"Content-Type":"application/json"}:{})},...(payload?{body:JSON.stringify(payload)}:{})});
+ const data=await response.json();if(!response.ok||!data.success)throw Error(data.error||"Không kết nối được");return data;
+}
+async function tgCustomerList(){
+ try{const data=await tgCustomerRequest("GET");const root=$("tgCustomerBotList");root.innerHTML=(data.bots||[]).map(b=>'<div style="padding:6px;border-bottom:1px solid #ddd"><b>'+esc(b.display_name)+'</b> @'+esc(b.username)+' <button type="button" data-tgdisconnect="'+esc(b.id)+'" class="soft" style="font-size:11px;padding:4px">Ngắt</button></div>').join("")||"Chưa kết nối bot riêng.";
+ }catch(e){$("tgCustomerBotList").textContent=e.message}
+}
+$("tgCustomerAdd").addEventListener("click",async()=>{
+ const btn=$("tgCustomerAdd");btn.disabled=true;
+ try{await tgCustomerRequest("POST",{action:"connect",token:$("tgCustomerBotToken").value.trim(),name:$("tgCustomerBotName").value.trim()});$("tgCustomerBotToken").value="";$("tgInboxStatus").textContent="Đã kết nối bot của bạn.";await tgCustomerList();$("tgRefresh").click()}
+ catch(e){$("tgInboxStatus").textContent="Lỗi kết nối: "+e.message}
+ finally{btn.disabled=false}
+});
+$("tgCustomerBotList").addEventListener("click",async e=>{
+ const btn=e.target.closest("[data-tgdisconnect]");if(!btn||!confirm("Ngắt kết nối bot này? Tin đã lưu vẫn được giữ."))return;
+ try{await tgCustomerRequest("POST",{action:"disconnect",id:btn.dataset.tgdisconnect});await tgCustomerList()}catch(err){$("tgInboxStatus").textContent=err.message}
+});
+$("tgCustomerSetup").addEventListener("toggle",()=>{if($("tgCustomerSetup").open)tgCustomerList()});
 $("tgForwardInbox").open=true;syncTelegramActions();
 $("tgRefresh").click();
 setInterval(()=>{if(!document.hidden)$("tgRefresh").click()},5000);

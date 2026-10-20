@@ -10904,8 +10904,9 @@ $("tgRefresh").addEventListener("click",async()=>{
  const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-forward-inbox?limit=500",{headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY}});
  const data=await res.json();
  if(!res.ok||!data.success)throw Error(res.status===403?"Tài khoản chưa được cấp quyền xem hộp tin Telegram.":data.error||"Không tải được tin");
- messages=data.messages||[];selected.clear();
- const names=[...new Set(messages.map(m=>m.selected_group||m.origin_name||"Không rõ nhóm"))];
+ const allowedGroups=["C Thảo 78","A Tuân 77","A Hải 75","A Thuật X77","C Ngọc X78"];
+ messages=(data.messages||[]).filter(m=>allowedGroups.includes(m.selected_group));selected.clear();
+ const names=allowedGroups;
  $("tgGroupFilter").innerHTML='<option value="">Tất cả nhóm</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
  draw();
  }catch(e){$("tgInboxStatus").textContent="Lỗi: "+e.message}

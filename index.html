@@ -10883,12 +10883,12 @@ body.app-unlocked:has(#appDrawer.open) #drawerEdge {
 
 
 <style id="tg-inbox-readable-fix">
-#tgInboxList {color:#17212f!important}
-#tgInboxList label {background:#fff!important;color:#17212f!important;opacity:1!important;visibility:visible!important;min-height:0!important;height:auto!important}
-#tgInboxList label span,#tgInboxList label b,#tgInboxList label small,#tgInboxList label div {color:#17212f!important;opacity:1!important;visibility:visible!important;-webkit-text-fill-color:#17212f!important;text-shadow:none!important}
-#tgInboxList label div {font-size:15px!important;line-height:1.5!important;font-weight:500!important;white-space:pre-wrap!important;max-height:190px!important;overflow-y:auto!important}
-#tgInboxList label small {font-size:12px!important;font-weight:400!important}
-#tgInboxList label b {font-size:14px!important;font-weight:700!important}
+#tgInboxList,#tgInboxList *{visibility:visible!important;opacity:1!important}
+#tgInboxList label{display:flex!important;background:#fff!important;color:#17212f!important;min-height:72px!important;height:auto!important;overflow:visible!important}
+#tgInboxList label span,#tgInboxList label div,#tgInboxList label small{display:block!important;color:#17212f!important;-webkit-text-fill-color:#17212f!important;text-shadow:none!important;font-size:14px!important;line-height:1.55!important}
+#tgInboxList label b{color:#14532d!important;-webkit-text-fill-color:#14532d!important;font-size:14px!important}
+#tgInboxList label .tg-message-body{display:block!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;max-height:none!important;height:auto!important;overflow:visible!important;margin-top:6px!important}
+#tgInboxList input[type=checkbox]{display:block!important;visibility:visible!important;opacity:1!important;flex-shrink:0!important;width:18px!important;height:18px!important;accent-color:#15803d}
 </style>
 <script id="tg-forward-inbox-client">
 (function(){
@@ -10898,7 +10898,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"
 function draw(){
  const filter=$("tgGroupFilter").value;
  const rows=messages.filter(m=>!filter||(m.selected_group||m.origin_name||"Không rõ nhóm")===filter);
- $("tgInboxList").innerHTML=rows.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(m.id)?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important;opacity:1!important;visibility:visible!important"><b style="color:#14532d!important">'+esc(m.selected_group||m.origin_name||"Không rõ nhóm")+'</b> <small>'+esc(new Date(m.message_date).toLocaleString("vi-VN"))+'</small><div style="color:#17212f!important;opacity:1!important;visibility:visible!important;white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")||'<div>Chưa có tin trong nhóm này.</div>';
+ $("tgInboxList").innerHTML=rows.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(m.id)?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important;opacity:1!important;visibility:visible!important"><b style="color:#14532d!important">'+esc(m.selected_group||m.origin_name||"Không rõ nhóm")+'</b> · '+esc(m.sender_name||m.origin_name||'Không rõ người gửi')+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="color:#17212f!important;opacity:1!important;visibility:visible!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")||'<div>Chưa có tin trong nhóm này.</div>';
  $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
 }
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});

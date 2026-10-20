@@ -1000,7 +1000,7 @@ get("ottGuideViewport").addEventListener("touchstart",e=>{startX=e.touches[0]?.c
 get("ottGuideViewport").addEventListener("touchend",e=>{if(startX===null)return;const d=(e.changedTouches[0]?.clientX??startX)-startX;if(Math.abs(d)>45){current=(current+(d<0?1:23))%24;draw()}startX=null},{passive:true});
 document.addEventListener("keydown",e=>{if(!overlay.classList.contains("ott-open"))return;if(e.key==="Escape")close();else if(e.key==="ArrowRight"){current=(current+1)%24;draw()}else if(e.key==="ArrowLeft"){current=(current+23)%24;draw()}});
 window.openOttGuideImages=open;
-const originalGuide=document.getElementById("syntaxGuideOpen");if(originalGuide){originalGuide.addEventListener("click",function(e){e.preventDefault();e.stopImmediatePropagation();open(8);},true);originalGuide.textContent="📖 HƯỚNG DẪN";}
+const originalGuide=document.getElementById("syntaxGuideOpen");if(originalGuide)originalGuide.textContent="📖 HƯỚNG DẪN";
 })();
 </script>
 
@@ -9770,7 +9770,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(!entry||!bets||!modal)return;
   function sync(){entry.style.display=bets.value.trim()?'none':'flex';}
   bets.addEventListener('input',sync);bets.addEventListener('change',sync);
-  document.getElementById('syntaxGuideOpen').addEventListener('click',function(){if(!frame.src)frame.src=GUIDE_URI;modal.style.display='block';});
+  document.getElementById('syntaxGuideOpen').addEventListener('click',function(e){e.preventDefault();modal.style.display='none';if(typeof window.openOttGuideImages==='function')window.openOttGuideImages(8);});
   document.getElementById('syntaxGuideClose').addEventListener('click',function(){modal.style.display='none';});
   modal.addEventListener('click',function(e){if(e.target===modal)modal.style.display='none';});
   document.getElementById('clearBets')?.addEventListener('click',function(){setTimeout(sync,0);});

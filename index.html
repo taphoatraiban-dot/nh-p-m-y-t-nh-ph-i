@@ -11131,3 +11131,28 @@ $("tgImport").addEventListener("click",()=>{
 })();
 </script>
 
+
+<!-- ott-swipe-v3-no-backdrop-touch-20261021 -->
+<style id="ott-swipe-v3-style">body.app-unlocked #drawerEdge{opacity:0!important;visibility:hidden!important;pointer-events:none!important}</style>
+<script id="ott-swipe-v3-script">(function(){
+function init(){
+const drawer=document.getElementById('appDrawer');
+if(!drawer)return;
+let start=null;
+document.addEventListener('touchstart',function(e){
+start=null;
+if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open')||e.touches.length!==1)return;
+const t=e.touches[0];
+if(t.clientX>window.innerWidth*.5||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+start={x:t.clientX,y:t.clientY};
+},{passive:true});
+document.addEventListener('touchend',function(e){
+if(!start||!e.changedTouches.length)return;
+const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;start=null;
+if(dx<75||Math.abs(dx)<Math.abs(dy)*1.7||!document.body.classList.contains('app-unlocked'))return;
+drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');
+},{passive:true});
+document.addEventListener('touchcancel',function(){start=null},{passive:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();</script>

@@ -11131,12 +11131,3 @@ $("tgImport").addEventListener("click",()=>{
 })();
 </script>
 
-<!-- internal-drawer-swipe-left-half-20261021 -->
-<style id="internal-drawer-swipe-style">body.app-unlocked #drawerEdge{display:none!important;visibility:hidden!important;pointer-events:none!important}</style>
-<script id="internal-drawer-swipe-script">(function(){function init(){
-const drawer=document.getElementById('appDrawer'),backdrop=document.getElementById('drawerBackdrop');if(!drawer||!backdrop)return;
-let touch=null;
-document.addEventListener('touchstart',function(e){touch=null;if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open')||e.touches.length!==1)return;const t=e.touches[0];if(t.clientX>window.innerWidth/2||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;touch={x:t.clientX,y:t.clientY}},{passive:true});
-document.addEventListener('touchend',function(e){if(!touch||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;touch=null;if(dx<65||Math.abs(dx)<Math.abs(dy)*1.5||!document.body.classList.contains('app-unlocked'))return;drawer.classList.add('open');backdrop.classList.add('open');drawer.setAttribute('aria-hidden','false')},{passive:true});
-document.addEventListener('touchcancel',function(){touch=null},{passive:true});
-}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>

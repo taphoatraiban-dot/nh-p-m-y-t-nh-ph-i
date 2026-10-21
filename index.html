@@ -11014,23 +11014,24 @@ const regionOf=m=>{
  const all=" "+words.join(" ")+" ";
  const has=arr=>arr.some(x=>all.includes(" "+x+" "));
  const mb=["hn","mb","xsmb","mien bac","ha noi","hanoi"];
- const mt=["2dmt","3dmt","xsmt","mien trung","hue","pyen","phu yen","dlak","dak lak","daklak","qnam","quang nam","dnang","da nang","qtri","quang tri","qngai","quang ngai","ktum","kon tum","glai","gia lai","ntuan","ninh thuan","bdinh","binh dinh","khoa","khanh hoa"];
+ const mt=["2dmt","3dmt","xsmt","mien trung","hue","pyen","phu yen","dlak","dak lak","daklak","qnam","quang nam","dnang","da nang","qtri","quang tri","qngai","quang ngai","ktum","kon tum","glai","gia lai","ntuan","ninh thuan","bdinh","binh dinh","khanh hoa","khoa","kh"];
  const mn=["2dmn","3dmn","4dmn","xsmn","mien nam","tpho","tphcm","hcm","dthap","dong thap","btre","ben tre","vtau","vung tau","blieu","bac lieu","dnai","dong nai","ctho","can tho","tninh","tay ninh","agiang","an giang","vlong","vinh long","bdg","binh duong","tgiang","tien giang","kgiang","kien giang","cmau","ca mau","strang","soc trang","tvinh","tra vinh","bthuan","binh thuan","dlat","da lat","long an","lan"];
- const regions=[has(mb)?"MB":null,has(mt)?"MT":null,has(mn)?"MN":null].filter(Boolean);
- return regions.length===1?regions[0]:"OTHER";
+ const found=[has(mb)?"MB":null,has(mt)?"MT":null,has(mn)?"MN":null].filter(Boolean);
+ return found.length===1?found[0]:"OTHER";
 };
 let expandedMessages=new Set();
 function visible(){const group=$("tgGroupFilter").value,region=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!group||(m.selected_group||m.origin_name||"Không rõ nhóm")===group)&&(!region||regionOf(m)===region));}
 function draw(){
  const rows=visible();
  const groups=new Map();for(const m of rows){const name=m.selected_group||m.origin_name||"Không rõ nhóm";if(!groups.has(name))groups.set(name,[]);groups.get(name).push(m)}
- $("tgInboxList").innerHTML=[...groups].map(([name,items])=>'<details class="tg-msg-group" style="border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;margin-bottom:7px"><summary style="cursor:pointer;padding:11px;font-weight:700;color:#143a61;background:#edf5ff">'+esc(name)+' ('+items.length+' tin)</summary><div style="display:grid;gap:7px;padding:8px">'+items.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important"><b>'+esc(regionOf(m)==="OTHER"?"Chưa rõ miền":regionOf(m))+'</b> · '+esc(m.sender_name||m.origin_name||"Người gửi")+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")+'</div></details>').join("")||'<div>Chưa có tin phù hợp bộ lọc.</div>';
+ $("tgInboxList").innerHTML=[...groups].map(([name,items])=>'<details class="tg-msg-group" data-group="'+esc(name)+'" '+(tgOpenedGroups.has(name)?'open':'')+' style="border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;margin-bottom:7px"><summary style="cursor:pointer;padding:11px;font-weight:700;color:#143a61;background:#edf5ff">'+esc(name)+' ('+items.length+' tin)</summary><div style="display:grid;gap:7px;padding:8px">'+items.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important"><b>'+esc(regionOf(m)==="OTHER"?"Chưa rõ miền":regionOf(m))+'</b> · '+esc(m.sender_name||m.origin_name||"Người gửi")+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")+'</div></details>').join("")||'<div>Chưa có tin phù hợp bộ lọc.</div>';
  $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
  syncTelegramActions();
 }
 $("tgRegionFilter").addEventListener("change",draw);
-$("tgCollapseAll").addEventListener("click",()=>document.querySelectorAll("#tgInboxList details").forEach(d=>d.open=false));
-$("tgExpandAll").addEventListener("click",()=>document.querySelectorAll("#tgInboxList details").forEach(d=>d.open=true));
+$("tgCollapseAll").addEventListener("click",()=>{tgOpenedGroups.clear();document.querySelectorAll("#tgInboxList details").forEach(d=>d.open=false)});
+$("tgExpandAll").addEventListener("click",()=>document.querySelectorAll("#tgInboxList details").forEach(d=>{tgOpenedGroups.add(d.dataset.group);d.open=true}));
+ $("tgInboxList").addEventListener("toggle",e=>{const d=e.target;if(!d.matches?.("details.tg-msg-group"))return;const name=d.dataset.group;if(d.open)tgOpenedGroups.add(name);else tgOpenedGroups.delete(name);},true);
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});
 $("tgGroupFilter").addEventListener("change",draw);$("tgRegionFilter")?.addEventListener("change",draw);
 $("tgInboxList").addEventListener("click",e=>{const btn=e.target.closest(".tg-delete-one");if(!btn)return;e.preventDefault();deleteTelegram([Number(btn.dataset.deleteId)])});
@@ -11105,7 +11106,7 @@ $("tgImport").addEventListener("click",()=>{
  if(!items.length){$("tgInboxStatus").textContent="Hãy chọn ít nhất một tin.";return}
  const input=$("bets");if(!input)return;
  const normalize=v=>String(v||"").normalize("NFKC").replace(/\s+/g," ").trim().toLowerCase();
- const existing=new Set(input.value.split(/\\n\\s*\\n/).map(normalize).filter(Boolean));
+ const existing=new Set(input.value.split(/\n\s*\n/).map(normalize).filter(Boolean));
  const unique=[];for(const m of items){const body=String(m.message_text||"").trim(),key=normalize(body);if(key&&!existing.has(key)){unique.push(body);existing.add(key);}}
  if(!unique.length){$("tgInboxStatus").textContent="Tất cả tin đã chọn đều trùng với nội dung trong ô nhập.";return;}
  const text=unique.join("\n\n");

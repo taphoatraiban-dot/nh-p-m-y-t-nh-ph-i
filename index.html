@@ -983,21 +983,21 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 <button type="button" id="ottGuideCorner" aria-label="Mở hướng dẫn bằng hình ảnh">📘 HƯỚNG DẪN</button>
 <div id="ottGuideOverlay" role="dialog" aria-modal="true" aria-label="Hướng dẫn bằng hình ảnh" aria-hidden="true">
 <div id="ottGuideHeader"><span id="ottGuideTitle">HƯỚNG DẪN TELEGRAM</span><button type="button" id="ottGuideClose">✕ Đóng</button></div>
-<div id="ottGuideViewport"><img id="ottGuideImage" src="assets/huong-dan/slide-01.svg" alt="Hình hướng dẫn 1 trên 24"></div>
-<div id="ottGuideNav"><button type="button" id="ottGuidePrev" aria-label="Ảnh trước">❮</button><span id="ottGuideCounter">1 / 24</span><button type="button" id="ottGuideNext" aria-label="Ảnh tiếp theo">❯</button></div>
+<div id="ottGuideViewport"><img id="ottGuideImage" src="assets/huong-dan/slide-01.svg" alt="Hình hướng dẫn 1 trên 6"></div>
+<div id="ottGuideNav"><button type="button" id="ottGuidePrev" aria-label="Ảnh trước">❮</button><span id="ottGuideCounter">1 / 6</span><button type="button" id="ottGuideNext" aria-label="Ảnh tiếp theo">❯</button></div>
 </div>
 <script id="ott-guide-24-script">
 (function(){
 const get=id=>document.getElementById(id);let current=0,startX=null;
 const overlay=get("ottGuideOverlay"),photo=get("ottGuideImage");
-function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg?v=20261021-guide-final-2";photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 24";get("ottGuideCounter").textContent=(current+1)+" / 24";get("ottGuideTitle").textContent=current<8?"HƯỚNG DẪN TELEGRAM":"HƯỚNG DẪN CÚ PHÁP";}
+function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".png?v=20261021-mau2";photo.onerror=function(){this.onerror=null;this.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg"};photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 6";get("ottGuideCounter").textContent=(current+1)+" / 6";get("ottGuideTitle").textContent="HƯỚNG DẪN ÔNG THẦN TÀI";}
 function open(index){current=index||0;draw();overlay.classList.add("ott-open");overlay.setAttribute("aria-hidden","false");get("ottGuideClose").focus();}
 function close(){overlay.classList.remove("ott-open");overlay.setAttribute("aria-hidden","true");(get("syntaxGuideOpen")||get("ottGuideCorner")).focus();}
 get("ottGuideCorner").addEventListener("click",()=>open(0));get("ottGuideClose").addEventListener("click",close);
-get("ottGuidePrev").addEventListener("click",()=>{current=(current+23)%24;draw()});
-get("ottGuideNext").addEventListener("click",()=>{current=(current+1)%24;draw()});
+get("ottGuidePrev").addEventListener("click",()=>{current=(current+5)%6;draw()});
+get("ottGuideNext").addEventListener("click",()=>{current=(current+1)%6;draw()});
 get("ottGuideViewport").addEventListener("touchstart",e=>{startX=e.touches[0]?.clientX??null},{passive:true});
-get("ottGuideViewport").addEventListener("touchend",e=>{if(startX===null)return;const d=(e.changedTouches[0]?.clientX??startX)-startX;if(Math.abs(d)>45){current=(current+(d<0?1:23))%24;draw()}startX=null},{passive:true});
+get("ottGuideViewport").addEventListener("touchend",e=>{if(startX===null)return;const d=(e.changedTouches[0]?.clientX??startX)-startX;if(Math.abs(d)>45){current=(current+(d<0?1:5))%6;draw()}startX=null},{passive:true});
 document.addEventListener("keydown",e=>{if(!overlay.classList.contains("ott-open"))return;if(e.key==="Escape")close();else if(e.key==="ArrowRight"){current=(current+1)%24;draw()}else if(e.key==="ArrowLeft"){current=(current+23)%24;draw()}});
 window.openOttGuideImages=open;
 const originalGuide=document.getElementById("syntaxGuideOpen");if(originalGuide)originalGuide.textContent="📖 HƯỚNG DẪN";

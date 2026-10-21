@@ -11119,3 +11119,14 @@ document.addEventListener('touchend',e=>{if(!p||!e.changedTouches.length)return;
 document.addEventListener('touchcancel',()=>p=null,{passive:true});close();
 }if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
 })();</script>
+
+<!-- public-swipe-restore-no-button-20261021 -->
+<style id="public-swipe-restore-style">
+html body #publicAuthTab{display:none!important;visibility:hidden!important;pointer-events:none!important}
+html body #publicAuthTab::before,html body #publicAuthTab::after{display:none!important;content:none!important}
+</style>
+<script id="public-swipe-restore-script">(function(){function init(){const cover=document.getElementById('publicCover');if(!cover)return;let p=null;
+document.addEventListener('touchstart',e=>{p=null;if(document.body.classList.contains('app-unlocked')||document.body.classList.contains('public-auth-open')||e.touches.length!==1)return;const t=e.touches[0];if(t.clientX>innerWidth*.65)return;p=[t.clientX,t.clientY]},{passive:true,capture:true});
+document.addEventListener('touchend',e=>{if(!p||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-p[0],dy=t.clientY-p[1];p=null;if(dx>45&&Math.abs(dx)>Math.abs(dy)*1.2&&!document.body.classList.contains('app-unlocked')){if(typeof window.hidePublicCoverForAuth==='function')window.hidePublicCoverForAuth();else document.body.classList.add('public-auth-open')}},{passive:true,capture:true});
+document.addEventListener('touchcancel',()=>p=null,{passive:true});
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>

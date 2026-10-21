@@ -1021,7 +1021,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   </main>
   <div id="lotterySwipeZone" aria-hidden="true"></div>
 </div>
-<button id="publicAuthTab" type="button" aria-label="Mở hoặc ẩn đăng nhập"><span>›</span></button>
+
 
 
 <section id="loginCard" class="card">
@@ -1097,7 +1097,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  <div class="swipe-hint">☝️ Vuốt từ mép trái vào để mở menu</div>
  <div id="devicePanel" class="device"><span class="badge">THIẾT BỊ</span> <b id="deviceState">Đang kiểm tra...</b><div class="muted" id="deviceInfo"></div><div id="licenseState" class="muted" style="margin-top:5px;font-weight:800"></div></div>
 </div>
-<button class="drawer-edge" id="drawerEdge" aria-label="Mở menu">☰</button>
+
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 <aside class="app-drawer" id="appDrawer" aria-hidden="true">
  <div class="drawer-head"><div class="dh-title">🧧 cuncun.icu</div><button class="drawer-close" id="drawerClose">×</button></div>
@@ -11119,3 +11119,24 @@ $("tgImport").addEventListener("click",()=>{
 })();
 </script>
 <script id="tg-menu-48h-init">(function(){function init(){var b=document.getElementById('tgMenuToggle'),p=document.getElementById('tgMenuPanel'),m=document.getElementById('tgMenuMount'),inbox=document.getElementById('tgForwardInbox');if(!b||!p||!m||!inbox)return;m.appendChild(inbox);inbox.open=true;b.addEventListener('click',function(){p.hidden=!p.hidden;if(!p.hidden)document.getElementById('tgRefresh')?.click()})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
+<!-- ott-menu-stable-v2 -->
+<style id="ott-menu-stable-style">
+#drawerEdge,#publicAuthTab{display:none!important}
+#tgMenuPanel[hidden]{display:none!important}
+#tgMenuPanel:not([hidden]){display:block!important}
+#tgMenuDedicated #tgForwardInbox{margin:0!important}
+#tgMenuDedicated #tgInboxList{max-height:52vh!important;overflow-y:auto!important}
+#drawerBackdrop:not(.open){display:none!important;pointer-events:none!important;opacity:0!important}
+</style>
+<script id="ott-menu-stable-script">(function(){function init(){
+const d=document.getElementById('appDrawer'),b=document.getElementById('drawerBackdrop');if(!d||!b)return;
+function close(){d.classList.remove('open');b.classList.remove('open');d.setAttribute('aria-hidden','true');b.style.pointerEvents='none'}
+function open(){d.classList.add('open');b.classList.add('open');d.setAttribute('aria-hidden','false');b.style.pointerEvents='auto'}
+document.getElementById('drawerClose')?.addEventListener('click',close);
+b.addEventListener('click',close);
+new MutationObserver(()=>{if(!d.classList.contains('open')){b.classList.remove('open');b.style.pointerEvents='none'}}).observe(d,{attributes:true,attributeFilter:['class']});
+let start=null;
+document.addEventListener('touchstart',e=>{start=null;if(e.touches.length!==1)return;const t=e.touches[0];if(t.clientX>innerWidth*.5)return;if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;start={x:t.clientX,y:t.clientY,unlocked:document.body.classList.contains('app-unlocked'),drawerOpen:d.classList.contains('open')}},{capture:true,passive:true});
+document.addEventListener('touchend',e=>{if(!start||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y,s=start;start=null;if(dx<65||Math.abs(dx)<Math.abs(dy)*1.5)return;if(s.unlocked&&!s.drawerOpen)open();else if(!s.unlocked&&!document.body.classList.contains('public-auth-open'))window.hidePublicCoverForAuth?.()},{capture:true,passive:true});
+document.addEventListener('touchcancel',()=>{start=null},{passive:true});close();
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>

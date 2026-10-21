@@ -9967,6 +9967,20 @@ btn.addEventListener('click',()=>{if(!host.hidden){document.getElementById('tgRe
 const drawer=document.getElementById('appDrawer');if(drawer){const observer=new MutationObserver(()=>{if(drawer.classList.contains('open')&&!host.hidden){document.getElementById('tgRefresh')?.click()}});observer.observe(drawer,{attributes:true,attributeFilter:['class']});}
 }if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();</script>
+<style id="drawer-invisible-left-swipe-20261021">
+body.app-unlocked #drawerEdge,body.app-unlocked button#drawerEdge{display:none!important;visibility:hidden!important;pointer-events:none!important}
+</style>
+<script id="drawer-invisible-left-swipe-20261021-js">(function(){
+function init(){const drawer=document.getElementById('appDrawer'),back=document.getElementById('drawerBackdrop');if(!drawer||!back)return;let x=0,y=0,armed=false;
+document.addEventListener('touchstart',function(e){armed=false;if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open')||e.touches.length!==1)return;
+const t=e.touches[0],target=e.target;if(t.clientX>Math.min(window.innerWidth*.45,210))return;
+if(target.closest('input,textarea,select,button,a,[contenteditable="true"],#lotterySwipeZone,#publicCover,#pinCard,.app-drawer'))return;
+x=t.clientX;y=t.clientY;armed=true;},{passive:true});
+document.addEventListener('touchend',function(e){if(!armed)return;armed=false;const t=e.changedTouches[0];if(!t)return;const dx=t.clientX-x,dy=t.clientY-y;if(dx<65||Math.abs(dx)<Math.abs(dy)*1.5)return;
+drawer.classList.add('open');back.classList.add('open');drawer.setAttribute('aria-hidden','false');},{passive:true});
+document.addEventListener('touchcancel',()=>{armed=false},{passive:true});
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();</script>
 </body>
 </html>
 <style id="v81-style">

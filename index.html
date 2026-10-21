@@ -9929,28 +9929,7 @@ bets.addEventListener('input',showOnce);
 })();
 </script>
 <script id="tg-drawer-navigation-20261021">(function(){function init(){const b=document.getElementById('tgDrawerOpen'),panel=document.getElementById('tgDrawerMenuBody'),view=document.getElementById('tgDrawerView');if(!b||!panel||!view)return;b.addEventListener('click',()=>{panel.hidden=!panel.hidden;b.textContent=panel.hidden?'📨 TIN NHẮN TELEGRAM ▸':'📨 TIN NHẮN TELEGRAM ▾'});view.addEventListener('click',()=>{document.getElementById('drawerClose')?.click();const t=document.getElementById('tgForwardInbox');if(t){t.open=true;t.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('tgRefresh')?.click();}})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
-<style id="drawer-swipe-easy-20261021">
-/* Visible, generous swipe target; unlocked screen only. */
-body.app-unlocked:not(:has(#appDrawer.open)) #drawerEdge{
-display:block!important;position:fixed!important;left:10px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;
-width:48px!important;height:116px!important;opacity:1!important;visibility:visible!important;
-background:rgba(125,133,145,.13)!important;border:1px solid rgba(100,110,125,.25)!important;
-border-radius:24px!important;pointer-events:auto!important;touch-action:pan-y!important;z-index:2147483000!important;
-}
-body.app-unlocked:not(:has(#appDrawer.open)) #drawerEdge::after{
-content:"›"!important;display:flex!important;align-items:center!important;justify-content:center!important;
-position:absolute!important;inset:0!important;width:auto!important;height:auto!important;
-background:transparent!important;color:#64748b!important;font-size:32px!important;font-weight:700!important;
-}
-body:not(.app-unlocked) #drawerEdge,body.app-unlocked:has(#appDrawer.open) #drawerEdge{display:none!important;pointer-events:none!important}
-</style>
-<script id="drawer-swipe-easy-20261021-js">(function(){
-function init(){const edge=document.getElementById('drawerEdge'),drawer=document.getElementById('appDrawer'),back=document.getElementById('drawerBackdrop');if(!edge||!drawer||!back)return;
-let sx=0,sy=0,armed=false;
-edge.addEventListener('touchstart',e=>{if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open'))return;const t=e.touches[0];sx=t.clientX;sy=t.clientY;armed=true},{passive:true});
-edge.addEventListener('touchend',e=>{if(!armed)return;armed=false;const t=e.changedTouches[0];if(!t)return;const dx=t.clientX-sx,dy=t.clientY-sy;if(dx>=22&&Math.abs(dx)>Math.abs(dy)){drawer.classList.add('open');back.classList.add('open');drawer.setAttribute('aria-hidden','false')}},{passive:true});
-}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();</script>
+
 <style id="tg-menu-dedicated-style">
 #tgDrawerMenuEntry .drawer-body[hidden]{display:none!important}
 #tgDrawerMenuEntry .drawer-body:not([hidden]){display:block!important;padding:8px!important}
@@ -10880,58 +10859,7 @@ body.app-unlocked:has(#appDrawer.open) #drawerEdge{display:none!important;pointe
 </style>
 
 <!-- MENU VUOT RIENG: KHONG CHAM VAO VUOT MO KHOA -->
-<style id="cuncun-menu-swipe-handle-final">
-body.app-unlocked #drawerEdge,body.app-unlocked button#drawerEdge{
- display:block!important;position:fixed!important;top:50%!important;left:24px!important;bottom:auto!important;
- transform:translateY(-50%)!important;width:30px!important;height:72px!important;
- padding:0!important;margin:0!important;font-size:0!important;color:transparent!important;
- border:0!important;border-radius:12px!important;background:transparent!important;
- box-shadow:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
- touch-action:pan-y!important;z-index:2147483000!important;-webkit-tap-highlight-color:transparent!important;
-}
-body.app-unlocked #drawerEdge::after{
- content:"";display:block;position:absolute;left:11px;top:15px;width:6px;height:42px;
- border-radius:6px;background:rgba(110,116,126,.47);pointer-events:none;
-}
-body:not(.app-unlocked) #drawerEdge,body.app-unlocked:has(#appDrawer.open) #drawerEdge{
- display:none!important;pointer-events:none!important;
-}
-body.app-unlocked #appDrawer{width:min(52vw,260px)!important;max-width:260px!important}
-body.app-unlocked #drawerClose{display:flex!important;visibility:visible!important;pointer-events:auto!important}
-</style>
-<script id="cuncun-menu-swipe-handle-final-js">
-(function(){'use strict';
- function init(){
-  var edge=document.getElementById('drawerEdge'), drawer=document.getElementById('appDrawer'), backdrop=document.getElementById('drawerBackdrop');
-  if(!edge||!drawer||!backdrop)return;
-  edge.textContent='';edge.setAttribute('aria-label','Vuốt thanh mờ sang phải để mở menu');
-  var x0=null,y0=null,tracking=false;
-  // Chi bat dau tren thanh nho canh trai, khi da mo khoa; khong can thiep man hinh mo khoa.
-  document.addEventListener('touchstart',function(e){
-   tracking=false;x0=null;
-   if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open')||e.touches.length!==1)return;
-   var t=e.touches[0],r=edge.getBoundingClientRect();
-   if(t.clientX>=r.left && t.clientX<=r.right+8 && t.clientY>=r.top-12 && t.clientY<=r.bottom+20){x0=t.clientX;y0=t.clientY;tracking=true;}
-  },{capture:true,passive:true});
-  document.addEventListener('touchend',function(e){
-   if(!tracking||x0===null||!e.changedTouches.length)return;
-   var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;
-   tracking=false;x0=null;
-   if(dx<32||Math.abs(dx)<Math.abs(dy)*1.1||!document.body.classList.contains('app-unlocked'))return;
-   // Goi su kien click da co de giu cac thao tac cap nhat trong menu.
-   edge.click();
-   // Du phong khi co listener khac chan click.
-   if(!drawer.classList.contains('open')){
-    drawer.classList.add('open');backdrop.classList.add('open');drawer.setAttribute('aria-hidden','false');
-   }
-  },{capture:true,passive:true});
-  document.addEventListener('touchcancel',function(){tracking=false;x0=null},{capture:true,passive:true});
-  // Cham don le khong mo menu.
-  edge.addEventListener('click',function(e){if(e.isTrusted){e.preventDefault();e.stopImmediatePropagation();}},true);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script>
+
 
 <!-- Chi sua giao dien menu: khong thay doi JavaScript vuot/mo khoa -->
 <style id="cuncun-menu-typography-opacity-final-1710">
@@ -11173,22 +11101,21 @@ $("tgImport").addEventListener("click",()=>{
 })();
 </script>
 
-<!-- drawer-swipe-final-after-all-scripts-20261021 -->
-<style>body.app-unlocked #drawerEdge{display:none!important;visibility:hidden!important;pointer-events:none!important}</style>
-<script>(function(){function init(){const drawer=document.getElementById('appDrawer'),back=document.getElementById('drawerBackdrop');if(!drawer||!back)return;let start=null;document.addEventListener('touchstart',e=>{start=null;if(e.touches.length!==1||!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open'))return;const t=e.touches[0];if(t.clientX>window.innerWidth*.55)return;if(e.target.closest('#pinCard,#publicCover,#appDrawer,input,textarea,select,[contenteditable="true"]'))return;start={x:t.clientX,y:t.clientY};},{capture:true,passive:true});document.addEventListener('touchend',e=>{if(!start||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;start=null;if(dx<45||Math.abs(dx)<Math.abs(dy)*1.2||!document.body.classList.contains('app-unlocked'))return;drawer.classList.add('open');back.classList.add('open');drawer.setAttribute('aria-hidden','false');},{capture:true,passive:true});document.addEventListener('touchcancel',()=>{start=null},{passive:true});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script>
 
-<!-- menu-overlay-cleanup-20261021 -->
-<style id="menu-overlay-cleanup-css">
-html body #drawerEdge,html body button#drawerEdge{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
-html body #drawerEdge::before,html body #drawerEdge::after{display:none!important;content:none!important}
-html body #drawerBackdrop:not(.open){display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-html body #drawerBackdrop.open{display:block!important;visibility:visible!important}
+<style id="ott-drawer-single-controller">
+html body #drawerEdge{display:none!important;visibility:hidden!important;pointer-events:none!important}
+html body #drawerEdge::before,html body #drawerEdge::after{content:none!important;display:none!important}
+html body #drawerBackdrop:not(.open){display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+html body #drawerBackdrop.open{display:block!important;visibility:visible!important;pointer-events:auto!important}
 </style>
-<script id="menu-overlay-cleanup-js">(function(){function init(){
-const drawer=document.getElementById('appDrawer'),close=document.getElementById('drawerClose');if(!drawer)return;
-function sync(){const b=document.getElementById('drawerBackdrop');if(!b)return;const open=drawer.classList.contains('open');b.classList.toggle('open',open);b.style.pointerEvents=open?'auto':'none';if(!open){b.style.opacity='0';b.style.visibility='hidden';}else{b.style.removeProperty('opacity');b.style.removeProperty('visibility');}drawer.setAttribute('aria-hidden',open?'false':'true');}
-new MutationObserver(sync).observe(drawer,{attributes:true,attributeFilter:['class']});
-close?.addEventListener('click',()=>{drawer.classList.remove('open');sync()});
-document.addEventListener('click',e=>{if(e.target.id==='drawerBackdrop'){drawer.classList.remove('open');sync()}},true);
-sync();
-}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
+<script id="ott-drawer-single-controller-js">(function(){
+function setup(){const d=document.getElementById('appDrawer'),b=document.getElementById('drawerBackdrop'),x=document.getElementById('drawerClose');if(!d||!b||!x)return;
+function close(){d.classList.remove('open');b.classList.remove('open');d.setAttribute('aria-hidden','true');b.style.pointerEvents='none';b.style.opacity='';b.style.visibility=''}
+function open(){if(!document.body.classList.contains('app-unlocked'))return;d.classList.add('open');b.classList.add('open');d.setAttribute('aria-hidden','false');b.style.pointerEvents='auto';b.style.opacity='';b.style.visibility=''}
+x.addEventListener('click',close,true);b.addEventListener('click',close,true);
+new MutationObserver(()=>{if(!d.classList.contains('open'))close()}).observe(d,{attributes:true,attributeFilter:['class']});
+let p=null;document.addEventListener('touchstart',e=>{p=null;if(!document.body.classList.contains('app-unlocked')||d.classList.contains('open')||e.touches.length!==1)return;const t=e.touches[0];if(t.clientX>innerWidth*.55||e.target.closest('input,textarea,select,#appDrawer,#publicCover'))return;p=[t.clientX,t.clientY]},{passive:true,capture:true});
+document.addEventListener('touchend',e=>{if(!p||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-p[0],dy=t.clientY-p[1];p=null;if(dx>50&&Math.abs(dx)>Math.abs(dy)*1.3)open()},{passive:true,capture:true});
+document.addEventListener('touchcancel',()=>p=null,{passive:true});close();
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();</script>

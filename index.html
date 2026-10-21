@@ -10974,7 +10974,7 @@ function apply(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",apply);else apply();
 })();
 </script>
-<script id="tg-forward-inbox-client">
+<style id="tg-region-select-style">#tgRegionFilter{border:1px solid #cad5e1;border-radius:8px;background:white;color:#17212f;padding:8px;font-size:14px;min-width:130px}</style><script id="tg-region-select-init">(function(){function init(){const group=document.getElementById("tgGroupFilter");if(!group||document.getElementById("tgRegionFilter"))return;const select=document.createElement("select");select.id="tgRegionFilter";select.setAttribute("aria-label","Lọc miền tin Telegram");select.innerHTML='<option value="">Tất cả miền</option><option value="MN">Miền Nam</option><option value="MT">Miền Trung</option><option value="MB">Miền Bắc</option><option value="CHƯA RÕ">Chưa rõ miền</option>';group.insertAdjacentElement("afterend",select);}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();})();</script><script id="tg-forward-inbox-client">
 (function(){
 const $=id=>document.getElementById(id);
 let messages=[],selected=new Set(),loading=false;
@@ -10996,25 +10996,26 @@ function syncTelegramActions(){
  const count=messages.length;
  const actions=$("tgInboxActions");
  if(actions)actions.style.display=count?"flex":"none";
- $("tgDeleteSelected").style.display=selected.size?"inline-flex":"none";
+ $("tgDeleteSelected").style.display="none";
  $("tgSelectNone").style.display=selected.size?"inline-flex":"none";
- $("tgDeleteAll").style.display=count?"inline-flex":"none";
+ $("tgDeleteAll").style.display="none";
  $("tgImport").style.display=selected.size?"block":"none";
 }
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+function region(m){const x=String(m.message_text||"").toLowerCase();if(/\\b(hn|mb|xsmb)\\b|miền bắc/.test(x))return "MB";if(/\\b([234]dmt|mt|xsmt)\\b|miền trung/.test(x))return "MT";if(/\\b([234]dmn|mn|xsmn)\\b|miền nam/.test(x))return "MN";return "CHƯA RÕ";}
+function visible(){const g=$("tgGroupFilter").value,r=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g)&&(!r||region(m)===r));}
 function draw(){
- const filter=$("tgGroupFilter").value;
- const rows=messages.filter(m=>!filter||(m.selected_group||m.origin_name||"Không rõ nhóm")===filter);
- $("tgInboxList").innerHTML=rows.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(m.id)?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important;opacity:1!important;visibility:visible!important"><b style="color:#14532d!important">'+esc(m.selected_group||m.origin_name||"Không rõ nhóm")+'</b> · '+esc(m.sender_name||m.origin_name||'Không rõ người gửi')+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="color:#17212f!important;opacity:1!important;visibility:visible!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div><button type="button" class="tg-delete-one" data-delete-id="'+m.id+'" style="margin-top:8px;padding:6px 10px;background:#fee2e2;color:#991b1b;border-radius:7px">Xoá tin này</button></span></label>').join("")||'<div>Chưa có tin trong nhóm này.</div>';
+ const rows=visible();
+ $("tgInboxList").innerHTML=rows.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(m.id)?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important;opacity:1!important;visibility:visible!important"><b style="color:#14532d!important">'+esc(m.selected_group||m.origin_name||"Không rõ nhóm")+'</b> · '+esc(m.sender_name||m.origin_name||'Không rõ người gửi')+' <small>['+region(m)+'] '+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="color:#17212f!important;opacity:1!important;visibility:visible!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")||'<div>Chưa có tin trong nhóm này.</div>';
  $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;syncTelegramActions();
 }
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});
-$("tgGroupFilter").addEventListener("change",draw);
+$("tgGroupFilter").addEventListener("change",draw);$("tgRegionFilter")?.addEventListener("change",draw);
 $("tgInboxList").addEventListener("click",e=>{const btn=e.target.closest(".tg-delete-one");if(!btn)return;e.preventDefault();deleteTelegram([Number(btn.dataset.deleteId)])});
 $("tgDeleteSelected").addEventListener("click",()=>deleteTelegram([...selected]));
 $("tgDeleteAll").addEventListener("click",()=>{const g=$("tgGroupFilter").value;deleteTelegram(messages.filter(m=>!g||m.selected_group===g).map(m=>Number(m.id)))});
 
-$("tgSelectAll").addEventListener("click",()=>{const g=$("tgGroupFilter").value;messages.filter(m=>!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g).forEach(m=>selected.add(m.id));draw()});
+$("tgSelectAll").addEventListener("click",()=>{visible().forEach(m=>selected.add(Number(m.id)));draw()});
 $("tgSelectNone").addEventListener("click",()=>{selected.clear();draw()});
 $("tgRefresh").addEventListener("click",async()=>{
  if(loading||document.hidden)return;
@@ -11030,7 +11031,7 @@ $("tgRefresh").addEventListener("click",async()=>{
  const allowedGroups=[...new Set(messages.map(m=>m.selected_group).filter(Boolean))].sort();
  const valid=new Set(messages.map(m=>Number(m.id)));
  selected=new Set([...selected].filter(id=>valid.has(id)));
- const names=allowedGroups;
+ const names=[...new Set([...allowedGroups,"C Ngọc x79","A Thuật x77","A Hải 75","A Tuấn 77","C Thảo 76"])];
  const previousGroup=$("tgGroupFilter").value;
  $("tgGroupFilter").innerHTML='<option value="">Tất cả nhóm</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
  if(names.includes(previousGroup))$("tgGroupFilter").value=previousGroup;
@@ -11078,13 +11079,17 @@ $("tgRefresh").click();
 setInterval(()=>{if(!document.hidden)$("tgRefresh").click()},5000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)$("tgRefresh").click()});
 $("tgImport").addEventListener("click",()=>{
- const items=messages.filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date));
+ const items=messages.filter(m=>selected.has(Number(m.id))&&visible().includes(m)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date));
  if(!items.length){$("tgInboxStatus").textContent="Hãy chọn ít nhất một tin.";return}
  const input=$("bets");if(!input)return;
- const text=items.map(m=>m.message_text).join("\n\n");
+ const normalize=v=>String(v||"").normalize("NFKC").replace(/\\s+/g," ").trim().toLowerCase();
+ const existing=new Set(input.value.split(/\\n\\s*\\n/).map(normalize).filter(Boolean));
+ const unique=[];for(const m of items){const body=String(m.message_text||"").trim(),key=normalize(body);if(key&&!existing.has(key)){unique.push(body);existing.add(key);}}
+ if(!unique.length){$("tgInboxStatus").textContent="Tất cả tin đã chọn đều trùng với nội dung trong ô nhập.";return;}
+ const text=unique.join("\n\n");
  input.value=[input.value.trim(),text].filter(Boolean).join("\n\n");
  input.dispatchEvent(new Event("input",{bubbles:true}));
- $("betsCard").open=true;$("tgInboxStatus").textContent="Đã đưa "+items.length+" tin vào ô nhập. Hãy kiểm tra trước khi bấm OK.";
+ $("betsCard").open=true;$("tgInboxStatus").textContent="Đã đưa "+unique.length+" tin không trùng vào ô nhập, bỏ qua "+(items.length-unique.length)+" tin trùng.";
  input.scrollIntoView({behavior:"smooth",block:"center"});
 });
 })();

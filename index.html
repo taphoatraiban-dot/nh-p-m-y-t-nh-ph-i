@@ -11010,14 +11010,20 @@ const tgOpenedGroups=new Set();
 const regionOf=m=>{
  const raw=String(m.message_text||"").normalize("NFKC").toLowerCase();
  const t=raw.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
- const words=t.replace(/[^a-z0-9]+/g," ").trim().split(/\s+/).filter(Boolean);
- const all=" "+words.join(" ")+" ";
- const has=arr=>arr.some(x=>all.includes(" "+x+" "));
- const mb=["hn","mb","xsmb","mien bac","ha noi","hanoi"];
- const mt=["2dmt","3dmt","xsmt","mien trung","hue","pyen","phu yen","dlak","dak lak","daklak","qnam","quang nam","dnang","da nang","qtri","quang tri","qngai","quang ngai","ktum","kon tum","glai","gia lai","ntuan","ninh thuan","bdinh","binh dinh","khanh hoa","khoa","kh"];
- const mn=["2dmn","3dmn","4dmn","xsmn","mien nam","tpho","tphcm","hcm","dthap","dong thap","btre","ben tre","vtau","vung tau","blieu","bac lieu","dnai","dong nai","ctho","can tho","tninh","tay ninh","agiang","an giang","vlong","vinh long","bdg","binh duong","tgiang","tien giang","kgiang","kien giang","cmau","ca mau","strang","soc trang","tvinh","tra vinh","bthuan","binh thuan","dlat","da lat","long an","lan"];
- const found=[has(mb)?"MB":null,has(mt)?"MT":null,has(mn)?"MN":null].filter(Boolean);
- return found.length===1?found[0]:"OTHER";
+ const words=" "+t.replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ")+" ";
+ const has=a=>a.some(s=>words.includes(" "+s+" "));
+ const names={
+ MB:["hn","mb","xsmb","mien bac","ha noi","hanoi"],
+ MT:["mt","2dmt","3dmt","xsmt","mien trung","hue","pyen","phu yen","dlak","dak lak","daklak","qnam","quang nam","dnang","da nang","qtri","quang tri","qngai","quang ngai","ktum","kon tum","glai","gia lai","ntuan","ninh thuan","bdinh","binh dinh","khanh hoa","khoa","kh","quy nhon"],
+ MN:["mn","2dmn","3dmn","4dmn","xsmn","mien nam","tpho","tphcm","hcm","dthap","dong thap","btre","ben tre","vtau","vung tau","blieu","bac lieu","dnai","dong nai","ctho","can tho","tninh","tay ninh","agiang","an giang","vlong","vinh long","bdg","binh duong","tgiang","tien giang","kgiang","kien giang","cmau","ca mau","strang","soc trang","tvinh","tra vinh","bthuan","binh thuan","dlat","da lat","long an","lan"]
+ };
+ const found=Object.keys(names).filter(k=>has(names[k]));
+ if(found.length===1)return found[0];
+ if(found.length>1)return "OTHER";
+ // Giờ quay chỉ dùng khi tin ghi rõ giờ miền; không suy đoán theo giờ gửi tin.
+ const time=t.match(/(?:^|\s)(16|17|18)\s*(?:h|:|gio)\s*(?:00)?(?:\s|$)/);
+ if(time)return {"16":"MN","17":"MT","18":"MB"}[time[1]];
+ return "OTHER";
 };
 let expandedMessages=new Set();
 function visible(){const group=$("tgGroupFilter").value,region=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!group||(m.selected_group||m.origin_name||"Không rõ nhóm")===group)&&(!region||regionOf(m)===region));}

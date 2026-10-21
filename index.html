@@ -1109,7 +1109,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   </div>
  </div>
  <div class="drawer-section history"><h3>🕘 LỊCH SỬ GẦN NHẤT</h3><div class="drawer-body"><div class="history-list" id="recentHistory"><div class="history-row"><span>Chưa có lịch sử</span><small>—</small></div></div></div></div>
- <div class="drawer-section" id="tgDrawerMenuEntry"><h3><button type="button" id="tgDrawerOpen" style="width:100%;text-align:left;background:transparent;border:0;color:inherit;font:inherit;padding:0;cursor:pointer">📨 TIN NHẮN TELEGRAM ▸</button></h3><div class="drawer-body" id="tgDrawerMenuBody" hidden><p style="font-size:12px;margin:6px 0">Tin từng khách · xem trong 48 giờ gần nhất. Tin cũ không tự xoá.</p><button type="button" id="tgDrawerView" class="green" style="width:100%">XEM TIN TELEGRAM</button></div></div>
+ <!-- tg-menu-dedicated-panel-20261021 -->
+<div class="drawer-section" id="tgDrawerMenuEntry"><h3><button type="button" id="tgDrawerOpen" style="width:100%;text-align:left;background:transparent;border:0;color:inherit;font:inherit;padding:0;cursor:pointer">📨 TIN NHẮN TELEGRAM ▸</button></h3><div class="drawer-body" id="tgDrawerMenuBody" hidden><p style="font-size:12px;margin:6px 0">Tin từng khách · xem trong 48 giờ gần nhất. Tin cũ không tự xoá.</p><button type="button" id="tgDrawerView" class="green" style="width:100%">XEM TIN TELEGRAM</button></div></div>
  <div class="drawer-section customer-msg-menu"><h3>💬 TIN NHẮN TỪNG KHÁCH</h3><div class="drawer-body"><div class="customer-msg-note">Lưu tối đa 24h</div><div class="customer-msg-list" id="customerMessageList"><div class="history-row"><span>Chưa có tin nhắn</span><small>—</small></div></div></div></div>
  <div class="drawer-section stats-menu"><h3>📊 THỐNG KÊ</h3><div class="drawer-body"><button type="button" class="stats-open-btn" id="openStatsBtn">THỐNG KÊ</button></div></div>
  <div class="drawer-section customers"><h3><span>👥 QUẢN LÝ KHÁCH HÀNG</span><button type="button" class="drawer-add-customer" id="addCustomerDrawer">＋ THÊM KHÁCH</button></h3><div class="drawer-body"><div class="drawer-customer-list" id="drawerCustomerList"></div><div id="drawerAdminMount"></div></div></div>
@@ -9948,6 +9949,22 @@ function init(){const edge=document.getElementById('drawerEdge'),drawer=document
 let sx=0,sy=0,armed=false;
 edge.addEventListener('touchstart',e=>{if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open'))return;const t=e.touches[0];sx=t.clientX;sy=t.clientY;armed=true},{passive:true});
 edge.addEventListener('touchend',e=>{if(!armed)return;armed=false;const t=e.changedTouches[0];if(!t)return;const dx=t.clientX-sx,dy=t.clientY-sy;if(dx>=22&&Math.abs(dx)>Math.abs(dy)){drawer.classList.add('open');back.classList.add('open');drawer.setAttribute('aria-hidden','false')}},{passive:true});
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();</script>
+<style id="tg-menu-dedicated-style">
+#tgDrawerMenuEntry .drawer-body[hidden]{display:none!important}
+#tgDrawerMenuEntry .drawer-body:not([hidden]){display:block!important;padding:8px!important}
+#tgDrawerMenuEntry #tgForwardInbox{display:block!important;margin:0!important}
+#tgDrawerMenuEntry #tgForwardInbox>.compact-body{padding:6px!important}
+#tgDrawerMenuEntry #tgInboxList{max-height:55vh!important;overflow:auto!important}
+#tgDrawerMenuEntry #tgForwardInbox>summary{display:none!important}
+</style>
+<script id="tg-menu-dedicated-script">(function(){
+function init(){const host=document.getElementById('tgDrawerMenuBody'),box=document.getElementById('tgForwardInbox'),btn=document.getElementById('tgDrawerOpen');if(!host||!box||!btn)return;
+const note=host.querySelector('p'),oldButton=document.getElementById('tgDrawerView');if(oldButton)oldButton.remove();
+host.appendChild(box);box.open=true;host.hidden=true;
+btn.addEventListener('click',()=>{if(!host.hidden){document.getElementById('tgRefresh')?.click();}});
+const drawer=document.getElementById('appDrawer');if(drawer){const observer=new MutationObserver(()=>{if(drawer.classList.contains('open')&&!host.hidden){document.getElementById('tgRefresh')?.click()}});observer.observe(drawer,{attributes:true,attributeFilter:['class']});}
 }if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();</script>
 </body>

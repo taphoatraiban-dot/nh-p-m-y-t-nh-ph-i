@@ -990,7 +990,7 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 (function(){
 const get=id=>document.getElementById(id);let current=0,startX=null;
 const overlay=get("ottGuideOverlay"),photo=get("ottGuideImage");
-function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".png?v=20261021-mau2";photo.onerror=function(){this.onerror=null;this.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".svg"};photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 6";get("ottGuideCounter").textContent=(current+1)+" / 6";get("ottGuideTitle").textContent="HƯỚNG DẪN ÔNG THẦN TÀI";}
+function draw(){photo.src="assets/huong-dan/slide-"+String(current+1).padStart(2,"0")+".png?v=20261021-mau2";photo.onerror=function(){this.onerror=null;const fallback=[9,10,1,5,7,13][current];this.src="assets/huong-dan/slide-"+String(fallback).padStart(2,"0")+".svg"};photo.alt="Ảnh hướng dẫn "+(current+1)+" trên 6";get("ottGuideCounter").textContent=(current+1)+" / 6";get("ottGuideTitle").textContent="HƯỚNG DẪN ÔNG THẦN TÀI";}
 function open(index){current=index||0;draw();overlay.classList.add("ott-open");overlay.setAttribute("aria-hidden","false");get("ottGuideClose").focus();}
 function close(){overlay.classList.remove("ott-open");overlay.setAttribute("aria-hidden","true");(get("syntaxGuideOpen")||get("ottGuideCorner")).focus();}
 get("ottGuideCorner").addEventListener("click",()=>open(0));get("ottGuideClose").addEventListener("click",close);

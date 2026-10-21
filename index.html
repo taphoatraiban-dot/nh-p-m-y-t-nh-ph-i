@@ -9928,6 +9928,28 @@ bets.addEventListener('input',showOnce);
 })();
 </script>
 <script id="tg-drawer-navigation-20261021">(function(){function init(){const b=document.getElementById('tgDrawerOpen'),panel=document.getElementById('tgDrawerMenuBody'),view=document.getElementById('tgDrawerView');if(!b||!panel||!view)return;b.addEventListener('click',()=>{panel.hidden=!panel.hidden;b.textContent=panel.hidden?'📨 TIN NHẮN TELEGRAM ▸':'📨 TIN NHẮN TELEGRAM ▾'});view.addEventListener('click',()=>{document.getElementById('drawerClose')?.click();const t=document.getElementById('tgForwardInbox');if(t){t.open=true;t.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('tgRefresh')?.click();}})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
+<style id="drawer-swipe-easy-20261021">
+/* Visible, generous swipe target; unlocked screen only. */
+body.app-unlocked:not(:has(#appDrawer.open)) #drawerEdge{
+display:block!important;position:fixed!important;left:10px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;
+width:48px!important;height:116px!important;opacity:1!important;visibility:visible!important;
+background:rgba(125,133,145,.13)!important;border:1px solid rgba(100,110,125,.25)!important;
+border-radius:24px!important;pointer-events:auto!important;touch-action:pan-y!important;z-index:2147483000!important;
+}
+body.app-unlocked:not(:has(#appDrawer.open)) #drawerEdge::after{
+content:"›"!important;display:flex!important;align-items:center!important;justify-content:center!important;
+position:absolute!important;inset:0!important;width:auto!important;height:auto!important;
+background:transparent!important;color:#64748b!important;font-size:32px!important;font-weight:700!important;
+}
+body:not(.app-unlocked) #drawerEdge,body.app-unlocked:has(#appDrawer.open) #drawerEdge{display:none!important;pointer-events:none!important}
+</style>
+<script id="drawer-swipe-easy-20261021-js">(function(){
+function init(){const edge=document.getElementById('drawerEdge'),drawer=document.getElementById('appDrawer'),back=document.getElementById('drawerBackdrop');if(!edge||!drawer||!back)return;
+let sx=0,sy=0,armed=false;
+edge.addEventListener('touchstart',e=>{if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open'))return;const t=e.touches[0];sx=t.clientX;sy=t.clientY;armed=true},{passive:true});
+edge.addEventListener('touchend',e=>{if(!armed)return;armed=false;const t=e.changedTouches[0];if(!t)return;const dx=t.clientX-sx,dy=t.clientY-sy;if(dx>=22&&Math.abs(dx)>Math.abs(dy)){drawer.classList.add('open');back.classList.add('open');drawer.setAttribute('aria-hidden','false')}},{passive:true});
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();</script>
 </body>
 </html>
 <style id="v81-style">

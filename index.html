@@ -11149,7 +11149,7 @@ start={x:t.clientX,y:t.clientY};
 document.addEventListener('touchend',function(e){
 if(!start||!e.changedTouches.length)return;
 const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;start=null;
-if(dx<75||Math.abs(dx)<Math.abs(dy)*1.7||!document.body.classList.contains('app-unlocked'))return;
+if(dx<48||Math.abs(dx)<Math.abs(dy)*1.35||!document.body.classList.contains('app-unlocked'))return;
 drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');
 },{passive:true});
 document.addEventListener('touchcancel',function(){start=null},{passive:true});

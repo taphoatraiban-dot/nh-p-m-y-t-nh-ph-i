@@ -11176,3 +11176,19 @@ $("tgImport").addEventListener("click",()=>{
 <!-- drawer-swipe-final-after-all-scripts-20261021 -->
 <style>body.app-unlocked #drawerEdge{display:none!important;visibility:hidden!important;pointer-events:none!important}</style>
 <script>(function(){function init(){const drawer=document.getElementById('appDrawer'),back=document.getElementById('drawerBackdrop');if(!drawer||!back)return;let start=null;document.addEventListener('touchstart',e=>{start=null;if(e.touches.length!==1||!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open'))return;const t=e.touches[0];if(t.clientX>window.innerWidth*.55)return;if(e.target.closest('#pinCard,#publicCover,#appDrawer,input,textarea,select,[contenteditable="true"]'))return;start={x:t.clientX,y:t.clientY};},{capture:true,passive:true});document.addEventListener('touchend',e=>{if(!start||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;start=null;if(dx<45||Math.abs(dx)<Math.abs(dy)*1.2||!document.body.classList.contains('app-unlocked'))return;drawer.classList.add('open');back.classList.add('open');drawer.setAttribute('aria-hidden','false');},{capture:true,passive:true});document.addEventListener('touchcancel',()=>{start=null},{passive:true});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script>
+
+<!-- menu-overlay-cleanup-20261021 -->
+<style id="menu-overlay-cleanup-css">
+html body #drawerEdge,html body button#drawerEdge{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+html body #drawerEdge::before,html body #drawerEdge::after{display:none!important;content:none!important}
+html body #drawerBackdrop:not(.open){display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+html body #drawerBackdrop.open{display:block!important;visibility:visible!important}
+</style>
+<script id="menu-overlay-cleanup-js">(function(){function init(){
+const drawer=document.getElementById('appDrawer'),close=document.getElementById('drawerClose');if(!drawer)return;
+function sync(){const b=document.getElementById('drawerBackdrop');if(!b)return;const open=drawer.classList.contains('open');b.classList.toggle('open',open);b.style.pointerEvents=open?'auto':'none';if(!open){b.style.opacity='0';b.style.visibility='hidden';}else{b.style.removeProperty('opacity');b.style.removeProperty('visibility');}drawer.setAttribute('aria-hidden',open?'false':'true');}
+new MutationObserver(sync).observe(drawer,{attributes:true,attributeFilter:['class']});
+close?.addEventListener('click',()=>{drawer.classList.remove('open');sync()});
+document.addEventListener('click',e=>{if(e.target.id==='drawerBackdrop'){drawer.classList.remove('open');sync()}},true);
+sync();
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>

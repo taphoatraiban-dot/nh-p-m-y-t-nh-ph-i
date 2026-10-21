@@ -10953,6 +10953,27 @@ body.app-unlocked:has(#appDrawer.open) #drawerEdge {
 #tgInboxStatus{font-size:12px!important}
 #tgGroupFilter{font-size:14px!important;padding:7px!important;min-height:38px!important}
 </style>
+<style id="tg-five-preserve-20261021">#tgConnectFive{display:inline-flex!important}#tgCustomerSetup{display:block!important}#tgDeleteSelected,#tgDeleteAll{display:none!important}</style>
+<script id="tg-five-preserve-20261021-js">
+(function(){
+const names=["C Ngọc x79","A Thuật x77","A Hải 75","A Tuấn 77","C Thảo 76"];
+function apply(){
+ const filter=document.getElementById("tgGroupFilter");
+ if(!filter)return;
+ for(const name of names){
+  if(!Array.from(filter.options).some(o=>o.value===name)){const opt=document.createElement("option");opt.value=name;opt.textContent=name+" (chờ kết nối)";filter.appendChild(opt);}
+ }
+ const st=document.getElementById("tgInboxStatus");
+ if(st&&!document.getElementById("tgPreserveNote")){
+  const n=document.createElement("div");n.id="tgPreserveNote";n.style.cssText="font-size:12px;color:#7a3b0b;background:#fff6df;padding:7px;border-radius:7px;margin:5px 0";
+  n.textContent="Đã giữ tên 5 bot. Chưa xác minh kết nối hoặc tin cũ. Tạm khóa chức năng xóa để bảo vệ dữ liệu.";
+  st.insertAdjacentElement("afterend",n);
+ }
+ for(const id of ["tgDeleteSelected","tgDeleteAll"]){const el=document.getElementById(id);if(el){el.disabled=true;el.style.display="none";}}
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",apply);else apply();
+})();
+</script>
 <script id="tg-forward-inbox-client">
 (function(){
 const $=id=>document.getElementById(id);

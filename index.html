@@ -11156,3 +11156,33 @@ document.addEventListener('touchcancel',function(){start=null},{passive:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();</script>
+
+<!-- telegram-compact-toolbar-20261021 -->
+<style id="telegram-compact-toolbar-style">
+#tgForwardInbox>.compact-body{padding:8px 10px!important}
+#tgCompactFilters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:end;margin-bottom:6px}
+#tgCompactFilters>label{display:block;min-width:0;margin:0;font-size:11px;font-weight:700;color:#704b14}
+#tgCompactFilters select{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:40px!important;padding:5px 24px 5px 9px!important;font-size:14px!important;border-radius:10px!important;margin-top:3px!important}
+#tgCompactButtons{display:flex;gap:5px;align-items:center;flex-wrap:nowrap;margin:5px 0 6px}
+#tgCompactButtons button{flex:1 1 0;min-width:0!important;min-height:34px!important;padding:5px 3px!important;font-size:11px!important;line-height:1.2!important;white-space:normal!important;border-radius:8px!important}
+#tgForwardInbox #tgCustomerSetup{margin:3px 0 5px!important}
+#tgForwardInbox #tgInboxStatus{font-size:12px!important;margin-bottom:4px!important}
+</style>
+<script id="telegram-compact-toolbar-script">(function(){
+function init(){
+const root=document.querySelector('#tgForwardInbox>.compact-body');
+const group=document.getElementById('tgGroupFilter'),region=document.getElementById('tgRegionFilter');
+const connect=document.getElementById('tgConnectFive'),collapse=document.getElementById('tgCollapseAll'),expand=document.getElementById('tgExpandAll');
+if(!root||!group||!region||!connect||!collapse||!expand||document.getElementById('tgCompactFilters'))return;
+const filters=document.createElement('div');filters.id='tgCompactFilters';
+for(const [name,el] of [['BẢNG GIÁ · NHÓM',group],['NGÀY · MIỀN',region]]){
+ const label=document.createElement('label');label.textContent=name;label.appendChild(el);filters.appendChild(label);
+}
+root.insertBefore(filters,root.firstChild);
+const buttons=document.createElement('div');buttons.id='tgCompactButtons';
+connect.textContent='🔗 Kết nối bot';collapse.textContent='Thu gọn';expand.textContent='Mở tất cả';
+buttons.append(connect,collapse,expand);
+filters.insertAdjacentElement('afterend',buttons);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();</script>

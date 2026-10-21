@@ -10954,7 +10954,7 @@ body.app-unlocked:has(#appDrawer.open) #drawerEdge {
 #tgInboxStatus{font-size:12px!important}
 #tgGroupFilter{font-size:14px!important;padding:7px!important;min-height:38px!important}
 </style>
-<style id="tg-five-preserve-20261021">#tgConnectFive{display:inline-flex!important}#tgCustomerSetup{display:block!important}#tgDeleteSelected,#tgDeleteAll{display:none!important}</style>
+<style id="tg-five-preserve-20261021">#tgConnectFive{display:inline-flex!important}#tgCustomerSetup{display:block!important}#tgDeleteSelected,#tgDeleteAll{display:inline-flex!important}</style>
 <script id="tg-five-preserve-20261021-js">
 (function(){
 const names=["C Ngọc x79","A Thuật x77","A Hải 75","A Tuấn 77","C Thảo 76"];
@@ -10967,10 +10967,10 @@ function apply(){
  const st=document.getElementById("tgInboxStatus");
  if(st&&!document.getElementById("tgPreserveNote")){
   const n=document.createElement("div");n.id="tgPreserveNote";n.style.cssText="font-size:12px;color:#7a3b0b;background:#fff6df;padding:7px;border-radius:7px;margin:5px 0";
-  n.textContent="Đã giữ tên 5 bot. Chưa xác minh kết nối hoặc tin cũ. Tạm khóa chức năng xóa để bảo vệ dữ liệu.";
+  n.textContent="Đã giữ tên 5 bot.";n.hidden=true;
   st.insertAdjacentElement("afterend",n);
  }
- for(const id of ["tgDeleteSelected","tgDeleteAll"]){const el=document.getElementById(id);if(el){el.disabled=true;el.style.display="none";}}
+
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",apply);else apply();
 })();
@@ -10998,9 +10998,9 @@ function syncTelegramActions(){
  const count=messages.length;
  const actions=$("tgInboxActions");
  if(actions)actions.style.display=count?"flex":"none";
- $("tgDeleteSelected").style.display="none";
+ $("tgDeleteSelected").style.display=selected.size?"inline-flex":"none";
  $("tgSelectNone").style.display=selected.size?"inline-flex":"none";
- $("tgDeleteAll").style.display="none";
+ $("tgDeleteAll").style.display=count?"inline-flex":"none";
  $("tgImport").style.display=selected.size?"block":"none";
 }
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -11037,8 +11037,8 @@ function visible(){const group=$("tgGroupFilter").value,region=$("tgRegionFilter
 function draw(){
  const rows=visible();
  const groups=new Map();for(const m of rows){const name=m.selected_group||m.origin_name||"Không rõ nhóm";if(!groups.has(name))groups.set(name,[]);groups.get(name).push(m)}
- $("tgInboxList").innerHTML=[...groups].map(([name,items])=>'<details class="tg-msg-group" data-group="'+esc(name)+'" '+(tgOpenedGroups.has(name)?'open':'')+' style="border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;margin-bottom:7px"><summary style="cursor:pointer;padding:11px;font-weight:700;color:#143a61;background:#edf5ff">'+esc(name)+' ('+items.length+' tin)</summary><div style="display:grid;gap:7px;padding:8px">'+items.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important"><b>'+esc(regionOf(m)==="OTHER"?"Chưa rõ miền":regionOf(m))+'</b> · '+esc(m.sender_name||m.origin_name||"Người gửi")+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")+'</div></details>').join("")||'<div>Chưa có tin phù hợp bộ lọc.</div>';
- $("tgInboxStatus").textContent=rows.length?("Hiển thị "+rows.length+" tin · Đã chọn "+selected.size):"";
+ $("tgInboxList").innerHTML=[...groups].map(([name,items])=>'<details class="tg-msg-group" data-group="'+esc(name)+'" '+(tgOpenedGroups.has(name)?'open':'')+' style="border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;margin-bottom:7px"><summary style="cursor:pointer;padding:11px;font-weight:700;color:#143a61;background:#edf5ff">'+esc(name)+' ('+items.length+' tin)</summary><div style="display:grid;gap:7px;padding:8px">'+items.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important"><b>'+esc(regionOf(m)==="OTHER"?"Chưa rõ miền":regionOf(m))+'</b> · '+esc(m.sender_name||m.origin_name||"Người gửi")+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div><button type="button" class="tg-delete-one" data-delete-id="'+Number(m.id)+'" style="margin-top:6px;padding:5px 9px;border:1px solid #fecaca;background:#fff1f2;color:#991b1b;border-radius:7px;font-size:12px">Xoá tin</button></span></label>').join("")+'</div></details>').join("")||'<div>Chưa có tin phù hợp bộ lọc.</div>';
+ $("tgInboxStatus").textContent=rows.length?("Hiển thị "+rows.length+" tin · Đã chọn "+selected.size):"";$("tgInboxStatus").style.display=rows.length?"block":"none";
  syncTelegramActions();
 }
 $("tgRegionFilter").addEventListener("change",draw);

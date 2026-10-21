@@ -11172,3 +11172,7 @@ $("tgImport").addEventListener("click",()=>{
 });
 })();
 </script>
+
+<!-- drawer-swipe-final-after-all-scripts-20261021 -->
+<style>body.app-unlocked #drawerEdge{display:none!important;visibility:hidden!important;pointer-events:none!important}</style>
+<script>(function(){function init(){const drawer=document.getElementById('appDrawer'),back=document.getElementById('drawerBackdrop');if(!drawer||!back)return;let start=null;document.addEventListener('touchstart',e=>{start=null;if(e.touches.length!==1||!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open'))return;const t=e.touches[0];if(t.clientX>window.innerWidth*.55)return;if(e.target.closest('#pinCard,#publicCover,#appDrawer,input,textarea,select,[contenteditable="true"]'))return;start={x:t.clientX,y:t.clientY};},{capture:true,passive:true});document.addEventListener('touchend',e=>{if(!start||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;start=null;if(dx<45||Math.abs(dx)<Math.abs(dy)*1.2||!document.body.classList.contains('app-unlocked'))return;drawer.classList.add('open');back.classList.add('open');drawer.setAttribute('aria-hidden','false');},{capture:true,passive:true});document.addEventListener('touchcancel',()=>{start=null},{passive:true});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();</script>

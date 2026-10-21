@@ -1310,6 +1310,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   </div>
   <details id="tgCustomerSetup" style="margin:5px 0 8px"><summary style="font-size:13px;cursor:pointer">⚙️ Kết nối Telegram của tôi</summary><div style="padding:8px 0"><input id="tgCustomerBotToken" type="password" autocomplete="off" placeholder="Dán token bot từ BotFather" style="width:100%;margin:4px 0"><input id="tgCustomerBotName" placeholder="Tên nhóm / tên khách (tuỳ chọn)" style="width:100%;margin:4px 0"><button type="button" id="tgCustomerAdd" class="soft">Kết nối bot của tôi</button><div id="tgCustomerBotList" style="font-size:13px;margin-top:8px"></div></div></details><button type="button" id="tgConnectFive" class="soft" style="display:none;margin-bottom:6px">🔗 Kết nối 5 bot cũ</button>
   <div id="tgInboxStatus" class="muted" style="display:block!important;margin-bottom:6px">Chọn nhóm để xem tin Telegram.</div>
+  <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:6px 0"><label style="font-size:12px">Lọc miền <select id="tgRegionFilter" style="min-width:100px"><option value="">Tất cả miền</option><option value="MN">Miền Nam</option><option value="MT">Miền Trung</option><option value="MB">Miền Bắc</option><option value="OTHER">Chưa xác định</option></select></label><button type="button" id="tgCollapseAll" class="soft">Thu gọn tin</button><button type="button" id="tgExpandAll" class="soft">Mở tất cả tin</button></div>
   <div id="tgInboxList" style="max-height:320px;overflow-y:auto;display:grid;gap:7px"></div>
   <button type="button" id="tgImport" class="green" style="width:100%;margin-top:6px">ĐƯA TIN ĐÃ CHỌN VÀO Ô TÍNH</button>
  </div>
@@ -11006,17 +11007,19 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"
 function region(m){const x=String(m.message_text||"").toLowerCase();if(/\\b(hn|mb|xsmb)\\b|miền bắc/.test(x))return "MB";if(/\\b([234]dmt|mt|xsmt)\\b|miền trung/.test(x))return "MT";if(/\\b([234]dmn|mn|xsmn)\\b|miền nam/.test(x))return "MN";return "CHƯA RÕ";}
 function visible(){const g=$("tgGroupFilter").value,r=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g)&&(!r||region(m)===r));}
 const tgOpenedGroups=new Set();
+const regionOf=m=>{const t=String(m.message_text||"").toLowerCase().normalize("NFKC");if(/(^|[\\s.,;:])(?:hn|mb|xsmb|mien\\s*bac)(?=[\\s.,;:]|$)/i.test(t))return "MB";if(/(^|[\\s.,;:])(?:[234]dmt|xsmt|mien\\s*trung|hue|pyen|dlak|qnam|dnang|qtri|qngai|ktum|glai|ntuan|bđinh)(?=[\\s.,;:]|$)/i.test(t))return "MT";if(/(^|[\\s.,;:])(?:[234]dmn|xsmn|mien\\s*nam|tph[oò]|dthap|btre|vtau|blieu|dnai|ctho|tninh|agiang|vlong|bdg|tgiang|kgiang|cmau)(?=[\\s.,;:]|$)/i.test(t))return "MN";return "OTHER"};
+let expandedMessages=new Set();
+function visible(){const group=$("tgGroupFilter").value,region=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!group||(m.selected_group||m.origin_name||"Không rõ nhóm")===group)&&(!region||regionOf(m)===region));}
 function draw(){
- const rows=visible(),groups=new Map();
- for(const m of rows){const n=m.selected_group||m.origin_name||"Không rõ nhóm";if(!groups.has(n))groups.set(n,[]);groups.get(n).push(m);}
- $("tgInboxList").innerHTML=[...groups].map(([name,items])=>{
- const count=items.filter(m=>selected.has(Number(m.id))).length;
- return '<details class="tg-fold" data-group="'+esc(name)+'" '+(tgOpenedGroups.has(name)?'open':'')+'><summary>📨 '+esc(name)+' <small>'+items.length+' tin · '+count+' chọn</small></summary><div class="tg-fold-body"><button type="button" class="tg-select-group" data-name="'+esc(name)+'">☑ Chọn tất cả tin nhóm này</button>'+items.map(m=>'<label class="tg-fold-message"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+'><span><b>'+esc(m.sender_name||"Người gửi")+'</b> · <small>['+region(m)+'] '+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body">'+esc(m.message_text)+'</div></span></label>').join("")+'</div></details>';
- }).join("")||'<div>Chưa có tin trong nhóm này.</div>';
- $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · "+groups.size+" nhóm · Đã chọn "+selected.size;syncTelegramActions();
+ const rows=visible();
+ const groups=new Map();for(const m of rows){const name=m.selected_group||m.origin_name||"Không rõ nhóm";if(!groups.has(name))groups.set(name,[]);groups.get(name).push(m)}
+ $("tgInboxList").innerHTML=[...groups].map(([name,items])=>'<details class="tg-msg-group" style="border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;margin-bottom:7px"><summary style="cursor:pointer;padding:11px;font-weight:700;color:#143a61;background:#edf5ff">'+esc(name)+' ('+items.length+' tin)</summary><div style="display:grid;gap:7px;padding:8px">'+items.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important"><b>'+esc(regionOf(m)==="OTHER"?"Chưa rõ miền":regionOf(m))+'</b> · '+esc(m.sender_name||m.origin_name||"Người gửi")+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")+'</div></details>').join("")||'<div>Chưa có tin phù hợp bộ lọc.</div>';
+ $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
+ syncTelegramActions();
 }
-$("tgInboxList").addEventListener("toggle",e=>{const d=e.target;if(d.matches?.("details.tg-fold")){if(d.open)tgOpenedGroups.add(d.dataset.group);else tgOpenedGroups.delete(d.dataset.group)}},true);
-$("tgInboxList").addEventListener("click",e=>{const b=e.target.closest(".tg-select-group");if(!b)return;for(const m of visible())if((m.selected_group||m.origin_name||"Không rõ nhóm")===b.dataset.name)selected.add(Number(m.id));tgOpenedGroups.add(b.dataset.name);draw();});
+$("tgRegionFilter").addEventListener("change",draw);
+$("tgCollapseAll").addEventListener("click",()=>document.querySelectorAll("#tgInboxList details").forEach(d=>d.open=false));
+$("tgExpandAll").addEventListener("click",()=>document.querySelectorAll("#tgInboxList details").forEach(d=>d.open=true));
 $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches("input[data-tgid]"))return;const id=Number(el.dataset.tgid);if(el.checked)selected.add(id);else selected.delete(id);draw()});
 $("tgGroupFilter").addEventListener("change",draw);$("tgRegionFilter")?.addEventListener("change",draw);
 $("tgInboxList").addEventListener("click",e=>{const btn=e.target.closest(".tg-delete-one");if(!btn)return;e.preventDefault();deleteTelegram([Number(btn.dataset.deleteId)])});
@@ -11090,7 +11093,7 @@ $("tgImport").addEventListener("click",()=>{
  const items=messages.filter(m=>selected.has(Number(m.id))&&visible().includes(m)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date));
  if(!items.length){$("tgInboxStatus").textContent="Hãy chọn ít nhất một tin.";return}
  const input=$("bets");if(!input)return;
- const normalize=v=>String(v||"").normalize("NFKC").replace(/\\s+/g," ").trim().toLowerCase();
+ const normalize=v=>String(v||"").normalize("NFKC").replace(/\s+/g," ").trim().toLowerCase();
  const existing=new Set(input.value.split(/\\n\\s*\\n/).map(normalize).filter(Boolean));
  const unique=[];for(const m of items){const body=String(m.message_text||"").trim(),key=normalize(body);if(key&&!existing.has(key)){unique.push(body);existing.add(key);}}
  if(!unique.length){$("tgInboxStatus").textContent="Tất cả tin đã chọn đều trùng với nội dung trong ô nhập.";return;}

@@ -1109,7 +1109,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   </div>
  </div>
  <div class="drawer-section history"><h3>🕘 LỊCH SỬ GẦN NHẤT</h3><div class="drawer-body"><div class="history-list" id="recentHistory"><div class="history-row"><span>Chưa có lịch sử</span><small>—</small></div></div></div></div>
- <div class="drawer-section customer-msg-menu"><h3>💬 TIN NHẮN TỪNG KHÁCH</h3><div class="drawer-body"><div class="customer-msg-note">Lưu tối đa 24h</div><div class="customer-msg-list" id="customerMessageList"><div class="history-row"><span>Chưa có tin nhắn</span><small>—</small></div></div></div></div>
+ <div class="drawer-section" id="tgMenuDedicated"><h3><button type="button" id="tgMenuToggle">📨 TIN NHẮN TELEGRAM</button></h3><div class="drawer-body" id="tgMenuPanel" hidden><div id="tgMenuMount"></div></div></div>
+<div class="drawer-section customer-msg-menu"><h3>💬 TIN NHẮN TỪNG KHÁCH</h3><div class="drawer-body"><div class="customer-msg-note">Lưu tối đa 24h</div><div class="customer-msg-list" id="customerMessageList"><div class="history-row"><span>Chưa có tin nhắn</span><small>—</small></div></div></div></div>
  <div class="drawer-section stats-menu"><h3>📊 THỐNG KÊ</h3><div class="drawer-body"><button type="button" class="stats-open-btn" id="openStatsBtn">THỐNG KÊ</button></div></div>
  <div class="drawer-section customers"><h3><span>👥 QUẢN LÝ KHÁCH HÀNG</span><button type="button" class="drawer-add-customer" id="addCustomerDrawer">＋ THÊM KHÁCH</button></h3><div class="drawer-body"><div class="drawer-customer-list" id="drawerCustomerList"></div><div id="drawerAdminMount"></div></div></div>
  <div id="devicePermissionSection" class="drawer-section device-permission" hidden><h3>🔐 CẤP QUYỀN MÁY KHÁCH</h3><div class="drawer-body">
@@ -11022,7 +11023,7 @@ const regionOf=m=>{
 let expandedMessages=new Set();
 function visible(){const group=$("tgGroupFilter").value,region=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!group||(m.selected_group||m.origin_name||"Không rõ nhóm")===group)&&(!region||regionOf(m)===region));}
 function draw(){
- const rows=visible();
+ const rows=visible().filter(m=>{const d=new Date(m.message_date||m.received_at);return Number.isFinite(d.getTime())&&d.getTime()>=Date.now()-48*60*60*1000});
  const groups=new Map();for(const m of rows){const name=m.selected_group||m.origin_name||"Không rõ nhóm";if(!groups.has(name))groups.set(name,[]);groups.get(name).push(m)}
  $("tgInboxList").innerHTML=[...groups].map(([name,items])=>'<details class="tg-msg-group" data-group="'+esc(name)+'" '+(tgOpenedGroups.has(name)?'open':'')+' style="border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;margin-bottom:7px"><summary style="cursor:pointer;padding:11px;font-weight:700;color:#143a61;background:#edf5ff">'+esc(name)+' ('+items.length+' tin)</summary><div style="display:grid;gap:7px;padding:8px">'+items.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important"><b>'+esc(regionOf(m)==="OTHER"?"Chưa rõ miền":regionOf(m))+'</b> · '+esc(m.sender_name||m.origin_name||"Người gửi")+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text)+'</div></span></label>').join("")+'</div></details>').join("")||'<div>Chưa có tin phù hợp bộ lọc.</div>';
  $("tgInboxStatus").textContent="Hiển thị "+rows.length+" tin · Đã chọn "+selected.size;
@@ -11117,3 +11118,4 @@ $("tgImport").addEventListener("click",()=>{
 });
 })();
 </script>
+<script id="tg-menu-48h-init">(function(){function init(){var b=document.getElementById('tgMenuToggle'),p=document.getElementById('tgMenuPanel'),m=document.getElementById('tgMenuMount'),inbox=document.getElementById('tgForwardInbox');if(!b||!p||!m||!inbox)return;m.appendChild(inbox);inbox.open=true;b.addEventListener('click',function(){p.hidden=!p.hidden;if(!p.hidden)document.getElementById('tgRefresh')?.click()})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>

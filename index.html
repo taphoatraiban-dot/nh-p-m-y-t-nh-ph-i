@@ -11926,7 +11926,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(busy)return;
     const action=step;
     const payload=action==="start"?{phone:phone.value.trim()}:action==="confirm"?{code:code.value.trim()}:{password:password.value};
-    if(action==="start"&&!/^\\+[1-9][0-9]{7,14}$/.test(payload.phone)){feedback.textContent="Nhập số dạng +849xxxxxxxx.";return;}
+    if(action==="start"&&!/^\+[1-9][0-9]{7,14}$/.test(payload.phone)){feedback.textContent="Nhập số dạng +849xxxxxxxx.";return;}
     if(action==="confirm"&&!payload.code){feedback.textContent="Nhập mã xác nhận Telegram.";return;}
     if(action==="password"&&!payload.password){feedback.textContent="Nhập mật khẩu xác minh 2 bước.";return;}
     busy=true;submit.disabled=true;feedback.textContent="Đang xác thực an toàn...";

@@ -7,7 +7,7 @@ The config file must be mode 0600 and contain:
 {"user_id":"<Supabase auth UUID>","sync_key":"<per-user sync key>",
  "api_id":12345,"api_hash":"<Telegram API hash>",
  "session_path":"/var/lib/ongthantai-telegram/tenants/<uuid>/telegram",
- "allowed_chat_ids":[-1001234567890]}
+ "allowed_chat_ids":[-1001234567890],"allowed_private_chat_ids":[123456789]}
 The Telegram session MUST be authorized interactively beforehand under this tenant's
 own account. Never share session files, API credentials or sync keys between tenants.
 """
@@ -34,6 +34,10 @@ def read_config(path):
     if not isinstance(data["allowed_chat_ids"], list):
         raise ValueError("allowed_chat_ids must be a list")
     data["allowed_chat_ids"] = set(map(int, data["allowed_chat_ids"]))
+    private_ids=data.get("allowed_private_chat_ids",[])
+    if not isinstance(private_ids,list):
+        raise ValueError("allowed_private_chat_ids must be a list")
+    data["allowed_private_chat_ids"]=set(map(int,private_ids))
     session_path = Path(data["session_path"]).resolve()
     import uuid
     user_id = str(uuid.UUID(data["user_id"]))
@@ -72,7 +76,9 @@ async def main(path):
             return await asyncio.to_thread(ingest, cfg, groups, messages)
         @client.on(events.NewMessage())
         async def receive(event):
-            if event.is_group and event.raw_text and int(event.chat_id) in cfg["allowed_chat_ids"]:
+            group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
+            private_allowed = event.is_private and not event.out and int(event.chat_id) in cfg["allowed_private_chat_ids"]
+            if event.raw_text and (group_allowed or private_allowed):
                 m={"chat_id":event.chat_id,"message_id":event.id,
                    "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
                    "sender_name":""}
@@ -82,8 +88,11 @@ async def main(path):
             try:
                 groups=[]
                 async for dialog in client.iter_dialogs():
-                    if dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]:
-                        groups.append({"chat_id":dialog.id,"group_name":dialog.name})
+                    is_allowed_group = dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]
+                    is_allowed_private = dialog.is_user and int(dialog.id) in cfg["allowed_private_chat_ids"] and not getattr(dialog.entity,"bot",False)
+                    if is_allowed_group or is_allowed_private:
+                        prefix="Cá nhân: " if is_allowed_private else ""
+                        groups.append({"chat_id":dialog.id,"group_name":prefix+dialog.name})
                 if queue_file.exists() and queue_file.stat().st_size:
                     # Never truncate: a concurrent Telegram event may append during upload.
                     # Durable offset is committed only after successful acknowledgement.

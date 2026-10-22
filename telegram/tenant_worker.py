@@ -129,7 +129,7 @@ async def main(path):
                          "message_text": msg.raw_text, "message_date": msg.date.isoformat(),
                          "sender_name": dialog.name or ""}
                     with queue_file.open("a", encoding="utf-8") as handle:
-                        handle.write(json.dumps(m, ensure_ascii=False) + "\\n")
+                        handle.write(json.dumps(m, ensure_ascii=False) + "\n")
                 watermarks[key] = current_id
                 discovered_private[chat_id] = "Cá nhân: " + (dialog.name or str(chat_id))
                 changed = True

@@ -11722,13 +11722,16 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 (function(){
  function showBotInbox(){
   const inbox=document.getElementById("tgForwardInbox");
-  const target=document.getElementById("betsCard");
+  const target=document.getElementById("tgMemberInbox");
   if(!inbox||!target||!target.parentNode)return;
   // Keep the original DOM node and listeners; do not replace polling, auth or message handlers.
-  target.parentNode.insertBefore(inbox,target);
+  target.parentNode.insertBefore(inbox,target.nextSibling);
   inbox.classList.add("tg-bot-main");
+  inbox.style.setProperty("display","block","important");
+  inbox.style.setProperty("visibility","visible","important");
+  inbox.style.setProperty("opacity","1","important");
   const summary=inbox.querySelector(":scope > summary");
-  if(summary){summary.style.display="list-item";summary.textContent="🤖 TIN TELEGRAM TỪ BOT";}
+  if(summary){summary.style.setProperty("display","list-item","important");summary.textContent="🤖 TIN TELEGRAM TỪ BOT";}
   inbox.open=true;
   const status=document.getElementById("tgInboxStatus");
   if(status&&status.textContent==="Chọn nhóm để xem tin Telegram.")status.textContent="Đang tải tin từ bot…";

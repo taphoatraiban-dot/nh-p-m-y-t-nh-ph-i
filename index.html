@@ -10060,6 +10060,57 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 
 
+
+<style id="telegram-drawer-three-sections-style">
+#tgDrawerSections20261022{margin:8px 0}
+#tgDrawerSections20261022 .drawer-body{padding:8px}
+#tgDrawerSections20261022 details{max-width:100%;box-sizing:border-box}
+#tgDrawerSections20261022 details > summary{cursor:pointer}
+#tgDrawerSections20261022 #tgForwardInbox{margin:0!important}
+#tgDrawerSections20261022 #tgCustomerVpsSetup{margin:0!important}
+#tgDrawerSections20261022 button,#tgDrawerSections20261022 input,#tgDrawerSections20261022 select{max-width:100%}
+</style>
+<script id="telegram-drawer-three-sections-script">
+(function(){
+ function mount(){
+  const drawer=document.getElementById("appDrawer");
+  if(!drawer)return;
+  let section=document.getElementById("tgDrawerSections20261022");
+  if(!section){
+    section=document.createElement("div");
+    section.id="tgDrawerSections20261022";
+    section.className="drawer-section";
+    section.innerHTML='<h3>📨 TELEGRAM</h3><div class="drawer-body" id="tgDrawerThreeBody20261022"></div>';
+    drawer.appendChild(section);
+  }
+  const body=document.getElementById("tgDrawerThreeBody20261022");
+  const panels=[
+    document.getElementById("tgTenantPanel"),
+    document.getElementById("tgCustomerVpsSetup"),
+    document.getElementById("tgForwardInbox")
+  ];
+  for(const panel of panels){
+    if(!panel)continue;
+    if(panel.parentElement!==body)body.appendChild(panel);
+    panel.open=false;
+  }
+ }
+ function boot(){
+  // Let existing Telegram scripts finish creating their panels before moving them.
+  requestAnimationFrame(()=>requestAnimationFrame(mount));
+  const observer=new MutationObserver(()=>{
+    if(!document.getElementById("tgDrawerSections20261022")||
+       ["tgTenantPanel","tgCustomerVpsSetup","tgForwardInbox"].some(id=>{
+         const el=document.getElementById(id);
+         return el&&el.parentElement?.id!=="tgDrawerThreeBody20261022";
+       }))mount();
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
+ else boot();
+})();
+</script>
 </body>
 </html>
 <style id="v81-style">

@@ -11335,7 +11335,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function init(){
   const target=document.getElementById("tgForwardInbox");if(!target||document.getElementById("tgTenantPanel"))return;
   const panel=document.createElement("details");panel.id="tgTenantPanel";panel.style.cssText="margin:8px 0;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff";
-  const title=document.createElement("summary");title.textContent="Kết nối bot Telegram riêng";title.style.fontWeight="800";panel.append(title);
+  const title=document.createElement("summary");title.textContent="Kết nối Telegram";title.style.fontWeight="800";panel.append(title);
+  const notice=document.createElement("p");notice.textContent="Chủ nhóm: kết nối bot bên dưới. Thành viên không thể thêm bot: cần kết nối tài khoản Telegram bằng dịch vụ MTProto riêng (chưa kích hoạt). Không nhập mã OTP Telegram vào ô token bot.";notice.style.cssText="font-size:12px;line-height:1.5;margin:8px 0";panel.append(notice);
   const body=document.createElement("div");body.style.cssText="display:grid;gap:8px;margin-top:10px";panel.append(body);
   const help=document.createElement("div");help.textContent="Tạo bot trong @BotFather, dán token tại đây, rồi thêm bot vào nhóm. Chỉ bật nhóm bạn có quyền nhận tin.";help.style.fontSize="12px";
   const token=document.createElement("input");token.type="password";token.placeholder="Bot Token từ BotFather";token.autocomplete="off";token.style.cssText="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px";

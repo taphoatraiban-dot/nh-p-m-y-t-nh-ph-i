@@ -11866,7 +11866,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   const panel=document.getElementById("tgMemberInbox");
   if(!panel||document.getElementById("tgCustomerVpsSetup"))return;
   const box=document.createElement("details");box.id="tgCustomerVpsSetup";
-  box.innerHTML='<summary>📱 KẾT NỐI TELEGRAM VPS CỦA TÔI</summary><div style="padding:9px 1px;font-size:13px"><p>Mỗi tài khoản sử dụng phiên Telegram và nhóm riêng. Để bật lần đầu, cần xác thực Telegram an toàn trên VPS qua bộ phận quản trị; không nhập OTP hoặc mật khẩu Telegram vào trang này.</p><div id="tgCustomerVpsStatus" role="status">Đang kiểm tra trạng thái...</div><button type="button" class="soft" id="tgCustomerVpsCheck">Kiểm tra kết nối</button><p style="color:#64748b;font-size:12px">Sau khi được kích hoạt, nhóm Telegram và tin nhắn sẽ hiển thị trong mục Telegram VPS phía trên. Không cần thuê VPS riêng.</p></div>';
+  box.innerHTML='<summary>📱 KẾT NỐI TELEGRAM VPS CỦA TÔI</summary><div style="padding:9px 1px;font-size:13px"><p>Mỗi tài khoản sử dụng phiên Telegram và nhóm riêng. Tài khoản được cấp quyền sẽ có thể tự kết nối Telegram trên iPhone sau khi dịch vụ xác thực VPS được triển khai. Hiện tính năng tự kết nối chưa kích hoạt; không nhập OTP hoặc mật khẩu vào trang này.</p><div id="tgCustomerVpsStatus" role="status">Đang kiểm tra trạng thái...</div><button type="button" class="soft" id="tgCustomerVpsCheck">Kiểm tra kết nối</button><p style="color:#64748b;font-size:12px">Sau khi được kích hoạt, nhóm Telegram và tin nhắn sẽ hiển thị trong mục Telegram VPS phía trên. Không cần thuê VPS riêng.</p></div>';
   panel.parentNode.insertBefore(box,panel.nextSibling);
   const status=box.querySelector("#tgCustomerVpsStatus");
   async function check(){

@@ -8,6 +8,7 @@ import argparse
 import asyncio
 import json
 import os
+import getpass
 import uuid
 from pathlib import Path
 from telethon import TelegramClient
@@ -17,7 +18,8 @@ CONFIG=Path("/etc/ongthantai-telegram/tenants")
 
 async def run(args):
     user=str(uuid.UUID(args.user_id))
-    if not args.sync_key.strip(): raise ValueError("Sync key required")
+    sync_key=getpass.getpass("Per-customer sync key (hidden): ").strip()
+    if len(sync_key)<40: raise ValueError("Invalid sync key")
     os.umask(0o077)
     folder=BASE/user
     folder.mkdir(mode=0o700,parents=True,exist_ok=True)
@@ -35,7 +37,7 @@ async def run(args):
     indices=set(int(p.strip()) for p in raw.split(",") if p.strip())
     if any(i<1 or i>len(dialogs) for i in indices):raise ValueError("Unknown group number")
     ids=[chat_id for i,(chat_id,_) in enumerate(dialogs,1) if i in indices]
-    cfg={"user_id":user,"sync_key":args.sync_key,"api_id":args.api_id,
+    cfg={"user_id":user,"sync_key":sync_key,"api_id":args.api_id,
          "api_hash":args.api_hash,"session_path":str(session),"allowed_chat_ids":ids}
     CONFIG.mkdir(mode=0o700,parents=True,exist_ok=True)
     path=CONFIG/(user+".json")
@@ -50,7 +52,6 @@ async def run(args):
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--user-id",required=True)
-    p.add_argument("--sync-key",required=True,help="Use on trusted VPS only; shell history may retain this argument")
     p.add_argument("--api-id",type=int,required=True)
     p.add_argument("--api-hash",required=True)
     asyncio.run(run(p.parse_args()))

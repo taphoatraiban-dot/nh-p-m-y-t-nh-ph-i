@@ -11498,7 +11498,7 @@ buttons.delete.onclick=()=>hideMessages(selectedVisible());
 region.onchange=render;
 
 async function load(){if(busy||document.hidden)return;busy=true;try{data=await call("read");status.textContent=(data.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+data.groups.length+" nhóm · "+data.messages.length+" tin trong 48 giờ";render()}catch(e){status.textContent="Lỗi: "+e.message}finally{busy=false}}
-panel.querySelector("#tgMemberReload").onclick=load;groups.onchange=render;
+panel.querySelector("#tgMemberReload").onclick=load;groups.onchange=()=>{panel.open=true;render();load();};
 panel.querySelector("#tgMemberKey").onclick=async()=>{if(!confirm("Tạo khóa mới sẽ vô hiệu hóa khóa đồng bộ cũ. Tiếp tục?"))return;try{const j=await call("rotate-key",{});setup.replaceChildren();const p=document.createElement("p");p.textContent="User ID: "+j.user_id;const k=document.createElement("input");k.readOnly=true;k.value=j.sync_key;k.style.width="100%";const b=document.createElement("button");b.type="button";b.textContent="Sao chép khóa";b.onclick=()=>navigator.clipboard?.writeText(j.sync_key);setup.append(p,k,b);status.textContent="Đã tạo khóa. Cần lưu vào VPS để đồng bộ."}catch(e){setup.textContent=e.message}};
 panel.addEventListener("toggle",()=>{if(panel.open)load()});setInterval(()=>{if(panel.open)load()},15000);load();
 }
@@ -11630,6 +11630,14 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   panel.parentNode.insertBefore(row,panel);
   row.style.cssText="display:block;width:100%;max-width:100%;padding:8px 10px;margin:6px 0;border:1px solid #cbd5e1;border-radius:9px;background:#fff;box-sizing:border-box";
   group.addEventListener("change",()=>{panel.open=true;});
+  const status=document.getElementById("tgMemberStatus");
+  const summary=panel.querySelector("summary");
+  if(summary&&status&&!document.getElementById("tgMemberSummaryCount")){
+   const count=document.createElement("span");count.id="tgMemberSummaryCount";count.style.cssText="display:block;font-size:11px;font-weight:400;color:#475569;margin-top:3px";
+   summary.append(count);
+   const update=()=>{count.textContent=status.textContent||"Đang tải tin Telegram...";};
+   new MutationObserver(update).observe(status,{childList:true,characterData:true,subtree:true});update();
+  }
   // Retain the original select and its onchange listener, including dynamic VPS group refreshes.
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restore);

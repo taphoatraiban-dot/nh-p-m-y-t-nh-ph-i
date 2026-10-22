@@ -1,0 +1,28 @@
+# Opt-in service: enable only after provisioning a customer and reviewing tenant permissions.
+# Copy to /etc/systemd/system/ongthantai-tenant@.service
+[Unit]
+Description=Ong Than Tai Telegram tenant %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ongthantai-telegram
+Group=ongthantai-telegram
+WorkingDirectory=/opt/ongthantai
+ExecStart=/opt/ongthantai/.venv/bin/python /opt/ongthantai/telegram/tenant_worker.py --config /etc/ongthantai-telegram/tenants/%i.json
+Restart=on-failure
+RestartSec=15s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/etc/ongthantai-telegram/tenants
+ReadWritePaths=/var/lib/ongthantai-telegram/tenants
+CapabilityBoundingSet=
+RestrictSUIDSGID=true
+LimitNOFILE=2048
+
+[Install]
+WantedBy=multi-user.target

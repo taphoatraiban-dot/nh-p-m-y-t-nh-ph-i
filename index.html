@@ -11052,7 +11052,7 @@ $("tgInboxList").addEventListener("change",e=>{const el=e.target;if(!el.matches(
 $("tgGroupFilter").addEventListener("change",draw);$("tgRegionFilter")?.addEventListener("change",draw);
 $("tgInboxList").addEventListener("click",e=>{const btn=e.target.closest(".tg-delete-one");if(!btn)return;e.preventDefault();deleteTelegram([Number(btn.dataset.deleteId)])});
 $("tgDeleteSelected").addEventListener("click",()=>deleteTelegram([...selected]));
-$("tgDeleteAll").addEventListener("click",()=>{const g=$("tgGroupFilter").value;deleteTelegram(messages.filter(m=>!g||m.selected_group===g).map(m=>Number(m.id)))});
+$("tgDeleteAll").addEventListener("click",()=>{deleteTelegram(visible().map(m=>Number(m.id)))});
 
 $("tgSelectAll").addEventListener("click",()=>{visible().forEach(m=>selected.add(Number(m.id)));draw()});
 $("tgSelectNone").addEventListener("click",()=>{selected.clear();draw()});
@@ -11118,7 +11118,8 @@ $("tgRefresh").click();
 setInterval(()=>{if(!document.hidden)$("tgRefresh").click()},5000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)$("tgRefresh").click()});
 $("tgImport").addEventListener("click",()=>{
- const items=messages.filter(m=>selected.has(Number(m.id))&&visible().includes(m)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date));
+ const visibleIds=new Set(visible().map(m=>Number(m.id)));
+ const items=messages.filter(m=>selected.has(Number(m.id))&&visibleIds.has(Number(m.id))).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date));
  if(!items.length){$("tgInboxStatus").textContent="Hãy chọn ít nhất một tin.";return}
  const input=$("bets");if(!input)return;
  const normalize=v=>String(v||"").normalize("NFKC").replace(/\s+/g," ").trim().toLowerCase();

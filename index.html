@@ -11390,7 +11390,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 function init(){
 const target=document.getElementById("tgForwardInbox");if(!target||document.getElementById("tgMemberInbox"))return;
 const panel=document.createElement("details");panel.id="tgMemberInbox";panel.open=true;panel.style.cssText="border:1px solid #cbd5e1;border-radius:10px;margin:8px 0;padding:9px;background:#fff";
-panel.innerHTML='<summary style="font-weight:700">📨 Tin Telegram từ tài khoản thành viên</summary><div id="tgMemberStatus" style="font-size:12px;margin:7px 0">Đang kiểm tra kết nối...</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select id="tgMemberGroup" style="flex:1;min-width:130px"><option value="">Tất cả nhóm</option></select><button type="button" class="soft" id="tgMemberReload">Làm mới</button></div><details style="margin:8px 0"><summary style="font-size:12px">Thiết lập đồng bộ VPS</summary><button type="button" class="soft" id="tgMemberKey">Tạo khóa đồng bộ mới</button><p style="font-size:12px">Khóa chỉ hiện một lần. Lưu trên VPS, không gửi qua tin nhắn. Tạo khóa mới sẽ vô hiệu hóa khóa cũ.</p><div id="tgMemberSetup" style="font-size:12px;overflow-wrap:anywhere"></div></details><div id="tgMemberMessages" style="max-height:360px;overflow-y:auto"></div>';
+panel.innerHTML='<summary style="font-weight:700">📨 Tin Telegram từ tài khoản thành viên</summary><div id="tgMemberStatus" style="font-size:12px;margin:7px 0">Đang kiểm tra kết nối...</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select id="tgMemberGroup" aria-label="Chọn nhóm Telegram" style="flex:1;min-width:130px"><option value="">Chưa có nhóm</option></select><button type="button" class="soft" id="tgMemberReload">Làm mới</button></div><details style="margin:8px 0"><summary style="font-size:12px">Thiết lập đồng bộ VPS</summary><button type="button" class="soft" id="tgMemberKey">Tạo khóa đồng bộ mới</button><p style="font-size:12px">Khóa chỉ hiện một lần. Lưu trên VPS, không gửi qua tin nhắn. Tạo khóa mới sẽ vô hiệu hóa khóa cũ.</p><div id="tgMemberSetup" style="font-size:12px;overflow-wrap:anywhere"></div></details><div id="tgMemberMessages" style="max-height:360px;overflow-y:auto"></div>';
 target.parentNode.insertBefore(panel,target);
 const status=panel.querySelector("#tgMemberStatus"),groups=panel.querySelector("#tgMemberGroup"),list=panel.querySelector("#tgMemberMessages"),setup=panel.querySelector("#tgMemberSetup");
 let data={groups:[],messages:[]},busy=false;
@@ -11401,9 +11401,10 @@ const j=await res.json();if(!res.ok||!j.success)throw Error(j.error||"Không th�
 }
 function render(){
 const current=groups.value;
-groups.replaceChildren(new Option("Tất cả nhóm",""));
+groups.replaceChildren();
 for(const g of data.groups)groups.add(new Option(g.group_name,String(g.chat_id)));
-groups.value=Array.from(groups.options).some(o=>o.value===current)?current:"";
+if(!data.groups.length)groups.add(new Option("Chưa có nhóm",""));
+else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:String(data.groups[0].chat_id);
 list.replaceChildren();
 const shown=data.messages.filter(m=>!groups.value||String(m.chat_id)===groups.value);
 if(!shown.length){list.textContent="Chưa có tin đồng bộ trong 48 giờ.";return;}

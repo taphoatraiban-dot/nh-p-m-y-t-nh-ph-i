@@ -11636,3 +11636,66 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  else restore();
 })();
 </script>
+
+
+<style id="tg-admin-bot-management-20261022-style">
+#tgAdminBots{margin:10px 0;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#17212f}
+#tgAdminBots input,#tgAdminBots button{box-sizing:border-box;max-width:100%}
+#tgAdminBots input{display:block;width:100%;min-width:0;margin:5px 0;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+#tgAdminBots button{padding:9px;border-radius:8px}
+#tgAdminBots .tg-admin-bot-item{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;border-bottom:1px solid #e2e8f0;padding:8px 0;overflow-wrap:anywhere}
+</style>
+<script id="tg-admin-bot-management-20261022-script">
+(function(){
+function init(){
+ const host=document.getElementById("adminCard");
+ if(!host||document.getElementById("tgAdminBots"))return;
+ const root=document.createElement("section");root.id="tgAdminBots";
+ root.innerHTML='<h3 style="margin:0 0 8px">🤖 BOT QUẢN TRỊ TELEGRAM</h3><p style="font-size:12px;margin:0 0 8px">Quản lý các bot thuộc tài khoản đang đăng nhập. Chỉ thấy nhóm đã được cấp quyền và đồng bộ; không truy cập tin của tài khoản khác.</p><details><summary style="font-weight:700;cursor:pointer">Thêm bot quản trị</summary><div style="padding:7px 0"><label>Tên bot / nhóm<input id="tgAdminBotName" autocomplete="off" placeholder="Tên hiển thị"></label><label>Token BotFather<input id="tgAdminBotToken" type="password" autocomplete="off" placeholder="Token của bot"></label><button id="tgAdminBotAdd" type="button" class="soft">Kết nối bot</button></div></details><div style="display:flex;gap:7px;flex-wrap:wrap;margin:8px 0"><button id="tgAdminBotRefresh" type="button" class="soft">Làm mới bot và nhóm</button></div><div id="tgAdminBotNotice" role="status" style="font-size:12px;overflow-wrap:anywhere"></div><div id="tgAdminBotList"></div><div style="font-size:12px;font-weight:700;margin-top:9px">NHÓM VPS ĐƯỢC PHÉP XEM</div><div id="tgAdminGroupList" style="font-size:12px;margin-top:5px"></div>';
+ host.append(root);
+ const $=id=>root.querySelector("#"+id);
+ const notice=$("tgAdminBotNotice");
+ async function request(method,payload){
+  const session=(await sb.auth.getSession()).data.session;
+  if(!session)throw Error("Cần đăng nhập");
+  const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-customer-bots",{method,headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(payload?{"Content-Type":"application/json"}:{})},...(payload?{body:JSON.stringify(payload)}:{})});
+  const out=await res.json();
+  if(!res.ok||!out.success)throw Error(out.error||"Thao tác thất bại");
+  return out;
+ }
+ async function refresh(){
+  try{
+   const data=await request("GET");
+   const list=$("tgAdminBotList");list.replaceChildren();
+   for(const bot of data.bots||[]){
+    const row=document.createElement("div");row.className="tg-admin-bot-item";
+    const title=document.createElement("span");title.textContent=String(bot.display_name||"Bot")+" · @"+String(bot.username||"");
+    const del=document.createElement("button");del.type="button";del.className="soft";del.textContent="Ngắt bot";del.style.color="#b91c1c";
+    del.onclick=async()=>{if(!confirm("Ngắt bot này khỏi tài khoản? Tin đã lưu vẫn giữ."))return;try{await request("POST",{action:"disconnect",id:bot.id});await refresh()}catch(e){notice.textContent=e.message}};
+    row.append(title,del);list.append(row);
+   }
+   if(!list.childNodes.length)list.textContent="Chưa có bot được kết nối.";
+   const groups=$("tgAdminGroupList");groups.replaceChildren();
+   const selector=document.getElementById("tgMemberGroup");
+   const opts=selector?Array.from(selector.options).filter(o=>o.value):[];
+   for(const option of opts){const row=document.createElement("div");row.textContent="• "+option.textContent;groups.append(row);}
+   if(!opts.length)groups.textContent="Chưa có nhóm VPS được đồng bộ cho tài khoản này.";
+   notice.textContent="Đã cập nhật danh sách.";
+  }catch(e){notice.textContent="Không tải được: "+e.message}
+ }
+ $("tgAdminBotAdd").onclick=async()=>{
+  const token=$("tgAdminBotToken").value.trim(),name=$("tgAdminBotName").value.trim();
+  if(!token){notice.textContent="Nhập token BotFather.";return}
+  const btn=$("tgAdminBotAdd");btn.disabled=true;
+  try{await request("POST",{action:"connect",token,name});$("tgAdminBotToken").value="";notice.textContent="Đã gửi yêu cầu kết nối bot.";await refresh()}
+  catch(e){notice.textContent=e.message}finally{btn.disabled=false}
+ };
+ $("tgAdminBotRefresh").onclick=refresh;
+ root.querySelector("details").addEventListener("toggle",e=>{if(e.target.open)refresh()});
+ const observer=new MutationObserver(()=>{if(!host.classList.contains("hidden")){observer.disconnect();refresh()}});
+ observer.observe(host,{attributes:true,attributeFilter:["class"]});
+ if(!host.classList.contains("hidden")){observer.disconnect();refresh()}
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>

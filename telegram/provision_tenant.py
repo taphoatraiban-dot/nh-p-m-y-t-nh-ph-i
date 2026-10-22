@@ -67,6 +67,20 @@ async def run(args):
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--user-id",required=True)
-    p.add_argument("--api-id",type=int,required=True)
-    p.add_argument("--api-hash",required=True)
-    asyncio.run(run(p.parse_args()))
+    p.add_argument("--api-id",type=int)
+    p.add_argument("--api-hash")
+    args=p.parse_args()
+    if args.api_id is None or not args.api_hash:
+        env_path=Path("/etc/ongthantai-telegram/telegram.env")
+        if env_path.stat().st_mode & 0o022:
+            raise PermissionError("Telegram env must not be writable by group/others")
+        values={}
+        for line in env_path.read_text().splitlines():
+            line=line.strip()
+            if not line or line.startswith("#") or "=" not in line:continue
+            key,value=line.split("=",1)
+            key=key.strip().removeprefix("export ").strip()
+            values[key]=value.strip().strip('"').strip("'")
+        args.api_id=args.api_id or int(values["TG_API_ID"])
+        args.api_hash=args.api_hash or values["TG_API_HASH"]
+    asyncio.run(run(args))

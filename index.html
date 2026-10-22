@@ -9984,7 +9984,10 @@ function init(){
  const actions=document.createElement("div");actions.style.cssText="display:flex;gap:6px;margin:7px 0";
  const choose=document.createElement("button");choose.type="button";choose.textContent="Chọn tất cả";choose.className="soft";
  const importBtn=document.createElement("button");importBtn.type="button";importBtn.textContent="Đưa tin đã chọn vào ô tính";importBtn.className="soft";
- actions.append(choose,importBtn);box.append(status,actions,area);
+ const delSelected=document.createElement("button");delSelected.type="button";delSelected.className="soft";delSelected.textContent="Xóa tin đã chọn";
+ const delAll=document.createElement("button");delAll.type="button";delAll.className="soft";delAll.textContent="Xóa tất cả tin nhóm này";
+ const deletes=document.createElement("div");deletes.style.cssText="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px";deletes.append(delSelected,delAll);
+ actions.append(choose,importBtn);box.append(status,actions,deletes,area);
  const original=document.getElementById("tgInboxList");if(original)original.insertAdjacentElement("afterend",box);else parent.append(box);
  let records=[],selected=new Set(),loading=false;
  const groupFilter=document.getElementById("tgGroupFilter");
@@ -10015,6 +10018,20 @@ function init(){
    render();
   }catch(e){status.textContent="Lỗi nhận tin nhóm: "+e.message}finally{loading=false}
  }
+ async function hideMessages(ids,question){
+  if(!ids.length){status.textContent="Không có tin để xóa.";return}
+  if(!confirm(question+" Tin chỉ được ẩn khỏi tài khoản của bạn, không xóa trên Telegram."))return;
+  try{
+   const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập");
+   for(let i=0;i<ids.length;i+=500){
+    const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-group-inbox",{method:"POST",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({action:"hide",ids:ids.slice(i,i+500)})});
+    const result=await response.json();if(!response.ok||!result.success)throw Error(result.error||"Không xóa được tin");
+   }
+   records=records.filter(m=>!ids.includes(m.id));selected=new Set([...selected].filter(id=>!ids.includes(id)));render();
+  }catch(e){status.textContent="Lỗi xóa tin: "+e.message}
+ }
+ delSelected.addEventListener("click",()=>hideMessages(visible().filter(m=>selected.has(m.id)).map(m=>m.id),"Xóa những tin đã chọn của nhóm hiện tại?"));
+ delAll.addEventListener("click",()=>hideMessages(visible().map(m=>m.id),"Xóa tất cả tin đang hiển thị của nhóm đã chọn?"));
  choose.addEventListener("click",()=>{const shown=visible();const all=shown.length>0&&shown.every(m=>selected.has(m.id));selected=all?new Set():new Set(shown.map(m=>m.id));area.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=!all)});
  importBtn.addEventListener("click",()=>{
   const input=document.getElementById("bets");if(!input)return;

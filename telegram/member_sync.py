@@ -67,8 +67,7 @@ async def main():
                         await push(current,batch)
                         CURSOR.write_text(str(f.tell()))
                         os.chmod(CURSOR,0o600)
-            else:
-                await push(current,[])
+            await push(current,[])
             print("DA DONG BO NHOM:",len(current),flush=True)
         except Exception as exc:
             print("LOI DONG BO:",type(exc).__name__,str(exc)[:180],flush=True)

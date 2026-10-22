@@ -35,8 +35,15 @@ def read_config(path):
         raise ValueError("allowed_chat_ids must be a list")
     data["allowed_chat_ids"] = set(map(int, data["allowed_chat_ids"]))
     session_path = Path(data["session_path"]).resolve()
-    if not str(session_path).startswith("/var/lib/ongthantai-telegram/tenants/"):
-        raise ValueError("Session path must be in tenant data directory")
+    import uuid
+    user_id = str(uuid.UUID(data["user_id"]))
+    if user_id != data["user_id"]:
+        raise ValueError("Noncanonical tenant user ID")
+    expected = Path("/var/lib/ongthantai-telegram/tenants") / user_id / "telegram"
+    if session_path != expected.resolve():
+        raise ValueError("Session path must match the authenticated tenant ID")
+    if not isinstance(data["sync_key"], str) or len(data["sync_key"]) < 40:
+        raise ValueError("Invalid tenant sync key")
     return data, session_path
 
 def ingest(cfg, groups, messages):

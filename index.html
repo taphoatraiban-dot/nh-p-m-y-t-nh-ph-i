@@ -11707,3 +11707,35 @@ function init(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
+
+
+<style id="tg-bot-inbox-main-20261022-css">
+#tgForwardInbox.tg-bot-main{display:block!important;width:100%;max-width:100%;box-sizing:border-box;margin:8px 0!important;border:1px solid #cbd5e1;border-radius:10px;background:#fff}
+#tgForwardInbox.tg-bot-main>summary{display:list-item!important;cursor:pointer;font-size:14px;font-weight:700;padding:10px!important;color:#17212f}
+#tgForwardInbox.tg-bot-main>.compact-body{padding:8px!important;min-width:0;max-width:100%;box-sizing:border-box}
+#tgForwardInbox.tg-bot-main #tgInboxActions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+#tgForwardInbox.tg-bot-main #tgInboxActions button{min-width:0;max-width:100%;white-space:normal;font-size:12px;padding:8px 3px}
+#tgForwardInbox.tg-bot-main #tgGroupFilter{width:100%;min-width:0;max-width:100%;font-size:16px}
+#tgForwardInbox.tg-bot-main #tgInboxList{max-width:100%;overflow-x:hidden;overflow-wrap:anywhere}
+</style>
+<script id="tg-bot-inbox-main-20261022-js">
+(function(){
+ function showBotInbox(){
+  const inbox=document.getElementById("tgForwardInbox");
+  const target=document.getElementById("betsCard");
+  if(!inbox||!target||!target.parentNode)return;
+  // Keep the original DOM node and listeners; do not replace polling, auth or message handlers.
+  target.parentNode.insertBefore(inbox,target);
+  inbox.classList.add("tg-bot-main");
+  const summary=inbox.querySelector(":scope > summary");
+  if(summary){summary.style.display="list-item";summary.textContent="🤖 TIN TELEGRAM TỪ BOT";}
+  inbox.open=true;
+  const status=document.getElementById("tgInboxStatus");
+  if(status&&status.textContent==="Chọn nhóm để xem tin Telegram.")status.textContent="Đang tải tin từ bot…";
+  const refresh=document.getElementById("tgRefresh");
+  if(refresh)refresh.click();
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",showBotInbox);
+ else showBotInbox();
+})();
+</script>

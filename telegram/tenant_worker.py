@@ -100,7 +100,7 @@ async def main(path):
                 async for dialog in client.iter_dialogs():
                     is_allowed_group = dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]
                     is_allowed_private = (dialog.is_user and
-                        (cfg.get("receive_all_private",False) or int(dialog.id) in cfg["allowed_private_chat_ids"]) and
+                        int(dialog.id) in cfg["allowed_private_chat_ids"] and
                         not getattr(dialog.entity,"bot",False))
                     if is_allowed_group or is_allowed_private:
                         prefix="Cá nhân: " if is_allowed_private else ""

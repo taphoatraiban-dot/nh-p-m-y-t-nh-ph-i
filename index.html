@@ -11417,12 +11417,12 @@ const above=list.parentNode;
 above.insertBefore(regionWrap,list);above.insertBefore(actions,list);
 const selected=new Set();
 const key=m=>String(m.chat_id)+":"+String(m.message_id);
-const clean=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+const clean=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const patternMN=/(?:^|[^a-z])(?:2dmn|3dmn|4dmn|mien nam|tpho|tphcm|dthap|dong thap|cmau|ca mau|btre|ben tre|vtau|vung tau|blieu|bac lieu|dnai|dong nai|ctho|can tho|strang|soc trang|tninh|tay ninh|agiang|an giang|bthuan|binh thuan|vlong|vinh long|bdg|binh duong|tvinh|tra vinh|tgiang|tien giang|kgiang|kien giang|dlat|da lat)(?=$|[^a-z])/;
 const patternMT=/(?:^|[^a-z])(?:2dmt|3dmt|mien trung|hue|pyen|phu yen|dlak|dak lak|qnam|quang nam|dnang|da nang|bđinh|bdinh|binh dinh|qtri|quang tri|glai|gia lai|ntuan|ninh thuan|qngai|quang ngai|ktum|kon tum|khanh hoa)(?=$|[^a-z])/;
 const patternMB=/(?:^|[^a-z])(?:hn|mb|xsmb|mien bac|ha noi)(?=$|[^a-z])/;
 function detect(m){
- const t=clean(m.message_text).replace(/[.,:;\\/\\-]/g," ");
+ const t=clean(m.message_text).replace(/[^a-z0-9\s]/g," ");
  const mn=patternMN.test(t),mt=patternMT.test(t),mb=patternMB.test(t);
  if([mn,mt,mb].filter(Boolean).length!==1)return "OTHER";
  return mn?"MN":mt?"MT":"MB";
@@ -11469,8 +11469,8 @@ async function copyText(str){
 function importMessages(items){
  if(!items.length){status.textContent="Chưa có tin để đưa vào ô nhập.";return;}
  const box=document.getElementById("bets");if(!box){status.textContent="Không tìm thấy ô nhập liệu.";return;}
- const text=items.slice().reverse().map(m=>m.message_text).join("\\n");
- box.value=(box.value.trim()?box.value.replace(/\\s*$/,"")+"\\n":"")+text;
+ const text=items.slice().reverse().map(m=>m.message_text).join("\n");
+ box.value=(box.value.trim()?box.value.replace(/\s*$/,"")+"\n":"")+text;
  box.dispatchEvent(new Event("input",{bubbles:true}));
  status.textContent="Đã đưa "+items.length+" tin vào ô nhập liệu.";
  box.scrollIntoView({behavior:"smooth",block:"center"});
@@ -11488,8 +11488,8 @@ async function hideMessages(items){
 }
 buttons.select.onclick=()=>{visible().forEach(m=>selected.add(key(m)));render()};
 buttons.none.onclick=()=>{visible().forEach(m=>selected.delete(key(m)));render()};
-buttons.copy.onclick=()=>copyText(selectedVisible().slice().reverse().map(m=>m.message_text).join("\\n\\n"));
-buttons.copyAll.onclick=()=>copyText(visible().slice().reverse().map(m=>m.message_text).join("\\n\\n"));
+buttons.copy.onclick=()=>copyText(selectedVisible().slice().reverse().map(m=>m.message_text).join("\n\n"));
+buttons.copyAll.onclick=()=>copyText(visible().slice().reverse().map(m=>m.message_text).join("\n\n"));
 buttons.import.onclick=()=>importMessages(selectedVisible());
 buttons.importAll.onclick=()=>importMessages(visible());
 buttons.delete.onclick=()=>hideMessages(selectedVisible());

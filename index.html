@@ -11004,8 +11004,7 @@ function syncTelegramActions(){
  $("tgImport").style.display=selected.size?"block":"none";
 }
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-function region(m){const x=String(m.message_text||"").toLowerCase();if(/\\b(hn|mb|xsmb)\\b|miền bắc/.test(x))return "MB";if(/\\b([234]dmt|mt|xsmt)\\b|miền trung/.test(x))return "MT";if(/\\b([234]dmn|mn|xsmn)\\b|miền nam/.test(x))return "MN";return "CHƯA RÕ";}
-function visible(){const g=$("tgGroupFilter").value,r=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g)&&(!r||region(m)===r));}
+function visible(){const g=$("tgGroupFilter").value,r=$("tgRegionFilter")?.value||"";return messages.filter(m=>(!g||(m.selected_group||m.origin_name||"Không rõ nhóm")===g)&&(!r||regionOf(m)===r));}
 const tgOpenedGroups=new Set();
 let tgOpenedGroupsInitialized=false;
 const regionOf=m=>{

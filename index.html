@@ -1303,7 +1303,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 </details>
 
 <details class="compact-section green" id="tgForwardInbox" open style="margin-bottom:9px">
- <summary style="display:none">📨 TIN TELEGRAM THEO NHÓM</summary>
+ <summary style="display:list-item!important;font-weight:700;padding:10px">🤖 TIN TELEGRAM TỪ BOT</summary>
  <div class="compact-body" style="padding:12px">
   <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:9px">
    <select id="tgGroupFilter" aria-label="Chọn nhóm Telegram" style="flex:1;min-width:130px"><option value="">Tất cả nhóm</option></select>
@@ -11547,8 +11547,8 @@ function place(){
  old.open=true;
  const oldSummary=old.querySelector(":scope > summary");
  if(oldSummary)oldSummary.style.display="none";
- bot.appendChild(old);
- body.append(bot,forward);heading.append(h,body);
+ // The bot inbox stays on the main screen. Do not move it into the drawer.
+ body.append(forward);heading.append(h,body);
  const target=drawer.querySelector(".printer-menu")||drawer.querySelector(".guide-menu");
  if(target)drawer.insertBefore(heading,target);else drawer.appendChild(heading);
  const previous=old.previousElementSibling;

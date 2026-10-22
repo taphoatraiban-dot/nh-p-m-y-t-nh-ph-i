@@ -9616,96 +9616,8 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){ale
 const profile=()=>state.profiles.find(x=>x.id===selected);const effective=(p,k)=>p?.rates?.[k]||((k==='x2'||k==='x3'||k==='x4')?{unit:'money',price:p?.group==='secretary'?'0.65':'1',reward:''}:{});
 function show(pg){page=pg;document.querySelectorAll('#mbApp .mb-panel').forEach(e=>e.classList.toggle('active',e.dataset.mbpage===pg));document.querySelectorAll('#mbNav button').forEach(e=>e.classList.toggle('active',e.dataset.page===pg));if(pg==='prices')renderPrices();if(pg==='slips'||pg==='messages'||pg==='debts'||pg==='stats')renderLists();if(pg==='guide')renderGuide('north');}
 function setup(){if(!$('mbOpen'))return;$('mbNav').innerHTML=names.map(([id,name])=>`<button type="button" data-page="${id}">${name}</button>`).join('');$('mbNav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)show(b.dataset.page)});$('mbOpen').addEventListener('click',()=>{$('mbApp').classList.add('mb-visible');$('mbApp').setAttribute('aria-hidden','false');document.body.style.overflow='hidden';show('calc')});$('mbClose').addEventListener('click',()=>{$('mbApp').classList.remove('mb-visible');$('mbApp').setAttribute('aria-hidden','true');document.body.style.overflow='';});$('mbDate').value=$('mbDebtDate').value=new Date().toLocaleDateString('en-CA');$('mbPriceGroup').onchange=renderPrices;$('mbPriceProfile').onchange=()=>{selected=$('mbPriceProfile').value;renderPrices()};$('mbAddProfile').onclick=()=>{const group=$('mbPriceGroup').value;const name=prompt('Tên bảng giá MB mới:');if(!name?.trim())return;const id='mb'+Date.now();state.profiles.push({id,name:name.trim(),group,rates:{}});selected=id;save();renderPrices()};$('mbCloneProfile').onclick=()=>{const p=profile();if(!p)return;const id='mb'+Date.now();state.profiles.push({...JSON.parse(JSON.stringify(p)),id,name:p.name+' (sao chép)'});selected=id;save();renderPrices()};$('mbDeleteProfile').onclick=()=>{const p=profile();if(!p||state.profiles.filter(x=>x.group===p.group).length<2){alert('Cần giữ ít nhất một bảng mỗi nhóm.');return}if(!confirm('Xóa bảng giá '+p.name+'?'))return;state.profiles=state.profiles.filter(x=>x.id!==p.id);selected=state.profiles.find(x=>x.group===p.group).id;save();renderPrices()};$('mbSavePrice').onclick=savePrice;$('mbCalculate').onclick=calculate;$('mbSaveSlip').onclick=()=>storeText('slips');$('mbSaveMessage').onclick=()=>storeText('messages');$('mbClearSlips').onclick=()=>clearItems('slips');$('mbClearMessages').onclick=()=>clearItems('messages');$('mbAddDebt').onclick=addDebt;$('mbDemoStake').oninput=updateDemo;$('mbDemoFactor').onchange=updateDemo;$('mbGuideNorth').onclick=()=>renderGuide('north');$('mbGuideSouth').onclick=()=>renderGuide('south');$('mbPrint').onclick=()=>{const content=$('mbBets').value.trim();if(!content)return alert('Chưa có phơi MB để in');const w=window.open('','_blank');if(!w)return alert('Trình duyệt chặn cửa sổ in');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Phơi MB</title><style>body{font-family:Arial,sans-serif;margin:12px}pre{white-space:pre-wrap}</style></head><body><h3>PHIẾU MIỀN BẮC (IN THỬ)</h3><pre>'+esc(content)+'</pre>
-<script id="telegram-group-approval-v1">
-(function(){
- function init(){
-  const filter=document.getElementById("tgGroupFilter");
-  if(!filter||document.getElementById("tgGroupAdminPanel"))return;
-  const panel=document.createElement("details");panel.id="tgGroupAdminPanel";panel.style.cssText="margin:8px 0;padding:8px;border:1px solid #d1d5db;border-radius:8px;background:#fff";
-  const summary=document.createElement("summary");summary.textContent="Quản lý nhóm Telegram (quản trị)";panel.appendChild(summary);
-  const list=document.createElement("div");list.style.cssText="display:grid;gap:7px;margin-top:8px";panel.appendChild(list);
-  filter.parentElement.insertAdjacentElement("afterend",panel);
-  async function request(body){
-   const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập");
-   const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-group-admin",{method:body?"POST":"GET",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})});
-   if(response.status===403){panel.hidden=true;return null}
-   const result=await response.json();if(!response.ok)throw Error(result.error||"Không tải được nhóm");return result;
-  }
-  async function load(){
-   try{
-    const result=await request();if(!result)return;
-    list.replaceChildren();
-    for(const g of result.groups){
-     if(!Array.from(filter.options).some(o=>o.value===g.group_name)){const opt=document.createElement("option");opt.value=g.group_name;opt.textContent=g.group_name;filter.appendChild(opt)}
-     const line=document.createElement("div");line.style.cssText="display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:13px";
-     const name=document.createElement("span");name.textContent=g.group_name+" ("+g.chat_id+")";
-     const btn=document.createElement("button");btn.type="button";btn.className="soft";btn.textContent=g.enabled?"Đang bật · Tắt":"Chờ duyệt · Bật";
-     btn.addEventListener("click",async()=>{btn.disabled=true;try{await request({action:"set_enabled",chat_id:g.chat_id,enabled:!g.enabled});await load()}catch(e){alert(e.message)}finally{btn.disabled=false}});
-     line.append(name,btn);list.appendChild(line);
-    }
-    if(!result.groups.length)list.textContent="Chưa có nhóm nào.";
-   }catch(e){list.textContent="Không tải được nhóm: "+e.message}
-  }
-  const b=document.createElement("button");b.type="button";b.className="soft";b.textContent="Kích hoạt webhook nhóm";panel.appendChild(b);
-  b.addEventListener("click",async()=>{b.disabled=true;try{const x=await request({action:"activate_webhook"});if(x?.success)b.textContent="Webhook đã kích hoạt"}catch(e){alert(e.message)}finally{b.disabled=false}});
-  panel.addEventListener("toggle",()=>{if(panel.open)load()});
-  // Keep the group picker updated while the app is open, without touching Telegram chats.
-  setInterval(()=>{if(!document.hidden)load()},30000);
-  load();
- }
- if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
-})();
-</script>
-<script id="tg-auto-group-inbox-v1">
-(function(){
-function init(){
- const parent=document.getElementById("tgForwardInbox");if(!parent||document.getElementById("tgAutoGroupInbox"))return;
- const box=document.createElement("details");box.id="tgAutoGroupInbox";box.style.cssText="border:1px solid #cbd5e1;border-radius:9px;padding:8px;margin:9px 0;background:#fff";
- const head=document.createElement("summary");head.textContent="Tin tự động từ nhóm Telegram";head.style.cssText="font-weight:700;color:#1e293b";box.append(head);
- const status=document.createElement("div");status.style.cssText="font-size:12px;color:#64748b;margin:7px 0";status.textContent="Đang chờ tải tin...";
- const area=document.createElement("div");area.style.cssText="max-height:320px;overflow-y:auto;display:grid;gap:7px";
- const actions=document.createElement("div");actions.style.cssText="display:flex;gap:6px;margin:7px 0";
- const choose=document.createElement("button");choose.type="button";choose.textContent="Chọn tất cả";choose.className="soft";
- const importBtn=document.createElement("button");importBtn.type="button";importBtn.textContent="Đưa tin đã chọn vào ô tính";importBtn.className="soft";
- actions.append(choose,importBtn);box.append(status,actions,area);
- const original=document.getElementById("tgInboxList");if(original)original.insertAdjacentElement("afterend",box);else parent.append(box);
- let records=[],selected=new Set(),loading=false;
- async function load(){
-  if(loading||document.hidden)return;loading=true;
-  try{
-   const {data:{session}}=await sb.auth.getSession();if(!session)return;
-   const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-group-inbox?limit=300",{headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY}});
-   if(response.status===403){box.hidden=true;return}
-   const data=await response.json();if(!response.ok||!data.success)throw Error(data.error||"Không đọc được tin");
-   records=data.messages||[];
-   selected=new Set([...selected].filter(id=>records.some(m=>m.id===id)));
-   area.replaceChildren();const fragment=document.createDocumentFragment();
-   for(const m of records){
-    const line=document.createElement("label");line.style.cssText="display:flex;gap:8px;padding:9px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#17212f";
-    const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(m.id);check.addEventListener("change",()=>{if(check.checked)selected.add(m.id);else selected.delete(m.id)});
-    const text=document.createElement("div");text.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;min-width:0";
-    const title=document.createElement("strong");title.textContent=m.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN");
-    const content=document.createElement("div");content.textContent=m.message_text||"";text.append(title,content);line.append(check,text);fragment.append(line);
-   }
-   area.append(fragment);status.textContent=records.length+" tin nhóm tự động · cập nhật mỗi 15 giây";
-  }catch(e){status.textContent="Lỗi nhận tin nhóm: "+e.message}finally{loading=false}
- }
- choose.addEventListener("click",()=>{const all=records.every(m=>selected.has(m.id));selected=all?new Set():new Set(records.map(m=>m.id));area.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=!all)});
- importBtn.addEventListener("click",()=>{
-  const input=document.getElementById("bets");if(!input)return;
-  const existing=new Set(input.value.split(/\n\s*\n/).map(v=>v.trim().toLowerCase()).filter(Boolean));
-  const lines=records.filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date)).map(m=>String(m.message_text||"").trim()).filter(t=>{const key=t.toLowerCase();if(!key||existing.has(key))return false;existing.add(key);return true});
-  if(!lines.length){status.textContent="Chưa chọn tin mới hoặc tin đã có trong ô tính.";return}
-  input.value=[input.value.trim(),lines.join("\n\n")].filter(Boolean).join("\n\n");
-  input.dispatchEvent(new Event("input",{bubbles:true}));document.getElementById("betsCard").open=true;status.textContent="Đã đưa "+lines.length+" tin vào ô tính.";
- });
- box.addEventListener("toggle",()=>{if(box.open)load()});
- setInterval(()=>{if(box.open&&!document.hidden)load()},15000);
- load();
-}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
-})();
-</script>
+
+
 </body></html>');w.document.close();w.focus();w.print()};renderPrices();updateDemo();show('calc')}
 function renderPrices(){let group=$('mbPriceGroup').value;let ps=state.profiles.filter(x=>x.group===group);if(!ps.some(x=>x.id===selected))selected=ps[0]?.id;$('mbPriceProfile').innerHTML=ps.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');$('mbPriceProfile').value=selected;const p=profile();$('mbPriceFields').innerHTML=categories.map(([id,name,def])=>{const r=effective(p,id);return `<div class="mb-card" data-rate="${id}"><b>${name}</b><div class="mb-grid"><div><label>Đơn vị</label><select class="mb-rate-unit"><option value="point" ${ (r.unit||def)==='point'?'selected':''}>Điểm</option><option value="money" ${(r.unit||def)==='money'?'selected':''}>Tiền</option></select></div><div><label>Giá thu (đ/điểm hoặc hệ số)</label><input class="mb-rate-price" inputmode="decimal" value="${esc(r.price??'')}"></div><div><label>Thưởng (đ/điểm hoặc hệ số)</label><input class="mb-rate-reward" inputmode="decimal" value="${esc(r.reward??'')}"></div></div></div>`}).join('');$('mbCalcPrice').innerHTML=state.profiles.filter(x=>x.group==='customer').map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}
 function savePrice(){const p=profile();if(!p)return;const rates={};for(const el of document.querySelectorAll('#mbPriceFields [data-rate]')){const id=el.dataset.rate;const price=el.querySelector('.mb-rate-price').value.trim().replace(',','.');const reward=el.querySelector('.mb-rate-reward').value.trim().replace(',','.');if([price,reward].some(x=>x!==''&&(!Number.isFinite(Number(x))||Number(x)<0)))return alert('Giá không hợp lệ: '+id);rates[id]={unit:el.querySelector('.mb-rate-unit').value,price,reward}}p.rates=rates;save();alert('Đã lưu bảng giá MB: '+p.name)}
@@ -10021,6 +9933,97 @@ bets.addEventListener('focus',showOnce);
 bets.addEventListener('input',showOnce);
 })();
 </script>
+<script id="telegram-group-approval-v1">
+(function(){
+ function init(){
+  const filter=document.getElementById("tgGroupFilter");
+  if(!filter||document.getElementById("tgGroupAdminPanel"))return;
+  const panel=document.createElement("details");panel.id="tgGroupAdminPanel";panel.style.cssText="margin:8px 0;padding:8px;border:1px solid #d1d5db;border-radius:8px;background:#fff";
+  const summary=document.createElement("summary");summary.textContent="Quản lý nhóm Telegram (quản trị)";panel.appendChild(summary);
+  const list=document.createElement("div");list.style.cssText="display:grid;gap:7px;margin-top:8px";panel.appendChild(list);
+  filter.parentElement.insertAdjacentElement("afterend",panel);
+  async function request(body){
+   const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập");
+   const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-group-admin",{method:body?"POST":"GET",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})});
+   if(response.status===403){panel.hidden=true;return null}
+   const result=await response.json();if(!response.ok)throw Error(result.error||"Không tải được nhóm");return result;
+  }
+  async function load(){
+   try{
+    const result=await request();if(!result)return;
+    list.replaceChildren();
+    for(const g of result.groups){
+     if(!Array.from(filter.options).some(o=>o.value===g.group_name)){const opt=document.createElement("option");opt.value=g.group_name;opt.textContent=g.group_name;filter.appendChild(opt)}
+     const line=document.createElement("div");line.style.cssText="display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:13px";
+     const name=document.createElement("span");name.textContent=g.group_name+" ("+g.chat_id+")";
+     const btn=document.createElement("button");btn.type="button";btn.className="soft";btn.textContent=g.enabled?"Đang bật · Tắt":"Chờ duyệt · Bật";
+     btn.addEventListener("click",async()=>{btn.disabled=true;try{await request({action:"set_enabled",chat_id:g.chat_id,enabled:!g.enabled});await load()}catch(e){alert(e.message)}finally{btn.disabled=false}});
+     line.append(name,btn);list.appendChild(line);
+    }
+    if(!result.groups.length)list.textContent="Chưa có nhóm nào.";
+   }catch(e){list.textContent="Không tải được nhóm: "+e.message}
+  }
+  const b=document.createElement("button");b.type="button";b.className="soft";b.textContent="Kích hoạt webhook nhóm";panel.appendChild(b);
+  b.addEventListener("click",async()=>{b.disabled=true;try{const x=await request({action:"activate_webhook"});if(x?.success)b.textContent="Webhook đã kích hoạt"}catch(e){alert(e.message)}finally{b.disabled=false}});
+  panel.addEventListener("toggle",()=>{if(panel.open)load()});
+  // Keep the group picker updated while the app is open, without touching Telegram chats.
+  setInterval(()=>{if(!document.hidden)load()},30000);
+  load();
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+<script id="tg-auto-group-inbox-v1">
+(function(){
+function init(){
+ const parent=document.getElementById("tgForwardInbox");if(!parent||document.getElementById("tgAutoGroupInbox"))return;
+ const box=document.createElement("details");box.id="tgAutoGroupInbox";box.style.cssText="border:1px solid #cbd5e1;border-radius:9px;padding:8px;margin:9px 0;background:#fff";
+ const head=document.createElement("summary");head.textContent="Tin tự động từ nhóm Telegram";head.style.cssText="font-weight:700;color:#1e293b";box.append(head);
+ const status=document.createElement("div");status.style.cssText="font-size:12px;color:#64748b;margin:7px 0";status.textContent="Đang chờ tải tin...";
+ const area=document.createElement("div");area.style.cssText="max-height:320px;overflow-y:auto;display:grid;gap:7px";
+ const actions=document.createElement("div");actions.style.cssText="display:flex;gap:6px;margin:7px 0";
+ const choose=document.createElement("button");choose.type="button";choose.textContent="Chọn tất cả";choose.className="soft";
+ const importBtn=document.createElement("button");importBtn.type="button";importBtn.textContent="Đưa tin đã chọn vào ô tính";importBtn.className="soft";
+ actions.append(choose,importBtn);box.append(status,actions,area);
+ const original=document.getElementById("tgInboxList");if(original)original.insertAdjacentElement("afterend",box);else parent.append(box);
+ let records=[],selected=new Set(),loading=false;
+ async function load(){
+  if(loading||document.hidden)return;loading=true;
+  try{
+   const {data:{session}}=await sb.auth.getSession();if(!session)return;
+   const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-group-inbox?limit=300",{headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY}});
+   if(response.status===403){box.hidden=true;return}
+   const data=await response.json();if(!response.ok||!data.success)throw Error(data.error||"Không đọc được tin");
+   records=data.messages||[];
+   selected=new Set([...selected].filter(id=>records.some(m=>m.id===id)));
+   area.replaceChildren();const fragment=document.createDocumentFragment();
+   for(const m of records){
+    const line=document.createElement("label");line.style.cssText="display:flex;gap:8px;padding:9px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#17212f";
+    const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(m.id);check.addEventListener("change",()=>{if(check.checked)selected.add(m.id);else selected.delete(m.id)});
+    const text=document.createElement("div");text.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;min-width:0";
+    const title=document.createElement("strong");title.textContent=m.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN");
+    const content=document.createElement("div");content.textContent=m.message_text||"";text.append(title,content);line.append(check,text);fragment.append(line);
+   }
+   area.append(fragment);status.textContent=records.length+" tin nhóm tự động · cập nhật mỗi 15 giây";
+  }catch(e){status.textContent="Lỗi nhận tin nhóm: "+e.message}finally{loading=false}
+ }
+ choose.addEventListener("click",()=>{const all=records.every(m=>selected.has(m.id));selected=all?new Set():new Set(records.map(m=>m.id));area.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=!all)});
+ importBtn.addEventListener("click",()=>{
+  const input=document.getElementById("bets");if(!input)return;
+  const existing=new Set(input.value.split(/\n\s*\n/).map(v=>v.trim().toLowerCase()).filter(Boolean));
+  const lines=records.filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date)).map(m=>String(m.message_text||"").trim()).filter(t=>{const key=t.toLowerCase();if(!key||existing.has(key))return false;existing.add(key);return true});
+  if(!lines.length){status.textContent="Chưa chọn tin mới hoặc tin đã có trong ô tính.";return}
+  input.value=[input.value.trim(),lines.join("\n\n")].filter(Boolean).join("\n\n");
+  input.dispatchEvent(new Event("input",{bubbles:true}));document.getElementById("betsCard").open=true;status.textContent="Đã đưa "+lines.length+" tin vào ô tính.";
+ });
+ box.addEventListener("toggle",()=>{if(box.open)load()});
+ setInterval(()=>{if(box.open&&!document.hidden)load()},15000);
+ load();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+
 </body>
 </html>
 <style id="v81-style">

@@ -9997,7 +9997,13 @@ function init(){
   const shown=visible();
   selected=new Set([...selected].filter(id=>shown.some(m=>m.id===id)));
   area.replaceChildren();const fragment=document.createDocumentFragment();
+  let previousDay="";
   for(const m of shown){
+   const day=new Date(m.message_date).toLocaleDateString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh",day:"2-digit",month:"2-digit",year:"numeric"});
+   if(day!==previousDay){
+    const dayHeading=document.createElement("div");dayHeading.textContent="Ngày "+day;dayHeading.style.cssText="font-weight:800;padding:8px;background:#f1f5f9;border-radius:7px;color:#334155";
+    fragment.append(dayHeading);previousDay=day;
+   }
    const line=document.createElement("label");line.style.cssText="display:flex;gap:8px;padding:9px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#17212f";
    const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(m.id);check.addEventListener("change",()=>{if(check.checked)selected.add(m.id);else selected.delete(m.id)});
    const text=document.createElement("div");text.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;min-width:0";
@@ -10005,7 +10011,7 @@ function init(){
    const content=document.createElement("div");content.textContent=m.message_text||"";text.append(title,content);line.append(check,text);fragment.append(line);
   }
   area.append(fragment);
-  status.textContent=shown.length+" tin của "+(groupFilter?.selectedOptions?.[0]?.textContent||"Tất cả nhóm")+" · cập nhật mỗi 15 giây";
+  status.textContent=shown.length+" tin của "+(groupFilter?.selectedOptions?.[0]?.textContent||"Tất cả nhóm")+" · chỉ 48 giờ gần nhất · cập nhật mỗi 15 giây";
  }
  async function load(){
   if(loading||document.hidden)return;loading=true;

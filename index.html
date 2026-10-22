@@ -9646,6 +9646,8 @@ function setup(){if(!$('mbOpen'))return;$('mbNav').innerHTML=names.map(([id,name
     if(!result.groups.length)list.textContent="Chưa có nhóm nào.";
    }catch(e){list.textContent="Không tải được nhóm: "+e.message}
   }
+  const b=document.createElement("button");b.type="button";b.className="soft";b.textContent="Kích hoạt webhook nhóm";panel.appendChild(b);
+  b.addEventListener("click",async()=>{b.disabled=true;try{const x=await request({action:"activate_webhook"});if(x?.success)b.textContent="Webhook đã kích hoạt"}catch(e){alert(e.message)}finally{b.disabled=false}});
   panel.addEventListener("toggle",()=>{if(panel.open)load()});
   // Keep the group picker updated while the app is open, without touching Telegram chats.
   setInterval(()=>{if(!document.hidden)load()},30000);

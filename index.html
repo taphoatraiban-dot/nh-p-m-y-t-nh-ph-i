@@ -11433,7 +11433,7 @@ const count=document.createElement("span");count.id="tgMemberSelectionCount";cou
 regionWrap.append(region,count);
 const actions=document.createElement("div");actions.id="tgMemberActions";actions.style.cssText="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:6px 0";
 const buttons={};
-for(const [id,caption] of [["select","Chọn tất cả"],["none","Bỏ chọn"],["copy","Copy đã chọn"],["copyAll","Copy tất cả tin"],["import","Đưa tin đã chọn vào ô nhập"],["importAll","Đưa tất cả tin vào ô nhập"],["delete","Xóa tin đã chọn"],["deleteAll","Xóa tất cả tin"]]){
+for(const [id,caption] of [["select","Chọn tất cả"],["none","Bỏ chọn"],["delete","Xóa tin đã chọn"],["import","Đưa tin vào ô nhập"]]){
  const btn=document.createElement("button");btn.type="button";btn.className="soft";btn.textContent=caption;btn.style.cssText="width:100%;min-width:0;white-space:normal;padding:8px 3px;font-size:12px";
  if(id==="delete"||id==="deleteAll")btn.style.color="#b91c1c";
  buttons[id]=btn;actions.append(btn);
@@ -11514,12 +11514,8 @@ async function hideMessages(items){
 }
 buttons.select.onclick=()=>{visible().forEach(m=>selected.add(key(m)));render()};
 buttons.none.onclick=()=>{visible().forEach(m=>selected.delete(key(m)));render()};
-buttons.copy.onclick=()=>copyText(selectedVisible().slice().reverse().map(m=>m.message_text).join("\n\n"));
-buttons.copyAll.onclick=()=>copyText(visible().slice().reverse().map(m=>m.message_text).join("\n\n"));
 buttons.import.onclick=()=>importMessages(selectedVisible());
-buttons.importAll.onclick=()=>importMessages(visible());
 buttons.delete.onclick=()=>hideMessages(selectedVisible());
-buttons.deleteAll.onclick=()=>hideMessages(visible());
 region.onchange=render;
 
 async function load(){if(busy||document.hidden)return;busy=true;try{data=await call("read");status.textContent=(data.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+data.groups.length+" nhóm · "+data.messages.length+" tin trong 48 giờ";render()}catch(e){status.textContent="Lỗi: "+e.message}finally{busy=false}}

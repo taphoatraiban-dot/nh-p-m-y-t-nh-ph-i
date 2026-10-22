@@ -11477,3 +11477,42 @@ function place(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",place);else place();
 })();
 </script>
+
+<style id="tg-vps-key-menu-style">
+#appDrawer #tgMemberQuickSetup{margin:6px 0!important;padding:7px!important}
+#appDrawer #tgMemberQuickSetup button{font-size:13px!important;padding:10px 8px!important}
+#appDrawer #tgVpsKeyMenu .drawer-body{padding:8px!important}
+#appDrawer #tgVpsKeyMenu details{border:1px solid #e2e8f0;border-radius:8px;padding:8px;background:#fff;margin-top:7px}
+#appDrawer #tgVpsKeyMenu details>summary{font-weight:700;cursor:pointer}
+</style>
+<script id="tg-vps-key-menu-script">
+(function(){
+function init(){
+ const drawer=document.getElementById("appDrawer");
+ const panel=document.getElementById("tgMemberInbox");
+ const bar=document.getElementById("tgMemberQuickSetup");
+ if(!drawer||!panel||!bar||document.getElementById("tgVpsKeyMenu"))return;
+ const keyButton=bar.querySelector("button");
+ const setup=panel.querySelector("details");
+ if(!setup||!keyButton)return;
+ const section=document.createElement("div");
+ section.className="drawer-section";
+ section.id="tgVpsKeyMenu";
+ const heading=document.createElement("h3");
+ heading.textContent="🔑 KHÓA ĐỒNG BỘ TELEGRAM VPS";
+ const body=document.createElement("div");
+ body.className="drawer-body";
+ setup.open=false;
+ body.append(bar,setup);
+ section.append(heading,body);
+ const legacy=document.getElementById("tgLegacyMenu");
+ if(legacy)drawer.insertBefore(section,legacy);
+ else drawer.append(section);
+ keyButton.onclick=function(){
+   setup.open=true;
+   setup.scrollIntoView({behavior:"smooth",block:"center"});
+ };
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>

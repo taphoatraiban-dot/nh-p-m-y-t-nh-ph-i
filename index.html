@@ -11887,7 +11887,10 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     });
     if(!res.ok)throw Error("not ready");
     const obj=await res.json();
-    if(obj.success===true&&obj.self_service_enabled===true&&obj.otp_flow_ready===true){
+    if(obj.success===true){
+      availability.textContent=obj.licensed?"Tài khoản đã có giấy phép còn hạn. Đang chờ kích hoạt kết nối VPS tự động.":"Tài khoản chưa có giấy phép còn hạn. Vui lòng gia hạn để dùng kết nối VPS.";
+    }
+    if(obj.success===true&&obj.licensed===true&&obj.self_service_enabled===true&&obj.otp_flow_ready===true){
       start.disabled=false;start.textContent="Tự kết nối Telegram";
       availability.textContent="Dịch vụ xác thực đã sẵn sàng.";
     }

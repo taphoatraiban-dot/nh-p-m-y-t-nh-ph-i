@@ -11394,6 +11394,31 @@ panel.innerHTML='<summary style="font-weight:700">📨 Tin Telegram từ tài kh
 target.parentNode.insertBefore(panel,target);
 const status=panel.querySelector("#tgMemberStatus"),groups=panel.querySelector("#tgMemberGroup"),list=panel.querySelector("#tgMemberMessages"),setup=panel.querySelector("#tgMemberSetup");
 let data={groups:[],messages:[]},busy=false;
+// Danh sách tên nhóm gọn; chọn xong tự đóng, tránh menu chọn mặc định iOS che màn hình.
+groups.style.display="none";
+const compact=document.createElement("details");
+compact.id="tgMemberGroupCompact";
+compact.style.cssText="position:relative;flex:1 1 160px;min-width:0;border:1px solid #cbd5e1;border-radius:9px;background:#fff";
+const compactTitle=document.createElement("summary");
+compactTitle.style.cssText="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:37px;padding:6px 10px;font-size:14px;color:#17212f";
+const compactName=document.createElement("span");compactName.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap";compactName.textContent="Chọn nhóm";
+const caret=document.createElement("span");caret.textContent="⌄";caret.setAttribute("aria-hidden","true");
+compactTitle.append(compactName,caret);
+const compactItems=document.createElement("div");compactItems.style.cssText="display:grid;gap:2px;padding:4px;max-height:240px;overflow-y:auto;border-top:1px solid #e2e8f0";
+compact.append(compactTitle,compactItems);
+groups.insertAdjacentElement("afterend",compact);
+function refreshCompact(){
+ compactName.textContent=groups.options[groups.selectedIndex]?.textContent||"Chưa có nhóm";
+ compactItems.replaceChildren();
+ if(!data.groups.length){compact.open=false;return;}
+ for(const g of data.groups){
+  const button=document.createElement("button");button.type="button";
+  button.textContent=g.group_name;
+  button.style.cssText="display:block;text-align:left;width:100%;border:0;background:"+(groups.value===String(g.chat_id)?"#eef2ff":"#fff")+";color:#17212f;border-radius:6px;padding:10px;font-size:14px;white-space:normal;overflow-wrap:anywhere";
+  button.onclick=()=>{groups.value=String(g.chat_id);compact.open=false;render();};
+  compactItems.append(button);
+ }
+}
 async function call(action,body){
 const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập phần mềm");
 const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-member-sync?action="+action,{method:body?"POST":"GET",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})});
@@ -11436,6 +11461,7 @@ function render(){
  for(const g of data.groups)groups.add(new Option(g.group_name,String(g.chat_id)));
  if(!data.groups.length)groups.add(new Option("Chưa có nhóm",""));
  else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:String(data.groups[0].chat_id);
+ refreshCompact();
  const seen=new Set(data.messages.map(key));
  for(const id of selected)if(!seen.has(id))selected.delete(id);
  list.replaceChildren();
@@ -11448,7 +11474,7 @@ function render(){
   const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(key(m));check.setAttribute("aria-label","Chọn tin Telegram");check.style.cssText="width:18px;height:18px;flex-shrink:0;margin:3px 0";
   check.onchange=()=>{if(check.checked)selected.add(key(m));else selected.delete(key(m));updateCount()};
   const title=document.createElement("div");title.style.cssText="font-size:12px;font-weight:700;color:#475569;flex:1";
-  title.textContent=(names.get(String(m.chat_id))||"Nhóm "+m.chat_id)+" · "+(m.sender_name||"Thành viên")+" · "+new Date(m.message_date).toLocaleString("vi-VN")+" · "+({MN:"MN",MT:"MT",MB:"MB",OTHER:"Chưa rõ miền"}[detect(m)]);
+  title.textContent=new Date(m.message_date).toLocaleString("vi-VN")+" · "+({MN:"MN",MT:"MT",MB:"MB",OTHER:"Chưa rõ miền"}[detect(m)]);
   const copyBtn=document.createElement("button");copyBtn.type="button";copyBtn.className="soft";copyBtn.textContent="Copy";copyBtn.onclick=()=>copyText(m.message_text);
   const importBtn=document.createElement("button");importBtn.type="button";importBtn.className="soft";importBtn.textContent="Nhập";importBtn.onclick=()=>importMessages([m]);
   const delBtn=document.createElement("button");delBtn.type="button";delBtn.className="soft";delBtn.textContent="Xóa";delBtn.style.color="#b91c1c";delBtn.onclick=()=>hideMessages([m]);

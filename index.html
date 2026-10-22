@@ -9987,6 +9987,23 @@ function init(){
  actions.append(choose,importBtn);box.append(status,actions,area);
  const original=document.getElementById("tgInboxList");if(original)original.insertAdjacentElement("afterend",box);else parent.append(box);
  let records=[],selected=new Set(),loading=false;
+ const groupFilter=document.getElementById("tgGroupFilter");
+ const norm=v=>String(v||"").normalize("NFKC").trim().toLocaleLowerCase("vi-VN");
+ const visible=()=>{const chosen=norm(groupFilter?.value);return !chosen||chosen==="tất cả nhóm"||chosen==="tat ca nhom"?records:records.filter(m=>norm(m.group_name)===chosen)};
+ function render(){
+  const shown=visible();
+  selected=new Set([...selected].filter(id=>shown.some(m=>m.id===id)));
+  area.replaceChildren();const fragment=document.createDocumentFragment();
+  for(const m of shown){
+   const line=document.createElement("label");line.style.cssText="display:flex;gap:8px;padding:9px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#17212f";
+   const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(m.id);check.addEventListener("change",()=>{if(check.checked)selected.add(m.id);else selected.delete(m.id)});
+   const text=document.createElement("div");text.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;min-width:0";
+   const title=document.createElement("strong");title.textContent=m.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN");
+   const content=document.createElement("div");content.textContent=m.message_text||"";text.append(title,content);line.append(check,text);fragment.append(line);
+  }
+  area.append(fragment);
+  status.textContent=shown.length+" tin của "+(groupFilter?.selectedOptions?.[0]?.textContent||"Tất cả nhóm")+" · cập nhật mỗi 15 giây";
+ }
  async function load(){
   if(loading||document.hidden)return;loading=true;
   try{
@@ -9995,27 +10012,19 @@ function init(){
    if(response.status===403){box.hidden=true;return}
    const data=await response.json();if(!response.ok||!data.success)throw Error(data.error||"Không đọc được tin");
    records=data.messages||[];
-   selected=new Set([...selected].filter(id=>records.some(m=>m.id===id)));
-   area.replaceChildren();const fragment=document.createDocumentFragment();
-   for(const m of records){
-    const line=document.createElement("label");line.style.cssText="display:flex;gap:8px;padding:9px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#17212f";
-    const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(m.id);check.addEventListener("change",()=>{if(check.checked)selected.add(m.id);else selected.delete(m.id)});
-    const text=document.createElement("div");text.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;min-width:0";
-    const title=document.createElement("strong");title.textContent=m.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN");
-    const content=document.createElement("div");content.textContent=m.message_text||"";text.append(title,content);line.append(check,text);fragment.append(line);
-   }
-   area.append(fragment);status.textContent=records.length+" tin nhóm tự động · cập nhật mỗi 15 giây";
+   render();
   }catch(e){status.textContent="Lỗi nhận tin nhóm: "+e.message}finally{loading=false}
  }
- choose.addEventListener("click",()=>{const all=records.every(m=>selected.has(m.id));selected=all?new Set():new Set(records.map(m=>m.id));area.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=!all)});
+ choose.addEventListener("click",()=>{const shown=visible();const all=shown.length>0&&shown.every(m=>selected.has(m.id));selected=all?new Set():new Set(shown.map(m=>m.id));area.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=!all)});
  importBtn.addEventListener("click",()=>{
   const input=document.getElementById("bets");if(!input)return;
   const existing=new Set(input.value.split(/\n\s*\n/).map(v=>v.trim().toLowerCase()).filter(Boolean));
-  const lines=records.filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date)).map(m=>String(m.message_text||"").trim()).filter(t=>{const key=t.toLowerCase();if(!key||existing.has(key))return false;existing.add(key);return true});
+  const lines=visible().filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date)).map(m=>String(m.message_text||"").trim()).filter(t=>{const key=t.toLowerCase();if(!key||existing.has(key))return false;existing.add(key);return true});
   if(!lines.length){status.textContent="Chưa chọn tin mới hoặc tin đã có trong ô tính.";return}
   input.value=[input.value.trim(),lines.join("\n\n")].filter(Boolean).join("\n\n");
   input.dispatchEvent(new Event("input",{bubbles:true}));document.getElementById("betsCard").open=true;status.textContent="Đã đưa "+lines.length+" tin vào ô tính.";
  });
+ if(groupFilter)groupFilter.addEventListener("change",render);
  box.addEventListener("toggle",()=>{if(box.open)load()});
  setInterval(()=>{if(box.open&&!document.hidden)load()},15000);
  load();

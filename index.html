@@ -11437,3 +11437,43 @@ bar.append(button,note);panel.parentNode.insertBefore(bar,panel);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
 })();
 </script>
+
+
+<style id="tg-primary-vps-drawer-style">
+#appDrawer .tg-legacy-menu{margin:10px 8px;border:1px solid #cbd5e1;border-radius:10px;padding:7px;background:#fff;color:#17212f}
+#appDrawer .tg-legacy-menu>summary{font-size:13px;font-weight:800;cursor:pointer;padding:7px 3px}
+#appDrawer .tg-legacy-menu #tgForwardInbox{margin:5px 0!important}
+#appDrawer .tg-legacy-menu #tgForwardInbox>.compact-body{padding:6px!important}
+#appDrawer .tg-legacy-menu button,#appDrawer .tg-legacy-menu select{max-width:100%}
+#tgMemberInbox{display:block!important}
+</style>
+<script id="tg-primary-vps-drawer-script">
+(function(){
+function place(){
+ const drawer=document.getElementById("appDrawer");
+ const old=document.getElementById("tgForwardInbox");
+ const member=document.getElementById("tgMemberInbox");
+ if(!drawer||!old||!member||document.getElementById("tgLegacyMenu"))return;
+ const heading=document.createElement("div");heading.id="tgLegacyMenu";heading.className="drawer-section";
+ const h=document.createElement("h3");h.textContent="📨 TELEGRAM DỰ PHÒNG (CÁCH 1 & 2)";
+ const body=document.createElement("div");body.className="drawer-body";
+ const bot=document.createElement("details");bot.className="tg-legacy-menu";bot.id="tgLegacyBot";
+ const botHead=document.createElement("summary");botHead.textContent="1 · Nhận qua bot Telegram";bot.appendChild(botHead);
+ const forward=document.createElement("details");forward.className="tg-legacy-menu";forward.id="tgLegacyForward";
+ const fwHead=document.createElement("summary");fwHead.textContent="2 · Tin nhóm / chuyển tiếp qua bot";forward.appendChild(fwHead);
+ const forwarded=document.getElementById("tgAutoGroupInbox");
+ if(forwarded){forwarded.open=false;forward.appendChild(forwarded);}
+ old.open=true;
+ const oldSummary=old.querySelector(":scope > summary");
+ if(oldSummary)oldSummary.style.display="none";
+ bot.appendChild(old);
+ body.append(bot,forward);heading.append(h,body);
+ const target=drawer.querySelector(".printer-menu")||drawer.querySelector(".guide-menu");
+ if(target)drawer.insertBefore(heading,target);else drawer.appendChild(heading);
+ const previous=old.previousElementSibling;
+ if(previous&&previous.id==="tgCompactFilters")bot.appendChild(previous);
+ // Do not recreate controls: retain existing event listeners and inbox state.
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",place);else place();
+})();
+</script>

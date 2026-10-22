@@ -11012,6 +11012,7 @@ const regionOf=m=>{
  const t=raw.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
  const words=" "+t.replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ")+" ";
  const has=a=>a.some(s=>words.includes(" "+s+" "));
+ // Tránh nhận diện nhầm tên đài từ các con số hoặc từ viết tắt quá ngắn.
  const names={
  MB:["hn","mb","xsmb","mien bac","ha noi","hanoi"],
  MT:["mt","2dmt","3dmt","xsmt","mien trung","hue","pyen","phu yen","dlak","dak lak","daklak","qnam","quang nam","dnang","da nang","qtri","quang tri","qngai","quang ngai","ktum","kon tum","glai","gia lai","ntuan","ninh thuan","bdinh","binh dinh","khanh hoa","khoa","kh","quy nhon"],

@@ -11538,7 +11538,7 @@ function render(){
  restoreChatBtn.style.display=restoreChatSelect.options.length?"block":"none";
  hideChatBtn.disabled=!groups.options.length;
  if(!data.groups.length)groups.add(new Option("Chưa có nhóm",""));
- else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:groups.options[0].value;
+ else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:(Array.from(groups.options).find(o=>data.messages.some(m=>String(m.chat_id)===o.value))?.value||groups.options[0]?.value||"");
 
  const seen=new Set(data.messages.map(key));
  for(const id of selected)if(!seen.has(id))selected.delete(id);
@@ -11564,7 +11564,7 @@ function render(){
   const date=new Date(m.message_date);
   const day=!isNaN(date)?date.toLocaleDateString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"}):"Không rõ ngày";
   if(!daySections.has(day)){
-   const section=document.createElement("details");section.style.cssText="margin:6px 0;border:1px solid #cbd5e1;border-radius:9px;overflow:hidden;background:#fff";
+   const section=document.createElement("details");section.open=true;section.style.cssText="margin:6px 0;border:1px solid #cbd5e1;border-radius:9px;overflow:hidden;background:#fff";
    const heading=document.createElement("summary");heading.style.cssText="cursor:pointer;padding:10px;background:#f1f5f9;font-weight:700;font-size:13px";
    const contentArea=document.createElement("div");contentArea.style.padding="5px 8px";
    section.append(heading,contentArea);list.append(section);

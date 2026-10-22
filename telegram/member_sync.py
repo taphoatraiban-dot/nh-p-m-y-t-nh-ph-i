@@ -61,7 +61,11 @@ async def main():
                         for _ in range(100):
                             line=f.readline()
                             if not line:break
-                            try:batch.append(json.loads(line))
+                            try:
+                                item=json.loads(line)
+                                if "message_text" not in item and "message" in item:item["message_text"]=item["message"]
+                                if "sender_name" not in item:item["sender_name"]=""
+                                batch.append(item)
                             except json.JSONDecodeError:continue
                         if not batch:break
                         await push(current,batch)

@@ -9942,6 +9942,7 @@ bets.addEventListener('input',showOnce);
   const summary=document.createElement("summary");summary.textContent="Quản lý nhóm Telegram (quản trị)";panel.appendChild(summary);
   const list=document.createElement("div");list.style.cssText="display:grid;gap:7px;margin-top:8px";panel.appendChild(list);
   filter.parentElement.insertAdjacentElement("afterend",panel);
+  panel.hidden=true; // Hide legacy admin controls; retain group discovery and picker updates.
   async function request(body){
    const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập");
    const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-group-admin",{method:body?"POST":"GET",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})});
@@ -9963,8 +9964,7 @@ bets.addEventListener('input',showOnce);
     if(!result.groups.length)list.textContent="Chưa có nhóm nào.";
    }catch(e){list.textContent="Không tải được nhóm: "+e.message}
   }
-  const b=document.createElement("button");b.type="button";b.className="soft";b.textContent="Kích hoạt webhook nhóm";panel.appendChild(b);
-  b.addEventListener("click",async()=>{b.disabled=true;try{const x=await request({action:"activate_webhook"});if(x?.success)b.textContent="Webhook đã kích hoạt"}catch(e){alert(e.message)}finally{b.disabled=false}});
+  // Webhook is configured server-side when connecting a bot; no manual activation control.
   panel.addEventListener("toggle",()=>{if(panel.open)load()});
   // Keep the group picker updated while the app is open, without touching Telegram chats.
   setInterval(()=>{if(!document.hidden)load()},30000);

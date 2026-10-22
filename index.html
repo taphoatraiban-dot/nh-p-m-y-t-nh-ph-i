@@ -9654,6 +9654,56 @@ function setup(){if(!$('mbOpen'))return;$('mbNav').innerHTML=names.map(([id,name
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
+<script id="tg-auto-group-inbox-v1">
+(function(){
+function init(){
+ const parent=document.getElementById("tgForwardInbox");if(!parent||document.getElementById("tgAutoGroupInbox"))return;
+ const box=document.createElement("details");box.id="tgAutoGroupInbox";box.style.cssText="border:1px solid #cbd5e1;border-radius:9px;padding:8px;margin:9px 0;background:#fff";
+ const head=document.createElement("summary");head.textContent="Tin tự động từ nhóm Telegram";head.style.cssText="font-weight:700;color:#1e293b";box.append(head);
+ const status=document.createElement("div");status.style.cssText="font-size:12px;color:#64748b;margin:7px 0";status.textContent="Đang chờ tải tin...";
+ const area=document.createElement("div");area.style.cssText="max-height:320px;overflow-y:auto;display:grid;gap:7px";
+ const actions=document.createElement("div");actions.style.cssText="display:flex;gap:6px;margin:7px 0";
+ const choose=document.createElement("button");choose.type="button";choose.textContent="Chọn tất cả";choose.className="soft";
+ const importBtn=document.createElement("button");importBtn.type="button";importBtn.textContent="Đưa tin đã chọn vào ô tính";importBtn.className="soft";
+ actions.append(choose,importBtn);box.append(status,actions,area);
+ const original=document.getElementById("tgInboxList");if(original)original.insertAdjacentElement("afterend",box);else parent.append(box);
+ let records=[],selected=new Set(),loading=false;
+ async function load(){
+  if(loading||document.hidden)return;loading=true;
+  try{
+   const {data:{session}}=await sb.auth.getSession();if(!session)return;
+   const response=await fetch(SUPABASE_URL+"/functions/v1/telegram-group-inbox?limit=300",{headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY}});
+   if(response.status===403){box.hidden=true;return}
+   const data=await response.json();if(!response.ok||!data.success)throw Error(data.error||"Không đọc được tin");
+   records=data.messages||[];
+   selected=new Set([...selected].filter(id=>records.some(m=>m.id===id)));
+   area.replaceChildren();const fragment=document.createDocumentFragment();
+   for(const m of records){
+    const line=document.createElement("label");line.style.cssText="display:flex;gap:8px;padding:9px;border:1px solid #e2e8f0;border-radius:7px;background:#fff;color:#17212f";
+    const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(m.id);check.addEventListener("change",()=>{if(check.checked)selected.add(m.id);else selected.delete(m.id)});
+    const text=document.createElement("div");text.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;min-width:0";
+    const title=document.createElement("strong");title.textContent=m.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN");
+    const content=document.createElement("div");content.textContent=m.message_text||"";text.append(title,content);line.append(check,text);fragment.append(line);
+   }
+   area.append(fragment);status.textContent=records.length+" tin nhóm tự động · cập nhật mỗi 15 giây";
+  }catch(e){status.textContent="Lỗi nhận tin nhóm: "+e.message}finally{loading=false}
+ }
+ choose.addEventListener("click",()=>{const all=records.every(m=>selected.has(m.id));selected=all?new Set():new Set(records.map(m=>m.id));area.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=!all)});
+ importBtn.addEventListener("click",()=>{
+  const input=document.getElementById("bets");if(!input)return;
+  const existing=new Set(input.value.split(/\n\s*\n/).map(v=>v.trim().toLowerCase()).filter(Boolean));
+  const lines=records.filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date)).map(m=>String(m.message_text||"").trim()).filter(t=>{const key=t.toLowerCase();if(!key||existing.has(key))return false;existing.add(key);return true});
+  if(!lines.length){status.textContent="Chưa chọn tin mới hoặc tin đã có trong ô tính.";return}
+  input.value=[input.value.trim(),lines.join("\n\n")].filter(Boolean).join("\n\n");
+  input.dispatchEvent(new Event("input",{bubbles:true}));document.getElementById("betsCard").open=true;status.textContent="Đã đưa "+lines.length+" tin vào ô tính.";
+ });
+ box.addEventListener("toggle",()=>{if(box.open)load()});
+ setInterval(()=>{if(box.open&&!document.hidden)load()},15000);
+ load();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
 </body></html>');w.document.close();w.focus();w.print()};renderPrices();updateDemo();show('calc')}
 function renderPrices(){let group=$('mbPriceGroup').value;let ps=state.profiles.filter(x=>x.group===group);if(!ps.some(x=>x.id===selected))selected=ps[0]?.id;$('mbPriceProfile').innerHTML=ps.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');$('mbPriceProfile').value=selected;const p=profile();$('mbPriceFields').innerHTML=categories.map(([id,name,def])=>{const r=effective(p,id);return `<div class="mb-card" data-rate="${id}"><b>${name}</b><div class="mb-grid"><div><label>Đơn vị</label><select class="mb-rate-unit"><option value="point" ${ (r.unit||def)==='point'?'selected':''}>Điểm</option><option value="money" ${(r.unit||def)==='money'?'selected':''}>Tiền</option></select></div><div><label>Giá thu (đ/điểm hoặc hệ số)</label><input class="mb-rate-price" inputmode="decimal" value="${esc(r.price??'')}"></div><div><label>Thưởng (đ/điểm hoặc hệ số)</label><input class="mb-rate-reward" inputmode="decimal" value="${esc(r.reward??'')}"></div></div></div>`}).join('');$('mbCalcPrice').innerHTML=state.profiles.filter(x=>x.group==='customer').map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}
 function savePrice(){const p=profile();if(!p)return;const rates={};for(const el of document.querySelectorAll('#mbPriceFields [data-rate]')){const id=el.dataset.rate;const price=el.querySelector('.mb-rate-price').value.trim().replace(',','.');const reward=el.querySelector('.mb-rate-reward').value.trim().replace(',','.');if([price,reward].some(x=>x!==''&&(!Number.isFinite(Number(x))||Number(x)<0)))return alert('Giá không hợp lệ: '+id);rates[id]={unit:el.querySelector('.mb-rate-unit').value,price,reward}}p.rates=rates;save();alert('Đã lưu bảng giá MB: '+p.name)}

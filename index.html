@@ -11075,7 +11075,7 @@ $("tgRefresh").addEventListener("click",async()=>{
  const allowedGroups=[...new Set(messages.map(m=>m.selected_group).filter(Boolean))].sort();
  const valid=new Set(messages.map(m=>Number(m.id)));
  selected=new Set([...selected].filter(id=>valid.has(id)));
- const names=[...new Set([...allowedGroups,"C Ngọc x79","A Thuật x77","A Hải 75","A Tuấn 77","C Thảo 76"])];
+ const names=[...new Set([...allowedGroups,"Vi và C Thảo","c ngọc số","C Ngọc x79","A Thuật x77","A Hải 75","A Tuấn 77","C Thảo 76"])];
  const previousGroup=$("tgGroupFilter").value;
  $("tgGroupFilter").innerHTML='<option value="">Tất cả nhóm</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
  if(names.includes(previousGroup))$("tgGroupFilter").value=previousGroup;

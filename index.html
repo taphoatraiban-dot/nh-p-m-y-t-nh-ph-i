@@ -11867,7 +11867,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   const panel=document.getElementById("tgMemberInbox");
   if(!panel||document.getElementById("tgCustomerVpsSetup"))return;
   const box=document.createElement("details");box.id="tgCustomerVpsSetup";
-  box.innerHTML='<summary>📱 KẾT NỐI TELEGRAM VPS CỦA TÔI</summary><div style="padding:9px 1px;font-size:13px"><p>Mỗi tài khoản sử dụng phiên Telegram và nhóm riêng. Tài khoản được cấp quyền sẽ có thể tự kết nối Telegram trên iPhone sau khi dịch vụ xác thực VPS được triển khai. Hiện tính năng tự kết nối chưa kích hoạt; không nhập OTP hoặc mật khẩu vào trang này.</p><div id="tgCustomerVpsStatus" role="status">Đang kiểm tra trạng thái...</div><button type="button" class="soft" id="tgCustomerVpsCheck">Kiểm tra kết nối</button><p style="color:#64748b;font-size:12px">Sau khi được kích hoạt, nhóm Telegram và tin nhắn sẽ hiển thị trong mục Telegram VPS phía trên. Không cần thuê VPS riêng.</p></div>';
+  box.innerHTML='<summary>📱 KẾT NỐI TELEGRAM VPS CỦA TÔI</summary><div style="padding:9px 1px;font-size:13px"><p>Mỗi tài khoản sử dụng phiên Telegram và nhóm riêng. Tài khoản được cấp quyền có thể tự kết nối Telegram trên iPhone khi dịch vụ VPS sẵn sàng. Chỉ nhập mã xác nhận và mật khẩu 2 bước trong biểu mẫu kết nối an toàn trên trang này.</p><div id="tgCustomerVpsStatus" role="status">Đang kiểm tra trạng thái...</div><button type="button" class="soft" id="tgCustomerVpsCheck">Kiểm tra kết nối</button><p style="color:#64748b;font-size:12px">Sau khi xác thực thành công và chọn nhóm đồng bộ, tin nhắn sẽ hiển thị trong mục Telegram VPS phía trên. Không cần thuê VPS riêng.</p></div>';
   panel.parentNode.insertBefore(box,panel.nextSibling);
   const status=box.querySelector("#tgCustomerVpsStatus");
   const start=document.createElement("button");
@@ -11877,7 +11877,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   start.style.cssText="width:100%;margin-top:8px";
   box.querySelector("#tgCustomerVpsCheck").after(start);
   const availability=document.createElement("div");availability.style.cssText="font-size:12px;color:#64748b;margin-top:5px";
-  availability.textContent="Chưa bật dịch vụ xác thực Telegram tự động trên VPS. Không nhập mã Telegram tại đây.";
+  availability.textContent="Đang kiểm tra kết nối xác thực Telegram VPS...";
   start.after(availability);
   async function checkSelfService(){
    start.disabled=true;start.textContent="Tự kết nối Telegram (đang kiểm tra dịch vụ)";loginArea.hidden=true;
@@ -11890,7 +11890,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(!res.ok)throw Error("not ready");
     const obj=await res.json();
     if(obj.success===true){
-      availability.textContent=obj.licensed?"Tài khoản đã có giấy phép còn hạn. Đang chờ kích hoạt kết nối VPS tự động.":"Tài khoản chưa có giấy phép còn hạn. Vui lòng gia hạn để dùng kết nối VPS.";
+      availability.textContent=obj.licensed?"Đã xác minh giấy phép. Đang kiểm tra khả năng đăng nhập VPS.":"Tài khoản chưa có giấy phép còn hạn. Vui lòng gia hạn để dùng kết nối VPS.";
     }
     if(obj.success===true&&obj.licensed===true&&obj.self_service_enabled===true&&obj.otp_flow_ready===true){
       start.disabled=false;start.textContent="Tự kết nối Telegram";

@@ -11022,7 +11022,7 @@ const regionOf=m=>{
  if(found.length===1)return found[0];
  if(found.length>1)return "OTHER";
  // Nếu không có tên đài, phân loại theo GIỜ NHẬN TIN tại Việt Nam.
- const received=m.message_date||m.received_at||m.created_at;
+ const received=m.received_at||m.created_at||m.message_date;
  if(!received)return "OTHER";
  const date=new Date(received);
  if(!Number.isFinite(date.getTime()))return "OTHER";

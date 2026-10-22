@@ -11935,7 +11935,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       code.value="";password.value="";
       if(result.step==="code"){step="confirm";phone.hidden=true;code.hidden=false;submit.textContent="Xác nhận mã";feedback.textContent="Kiểm tra Telegram để lấy mã xác nhận.";}
       else if(result.step==="password"){step="password";code.hidden=true;password.hidden=false;submit.textContent="Xác nhận mật khẩu";feedback.textContent="Tài khoản yêu cầu mật khẩu 2 bước.";}
-      else if(result.step==="connected"){feedback.textContent="Đã đăng nhập Telegram. Đang đồng bộ nhóm riêng...";loginArea.hidden=true;resetLogin();await check();}
+      else if(result.step==="connected"){loginArea.hidden=true;resetLogin();status.textContent="Telegram đã xác thực. Đang kiểm tra dữ liệu nhóm...";await check();}
       else throw Error("Phản hồi không hợp lệ từ dịch vụ.");
     }catch(e){feedback.textContent=e.message||"Không thể kết nối Telegram.";}
     finally{busy=false;submit.disabled=false;}
@@ -11954,7 +11954,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     const data=await resp.json();
     if(!resp.ok||!data.success)throw Error(data.error||"Không thể kiểm tra kết nối");
     const count=(data.groups||[]).length;
-    status.textContent=count?("Đã có "+count+" nhóm VPS được đồng bộ với tài khoản này."):("Chưa có nhóm VPS. Cần hoàn tất xác thực Telegram và chọn nhóm lần đầu.");
+    status.textContent=count?("Supabase đang lưu "+count+" nhóm của tài khoản này. Kiểm tra danh sách tin Telegram phía trên."):("Supabase chưa nhận nhóm nào cho tài khoản này. Nếu đã xác thực Telegram, cần kiểm tra tiến trình đồng bộ VPS; không cần gửi lại OTP.");
    }catch(err){status.textContent="Chưa xác minh kết nối: "+err.message}
   }
   box.querySelector("#tgCustomerVpsCheck").addEventListener("click",()=>{check();checkSelfService();});

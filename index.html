@@ -11440,6 +11440,25 @@ for(const [id,caption] of [["select","Chọn tất cả"],["none","Bỏ chọn"]
  if(id==="delete"||id==="deleteAll")btn.style.color="#b91c1c";
  buttons[id]=btn;actions.append(btn);
 }
+const manage=document.createElement("div");manage.id="tgMemberChatManage";
+manage.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0";
+const hideChatBtn=document.createElement("button");hideChatBtn.type="button";hideChatBtn.className="soft";hideChatBtn.textContent="Xóa nhóm / cá nhân khỏi danh sách";hideChatBtn.style.cssText="flex:1;min-width:155px;color:#b91c1c;font-size:12px";
+const restoreChatSelect=document.createElement("select");restoreChatSelect.setAttribute("aria-label","Nhóm hoặc cá nhân đã ẩn");restoreChatSelect.style.cssText="flex:1;min-width:130px;display:none";
+const restoreChatBtn=document.createElement("button");restoreChatBtn.type="button";restoreChatBtn.className="soft";restoreChatBtn.textContent="Khôi phục";restoreChatBtn.style.display="none";
+manage.append(hideChatBtn,restoreChatSelect,restoreChatBtn);
+groups.parentNode.append(manage);
+hideChatBtn.onclick=async()=>{
+ const chat=data.groups.find(g=>String(g.chat_id)===groups.value&&g.enabled!==false);
+ if(!chat)return;
+ if(!confirm("Xóa "+chat.group_name+" khỏi danh sách phần mềm? Tin gốc trên Telegram không bị xóa. Có thể khôi phục sau."))return;
+ try{await call("hide-chat",{chat_id:Number(chat.chat_id)});await load();status.textContent="Đã ẩn khỏi danh sách. Telegram gốc vẫn giữ nguyên.";}
+ catch(e){status.textContent="Lỗi: "+e.message;}
+};
+restoreChatBtn.onclick=async()=>{
+ const chatId=Number(restoreChatSelect.value);if(!Number.isSafeInteger(chatId))return;
+ try{await call("restore-chat",{chat_id:chatId});await load();status.textContent="Đã khôi phục cuộc trò chuyện.";}
+ catch(e){status.textContent="Lỗi: "+e.message;}
+};
 const above=list.parentNode;
 above.insertBefore(regionWrap,list);above.insertBefore(actions,list);
 const selected=new Set();
@@ -11460,9 +11479,14 @@ function updateCount(){count.textContent=selectedVisible().length+"/"+visible().
 function render(){
  const current=groups.value;
  groups.replaceChildren();
- for(const g of data.groups)groups.add(new Option(g.group_name,String(g.chat_id)));
+ for(const g of data.groups.filter(g=>g.enabled!==false))groups.add(new Option(g.group_name,String(g.chat_id)));
+ restoreChatSelect.replaceChildren();
+ for(const g of data.groups.filter(g=>g.enabled===false))restoreChatSelect.add(new Option(g.group_name,String(g.chat_id)));
+ restoreChatSelect.style.display=restoreChatSelect.options.length?"block":"none";
+ restoreChatBtn.style.display=restoreChatSelect.options.length?"block":"none";
+ hideChatBtn.disabled=!groups.options.length;
  if(!data.groups.length)groups.add(new Option("Chưa có nhóm",""));
- else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:String(data.groups[0].chat_id);
+ else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:groups.options[0].value;
 
  const seen=new Set(data.messages.map(key));
  for(const id of selected)if(!seen.has(id))selected.delete(id);

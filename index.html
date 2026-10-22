@@ -11599,13 +11599,13 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 </script>
 <style id="tg-member-group-restore-20261022-css">
 #tgMemberInbox,#tgMemberInbox *{box-sizing:border-box}
-#tgMemberInbox #tgMemberGroupRow{display:block!important;visibility:visible!important;opacity:1!important;width:100%;margin:8px 0 6px}
-#tgMemberInbox #tgMemberGroup{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:42px!important;font-size:16px!important;background:#fff!important;color:#17212f!important;border:1px solid #94a3b8!important;border-radius:9px!important}
+#tgMemberGroupRow{display:block!important;visibility:visible!important;opacity:1!important;width:100%;margin:8px 0 6px}
+#tgMemberGroup{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:42px!important;font-size:16px!important;background:#fff!important;color:#17212f!important;border:1px solid #94a3b8!important;border-radius:9px!important}
 #tgMemberInbox #tgMemberActions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%;gap:5px!important}
 #tgMemberInbox #tgMemberActions button{min-width:0!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;font-size:12px!important;line-height:1.25!important}
 #tgMemberInbox #tgMemberMessages{max-width:100%;overflow-x:hidden}
 #tgMemberInbox #tgMemberMessages button{min-width:0;max-width:100%}
-@media(max-width:420px){#tgMemberInbox{padding:7px!important}#tgMemberInbox #tgMemberActions button{padding:9px 4px!important}#tgMemberInbox #tgMemberGroupRow label{font-size:12px}}
+@media(max-width:420px){#tgMemberInbox{padding:7px!important}#tgMemberInbox #tgMemberActions button{padding:9px 4px!important}#tgMemberGroupRow label{font-size:12px}}
 </style>
 <script id="tg-member-group-restore-20261022-js">
 (function(){
@@ -11627,8 +11627,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    row.append(label);
   }
   row.append(group);
-  regionRow.parentNode.insertBefore(row,regionRow);
-  panel.open=true;
+  panel.parentNode.insertBefore(row,panel);
+  row.style.cssText="display:block;width:100%;max-width:100%;padding:8px 10px;margin:6px 0;border:1px solid #cbd5e1;border-radius:9px;background:#fff;box-sizing:border-box";
+  group.addEventListener("change",()=>{panel.open=true;});
   // Retain the original select and its onchange listener, including dynamic VPS group refreshes.
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restore);

@@ -45,8 +45,22 @@ async def run(args):
     indices=set(int(p.strip()) for p in raw.split(",") if p.strip())
     if any(i<1 or i>len(dialogs) for i in indices):raise ValueError("Unknown group number")
     ids=[chat_id for i,(chat_id,_) in enumerate(dialogs,1) if i in indices]
+    private_dialogs=[]
+    async for d in client.iter_dialogs():
+        if d.is_user and not getattr(d.entity,"bot",False):
+            private_dialogs.append((int(d.id),d.name))
+    print("Available private conversations (opt-in only):")
+    for i,(chat_id,name) in enumerate(private_dialogs,1):
+        print(f"{i}. {name} ({chat_id})")
+    print("Select private conversations separated by commas; empty selects NONE.")
+    selected_private=input("Private conversation numbers: ").strip()
+    private_indices=set(int(p.strip()) for p in selected_private.split(",") if p.strip())
+    if any(i<1 or i>len(private_dialogs) for i in private_indices):
+        raise ValueError("Unknown private conversation number")
+    private_ids=[chat_id for i,(chat_id,_) in enumerate(private_dialogs,1) if i in private_indices]
     cfg={"user_id":user,"sync_key":sync_key,"api_id":args.api_id,
-         "api_hash":args.api_hash,"session_path":str(session),"allowed_chat_ids":ids}
+         "api_hash":args.api_hash,"session_path":str(session),"allowed_chat_ids":ids,
+         "allowed_private_chat_ids":private_ids}
     CONFIG.mkdir(mode=0o750,parents=True,exist_ok=True)
     path=CONFIG/(user+".json")
     if path.exists():raise FileExistsError("Tenant already configured; do not overwrite a live session")
@@ -61,7 +75,7 @@ async def run(args):
         if entry.is_file() and not entry.is_symlink():
             os.chown(entry,service.pw_uid,service.pw_gid)
             os.chmod(entry,0o600)
-    print("Provisioned:",path,"Groups:",len(ids))
+    print("Provisioned:",path,"Groups:",len(ids),"Private conversations:",len(private_ids))
     print("Start the isolated worker only after reviewing permissions and backend isolation.")
 
 if __name__=="__main__":

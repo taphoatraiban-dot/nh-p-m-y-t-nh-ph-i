@@ -11329,3 +11329,55 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #tgInboxList:empty{display:none!important}
 </style>
 <script id="tg-compact-empty-state-script">(function(){function init(){const s=document.getElementById('tgInboxStatus');if(!s)return;if(s.textContent.trim()==='Chọn nhóm để xem tin Telegram.')s.textContent='';const note=document.getElementById('tgPreserveNote');if(note)note.hidden=true;}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
+
+<script id="telegram-tenant-connect-v1">
+(function(){
+ function init(){
+  const target=document.getElementById("tgForwardInbox");if(!target||document.getElementById("tgTenantPanel"))return;
+  const panel=document.createElement("details");panel.id="tgTenantPanel";panel.style.cssText="margin:8px 0;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff";
+  const title=document.createElement("summary");title.textContent="Kết nối bot Telegram riêng";title.style.fontWeight="800";panel.append(title);
+  const body=document.createElement("div");body.style.cssText="display:grid;gap:8px;margin-top:10px";panel.append(body);
+  const help=document.createElement("div");help.textContent="Tạo bot trong @BotFather, dán token tại đây, rồi thêm bot vào nhóm. Chỉ bật nhóm bạn có quyền nhận tin.";help.style.fontSize="12px";
+  const token=document.createElement("input");token.type="password";token.placeholder="Bot Token từ BotFather";token.autocomplete="off";token.style.cssText="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px";
+  const connect=document.createElement("button");connect.type="button";connect.textContent="Kiểm tra và kết nối bot";connect.className="soft";
+  const disconnect=document.createElement("button");disconnect.type="button";disconnect.textContent="Ngắt kết nối bot";disconnect.className="soft";
+  const info=document.createElement("div");info.style.cssText="font-size:12px;white-space:pre-wrap";
+  const groups=document.createElement("div");groups.style.cssText="display:grid;gap:6px";
+  const messages=document.createElement("div");messages.style.cssText="display:grid;gap:6px;max-height:280px;overflow:auto";
+  body.append(help,token,connect,disconnect,info,groups,messages);
+  target.insertAdjacentElement("beforebegin",panel);
+  async function api(payload){
+   const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập");
+   const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-tenant",{method:payload?"POST":"GET",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(payload?{"Content-Type":"application/json"}:{})},...(payload?{body:JSON.stringify(payload)}:{})});
+   const json=await res.json();if(!res.ok||json.error)throw Error(json.error||"Lỗi kết nối");return json;
+  }
+  async function load(){
+   try{
+    const data=await api();info.textContent=data.bot?"Bot: @"+data.bot.bot_username+(data.bot.enabled?" · Đã kết nối":" · Chưa hoạt động"):"Chưa kết nối bot riêng";
+    groups.replaceChildren();messages.replaceChildren();
+    for(const g of data.groups){
+     const line=document.createElement("div");line.style.cssText="display:flex;gap:8px;align-items:center;justify-content:space-between";
+     const name=document.createElement("span");name.textContent=g.group_name;
+     const button=document.createElement("button");button.type="button";button.className="soft";button.textContent=g.enabled?"Đang nhận · Tắt":"Chờ duyệt · Bật";
+     button.addEventListener("click",async()=>{button.disabled=true;try{await api({action:"enable_group",chat_id:g.chat_id,enabled:!g.enabled});await load()}catch(e){info.textContent=e.message}finally{button.disabled=false}});
+     line.append(name,button);groups.append(line);
+    }
+    const selected=document.getElementById("tgGroupFilter")?.value||"";
+    const norm=v=>String(v||"").trim().toLocaleLowerCase("vi-VN");
+    const enabledGroups=data.groups.filter(g=>g.enabled);
+    for(const m of data.messages){
+     const g=enabledGroups.find(x=>x.chat_id===m.chat_id);if(!g)continue;
+     if(selected&&norm(selected)!=="tất cả nhóm"&&norm(selected)!==norm(g.group_name))continue;
+     const item=document.createElement("div");item.style.cssText="padding:7px;border:1px solid #e2e8f0;border-radius:7px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px";
+     item.textContent=g.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN")+"\n"+m.message_text;messages.append(item);
+    }
+   }catch(e){info.textContent="Lỗi: "+e.message}
+  }
+  connect.addEventListener("click",async()=>{connect.disabled=true;try{const x=await api({action:"connect",token:token.value.trim()});token.value="";await load()}catch(e){info.textContent="Kết nối thất bại: "+e.message}finally{connect.disabled=false}});
+  disconnect.addEventListener("click",async()=>{if(!confirm("Ngắt kết nối bot Telegram riêng?"))return;try{await api({action:"disconnect"});await load()}catch(e){info.textContent=e.message}});
+  panel.addEventListener("toggle",()=>{if(panel.open)load()});
+  setInterval(()=>{if(panel.open&&!document.hidden)load()},15000);
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>

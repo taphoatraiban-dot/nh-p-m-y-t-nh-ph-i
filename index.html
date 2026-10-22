@@ -11869,6 +11869,33 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   box.innerHTML='<summary>📱 KẾT NỐI TELEGRAM VPS CỦA TÔI</summary><div style="padding:9px 1px;font-size:13px"><p>Mỗi tài khoản sử dụng phiên Telegram và nhóm riêng. Tài khoản được cấp quyền sẽ có thể tự kết nối Telegram trên iPhone sau khi dịch vụ xác thực VPS được triển khai. Hiện tính năng tự kết nối chưa kích hoạt; không nhập OTP hoặc mật khẩu vào trang này.</p><div id="tgCustomerVpsStatus" role="status">Đang kiểm tra trạng thái...</div><button type="button" class="soft" id="tgCustomerVpsCheck">Kiểm tra kết nối</button><p style="color:#64748b;font-size:12px">Sau khi được kích hoạt, nhóm Telegram và tin nhắn sẽ hiển thị trong mục Telegram VPS phía trên. Không cần thuê VPS riêng.</p></div>';
   panel.parentNode.insertBefore(box,panel.nextSibling);
   const status=box.querySelector("#tgCustomerVpsStatus");
+  const start=document.createElement("button");
+  start.type="button";start.className="soft";start.id="tgCustomerVpsSelfConnect";
+  start.textContent="Tự kết nối Telegram (đang kiểm tra dịch vụ)";
+  start.disabled=true;
+  start.style.cssText="width:100%;margin-top:8px";
+  box.querySelector("#tgCustomerVpsCheck").after(start);
+  const availability=document.createElement("div");availability.style.cssText="font-size:12px;color:#64748b;margin-top:5px";
+  availability.textContent="Chưa bật dịch vụ xác thực Telegram tự động trên VPS. Không nhập mã Telegram tại đây.";
+  start.after(availability);
+  async function checkSelfService(){
+   try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session)return;
+    const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-self-service?action=capabilities",{
+      headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY}
+    });
+    if(!res.ok)throw Error("not ready");
+    const obj=await res.json();
+    if(obj.success===true&&obj.self_service_enabled===true&&obj.otp_flow_ready===true){
+      start.disabled=false;start.textContent="Tự kết nối Telegram";
+      availability.textContent="Dịch vụ xác thực đã sẵn sàng.";
+    }
+   }catch(_){}
+  }
+  start.onclick=()=>{if(!start.disabled)availability.textContent="Đang kiểm tra kết nối an toàn...";};
+  checkSelfService();
+  
   async function check(){
    const sbClient=typeof sb!=="undefined"?sb:null;
    if(!sbClient){status.textContent="Chưa tải xong kết nối tài khoản.";return}

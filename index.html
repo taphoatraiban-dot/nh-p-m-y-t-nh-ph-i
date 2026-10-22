@@ -966,6 +966,11 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 @keyframes ttWaitingPulse{0%,100%{opacity:.35}50%{opacity:1}}
 @media(prefers-reduced-motion:reduce){#lotteryNative .tt-live-new,#lotteryNative .tt-live-pending{animation:none!important}}
 </style>
+<style id="ott-hide-duplicate-date-20261022">
+/* The native date input is the source of truth; the red finalDateButton is its only visible control. */
+#date{position:absolute!important;width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;max-width:1px!important;max-height:1px!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;overflow:hidden!important;clip-path:inset(50%)!important;margin:0!important;padding:0!important;border:0!important}
+#betsCard .grid:has(>label>#date){display:none!important}
+</style>
 </head>
 <body>
 <style id="ott-guide-24-style">

@@ -38,6 +38,8 @@ def read_config(path):
     if not isinstance(private_ids,list):
         raise ValueError("allowed_private_chat_ids must be a list")
     data["allowed_private_chat_ids"]=set(map(int,private_ids))
+    if not isinstance(data.get("receive_all_private",False),bool):
+        raise ValueError("receive_all_private must be boolean")
     session_path = Path(data["session_path"]).resolve()
     import uuid
     user_id = str(uuid.UUID(data["user_id"]))
@@ -74,10 +76,18 @@ async def main(path):
             raise RuntimeError("Tenant Telegram session not authorized; provision separately")
         async def publish(groups, messages):
             return await asyncio.to_thread(ingest, cfg, groups, messages)
+        discovered_private = {}
         @client.on(events.NewMessage())
         async def receive(event):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
-            private_allowed = event.is_private and not event.out and int(event.chat_id) in cfg["allowed_private_chat_ids"]
+            private_allowed = (event.is_private and not event.out and
+                               (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
+            if private_allowed:
+                sender=await event.get_sender()
+                if sender is None or getattr(sender,"bot",False):
+                    return
+                name=(" ".join(filter(None,[getattr(sender,"first_name",None),getattr(sender,"last_name",None)]))).strip()
+                discovered_private[int(event.chat_id)] = "Cá nhân: "+(name or getattr(sender,"username",None) or str(event.chat_id))
             if event.raw_text and (group_allowed or private_allowed):
                 m={"chat_id":event.chat_id,"message_id":event.id,
                    "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
@@ -89,10 +99,16 @@ async def main(path):
                 groups=[]
                 async for dialog in client.iter_dialogs():
                     is_allowed_group = dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]
-                    is_allowed_private = dialog.is_user and int(dialog.id) in cfg["allowed_private_chat_ids"] and not getattr(dialog.entity,"bot",False)
+                    is_allowed_private = (dialog.is_user and
+                        (cfg.get("receive_all_private",False) or int(dialog.id) in cfg["allowed_private_chat_ids"]) and
+                        not getattr(dialog.entity,"bot",False))
                     if is_allowed_group or is_allowed_private:
                         prefix="Cá nhân: " if is_allowed_private else ""
                         groups.append({"chat_id":dialog.id,"group_name":prefix+dialog.name})
+                known={int(g["chat_id"]) for g in groups}
+                for chat_id, name in discovered_private.items():
+                    if chat_id not in known:
+                        groups.append({"chat_id":chat_id,"group_name":name})
                 if queue_file.exists() and queue_file.stat().st_size:
                     # Never truncate: a concurrent Telegram event may append during upload.
                     # Durable offset is committed only after successful acknowledgement.

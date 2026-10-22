@@ -11880,6 +11880,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   availability.textContent="Chưa bật dịch vụ xác thực Telegram tự động trên VPS. Không nhập mã Telegram tại đây.";
   start.after(availability);
   async function checkSelfService(){
+   start.disabled=true;start.textContent="Tự kết nối Telegram (đang kiểm tra dịch vụ)";loginArea.hidden=true;
    try{
     const {data:{session}}=await sb.auth.getSession();
     if(!session)return;
@@ -11897,7 +11898,49 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     }
    }catch(_){}
   }
-  start.onclick=()=>{if(!start.disabled)availability.textContent="Đang kiểm tra kết nối an toàn...";};
+  const loginArea=document.createElement("div");
+  loginArea.hidden=true;loginArea.style.cssText="padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;background:#fff";
+  const loginInfo=document.createElement("p");loginInfo.textContent="Nhập số Telegram của chính bạn. Mã xác nhận chỉ sử dụng để đăng nhập tài khoản của bạn.";
+  const phone=document.createElement("input");phone.type="tel";phone.inputMode="tel";phone.autocomplete="tel";phone.placeholder="+849xxxxxxxx";phone.setAttribute("aria-label","Số điện thoại Telegram");phone.style.cssText="display:block;width:100%;margin:8px 0";
+  const code=document.createElement("input");code.type="text";code.inputMode="numeric";code.autocomplete="one-time-code";code.placeholder="Mã Telegram";code.setAttribute("aria-label","Mã Telegram");code.hidden=true;code.style.cssText="width:100%;margin:8px 0";
+  const password=document.createElement("input");password.type="password";password.autocomplete="off";password.placeholder="Mật khẩu Telegram 2 bước";password.setAttribute("aria-label","Mật khẩu Telegram 2 bước");password.hidden=true;password.style.cssText="width:100%;margin:8px 0";
+  const submit=document.createElement("button");submit.type="button";submit.textContent="Gửi mã Telegram";submit.className="soft";
+  const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Đóng";cancel.className="soft";
+  const feedback=document.createElement("div");feedback.setAttribute("role","status");feedback.style.cssText="font-size:12px;margin-top:7px";
+  loginArea.append(loginInfo,phone,code,password,submit,cancel,feedback);availability.after(loginArea);
+  let step="start",busy=false;
+  function resetLogin(){step="start";phone.hidden=false;code.hidden=true;password.hidden=true;code.value="";password.value="";submit.textContent="Gửi mã Telegram";feedback.textContent="";}
+  cancel.onclick=()=>{loginArea.hidden=true;resetLogin();};
+  async function requestLogin(action,payload){
+    const session=(await sb.auth.getSession()).data.session;
+    if(!session)throw Error("Vui lòng đăng nhập phần mềm trước.");
+    const resp=await fetch(SUPABASE_URL+"/functions/v1/telegram-self-service?action="+action,{
+      method:"POST",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify(payload),cache:"no-store"
+    });
+    const result=await resp.json().catch(()=>({}));
+    if(!resp.ok||result.success!==true)throw Error(result.error||"Không thể xác thực Telegram");
+    return result;
+  }
+  submit.onclick=async()=>{
+    if(busy)return;
+    const action=step;
+    const payload=action==="start"?{phone:phone.value.trim()}:action==="confirm"?{code:code.value.trim()}:{password:password.value};
+    if(action==="start"&&!/^\\+[1-9][0-9]{7,14}$/.test(payload.phone)){feedback.textContent="Nhập số dạng +849xxxxxxxx.";return;}
+    if(action==="confirm"&&!payload.code){feedback.textContent="Nhập mã xác nhận Telegram.";return;}
+    if(action==="password"&&!payload.password){feedback.textContent="Nhập mật khẩu xác minh 2 bước.";return;}
+    busy=true;submit.disabled=true;feedback.textContent="Đang xác thực an toàn...";
+    try{
+      const result=await requestLogin(action,payload);
+      code.value="";password.value="";
+      if(result.step==="code"){step="confirm";phone.hidden=true;code.hidden=false;submit.textContent="Xác nhận mã";feedback.textContent="Kiểm tra Telegram để lấy mã xác nhận.";}
+      else if(result.step==="password"){step="password";code.hidden=true;password.hidden=false;submit.textContent="Xác nhận mật khẩu";feedback.textContent="Tài khoản yêu cầu mật khẩu 2 bước.";}
+      else if(result.step==="connected"){feedback.textContent="Đã đăng nhập Telegram. Đang đồng bộ nhóm riêng...";loginArea.hidden=true;resetLogin();await check();}
+      else throw Error("Phản hồi không hợp lệ từ dịch vụ.");
+    }catch(e){feedback.textContent=e.message||"Không thể kết nối Telegram.";}
+    finally{busy=false;submit.disabled=false;}
+  };
+  start.onclick=()=>{if(start.disabled)return;loginArea.hidden=!loginArea.hidden;if(!loginArea.hidden){resetLogin();phone.focus();}};
   checkSelfService();
   
   async function check(){
@@ -11914,7 +11957,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     status.textContent=count?("Đã có "+count+" nhóm VPS được đồng bộ với tài khoản này."):("Chưa có nhóm VPS. Cần hoàn tất xác thực Telegram và chọn nhóm lần đầu.");
    }catch(err){status.textContent="Chưa xác minh kết nối: "+err.message}
   }
-  box.querySelector("#tgCustomerVpsCheck").addEventListener("click",check);
+  box.querySelector("#tgCustomerVpsCheck").addEventListener("click",()=>{check();checkSelfService();});
   box.addEventListener("toggle",()=>{if(box.open)check()});
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount);

@@ -94,8 +94,52 @@ async def main(path):
                    "sender_name":""}
                 with queue_file.open("a",encoding="utf-8") as handle:
                     handle.write(json.dumps(m,ensure_ascii=False)+"\n")
+        # Track last processed private message by chat, surviving worker restarts.
+        # First sight starts at the newest message to avoid importing old private history.
+        watermark_file = session.parent / "private_watermarks.json"
+        try:
+            watermarks = json.loads(watermark_file.read_text()) if watermark_file.exists() else {}
+        except (OSError, ValueError):
+            watermarks = {}
+        async def poll_private():
+            if not cfg.get("receive_all_private", False):
+                return
+            changed = False
+            async for dialog in client.iter_dialogs():
+                if not dialog.is_user or getattr(dialog.entity, "bot", False):
+                    continue
+                chat_id = int(dialog.id)
+                key = str(chat_id)
+                latest = await client.get_messages(dialog.entity, limit=1)
+                if not latest:
+                    continue
+                current_id = int(latest[0].id)
+                if key not in watermarks:
+                    # Do not backfill potentially sensitive conversation history.
+                    watermarks[key] = current_id
+                    changed = True
+                    continue
+                last_id = int(watermarks[key])
+                if current_id <= last_id:
+                    continue
+                async for msg in client.iter_messages(dialog.entity, min_id=last_id, reverse=True):
+                    if msg.out or not msg.raw_text:
+                        continue
+                    m = {"chat_id": chat_id, "message_id": int(msg.id),
+                         "message_text": msg.raw_text, "message_date": msg.date.isoformat(),
+                         "sender_name": dialog.name or ""}
+                    with queue_file.open("a", encoding="utf-8") as handle:
+                        handle.write(json.dumps(m, ensure_ascii=False) + "\\n")
+                watermarks[key] = current_id
+                discovered_private[chat_id] = "Cá nhân: " + (dialog.name or str(chat_id))
+                changed = True
+            if changed:
+                tmp = watermark_file.with_suffix(".tmp")
+                tmp.write_text(json.dumps(watermarks))
+                os.replace(tmp, watermark_file)
         while True:
             try:
+                await poll_private()
                 groups=[]
                 async for dialog in client.iter_dialogs():
                     is_allowed_group = dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]

@@ -57,6 +57,7 @@ async def main(path):
     session.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     # A dedicated queue per tenant prevents cross-account mixing on transient API errors.
     queue_file = session.parent / "pending.jsonl"
+    cursor_file = session.parent / "pending.cursor"
     async with TelegramClient(str(session), int(cfg["api_id"]), cfg["api_hash"]) as client:
         if not await client.is_user_authorized():
             raise RuntimeError("Tenant Telegram session not authorized; provision separately")
@@ -69,7 +70,7 @@ async def main(path):
                    "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
                    "sender_name":""}
                 with queue_file.open("a",encoding="utf-8") as handle:
-                    handle.write(json.dumps(m,ensure_ascii=False)+"\\n")
+                    handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         while True:
             try:
                 groups=[]
@@ -77,15 +78,24 @@ async def main(path):
                     if dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]:
                         groups.append({"chat_id":dialog.id,"group_name":dialog.name})
                 if queue_file.exists() and queue_file.stat().st_size:
-                    lines=queue_file.read_text(encoding="utf-8").splitlines()
-                    cursor=0
-                    for i in range(0,len(lines),100):
-                        batch=[json.loads(line) for line in lines[i:i+100]]
-                        await publish(groups,batch)
-                        cursor=i+len(batch)
-                    # Keep unacknowledged lines if any call fails.
-                    if cursor==len(lines):
-                        queue_file.write_text("",encoding="utf-8")
+                    # Never truncate: a concurrent Telegram event may append during upload.
+                    # Durable offset is committed only after successful acknowledgement.
+                    offset=int(cursor_file.read_text()) if cursor_file.exists() else 0
+                    with queue_file.open("rb") as stream:
+                        stream.seek(min(offset,queue_file.stat().st_size))
+                        while True:
+                            batch=[]
+                            for _ in range(100):
+                                line=stream.readline()
+                                if not line:break
+                                try:batch.append(json.loads(line.decode("utf-8")))
+                                except (ValueError,UnicodeError):continue
+                            if not batch:break
+                            await publish(groups,batch)
+                            next_offset=stream.tell()
+                            temp=cursor_file.with_suffix(".tmp")
+                            temp.write_text(str(next_offset))
+                            os.replace(temp,cursor_file)
                 await publish(groups,[])
             except Exception as exc:
                 print("Tenant sync failed:",type(exc).__name__,str(exc)[:160],flush=True)

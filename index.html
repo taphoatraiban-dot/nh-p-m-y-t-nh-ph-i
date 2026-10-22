@@ -11174,6 +11174,29 @@ function draw(){
  const rows=visible();
  const groups=new Map();for(const m of rows){const name=m.selected_group||m.origin_name||"Không rõ nhóm";if(!groups.has(name))groups.set(name,[]);groups.get(name).push(m)}
  $("tgInboxList").innerHTML=[...groups].map(([name,items])=>'<details class="tg-msg-group" data-group="'+esc(name)+'" '+(tgOpenedGroups.has(name)||!tgOpenedGroupsInitialized?'open':'')+' style="border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;margin-bottom:7px"><summary style="cursor:pointer;padding:11px;font-weight:700;color:#143a61;background:#edf5ff">'+esc(name)+' ('+items.length+' tin)</summary><div style="display:grid;gap:7px;padding:8px">'+items.map(m=>'<label style="display:flex;gap:8px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;color:#17212f!important;-webkit-text-fill-color:#17212f!important;font-size:15px;line-height:1.5;text-align:left"><input type="checkbox" data-tgid="'+m.id+'" '+(selected.has(Number(m.id))?"checked":"")+' style="margin-top:4px"><span style="flex:1;min-width:0;color:#17212f!important"><b>'+esc(regionOf(m)==="OTHER"?"Chưa rõ miền":regionOf(m))+'</b> · '+esc(m.sender_name||m.origin_name||"Người gửi")+' <small>'+esc(new Date(m.message_date||m.received_at).toLocaleString("vi-VN"))+'</small><div class="tg-message-body" style="display:block!important;color:#17212f!important;-webkit-text-fill-color:#17212f!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5">'+esc(m.message_text||"(Tin chưa có nội dung văn bản)")+'</div><button type="button" class="tg-delete-one" data-delete-id="'+Number(m.id)+'" style="margin-top:6px;padding:5px 9px;border:1px solid #fecaca;background:#fff1f2;color:#991b1b;border-radius:7px;font-size:12px">Xoá tin</button></span></label>').join("")+'</div></details>').join("")||'<div>Chưa có tin phù hợp bộ lọc.</div>';
+ // Group rendered bot message cards by their local calendar day; preserve existing handlers.
+ for(const group of $("tgInboxList").querySelectorAll(".tg-msg-group")){
+  const body=group.querySelector("summary + div");if(!body)continue;
+  const cards=Array.from(body.children);const days=new Map();
+  const dataGroup=group.dataset.group;
+  const matching=rows.filter(m=>(m.selected_group||m.origin_name||"Không rõ nhóm")===dataGroup);
+  cards.forEach((card,i)=>{
+   const raw=matching[i]?.message_date||matching[i]?.received_at;
+   const date=raw?new Date(raw):null;
+   const day=date&&!isNaN(date)?date.toLocaleDateString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"}):"Không rõ ngày";
+   if(!days.has(day))days.set(day,[]);
+   days.get(day).push(card);
+  });
+  body.replaceChildren();
+  for(const [day,cardsOfDay] of days){
+   const section=document.createElement("details");section.className="tg-day-section";
+   section.style.cssText="border:1px solid #dbe4ef;border-radius:8px;overflow:hidden;background:#fff";
+   const heading=document.createElement("summary");heading.textContent="📅 "+day+" · "+cardsOfDay.length+" tin";
+   heading.style.cssText="cursor:pointer;padding:9px;font-size:13px;font-weight:700;background:#f1f5f9;color:#1e293b";
+   const inside=document.createElement("div");inside.style.cssText="display:grid;gap:7px;padding:7px";
+   inside.append(...cardsOfDay);section.append(heading,inside);body.append(section);
+  }
+ }
  $("tgInboxList").scrollTop=inboxScroll;
  $("tgInboxStatus").textContent=rows.length?("Hiển thị "+rows.length+" tin · Đã chọn "+selected.size):"";$("tgInboxStatus").style.display=rows.length?"block":"none";
  if(!tgOpenedGroupsInitialized){for(const name of groups.keys())tgOpenedGroups.add(name);tgOpenedGroupsInitialized=true;}
@@ -11447,6 +11470,7 @@ function render(){
  const shown=visible();
  if(!shown.length)list.textContent="Không có tin thuộc nhóm / miền đang chọn.";
  const names=new Map(data.groups.map(g=>[String(g.chat_id),g.group_name]));
+ const daySections=new Map();
  for(const m of shown){
   const item=document.createElement("div");item.style.cssText="padding:8px 4px;border-bottom:1px solid #e5e7eb;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px";
   const header=document.createElement("div");header.style.cssText="display:flex;gap:7px;align-items:flex-start";
@@ -11460,7 +11484,19 @@ function render(){
   header.append(check,title);
   const opts=document.createElement("div");opts.style.cssText="display:flex;gap:5px;margin:5px 0 0 26px;flex-wrap:wrap";opts.append(copyBtn,importBtn,delBtn);
   const content=document.createElement("div");content.style.cssText="margin:5px 0 0 26px";content.textContent=m.message_text;
-  item.append(header,content,opts);list.append(item);
+  item.append(header,content,opts);
+  const date=new Date(m.message_date);
+  const day=!isNaN(date)?date.toLocaleDateString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"}):"Không rõ ngày";
+  if(!daySections.has(day)){
+   const section=document.createElement("details");section.style.cssText="margin:6px 0;border:1px solid #cbd5e1;border-radius:9px;overflow:hidden;background:#fff";
+   const heading=document.createElement("summary");heading.style.cssText="cursor:pointer;padding:10px;background:#f1f5f9;font-weight:700;font-size:13px";
+   const contentArea=document.createElement("div");contentArea.style.padding="5px 8px";
+   section.append(heading,contentArea);list.append(section);
+   daySections.set(day,{heading,contentArea,count:0});
+  }
+  const section=daySections.get(day);section.count++;
+  section.heading.textContent="📅 "+day+" · "+section.count+" tin";
+  section.contentArea.append(item);
  }
  updateCount();
 }

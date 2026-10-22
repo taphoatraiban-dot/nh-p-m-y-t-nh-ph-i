@@ -11778,3 +11778,40 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  else showBotInbox();
 })();
 </script>
+
+
+<style id="tg-customer-vps-setup-20261022-style">
+#tgCustomerVpsSetup{padding:9px;margin:8px 0;border:1px solid #94a3b8;border-radius:9px;background:#fff}
+#tgCustomerVpsSetup summary{cursor:pointer;font-weight:700;font-size:13px}
+#tgCustomerVpsSetup button{margin:5px 0;max-width:100%;white-space:normal}
+</style>
+<script id="tg-customer-vps-setup-20261022-js">
+(function(){
+ function mount(){
+  const panel=document.getElementById("tgMemberInbox");
+  if(!panel||document.getElementById("tgCustomerVpsSetup"))return;
+  const box=document.createElement("details");box.id="tgCustomerVpsSetup";
+  box.innerHTML='<summary>📱 KẾT NỐI TELEGRAM VPS CỦA TÔI</summary><div style="padding:9px 1px;font-size:13px"><p>Mỗi tài khoản sử dụng phiên Telegram và nhóm riêng. Để bật lần đầu, cần xác thực Telegram an toàn trên VPS qua bộ phận quản trị; không nhập OTP hoặc mật khẩu Telegram vào trang này.</p><div id="tgCustomerVpsStatus" role="status">Đang kiểm tra trạng thái...</div><button type="button" class="soft" id="tgCustomerVpsCheck">Kiểm tra kết nối</button><p style="color:#64748b;font-size:12px">Sau khi được kích hoạt, nhóm Telegram và tin nhắn sẽ hiển thị trong mục Telegram VPS phía trên. Không cần thuê VPS riêng.</p></div>';
+  panel.parentNode.insertBefore(box,panel.nextSibling);
+  const status=box.querySelector("#tgCustomerVpsStatus");
+  async function check(){
+   const sbClient=typeof sb!=="undefined"?sb:null;
+   if(!sbClient){status.textContent="Chưa tải xong kết nối tài khoản.";return}
+   try{
+    const session=(await sbClient.auth.getSession()).data.session;
+    if(!session){status.textContent="Vui lòng đăng nhập.";return}
+    const resp=await fetch(SUPABASE_URL+"/functions/v1/telegram-member-sync?action=read",{
+      headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY}});
+    const data=await resp.json();
+    if(!resp.ok||!data.success)throw Error(data.error||"Không thể kiểm tra kết nối");
+    const count=(data.groups||[]).length;
+    status.textContent=count?("Đã có "+count+" nhóm VPS được đồng bộ với tài khoản này."):("Chưa có nhóm VPS. Cần hoàn tất xác thực Telegram và chọn nhóm lần đầu.");
+   }catch(err){status.textContent="Chưa xác minh kết nối: "+err.message}
+  }
+  box.querySelector("#tgCustomerVpsCheck").addEventListener("click",check);
+  box.addEventListener("toggle",()=>{if(box.open)check()});
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount);
+ else mount();
+})();
+</script>

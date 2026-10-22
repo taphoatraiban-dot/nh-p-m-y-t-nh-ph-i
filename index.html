@@ -10057,44 +10057,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 </script>
 
 
-<script id="telegram-member-inbox-v1">
-(function(){
-function init(){
-const target=document.getElementById("tgForwardInbox");if(!target||document.getElementById("tgMemberInbox"))return;
-const panel=document.createElement("details");panel.id="tgMemberInbox";panel.open=true;panel.style.cssText="border:1px solid #cbd5e1;border-radius:10px;margin:8px 0;padding:9px;background:#fff";
-panel.innerHTML='<summary style="font-weight:700">📨 Tin Telegram từ tài khoản thành viên</summary><div id="tgMemberStatus" style="font-size:12px;margin:7px 0">Đang kiểm tra kết nối...</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select id="tgMemberGroup" style="flex:1;min-width:130px"><option value="">Tất cả nhóm</option></select><button type="button" class="soft" id="tgMemberReload">Làm mới</button></div><details style="margin:8px 0"><summary style="font-size:12px">Thiết lập đồng bộ VPS</summary><button type="button" class="soft" id="tgMemberKey">Tạo khóa đồng bộ mới</button><p style="font-size:12px">Khóa chỉ hiện một lần. Lưu trên VPS, không gửi qua tin nhắn. Tạo khóa mới sẽ vô hiệu hóa khóa cũ.</p><div id="tgMemberSetup" style="font-size:12px;overflow-wrap:anywhere"></div></details><div id="tgMemberMessages" style="max-height:360px;overflow-y:auto"></div>';
-target.querySelector(".compact-body")?.prepend(panel);
-const status=panel.querySelector("#tgMemberStatus"),groups=panel.querySelector("#tgMemberGroup"),list=panel.querySelector("#tgMemberMessages"),setup=panel.querySelector("#tgMemberSetup");
-let data={groups:[],messages:[]},busy=false;
-async function call(action,body){
-const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập phần mềm");
-const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-member-sync?action="+action,{method:body?"POST":"GET",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})});
-const j=await res.json();if(!res.ok||!j.success)throw Error(j.error||"Không thể tải");return j;
-}
-function render(){
-const current=groups.value;
-groups.replaceChildren(new Option("Tất cả nhóm",""));
-for(const g of data.groups)groups.add(new Option(g.group_name,String(g.chat_id)));
-groups.value=Array.from(groups.options).some(o=>o.value===current)?current:"";
-list.replaceChildren();
-const shown=data.messages.filter(m=>!groups.value||String(m.chat_id)===groups.value);
-if(!shown.length){list.textContent="Chưa có tin đồng bộ trong 48 giờ.";return;}
-const names=new Map(data.groups.map(g=>[String(g.chat_id),g.group_name]));
-for(const m of shown){
-const item=document.createElement("div");item.style.cssText="padding:8px 4px;border-bottom:1px solid #e5e7eb;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px";
-const title=document.createElement("div");title.style.cssText="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px";
-title.textContent=(names.get(String(m.chat_id))||"Nhóm "+m.chat_id)+" · "+(m.sender_name||"Thành viên")+" · "+new Date(m.message_date).toLocaleString("vi-VN");
-const content=document.createElement("div");content.textContent=m.message_text;item.append(title,content);list.append(item);
-}
-}
-async function load(){if(busy||document.hidden)return;busy=true;try{data=await call("read");status.textContent=(data.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+data.groups.length+" nhóm · "+data.messages.length+" tin trong 48 giờ";render()}catch(e){status.textContent="Lỗi: "+e.message}finally{busy=false}}
-panel.querySelector("#tgMemberReload").onclick=load;groups.onchange=render;
-panel.querySelector("#tgMemberKey").onclick=async()=>{if(!confirm("Tạo khóa mới sẽ vô hiệu hóa khóa đồng bộ cũ. Tiếp tục?"))return;try{const j=await call("rotate-key",{});setup.replaceChildren();const p=document.createElement("p");p.textContent="User ID: "+j.user_id;const k=document.createElement("input");k.readOnly=true;k.value=j.sync_key;k.style.width="100%";const b=document.createElement("button");b.type="button";b.textContent="Sao chép khóa";b.onclick=()=>navigator.clipboard?.writeText(j.sync_key);setup.append(p,k,b);status.textContent="Đã tạo khóa. Cần lưu vào VPS để đồng bộ."}catch(e){setup.textContent=e.message}};
-panel.addEventListener("toggle",()=>{if(panel.open)load()});setInterval(()=>{if(panel.open)load()},15000);load();
-}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
-})();
-</script>
+
 </body>
 </html>
 <style id="v81-style">
@@ -11419,5 +11382,57 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   setInterval(()=>{if(panel.open&&!document.hidden)load()},15000);
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+
+<script id="telegram-member-inbox-v1">
+(function(){
+function init(){
+const target=document.getElementById("tgForwardInbox");if(!target||document.getElementById("tgMemberInbox"))return;
+const panel=document.createElement("details");panel.id="tgMemberInbox";panel.open=true;panel.style.cssText="border:1px solid #cbd5e1;border-radius:10px;margin:8px 0;padding:9px;background:#fff";
+panel.innerHTML='<summary style="font-weight:700">📨 Tin Telegram từ tài khoản thành viên</summary><div id="tgMemberStatus" style="font-size:12px;margin:7px 0">Đang kiểm tra kết nối...</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select id="tgMemberGroup" style="flex:1;min-width:130px"><option value="">Tất cả nhóm</option></select><button type="button" class="soft" id="tgMemberReload">Làm mới</button></div><details style="margin:8px 0"><summary style="font-size:12px">Thiết lập đồng bộ VPS</summary><button type="button" class="soft" id="tgMemberKey">Tạo khóa đồng bộ mới</button><p style="font-size:12px">Khóa chỉ hiện một lần. Lưu trên VPS, không gửi qua tin nhắn. Tạo khóa mới sẽ vô hiệu hóa khóa cũ.</p><div id="tgMemberSetup" style="font-size:12px;overflow-wrap:anywhere"></div></details><div id="tgMemberMessages" style="max-height:360px;overflow-y:auto"></div>';
+target.parentNode.insertBefore(panel,target);
+const status=panel.querySelector("#tgMemberStatus"),groups=panel.querySelector("#tgMemberGroup"),list=panel.querySelector("#tgMemberMessages"),setup=panel.querySelector("#tgMemberSetup");
+let data={groups:[],messages:[]},busy=false;
+async function call(action,body){
+const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Cần đăng nhập phần mềm");
+const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-member-sync?action="+action,{method:body?"POST":"GET",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})});
+const j=await res.json();if(!res.ok||!j.success)throw Error(j.error||"Không thể tải");return j;
+}
+function render(){
+const current=groups.value;
+groups.replaceChildren(new Option("Tất cả nhóm",""));
+for(const g of data.groups)groups.add(new Option(g.group_name,String(g.chat_id)));
+groups.value=Array.from(groups.options).some(o=>o.value===current)?current:"";
+list.replaceChildren();
+const shown=data.messages.filter(m=>!groups.value||String(m.chat_id)===groups.value);
+if(!shown.length){list.textContent="Chưa có tin đồng bộ trong 48 giờ.";return;}
+const names=new Map(data.groups.map(g=>[String(g.chat_id),g.group_name]));
+for(const m of shown){
+const item=document.createElement("div");item.style.cssText="padding:8px 4px;border-bottom:1px solid #e5e7eb;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px";
+const title=document.createElement("div");title.style.cssText="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px";
+title.textContent=(names.get(String(m.chat_id))||"Nhóm "+m.chat_id)+" · "+(m.sender_name||"Thành viên")+" · "+new Date(m.message_date).toLocaleString("vi-VN");
+const content=document.createElement("div");content.textContent=m.message_text;item.append(title,content);list.append(item);
+}
+}
+async function load(){if(busy||document.hidden)return;busy=true;try{data=await call("read");status.textContent=(data.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+data.groups.length+" nhóm · "+data.messages.length+" tin trong 48 giờ";render()}catch(e){status.textContent="Lỗi: "+e.message}finally{busy=false}}
+panel.querySelector("#tgMemberReload").onclick=load;groups.onchange=render;
+panel.querySelector("#tgMemberKey").onclick=async()=>{if(!confirm("Tạo khóa mới sẽ vô hiệu hóa khóa đồng bộ cũ. Tiếp tục?"))return;try{const j=await call("rotate-key",{});setup.replaceChildren();const p=document.createElement("p");p.textContent="User ID: "+j.user_id;const k=document.createElement("input");k.readOnly=true;k.value=j.sync_key;k.style.width="100%";const b=document.createElement("button");b.type="button";b.textContent="Sao chép khóa";b.onclick=()=>navigator.clipboard?.writeText(j.sync_key);setup.append(p,k,b);status.textContent="Đã tạo khóa. Cần lưu vào VPS để đồng bộ."}catch(e){setup.textContent=e.message}};
+panel.addEventListener("toggle",()=>{if(panel.open)load()});setInterval(()=>{if(panel.open)load()},15000);load();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+<script id="tg-member-quick-setup">
+(function(){
+function ready(){
+const panel=document.getElementById("tgMemberInbox");if(!panel||document.getElementById("tgMemberQuickSetup"))return;
+const bar=document.createElement("div");bar.id="tgMemberQuickSetup";bar.style.cssText="padding:9px;margin:7px 0;border:2px solid #b91c1c;border-radius:10px;background:#fff";
+const button=document.createElement("button");button.type="button";button.textContent="🔑 LẤY USER ID / KHÓA VPS";button.style.cssText="width:100%;background:#b91c1c;color:#fff;font-weight:700;border-radius:8px;padding:12px";
+const note=document.createElement("div");note.style.cssText="font-size:12px;margin-top:6px";note.textContent="Dùng để kết nối Telegram từ VPS, không phải token BotFather.";
+button.onclick=()=>{panel.open=true;const inner=panel.querySelector("details");if(inner)inner.open=true;panel.querySelector("#tgMemberKey")?.scrollIntoView({behavior:"smooth",block:"center"});};
+bar.append(button,note);panel.parentNode.insertBefore(bar,panel);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
 })();
 </script>

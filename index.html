@@ -11660,9 +11660,9 @@ async function load(){
  }catch(e){status.textContent="Lỗi đồng bộ: "+e.message}
  finally{busy=false}
 }
-panel.querySelector("#tgMemberReload").onclick=load;groups.onchange=()=>{panel.open=true;render();load();};
+panel.querySelector("#tgMemberReload").onclick=()=>{lastInboxSignature="";load()};groups.onchange=()=>{panel.open=true;render();load();};
 panel.querySelector("#tgMemberKey").onclick=async()=>{if(!confirm("Tạo khóa mới sẽ vô hiệu hóa khóa đồng bộ cũ. Tiếp tục?"))return;try{const j=await call("rotate-key",{});setup.replaceChildren();const p=document.createElement("p");p.textContent="User ID: "+j.user_id;const k=document.createElement("input");k.readOnly=true;k.value=j.sync_key;k.style.width="100%";const b=document.createElement("button");b.type="button";b.textContent="Sao chép khóa";b.onclick=()=>navigator.clipboard?.writeText(j.sync_key);setup.append(p,k,b);status.textContent="Đã tạo khóa. Cần lưu vào VPS để đồng bộ."}catch(e){setup.textContent=e.message}};
-panel.addEventListener("toggle",()=>{if(panel.open)load()});document.addEventListener("visibilitychange",()=>{if(!document.hidden&&panel.open)load()});setInterval(()=>{if(panel.open&&!document.hidden)load()},3000);load();
+panel.addEventListener("toggle",()=>{if(panel.open)load()});document.addEventListener("visibilitychange",()=>{if(!document.hidden&&panel.open)load()});window.addEventListener("online",()=>{if(panel.open)load()});window.addEventListener("focus",()=>{if(panel.open)load()});setInterval(()=>{if(panel.open&&!document.hidden)load()},3000);load();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

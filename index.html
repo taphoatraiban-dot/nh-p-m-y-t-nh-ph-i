@@ -3320,6 +3320,16 @@ function parseBets(){
      return {rows:[],errors:[`Sai cú pháp: ${_num}${_type}${_match[3]} — ${_type.toUpperCase()} phải có đúng ${_expected} chữ số. Phơi không được tính tiền.`]};
    }
  }
+ // Tất cả đài: đá có cặp số trùng nhau là sai và không được tính.
+ const _daRe=/(?:^|[^\dA-Za-z])((?:\d{2,}(?:\s*[.,]\s*\d{2,})*))\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?n?(?=\s*(?:\.|$|\n|\s))/gim;
+ for(const m of _raw2057.matchAll(_daRe)){
+   const digits=m[1].replace(/\D/g,'');
+   if(digits.length<4||digits.length%2)continue;
+   const pairs=digits.match(/\d{2}/g)||[];
+   const seen=new Set();
+   const repeated=pairs.find(n=>seen.has(n)||!seen.add(n));
+   if(repeated)return {rows:[],errors:[`Sai cược đá: số ${repeated} bị trùng trong ${m[1].trim()}. Không tính tiền toàn bộ phơi.`]};
+ }
  // FIX 19-10: Expand shared XC/XDAO on EACH line before Telegram normalization.
  // Do not require the entire pasted message to consist of two lines.
  // Only touch unambiguous lists of 3-digit numbers with XC and XDAO;

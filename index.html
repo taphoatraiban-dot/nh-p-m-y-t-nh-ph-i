@@ -2276,8 +2276,19 @@ function ttFixCompactBetSeparators(raw){
   .replace(/(^|[^0-9A-Za-z])([0-9]{2})[ \t]*:[ \t]*([0-9]{2})[ \t]*(da[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
     (_m,prefix,left,right,stake)=>prefix+left+right+stake.replace(/[ \t]/g,""));
 }
+function ttNormalizeNaturalStationHeaders(raw){
+ // Convert only explicit, unambiguous station names at the start of each line.
+ // Keep the names linked to the next wager; do not infer a station from plain numbers.
+ return String(raw??"").split(/\r?\n/).map(line=>{
+  const m=line.match(/^(\s*)(bình\s*dương\s+trà\s*vinh|bình\s*dương|trà\s*vinh)\s+((?:\d).*)$/iu);
+  if(!m)return line;
+  const key=m[2].toLocaleLowerCase("vi-VN").replace(/\s+/g,"");
+  const alias=key==="bìnhdươngtràvinh"?"binhduongtravinh":key==="bìnhdương"?"bduong":"tvinh";
+  return m[1]+alias+"\n"+m[1]+m[3];
+ }).join("\n");
+}
 function ttUnifiedNormalize(raw){
- raw=ttFixCompactBetSeparators(raw);
+ raw=ttFixCompactBetSeparators(ttNormalizeNaturalStationHeaders(raw));
  // LOCK 18/10: aliases and DAU-DUOI syntax. Only at start of a line
  // or after a region/station separator; never change numbers or stakes.
  raw=String(raw??'').replace(/\r\n?/g,'\n');

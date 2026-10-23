@@ -11644,10 +11644,25 @@ buttons.import.onclick=()=>importMessages(selectedVisible());
 buttons.delete.onclick=()=>hideMessages(selectedVisible());
 region.onchange=render;
 
-async function load(){if(busy||document.hidden)return;busy=true;try{data=await call("read");status.textContent=(data.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+data.groups.length+" nhóm · "+data.messages.length+" tin trong 48 giờ";render()}catch(e){status.textContent="Lỗi: "+e.message}finally{busy=false}}
+let lastInboxSignature="";
+async function load(){
+ if(busy||document.hidden||!panel.open)return;
+ busy=true;
+ try{
+  const fresh=await call("read");
+  const signature=JSON.stringify([fresh.configured,fresh.groups.map(g=>[g.chat_id,g.group_name,g.enabled]),fresh.messages.map(m=>[m.chat_id,m.message_id,m.message_date,m.message_text])]);
+  status.textContent=(fresh.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+fresh.groups.length+" nhóm · "+fresh.messages.length+" tin trong 48 giờ · Tự cập nhật";
+  if(signature!==lastInboxSignature){
+   const scroll=list.scrollTop;
+   data=fresh;lastInboxSignature=signature;render();
+   list.scrollTop=scroll;
+  }
+ }catch(e){status.textContent="Lỗi đồng bộ: "+e.message}
+ finally{busy=false}
+}
 panel.querySelector("#tgMemberReload").onclick=load;groups.onchange=()=>{panel.open=true;render();load();};
 panel.querySelector("#tgMemberKey").onclick=async()=>{if(!confirm("Tạo khóa mới sẽ vô hiệu hóa khóa đồng bộ cũ. Tiếp tục?"))return;try{const j=await call("rotate-key",{});setup.replaceChildren();const p=document.createElement("p");p.textContent="User ID: "+j.user_id;const k=document.createElement("input");k.readOnly=true;k.value=j.sync_key;k.style.width="100%";const b=document.createElement("button");b.type="button";b.textContent="Sao chép khóa";b.onclick=()=>navigator.clipboard?.writeText(j.sync_key);setup.append(p,k,b);status.textContent="Đã tạo khóa. Cần lưu vào VPS để đồng bộ."}catch(e){setup.textContent=e.message}};
-panel.addEventListener("toggle",()=>{if(panel.open)load()});setInterval(()=>{if(panel.open)load()},15000);load();
+panel.addEventListener("toggle",()=>{if(panel.open)load()});document.addEventListener("visibilitychange",()=>{if(!document.hidden&&panel.open)load()});setInterval(()=>{if(panel.open&&!document.hidden)load()},3000);load();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

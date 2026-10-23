@@ -3342,6 +3342,7 @@ function parseBets(){
    });
  const _fixed2057=tshFixJoinedBaoXC(_sharedFixed1910);
  let rows=[],errors=[],st={region:"N",stations:1,label:"Mặc định"};
+ let hasExplicitStation=false;
  let text=normalizeLoosePhoiWithoutChangingFunctionCount(cleanTelegramPhoiText(ttSeparateJoinedBets(ttUnifiedNormalize(_fixed2057))));
  // Preserve shared function groups through every legacy normalizer using a stable placeholder.
  // The earlier normalization may add or remove lines, so index-based restoration is unsafe.
@@ -3445,9 +3446,16 @@ function parseBets(){
   }
   if(q){
     st=q;
+    hasExplicitStation=true;
     if(s===line.trim()) s=s.slice(tok.length).trim();
     else if(!s) s=line.trim().slice(tok.length).replace(/^\s*\.??\s*/,'').trim();
     if(!s) continue;
+  }
+  // Không tự dùng đài mặc định cho cược thiếu tiêu đề đài.
+  // Một dòng thiếu đài làm lỗi toàn bộ phơi (MN/MT/MB).
+  if(!hasExplicitStation){
+    errors.push(`Thiếu tên đài trước cược: “${line.trim()}”. Phải ghi HN, tên tỉnh hoặc nhóm đài trước khi tính.`);
+    continue;
   }
 
   // LOCK 19-10-2026: DAY DAI DUNG CHUNG NHIEU HAM (KHONG GIOI HAN NHOM).

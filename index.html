@@ -3311,6 +3311,12 @@ function normalizeLoosePhoiWithoutChangingFunctionCount(text){
 function parseBets(){
  // Chỉ chuẩn hoá trên bản sao; DÒ SAI/OK không được tự sửa nội dung gốc.
  const _raw2057=String($("bets")?.value||"");
+ // STRICT XC: xỉu chủ phải có đúng 3 chữ số; chặn ngay trên phôi gốc
+ // trước mọi chuẩn hóa để không thể tự kéo số trước dấu chấm vào XC.
+ const _badTwoDigitXC=_raw2057.match(/(?:^|[^\d])([0-9]{2})\s*xc\s*\d+(?:[,.]\d+)?(?:n)?(?=\s*(?:\.|$|\n))/im);
+ if(_badTwoDigitXC){
+   return {rows:[],errors:[`Sai cú pháp: ${_badTwoDigitXC[1]}xc — XC phải có đúng 3 chữ số (ví dụ 555xc5). Phơi không được tính tiền.`]};
+ }
  // FIX 19-10: Expand shared XC/XDAO on EACH line before Telegram normalization.
  // Do not require the entire pasted message to consist of two lines.
  // Only touch unambiguous lists of 3-digit numbers with XC and XDAO;

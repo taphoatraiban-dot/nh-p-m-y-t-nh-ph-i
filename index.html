@@ -3320,6 +3320,14 @@ function parseBets(){
      return {rows:[],errors:[`Sai cú pháp: ${_num}${_type}${_match[3]} — ${_type.toUpperCase()} phải có đúng ${_expected} chữ số. Phơi không được tính tiền.`]};
    }
  }
+ // DA across every station (MN, MT, MB): must have even digit count >=4.
+ const _daLengthScan=/(?:^|[^0-9a-zA-Z])([0-9][0-9., ]*[0-9])\s*(?:da|đá|đa)\s*[0-9]+(?:[,.][0-9]+)?n?(?=\s*(?:\.|$|\n))/gim;
+ for(const daMatch of _raw2057.matchAll(_daLengthScan)){
+   const daDigits=daMatch[1].replace(/[^0-9]/g,'');
+   if(daDigits.length<4 || daDigits.length%2!==0){
+     return {rows:[],errors:[`Lỗi cược đá: ${daMatch[1].trim()} có ${daDigits.length} chữ số; phải có ít nhất 4 chữ số và đủ cặp 2 số. Không tính tiền toàn bộ phơi.`]};
+   }
+ }
  // Tất cả đài: đá có cặp số trùng nhau là sai và không được tính.
  const _daRe=/(?:^|[^\dA-Za-z])((?:\d{2,}(?:\s*[.,]\s*\d{2,})*))\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?n?(?=\s*(?:\.|$|\n|\s))/gim;
  for(const m of _raw2057.matchAll(_daRe)){

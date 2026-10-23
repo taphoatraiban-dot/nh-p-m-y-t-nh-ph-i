@@ -2290,6 +2290,9 @@ function ttNormalizeNaturalStationHeaders(raw){
 function ttNormalizeDaoLoPhrase(raw){
  // Normalize explicit natural-language lottery shorthand without changing digits/stakes.
  return String(raw??"")
+  // Handle missing/misplaced Vietnamese tone marks inside the WHOLE phrase only.
+  // Never globally substitute d/đ or o/ô in unrelated wager codes.
+  .replace(/(^|[^a-zA-Z0-9])([đd][aàảãáạăằẳẵắặâầẩẫấậ][oỏòóõọ]?|[đd]a[oỏòóõọ])\s*(?:l[oôốồổỗộòóỏõọ])\s*(?=\d)/giu,(_m,p)=>p+"bdao")
   .replace(/đảo\s*lô\s*(?=\d)/giu,"bdao")
   .replace(/\bdao\s*lo\s*(?=\d)/giu,"bdao")
   .replace(/\bdxc\s*(?=\d)/giu,"xdao")

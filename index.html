@@ -2287,8 +2287,20 @@ function ttNormalizeNaturalStationHeaders(raw){
   return m[1]+alias+"\n"+m[1]+m[3];
  }).join("\n");
 }
+function ttNormalizeDaoLoPhrase(raw){
+ // Normalize explicit natural-language lottery shorthand without changing digits/stakes.
+ return String(raw??"")
+  .replace(/đảo\s*lô\s*(?=\d)/giu,"bdao")
+  .replace(/\bdao\s*lo\s*(?=\d)/giu,"bdao")
+  .replace(/\bdxc\s*(?=\d)/giu,"xdao")
+  // A comma after a completed stake separates wagers, not a decimal amount.
+  .replace(/(bdao\s*\d+(?:,\d+)?n?)\s*,\s*(?=\d{2,4}(?:[.\s]|bdao|b|xdao))/giu,"$1.\n")
+  // "5645b12.bdao1" shares the same number in a follow-on function;
+  // chained parser receives this as a single wager group.
+  .replace(/([0-9]{4}\s*b\s*\d+(?:,\d+)?n?)\s*\.\s*bdao\s*(\d+(?:,\d+)?n?)/giu,"$1.bdao$2");
+}
 function ttUnifiedNormalize(raw){
- raw=ttFixCompactBetSeparators(ttNormalizeNaturalStationHeaders(raw));
+ raw=ttFixCompactBetSeparators(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw)));
  // LOCK 18/10: aliases and DAU-DUOI syntax. Only at start of a line
  // or after a region/station separator; never change numbers or stakes.
  raw=String(raw??'').replace(/\r\n?/g,'\n');

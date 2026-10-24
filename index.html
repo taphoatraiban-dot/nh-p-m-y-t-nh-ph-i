@@ -2280,6 +2280,9 @@ function ttNormalizeNaturalStationHeaders(raw){
  // Convert only explicit, unambiguous station names at the start of each line.
  // Keep the names linked to the next wager; do not infer a station from plain numbers.
  return String(raw??"").split(/\r?\n/).map(line=>{
+  // TP.HCM written as "T.phố.663.xc100." or "T phố 663xc100."
+  const tp=line.match(/^(\s*)t\s*\.?\s*ph[oố]\s*\.?\s*(\d{2,4}(?:[.\s]*[a-zA-Z]+)?[^\n]*)$/iu);
+  if(tp)return tp[1]+"tpho\n"+tp[1]+tp[2].replace(/^(\d{2,4})\.(?=[a-zA-Z])/,"$1");
   const m=line.match(/^(\s*)(bình\s*dương\s+trà\s*vinh|bình\s*dương|trà\s*vinh)\s+((?:\d).*)$/iu);
   if(!m)return line;
   const key=m[2].toLocaleLowerCase("vi-VN").replace(/\s+/g,"");

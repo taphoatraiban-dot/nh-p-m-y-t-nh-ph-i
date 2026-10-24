@@ -35,9 +35,10 @@ function build(){
 <p id="status" role="status" aria-live="polite"></p>
 <section class="section"><h2>Bảng tổng đối soát</h2><div class="scroll"><table><thead><tr><th>Miền</th><th>Đài / nhóm đài</th><th>Kiểu chơi</th><th>Nguồn</th><th>Số dòng</th><th class="money">Tiền xác</th></tr></thead><tbody id="summary"></tbody></table></div></section>
 <section class="section"><h2>Tin nguồn và kết quả từng tin</h2><div id="messages"></div></section><p class="small">Mỗi tin lỗi khóa toàn bộ tin đó. Bộ mẫu chỉ xác minh các tình huống đã liệt kê; chưa phải chứng nhận mọi cú pháp, lịch mở thưởng hay thu/bù/trúng. Cặp hoặc nhóm đài được giữ nguyên, không tự chia tiền sang từng đài.</p></main>
-<script>(()=>{const module={exports:{}};
+<script>(()=>{const api=(()=>{const module={exports:{}};
 ${core}
-const {reconcile}=module.exports, data=${safe};
+return module.exports;})();
+const {reconcile}=api, data=${safe};
 const el=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString('vi-VN')+' đ';
 const group=id=>data.messages.find(m=>m.chat===id)?.group||String(id);
 let replay=false;

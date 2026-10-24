@@ -14,8 +14,8 @@ Thêm nhánh hẹp cho số 4 chữ số + B + BDAO/DAOB nối tiếp, trước 
 - `tests/helpers/production-parser.cjs` tải trực tiếp vùng parser và hàm bung đài trong index.html vào VM; chỉ cấp ô bets/date và chặn khởi chạy DOM. Không dùng bản sao công thức parser, không đọc dữ liệu thật, không có mạng hoặc tài khoản.
 - 75 ca mới từ chuỗi đầu vào đến tiền xác; trước sửa 63 PASS, 12 FAIL đúng biến thể lỗi; sau sửa 75 PASS.
 - Có Bao 2/3/4, số 0 đầu, điểm thập phân, XC, DD, MN/MT/HN, lỗi độ dài/đá trùng/thiếu đài, lặp cược hợp lệ, nhiều đài và DA+B.
-- Tổng bộ kiểm thử: 408 PASS, 0 FAIL trong môi trường local Node 24.
-- 3 ca kiểm tra trang mẫu được sinh từ đúng mã hiện tại, số tiền từng tin khớp kỳ vọng viết riêng và phát lại không nhân tổng.
+- Tổng bộ kiểm thử: 413 PASS, 0 FAIL trong môi trường local Node 24.
+- 5 ca kiểm tra trang mẫu được sinh từ đúng mã hiện tại, số tiền từng tin khớp kỳ vọng viết riêng và phát lại không nhân tổng.
 - Chưa bao phủ toàn bộ cú pháp, dò kết quả, lịch mở thưởng, giá nhận/hồi, thu/bù/trúng, hay giao diện MB riêng. Đây không phải xác nhận toàn bộ tính tiền end-to-end.
 
 ## Trang mẫu

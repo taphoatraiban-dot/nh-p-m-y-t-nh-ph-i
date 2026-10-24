@@ -2303,8 +2303,15 @@ function ttNormalizeDaoLoPhrase(raw){
   // chained parser receives this as a single wager group.
   .replace(/([0-9]{4}\s*b\s*\d+(?:,\d+)?n?)\s*\.\s*bdao\s*(\d+(?:,\d+)?n?)/giu,"$1.bdao$2");
 }
+function ttNormalizeClearNaturalBetNames(raw){
+ return String(raw??"")
+  // "5645 bao 12" is the spelled-out Bao instruction for the same number.
+  .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1b$2")
+  // "123 đảo xc 10", "123 đảo xỉu chủ 10".
+  .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
+}
 function ttUnifiedNormalize(raw){
- raw=ttFixCompactBetSeparators(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw)));
+ raw=ttFixCompactBetSeparators(ttNormalizeClearNaturalBetNames(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw))));
  // LOCK 18/10: aliases and DAU-DUOI syntax. Only at start of a line
  // or after a region/station separator; never change numbers or stakes.
  raw=String(raw??'').replace(/\r\n?/g,'\n');

@@ -99,3 +99,28 @@ test('60 groups, two accounts and replay: no loss, no cross-account merge',()=>{
 test('empty input is safe and non-list input is rejected',()=>{
  assert.deepEqual(reconcile([]).summary,[]);assert.throws(()=>aggregate(null),TypeError);
 });
+
+test('MN MT MB, same number and stake remain in separate ledgers',()=>{
+ const input=[];
+ for(const region of ['MN','MT','MB'])for(const station of ['hn','tpho'])
+  input.push(sample({chat_id:-1001,message_id:input.length+1,region,station,amount:1}));
+ const r=reconcile(input);
+ assert.equal(r.accepted,6);
+ assert.equal(r.rows.length,6);
+ assert.equal(r.summary.length,6);
+ assert.equal(r.complete,true);
+});
+test('duplicate delivery does not change source total or original count',()=>{
+ const input=[sample({chat_id:-12,message_id:42,amount:13.5,source:'telegram'})];
+ const one=reconcile(input),many=reconcile([...input,...input,...input]);
+ assert.deepEqual(many.rows,one.rows);
+ assert.deepEqual(many.summary,one.summary);
+ assert.equal(many.duplicates.length,2);
+});
+test('one ambiguous line cannot silently be counted toward a reconciled report',()=>{
+ const input=[sample({amount:10}),sample({message_id:2,validated:false,amount:400})];
+ const r=reconcile(input);
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].total_decimal,'10');
+ assert.equal(r.unresolved.length,1);
+});

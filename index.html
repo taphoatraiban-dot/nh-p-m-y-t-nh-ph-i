@@ -2308,7 +2308,7 @@ function ttNormalizeClearNaturalBetNames(raw){
   // "5645 bao 12" is the spelled-out Bao instruction for the same number.
   .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1b$2")
   // "123 đảo xc 10", "123 đảo xỉu chủ 10".
-  .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
+  .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo|đào|dào)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
 }
 function ttUnifiedNormalize(raw){
  raw=ttFixCompactBetSeparators(ttNormalizeClearNaturalBetNames(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw))));

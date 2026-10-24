@@ -2273,7 +2273,7 @@ function ttFixCompactBetSeparators(raw){
  return String(raw??"")
   .replace(/(^|[^0-9A-Za-z])([0-9]{4})[ \t]*\.[ \t]*(b[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
     (_m,prefix,num,stake)=>prefix+num+stake.replace(/[ \t]/g,""))
-  .replace(/(^|[^0-9A-Za-z])([0-9]{2})[ \t]*:[ \t]*([0-9]{2})[ \t]*(da[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
+  .replace(/(^|[^0-9A-Za-z])([0-9]{2})[ \t]*[:\/\-][ \t]*([0-9]{2})[ \t]*(da[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
     (_m,prefix,left,right,stake)=>prefix+left+right+stake.replace(/[ \t]/g,""));
 }
 function ttNormalizeNaturalStationHeaders(raw){

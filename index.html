@@ -1756,25 +1756,33 @@ async function unlockByPin(){
   const email=$("pinEmail").value.trim().toLowerCase();
   const pin=$("pinInput").value.trim();
   if(!/^\d{4}$/.test(pin)){$("pinStatus").className="status err";$("pinStatus").textContent="PIN phải gồm đúng 4 số.";return;}
-  const localPin=getSavedPin(email);
-  let pinOk=localPin ? (pin===localPin) : false;
-  if(!pinOk && !localPin){
-    const h=await cloudPinHash();
-    if(h) pinOk=((await tsSha256(pin))===h);
-    if(pinOk) localStorage.setItem(pinKey(email),pin); // khôi phục PIN nhanh trên máy mới
-  }
-  if(!pinOk){
-    $("pinStatus").className="status err";$("pinStatus").textContent="PIN không đúng.";
-    $("pinInput").value="";refreshPinDots();return;
-  }
+  // Lock before the first await: keypad auto-submit and a button tap can overlap.
   pinUnlockBusy=true;
+  const epoch=authBootEpoch;
   $("pinStatus").className="status";$("pinStatus").textContent="Đang mở khóa…";
   try{
-    // Hai kiểm tra máy chủ độc lập chạy cùng lúc để giảm thời gian chờ.
+    const localPin=getSavedPin(email);
+    let pinOk=localPin ? (pin===localPin) : false;
+    if(!pinOk && !localPin){
+      const h=await cloudPinHash();
+      if(epoch!==authBootEpoch) return;
+      if(h) pinOk=((await tsSha256(pin))===h);
+      if(epoch!==authBootEpoch) return;
+      if(pinOk) localStorage.setItem(pinKey(email),pin);
+    }
+    if(!pinOk){
+      $("pinStatus").className="status err";$("pinStatus").textContent="PIN không đúng.";
+      $("pinInput").value="";refreshPinDots();return;
+    }
+    // Both server checks must finish successfully before showing private data.
     await Promise.all([checkLicense(),claimDevice()]);
+    if(epoch!==authBootEpoch) return;
     showApp();
   }catch(e){
-    await sb.auth.signOut();showFullLogin();loginStatus(e.message,"err");
+    if(epoch!==authBootEpoch) return;
+    // A failed sign-out request must not leave the PIN screen stuck forever.
+    try{await sb.auth.signOut();}catch(_signOutError){}
+    showFullLogin();loginStatus(e?.message||"Không mở khóa được. Vui lòng đăng nhập lại.","err");
   }finally{pinUnlockBusy=false;}
 }
 $("pinUnlockBtn")?.addEventListener("click",unlockByPin); $("faceIdBtn")?.addEventListener("click",unlockByFaceId);

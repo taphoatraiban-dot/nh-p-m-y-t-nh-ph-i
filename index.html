@@ -2133,6 +2133,13 @@ function splitChainedSameNumbers(line){
     return `${a}b${bDa4[2]}${bDa4[3]||''}. ${b}b${bDa4[2]}${bDa4[3]||''}. ${four}da${bDa4[4]}${bDa4[5]||''}.`;
   }
 
+  // Bao 4 followed by Bao đảo shares the whole four-digit number.
+  // Do not apply the legacy DA pair split to 5645b12.bdao1.
+  const bao4ThenDao=s.match(/^(\d{4})\s*b\s*(\d+(?:[.,]\d+)?)(n?)\.\s*(?:bdao|daob)\s*(\d+(?:[.,]\d+)?)(n?)\.?$/i);
+  if(bao4ThenDao){
+    return `${bao4ThenDao[1]}b${bao4ThenDao[2]}${bao4ThenDao[3]}. ${bao4ThenDao[1]}bdao${bao4ThenDao[4]}${bao4ThenDao[5]}.`;
+  }
+
   const compactPairRe=new RegExp('^(\\d{4})\\s*('+type+')\\s*(\\d+(?:[.,]\\d+)?)(n?)\\.\\s*(?:\\d{4})?\\s*('+type+')\\s*(\\d+(?:[.,]\\d+)?)(n?)\\.?$','i');
   const cpm=s.match(compactPairRe);
   if(cpm){

@@ -3,9 +3,17 @@
 Chạy ở thư mục gốc với Node 24:
 
 ```sh
-node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs
+node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs
 ```
 
-Không dùng dữ liệu khách thật. Parser: 283 ca chuẩn hóa thuần, chưa kiểm tra toàn bộ cú pháp/lịch đài/tính tiền. Bộ gom: kiểm tra nguồn, xung đột, đơn vị, số thập phân, tài khoản và tải 60 nhóm. Phân miền Telegram: 14 assertion trong một file test.
+408 mục test runner PASS tại đợt cập nhật 24/10/2026. Không dùng dữ liệu khách thật.
 
-330 mục test runner PASS tại bản nâng cấp ngày 24/10/2026. Đọc `docs/reconciliation-preview-20261024.md` về hợp đồng đầu vào và giới hạn trước tích hợp.
+- Parser regression: 283 ca chuẩn hóa thuần.
+- Parser money: 75 ca chạy parser sản xuất đến tiền xác, gồm lỗi Bao 4 nối tiếp Bao đảo.
+- Telegram reconcile: chống trùng, xung đột, đơn vị, số thập phân, tài khoản và tải 60 nhóm.
+- Telegram region: 14 assertion trong một file test.
+- Preview: 3 ca kiểm tra dữ liệu mẫu và bản HTML sinh ra khớp mã hiện tại.
+
+Tạo lại trang mẫu: `node scripts/build-reconcile-preview.cjs`.
+
+Chưa bao phủ toàn bộ lịch đài, dò giải, giá nhận/hồi và thu/bù/trúng. Đọc `docs/parser-money-preview-20261024.md` và `docs/reconciliation-preview-20261024.md` trước tích hợp.

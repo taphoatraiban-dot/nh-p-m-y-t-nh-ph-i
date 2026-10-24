@@ -1,0 +1,24 @@
+name: Parser regression
+on:
+  push:
+    paths:
+      - 'index.html'
+      - 'tests/**'
+      - '.github/workflows/parser-regression.yml'
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/**'
+      - '.github/workflows/parser-regression.yml'
+  workflow_dispatch:
+jobs:
+  parser-regression:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Node
+        run: node --version
+      - name: Verify pure normalization rules
+        run: node --test tests/parser-regression.cjs

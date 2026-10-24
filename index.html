@@ -1716,7 +1716,8 @@ function showPinLock(email){
   document.body.classList.remove('app-unlocked');
   document.getElementById('appCard')?.classList.add('hidden');
   stopIdleLogout();
-  if(typeof showPublicCover==="function") showPublicCover();
+  // An async PIN check must not undo the user's swipe into authentication.
+  if(!document.body.classList.contains("public-auth-open") && typeof showPublicCover==="function") showPublicCover();
   $("loginCard").classList.add("hidden");
   $("registerCard").classList.add("hidden");
   $("pinCard").classList.remove("hidden");
@@ -1802,19 +1803,36 @@ document.getElementById('forgotPinBtn')?.addEventListener('click',async()=>{
  await sb.auth.signOut(); showFullLogin(); loginStatus('Đăng nhập bằng mật khẩu để tạo lại PIN.','');
 });
 
-async function boot(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    const email=session.user?.email||"";
-    await cloudRestoreSettings();
-    const hasPin=!!getSavedPin(email) || !!(await cloudPinHash());
-    if(hasPin) showPinLock(email);
-    else { // No PIN configured: require full password login, never auto-open calculator.
-      await sb.auth.signOut();
+let authBootPromise=null;
+let authBootEpoch=0;
+function boot(){
+  if(authBootPromise) return authBootPromise;
+  const epoch=authBootEpoch;
+  authBootPromise=(async()=>{
+    try{
+      const {data:{session}}=await sb.auth.getSession();
+      if(epoch!==authBootEpoch) return;
+      if(!session){showLogin();return;}
+      const email=session.user?.email||"";
+      // Show a saved local PIN immediately; settings synchronization is unrelated
+      // to choosing the lock screen and must not hold it behind network requests.
+      const hasPin=!!getSavedPin(email) || !!(await cloudPinHash());
+      if(epoch!==authBootEpoch) return;
+      if(hasPin){
+        showPinLock(email);
+        void cloudRestoreSettings().catch(()=>{});
+      }else{
+        await sb.auth.signOut();
+        showFullLogin();
+        loginStatus("Đăng nhập bằng mật khẩu để thiết lập PIN trước khi sử dụng.","");
+      }
+    }catch(e){
+      if(epoch!==authBootEpoch) return;
       showFullLogin();
-      loginStatus("Đăng nhập bằng mật khẩu để thiết lập PIN trước khi sử dụng.","");
+      loginStatus("Chưa tải được phiên đăng nhập. Anh có thể đăng nhập bằng mật khẩu, không cần tải lại trang.","err");
     }
-  }else showLogin();
+  })();
+  return authBootPromise;
 }
 // ===== BẢO MẬT PHIÊN ĐĂNG NHẬP =====
 const IDLE_LIMIT_MS=5*60*1000;
@@ -1886,7 +1904,7 @@ function showApp(){
 function showLogin(){
   document.body.classList.remove('app-unlocked');
   document.getElementById('appCard')?.classList.add('hidden');
-  if(typeof showPublicCover==="function") showPublicCover();
+  if(!document.body.classList.contains("public-auth-open") && typeof showPublicCover==="function") showPublicCover();
   stopIdleLogout();
   $("pinCard")?.classList.add("hidden");
   $("loginCard").classList.remove("hidden");
@@ -1903,6 +1921,7 @@ async function performLogin(){
   const email=$("email").value.trim().toLowerCase();
   const password=$("password").value;
   if(!email||!password){loginStatus("Nhập Email và mật khẩu.","err");return;}
+  authBootEpoch++; // Ignore a slower startup result after manual login begins.
   loginStatus("Đang đăng nhập...");
   let authResult;
   try{authResult=await sb.auth.signInWithPassword({email,password});}
@@ -1941,7 +1960,10 @@ $("quickLoginBtn").onclick=async()=>{
 };
 if($("logoutBtn2")) $("logoutBtn2").onclick=doLogout;
 $("logoutBelowPhoi")?.addEventListener("click",doLogout);
-sb.auth.onAuthStateChange((_event,session)=>{if(!session)showLogin();});
+sb.auth.onAuthStateChange((event,session)=>{
+  // boot() owns INITIAL_SESSION; only a real sign-out changes the active view.
+  if(event==="SIGNED_OUT" && !session){authBootEpoch++;showLogin();}
+});
 boot();
 
 const DEFAULT_CUSTOMERS={
@@ -5371,7 +5393,7 @@ if($("calc")) $("calc").onclick=renderCalc;
 if($("clear")) $("clear").onclick=()=>{$("bets").value="";$("out").innerHTML="";setStatus("Đã xóa.")};
 $("date").value=(()=>{const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;})();
 syncCustomerSelect();
-boot();
+// Authentication bootstrap already started once above.
 
 // ===== V3 UI =====
 function scrollToId(id){const el=document.getElementById(id);if(!el)return;if(el.tagName==='DETAILS')el.open=true;el.scrollIntoView({behavior:'smooth'});}

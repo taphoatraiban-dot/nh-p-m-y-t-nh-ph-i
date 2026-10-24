@@ -21,4 +21,4 @@ jobs:
       - name: Check Node
         run: node --version
       - name: Verify pure normalization rules
-        run: node --test tests/parser-regression.cjs
+        run: node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs

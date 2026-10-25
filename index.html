@@ -2351,6 +2351,8 @@ function ttNormalizeClearNaturalBetNames(raw){
   .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo|đào|dào)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
 }
 function ttUnifiedNormalize(raw){
+ // Chuan hoa b7lo (ca 2 va 3 chu so) ve alias bao7 da ho tro trong parser.
+ raw=String(raw??'').replace(/(\d{2,4})\s*b7lo\s*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1bao7$2');
  raw=ttFixCompactBetSeparators(ttNormalizeClearNaturalBetNames(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw))));
  // LOCK 18/10: aliases and DAU-DUOI syntax. Only at start of a line
  // or after a region/station separator; never change numbers or stakes.

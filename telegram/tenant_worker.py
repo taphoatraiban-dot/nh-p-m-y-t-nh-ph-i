@@ -149,6 +149,7 @@ async def main(path):
                 tmp = watermark_file.with_suffix(".tmp")
                 tmp.write_text(json.dumps(watermarks))
                 os.replace(tmp, watermark_file)
+        last_group_heartbeat=0.0
         while True:
             try:
                 await poll_private()
@@ -180,11 +181,14 @@ async def main(path):
                                 except (ValueError,UnicodeError):continue
                             if not batch:break
                             await publish(groups,batch)
+                            last_group_heartbeat=asyncio.get_running_loop().time()
                             next_offset=stream.tell()
                             temp=cursor_file.with_suffix(".tmp")
                             temp.write_text(str(next_offset))
                             os.replace(temp,cursor_file)
-                await publish(groups,[])
+                if asyncio.get_running_loop().time()-last_group_heartbeat>=120:
+                    await publish(groups,[])
+                    last_group_heartbeat=asyncio.get_running_loop().time()
             except Exception as exc:
                 print("Tenant sync failed:",type(exc).__name__,str(exc)[:160],flush=True)
             await asyncio.sleep(30)

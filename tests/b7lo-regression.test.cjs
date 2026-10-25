@@ -15,6 +15,7 @@ assert.equal(typeof normalize,'function','Production unified normalizer not load
 const valid=[
   {label:'2-digit canonical token',input:'2dmn\n79b7lo10.',expected:'2dmn\n79b7lo10.'},
   {label:'3-digit canonical token from reported failure',input:'2dmn\n879b7lo10.',expected:'2dmn\n879b7lo10.'},
+  {label:'4-digit BAO 7 compatibility',input:'hn\n8791b7lo10.',expected:'hn\n8791b7lo10.'},
   {label:'space before stake',input:'2dmn\n879b7lo 10.',expected:'2dmn\n879b7lo 10.'},
   {label:'space before alias',input:'2dmn\n879 b7lo10.',expected:'2dmn\n879 b7lo10.'},
   {label:'spaces around alias',input:'2dmn\n879 b7lo 10.',expected:'2dmn\n879 b7lo 10.'},

@@ -3617,7 +3617,7 @@ function parseBets(){
   // Ví dụ 71duau20.duoi62,5 => báo đúng duau20, tuyệt đối không bỏ lỗi rồi tính duoi62,5.
   s=s.replace(/xdui(?=\s*\d)/gi,'xduoi').replace(/\bxdui\b/gi,'xduoi');
   {
-    const alphaRuns=[...s.matchAll(/[A-Za-zÀ-ỹĐđ]+\d*(?:[,.]\d+)?/g)];
+    const alphaRuns=[...s.matchAll(/[A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹĐđ0-9]*(?:[,.]\d+)?/g)];
     const validWord=/^(?:xdao|xcdao|daoxc|dxc|b7ldao|b7ld|b7lo|baobay|bao7|bao8|b8l|bao2|bl2|xcdau|xcduoi|xdau|xduoi|dau|dui|duoi|dd|xc|x|bdao|daob|dv|da|b)\d*(?:[,.]\d+)?n?$/i;
     const badRun=alphaRuns.find(m=>!validWord.test(m[0]));
     if(badRun){

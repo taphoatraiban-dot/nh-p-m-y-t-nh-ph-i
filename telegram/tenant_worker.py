@@ -99,7 +99,7 @@ async def main(path):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
             private_allowed = (event.is_private and not event.out and
                                (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
-            if not event.raw_text or not event.message.edit_date or not (group_allowed or private_allowed):
+            if not event.message.edit_date or not (group_allowed or private_allowed):
                 return
             m={"chat_id":event.chat_id,"message_id":event.id,
                "message_text":event.raw_text,"message_date":event.message.date.isoformat(),

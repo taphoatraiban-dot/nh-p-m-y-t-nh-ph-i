@@ -50,7 +50,7 @@ async def main():
         print("DA NHAN TIN:",groups.get(e.chat_id,e.chat_id),"ID",e.id,flush=True)
     @client.on(events.MessageEdited())
     async def edited(e):
-        if not e.is_group or not e.raw_text or not e.message.edit_date:return
+        if not e.is_group or not e.message.edit_date:return
         obj={"chat_id":e.chat_id,"message_id":e.id,"message_text":e.raw_text,
              "message_date":e.message.date.isoformat(),"edited_at":e.message.edit_date.isoformat(),"sender_name":""}
         with QUEUE.open("a",encoding="utf8") as f:f.write(json.dumps(obj,ensure_ascii=False)+"\n")

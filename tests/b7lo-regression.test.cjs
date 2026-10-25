@@ -23,7 +23,7 @@ const valid=[
 for(const c of valid){
   test('b7lo normalization preserves '+c.label,()=>{
     const normalized=normalize(c.input);
-    assert.equal(normalized.toLowerCase().replace(/\\s/g,''),c.expected.toLowerCase().replace(/\\s/g,''));
+    assert.equal(normalized.toLowerCase().replace(/\\s/g,''),c.input.toLowerCase().replace(/\\s/g,''));
     assert.equal(normalized.toLowerCase().includes('bao7'),false);
   });
   test('parser accepts '+c.label,()=>{

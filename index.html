@@ -3125,6 +3125,11 @@ function daNums(raw){
  return nums(s).flatMap(x=>/^\d{4}$/.test(x) ? (x.match(/\d{2}/g)||[]) : [x]);
 }
 function addBet(rows,st,raw,type,p){
+ // Nhom DA 4 chu so tach boi dau cham la cac cap doc lap, khong da cheo.
+ if(type==='da' && /^\d{4}(?:\.\d{4})+$/.test(String(raw).trim())){
+   for(const pairGroup of String(raw).trim().split('.')) addBet(rows,st,pairGroup,type,p);
+   return;
+ }
  const ns=type==='da'?daNums(raw):nums(raw);if(!ns.length)return;
  const stations=st.stations||1, isB=st.region==="B";
  let gross=0,label=type.toUpperCase();
@@ -3416,10 +3421,15 @@ function parseBets(){
  for(const m of _raw2057.matchAll(_daRe)){
    const digits=m[1].replace(/\D/g,'');
    if(digits.length<4||digits.length%2)continue;
-   const pairs=digits.match(/\d{2}/g)||[];
-   const seen=new Set();
-   const repeated=pairs.find(n=>seen.has(n)||!seen.add(n));
-   if(repeated)return {rows:[],errors:[`Sai cược đá: số ${repeated} bị trùng trong ${m[1].trim()}. Không tính tiền toàn bộ phơi.`]};
+   // Cac cum 4 chu so cach nhau bang dau cham la cac nhom DA rieng.
+   // 5273.3973da1: cap 52-73 va 39-73 hop le, du 73 lap o hai nhom.
+   const chunks=m[1].trim().split(/\s*\.\s*/).filter(Boolean);
+   for(const chunk of chunks){
+     const pairs=(chunk.match(/\d{2}/g)||[]);
+     const seen=new Set();
+     const repeated=pairs.find(n=>seen.has(n)||!seen.add(n));
+     if(repeated)return {rows:[],errors:[`Sai cược đá: số ${repeated} bị trùng trong nhóm ${chunk}. Không tính tiền toàn bộ phơi.`]};
+   }
  }
  // FIX 19-10: Expand shared XC/XDAO on EACH line before Telegram normalization.
  // Do not require the entire pasted message to consist of two lines.

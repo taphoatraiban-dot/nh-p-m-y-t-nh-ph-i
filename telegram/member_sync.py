@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Telegram member sync. Requires existing Telethon session and per-user sync key."""
-import asyncio, json, os, urllib.request
+import asyncio, json, os, time, urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from telethon import TelegramClient, events
@@ -41,6 +41,7 @@ async def main():
         return [{"chat_id":i,"group_name":n} for i,n in groups.items()]
     async def push(g,m):
         return await asyncio.to_thread(send,user,key,g,m)
+    last_group_heartbeat=0.0
     @client.on(events.NewMessage())
     async def received(e):
         if not e.is_group or not e.raw_text:return
@@ -76,9 +77,12 @@ async def main():
                             except json.JSONDecodeError:continue
                         if not batch:break
                         await push(current,batch)
+                        last_group_heartbeat=time.monotonic()
                         CURSOR.write_text(str(f.tell()))
                         os.chmod(CURSOR,0o600)
-            await push(current,[])
+            if time.monotonic()-last_group_heartbeat>=120:
+                await push(current,[])
+                last_group_heartbeat=time.monotonic()
             print("DA DONG BO NHOM:",len(current),flush=True)
         except Exception as exc:
             print("LOI DONG BO:",type(exc).__name__,str(exc)[:180],flush=True)

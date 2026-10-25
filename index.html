@@ -4087,20 +4087,20 @@ if(/^\d{4}b\d+(?:[.,]\d+)?n?\.?$/i.test(s)){
       (typ==="b7lo"||typ==="baobay"||typ==="bao7"||typ==="bao8"||typ==="b8l")?"b7":
       (typ==="b7ld"||typ==="b7ldao")?"b7dao":
       (typ==="bao2"||typ==="bl2")?"b2":
+      (typ==="b" || typ==="b2") ? ((nums(raw)[0]||"").length===2 ? "b2" : (nums(raw)[0]||"").length===3 ? "b3" : (nums(raw)[0]||"").length===4 ? "b4" : "dd") :
+      (typ==="xdau"||typ==="xcdau")?"xc_dau":
+      (typ==="xduoi"||typ==="xcduoi")?"xc_duoi":(typ==="dui"||typ==="duoi")?"dd_duoi":(typ==="b")?"dd":typ;
     // Bao 7 scans support 2–4 digit numbers. Reject malformed lengths before
     // nums() can split/truncate a longer digit run into a plausible wager.
     if(actual==="b7"){
-      const numberParts=String(raw||"").match(/\\d+/g)||[];
-      if(!numberParts.length || numberParts.some(n=>!/^\\d{2,4}$/.test(n))){
+      const numberParts=String(raw||"").match(/\d+/g)||[];
+      if(!numberParts.length || numberParts.some(n=>!/^\d{2,4}$/.test(n))){
         errors.push(`Sai cược b7lo: “${raw}” phải gồm các số dài 2–4 chữ số.`);
         cursor=tm.index+tm[0].length+pm[0].length;
         typeRe.lastIndex=cursor;
         continue;
       }
     }
-      (typ==="b" || typ==="b2") ? ((nums(raw)[0]||"").length===2 ? "b2" : (nums(raw)[0]||"").length===3 ? "b3" : (nums(raw)[0]||"").length===4 ? "b4" : "dd") :
-      (typ==="xdau"||typ==="xcdau")?"xc_dau":
-      (typ==="xduoi"||typ==="xcduoi")?"xc_duoi":(typ==="dui"||typ==="duoi")?"dd_duoi":(typ==="b")?"dd":typ;
 
     if(actual==="dao_xc"){
       if(raw) {

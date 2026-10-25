@@ -29,5 +29,7 @@ jobs:
           node-version: 24
       - name: Check Node
         run: node --version
-      - name: Verify pure normalization rules
+      - name: Verify focused b7lo regressions
+        run: node --test tests/b7lo-regression.test.cjs
+      - name: Verify parser and integration regressions
         run: node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs tests/login-startup.test.cjs tests/pin-unlock.test.cjs

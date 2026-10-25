@@ -3278,7 +3278,7 @@ function normalizeExtendedUserSyntax(s, st){
   let out=String(s||'');
   // Các alias người dùng chốt 07-10-2026.
   out=out.replace(/b7\|(?=\s*\d)/gi,'b7l').replace(/b8\|(?=\s*\d)/gi,'b8l');
-  out=out.replace(/b7l(?=\s*\d)/gi,'b7lo');
+  out=out.replace(/b7l(?=\s*(?:[1-9]\d*(?:[.,]\d+)?|0[.,]\d+))/gi,'b7lo');
   out=out.replace(/\b(?:daoxc|dxc)(?=\s*\d)/gi,'xcdao');
   // Xiên miền Bắc dùng chung cơ chế DA của MB.
   if(st && st.region==='B') out=out.replace(/\bxien(?=\s*\d)/gi,'da');
@@ -3617,7 +3617,7 @@ function parseBets(){
   // Ví dụ 71duau20.duoi62,5 => báo đúng duau20, tuyệt đối không bỏ lỗi rồi tính duoi62,5.
   s=s.replace(/xdui(?=\s*\d)/gi,'xduoi').replace(/\bxdui\b/gi,'xduoi');
   {
-    const alphaRuns=[...s.matchAll(/[A-Za-zÀ-ỹĐđ]+\d*(?:[,.]\d+)?/g)];
+    const alphaRuns=[...s.matchAll(/[A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹĐđ0-9]*(?:[,.]\d+)?/g)];
     const validWord=/^(?:xdao|xcdao|daoxc|dxc|b7ldao|b7ld|b7lo|baobay|bao7|bao8|b8l|bao2|bl2|xcdau|xcduoi|xdau|xduoi|dau|dui|duoi|dd|xc|x|bdao|daob|dv|da|b)\d*(?:[,.]\d+)?n?$/i;
     const badRun=alphaRuns.find(m=>!validWord.test(m[0]));
     if(badRun){
@@ -4090,6 +4090,17 @@ if(/^\d{4}b\d+(?:[.,]\d+)?n?\.?$/i.test(s)){
       (typ==="b" || typ==="b2") ? ((nums(raw)[0]||"").length===2 ? "b2" : (nums(raw)[0]||"").length===3 ? "b3" : (nums(raw)[0]||"").length===4 ? "b4" : "dd") :
       (typ==="xdau"||typ==="xcdau")?"xc_dau":
       (typ==="xduoi"||typ==="xcduoi")?"xc_duoi":(typ==="dui"||typ==="duoi")?"dd_duoi":(typ==="b")?"dd":typ;
+    // Bao 7 scans support 2–4 digit numbers. Reject malformed lengths before
+    // nums() can split/truncate a longer digit run into a plausible wager.
+    if(actual==="b7"){
+      const numberParts=String(raw||"").match(/\d+/g)||[];
+      if(!numberParts.length || numberParts.some(n=>!/^\d{2,4}$/.test(n))){
+        errors.push(`Sai cược b7lo: “${raw}” phải gồm các số dài 2–4 chữ số.`);
+        cursor=tm.index+tm[0].length+pm[0].length;
+        typeRe.lastIndex=cursor;
+        continue;
+      }
+    }
 
     if(actual==="dao_xc"){
       if(raw) {

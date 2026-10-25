@@ -30,4 +30,4 @@ jobs:
       - name: Check Node
         run: node --version
       - name: Verify pure normalization rules
-        run: node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs tests/login-startup.test.cjs tests/pin-unlock.test.cjs
+        run: node --test tests/b7lo-regression.test.cjs tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs tests/login-startup.test.cjs tests/pin-unlock.test.cjs

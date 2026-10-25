@@ -3,10 +3,10 @@
 Chạy ở thư mục gốc với Node 24:
 
 ```sh
-node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs
+node --test tests/b7lo-regression.test.cjs tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs
 ```
 
-413 mục test runner PASS tại đợt cập nhật 24/10/2026. Không dùng dữ liệu khách thật.
+Bộ hồi quy b7lo bao phủ alias 2–4 chữ số, khoảng trắng, giữ nguyên b7lo, lỗi gõ gần giống và số sai độ dài. Không dùng dữ liệu khách thật.
 
 - Parser regression: 283 ca chuẩn hóa thuần.
 - Parser money: 75 ca chạy parser sản xuất đến tiền xác, gồm lỗi Bao 4 nối tiếp Bao đảo.

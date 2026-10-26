@@ -24,7 +24,7 @@
     .btn{border:1px solid #d2dae6;background:white;border-radius:9px;padding:8px 11px;color:#30415b;font-size:13px;font-weight:750}.btn:hover{background:#f3f6fa}.btn:focus-visible{outline:3px solid #e68f73}
     .tag{display:inline-block;border:1px solid #e7c5b7;color:#9d3f27;background:#fff5f0;border-radius:8px;padding:5px 9px;font-weight:800;font-size:12px}
     .empty{padding:26px;text-align:center;color:#69768a}.detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}.field{background:#f7f9fc;border-radius:10px;padding:12px;min-width:0}.field small{display:block;color:#718094;margin-bottom:6px}.field strong{overflow-wrap:anywhere}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}.disabled{opacity:.6;cursor:not-allowed}.alert{padding:13px 15px;background:#fff7e3;border:1px solid #f1d79e;border-radius:11px;color:#76521b;font-size:13px;line-height:1.5}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}.disabled{opacity:.6;cursor:not-allowed}.alert{padding:13px 15px;background:#fff7e3;border:1px solid #f1d79e;border-radius:11px;color:#76521b;font-size:13px;line-height:1.5}.sim-form{display:grid;gap:12px;margin-top:13px}.sim-form label{display:grid;gap:5px;font-weight:700;font-size:13px}.sim-form input,.sim-form select,.sim-form textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:10px;font:inherit}.sim-form textarea{min-height:70px}.sim-history{padding-left:20px;line-height:1.7}
     [hidden]{display:none!important}@media(max-width:900px){.shell{grid-template-columns:1fr}.sidebar{display:flex;overflow:auto;align-items:center}.sidebar .owner{display:none}.nav{white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:520px){.app{padding:17px 11px 45px}.header{align-items:flex-start;flex-direction:column;gap:9px}.panel{padding:14px}.stats{gap:8px}.stat{padding:13px}.stat .num{font-size:26px}.grid-two,.detail{grid-template-columns:1fr}.section-head{align-items:flex-start;flex-direction:column}.results-bar{align-items:flex-start;flex-direction:column}#customers table,#devices table{min-width:0}#customers thead,#devices thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}#customerRows tr,#deviceRows tr{display:block;border:1px solid #e4e9f1;border-radius:12px;padding:7px 12px;margin-bottom:10px;background:#fff}#customerRows td,#deviceRows td{display:flex;align-items:center;justify-content:space-between;gap:13px;border:0;padding:8px 0;overflow-wrap:anywhere;text-align:right}#customerRows td::before,#deviceRows td::before{content:attr(data-label);font-size:12px;color:#718094;font-weight:750;text-align:left;flex:0 0 82px}#customerRows td:last-child{justify-content:flex-end}#customerRows td:last-child::before{content:none}}
   </style>
@@ -76,7 +76,8 @@
             <section class="panel"><h3 class="panel-title">🛡 Bản quyền</h3><div id="detailLicense" class="muted" role="status"></div></section>
             <section class="panel"><h3 class="panel-title">▣ Thiết bị</h3><div id="detailDevices" class="muted"></div></section>
           </div>
-          <section class="panel"><h3 class="panel-title">◷ Lịch sử quản trị</h3><p class="muted" id="detailHistory">Chưa có nhật ký thật trong bản mẫu. Khi triển khai, mỗi thao tác sẽ ghi riêng Admin 1 hoặc Admin 2.</p><div class="alert">Mọi thao tác ảnh hưởng tài khoản sẽ cần kiểm tra quyền, xác nhận và ghi nhật ký khi được triển khai.</div><div class="actions" style="margin-top:14px"><button class="btn disabled" disabled>Gia hạn</button><button class="btn disabled" disabled>Tạm ngưng</button><button class="btn disabled" disabled>Đổi thiết bị</button></div></section>
+          <section class="panel"><h3 class="panel-title">◷ Lịch sử quản trị</h3><p class="muted" id="detailHistory">Chưa có nhật ký thật trong bản mẫu. Khi triển khai, mỗi thao tác sẽ ghi riêng Admin 1 hoặc Admin 2.</p><ol id="mockHistory" class="sim-history"></ol><div class="alert">Mọi thao tác ảnh hưởng tài khoản sẽ cần kiểm tra quyền, xác nhận và ghi nhật ký khi được triển khai.</div><div class="actions" style="margin-top:14px"><button class="btn disabled" disabled>Gia hạn</button><button class="btn disabled" disabled>Tạm ngưng</button><button class="btn disabled" disabled>Đổi thiết bị</button><button id="openSimulator" class="btn" type="button">Thử thao tác (giả lập)</button></div></section>
+          <section id="mockCommandPanel" class="panel" hidden><h3 class="panel-title">Thao tác thử nghiệm · Chỉ dữ liệu giả</h3><div class="alert">Không có kết nối cơ sở dữ liệu. Thay đổi và nhật ký giả lập sẽ mất khi tải lại trang.</div><form id="mockCommandForm" class="sim-form"><label>Chức năng<select id="mockAction"><option value="extend">Gia hạn</option><option value="pause">Tạm ngưng</option><option value="resume">Kích hoạt lại</option><option value="reset_device">Đặt lại thiết bị giả</option></select></label><label id="mockDaysWrap">Số ngày gia hạn<input id="mockDays" type="number" min="1" max="365" value="30"></label><label>Lý do thao tác<textarea id="mockReason" maxlength="500" placeholder="Nhập lý do ít nhất 10 ký tự"></textarea></label><label>Nhập lại đúng email để xác nhận<input id="mockConfirm" type="email" autocomplete="off"></label><div id="mockCommandMessage" role="status" aria-live="polite"></div><div class="actions"><button class="btn" type="submit">Xác nhận thao tác giả lập</button><button class="btn" id="cancelSimulator" type="button">Đóng</button></div></form></section>
         </section>
       </div>
     </div>
@@ -93,10 +94,11 @@
     ];
     const labels={active:'Đang hoạt động',soon:'Sắp hết hạn',expired:'Hết hạn',paused:'Tạm ngưng',pending:'Chờ đăng ký'};
     const $=id=>document.getElementById(id);
+    const mockEvents=[];let selectedId=null;
     function show(page){document.querySelectorAll('.page').forEach(el=>el.hidden=el.id!==page);document.querySelectorAll('[data-page]').forEach(btn=>{const on=btn.dataset.page===page;btn.classList.toggle('active',on);if(on)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current')});}
     document.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click',()=>show(btn.dataset.page)));
     // UI simulation only: the real permission boundary is the server-side RPC.
-    $('demoRole').addEventListener('change',()=>{const blocked=$('demoRole').value==='customer';$('accessDenied').hidden=!blocked;$('adminShell').hidden=blocked;if(!blocked)show('overview');});
+    $('demoRole').addEventListener('change',()=>{const blocked=$('demoRole').value==='customer';$('accessDenied').hidden=!blocked;$('adminShell').hidden=blocked;$('mockCommandPanel').hidden=true;$('mockReason').value='';$('mockConfirm').value='';if(!blocked)show('overview');});
     function statusNode(status){const span=document.createElement('span');span.className='status '+status+'-status';span.textContent=labels[status];return span;}
     function expiryValue(text){const parts=String(text).split('/').map(Number);return parts.length===3?Date.UTC(parts[2],parts[1]-1,parts[0]):Number.POSITIVE_INFINITY;}
     function render(){
@@ -109,19 +111,46 @@
     }
     function showDetail(id){
       const a=accounts.find(x=>x.id===id);if(!a)return;
+      selectedId=id;$('mockCommandPanel').hidden=true;$('mockCommandMessage').textContent='';
       $('detailTitle').textContent=a.email;
       const fields=[['Mã tài khoản mẫu',a.id],['Gói sử dụng',a.plan],['Hết hạn',a.expires],['Trạng thái',labels[a.status]],['Nguồn dữ liệu','Dữ liệu mẫu, không kết nối Supabase']];
       $('detailFields').replaceChildren();
       for(const [name,value] of fields){const field=document.createElement('div');field.className='field';const title=document.createElement('small');title.textContent=name;const content=document.createElement('strong');content.textContent=value;field.append(title,content);$('detailFields').append(field)}
       $('detailLicense').textContent=a.status==='pending'?'Email đang chờ đăng ký; chưa có tài khoản đăng nhập mẫu.':`${a.plan} · ${labels[a.status]} · Hạn: ${a.expires}`;
       $('detailDevices').textContent=a.device==='—'?'Chưa có thiết bị liên kết.':`${a.device} · Thiết bị giả lập, chưa có lịch sử đăng nhập thật.`;
+      const history=$('mockHistory');history.replaceChildren();for(const event of mockEvents.filter(x=>x.id===id)){const entry=document.createElement('li');entry.textContent=`${event.admin} · ${event.action} · ${event.reason} (giả lập)`;history.append(entry)}
       show('detail');
     }
     $('back').addEventListener('click',()=>show('customers'));
     $('search').addEventListener('input',render);$('filter').addEventListener('change',render);$('sort').addEventListener('change',render);
     $('clearFilters').addEventListener('click',()=>{$('search').value='';$('filter').value='all';$('sort').value='expiry';render();$('search').focus();});
     $('statAccounts').textContent=accounts.length;$('statActive').textContent=accounts.filter(a=>a.status==='active').length;$('statDevices').textContent=accounts.filter(a=>a.device!=='—').length;$('statPending').textContent=accounts.filter(a=>a.status==='pending').length;
-    const deviceBody=$('deviceRows');for(const a of accounts.filter(x=>x.device!=='—')){const tr=document.createElement('tr');for(const [label,value] of [['Thiết bị',a.device],['Tài khoản',a.email],['Lần hoạt động','Giả lập']]){const td=document.createElement('td');td.dataset.label=label;td.textContent=value;tr.append(td)}const td=document.createElement('td');td.dataset.label='Trạng thái';td.append(statusNode(a.status==='paused'?'paused':'active'));tr.append(td);deviceBody.append(tr)}
+    function renderDevices(){const deviceBody=$('deviceRows');deviceBody.replaceChildren();for(const a of accounts.filter(x=>x.device!=='—')){const tr=document.createElement('tr');for(const [label,value] of [['Thiết bị',a.device],['Tài khoản',a.email],['Lần hoạt động','Giả lập']]){const td=document.createElement('td');td.dataset.label=label;td.textContent=value;tr.append(td)}const td=document.createElement('td');td.dataset.label='Trạng thái';td.append(statusNode(a.status==='paused'?'paused':'active'));tr.append(td);deviceBody.append(tr)}$('statDevices').textContent=accounts.filter(a=>a.device!=='—').length;}
+    $('openSimulator').addEventListener('click',()=>{$('mockCommandPanel').hidden=false;$('mockCommandMessage').textContent='';$('mockReason').value='';$('mockConfirm').value='';});
+    $('cancelSimulator').addEventListener('click',()=>{$('mockCommandPanel').hidden=true;});
+    $('mockAction').addEventListener('change',()=>{$('mockDaysWrap').hidden=$('mockAction').value!=='extend';});
+    $('mockCommandForm').addEventListener('submit',event=>{
+      event.preventDefault();
+      const a=accounts.find(x=>x.id===selectedId),action=$('mockAction').value,reason=$('mockReason').value.trim(),days=Number($('mockDays').value);
+      const error=text=>{$('mockCommandMessage').textContent=text;};
+      if($('adminShell').hidden||$('demoRole').value==='customer'||!a||a.status==='pending')return error('Chỉ Admin có thể thử thao tác trên khách đã đăng ký.');
+      if($('mockConfirm').value!==a.email)return error('Email xác nhận không đúng.');
+      if(reason.length<10||reason.length>500)return error('Lý do phải dài từ 10 đến 500 ký tự.');
+      if(action==='extend'){
+        if(!Number.isSafeInteger(days)||days<1||days>365)return error('Số ngày phải từ 1 đến 365.');
+        const base=Math.max(Date.now(),expiryValue(a.expires));
+        const next=new Date(base+days*86400000);
+        a.expires=`${String(next.getUTCDate()).padStart(2,'0')}/${String(next.getUTCMonth()+1).padStart(2,'0')}/${next.getUTCFullYear()}`;
+        if(a.status!=='paused')a.status='active';
+      }else if(action==='pause')a.status='paused';
+      else if(action==='resume')a.status=expiryValue(a.expires)<=Date.now()?'expired':'active';
+      else if(action==='reset_device')a.device='—';
+      else return error('Chức năng không hợp lệ.');
+      mockEvents.push({id:a.id,admin:$('demoRole').value==='admin1'?'Admin 1':'Admin 2',action,reason});
+      render();renderDevices();showDetail(a.id);
+      $('mockCommandMessage').textContent='Thao tác giả lập thành công; không có dữ liệu thật nào được thay đổi.';
+    });
+    renderDevices();
     render();
   </script>
 </body>

@@ -16,11 +16,17 @@ test('pending reservation is not represented as a registered account', () => {
   assert.equal(deriveState({ ...base, account_kind: 'pending', user_id: null }, now), 'pending');
 });
 test('adapter whitelists fields and does not propagate secrets', () => {
-  const [row] = normalizeRows([{ ...base, api_key: 'DO_NOT_PROPAGATE', pin: '1234' }], now);
+  const [row] = normalizeRows([{ ...base, revision: 3, api_key: 'DO_NOT_PROPAGATE', pin: '1234' }], now);
   assert.equal(row.email, 'a@example.com');
   assert.equal(row.deviceCount, 2);
+  assert.equal(row.revision, 3);
   assert.equal(JSON.stringify(row).includes('DO_NOT_PROPAGATE'), false);
   assert.equal(JSON.stringify(row).includes('1234'), false);
+});
+test('registered revision is validated and pending rows do not allow command revisions', () => {
+  assert.throws(() => normalizeRows([{ ...base, revision: -1 }], now), /revision/);
+  assert.throws(() => normalizeRows([{ ...base, revision: 'invalid' }], now), /revision/);
+  assert.equal(normalizeRows([{ ...base, account_kind: 'pending', revision: null }], now)[0].revision, null);
 });
 test('filters by email, id and status', () => {
   const rows = normalizeRows([base, { ...base, user_id: null, email: 'pending@example.com', account_kind: 'pending' }], now);

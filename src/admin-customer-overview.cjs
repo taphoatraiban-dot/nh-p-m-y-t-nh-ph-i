@@ -25,6 +25,10 @@ function normalizeRows(rawRows, now = new Date()) {
     if (!row.email || typeof row.email !== 'string') {
       throw new TypeError('Missing account email');
     }
+    const revision = row.account_kind === 'pending' ? null : (row.revision ?? 0);
+    if (revision !== null && (!Number.isSafeInteger(Number(revision)) || Number(revision) < 0)) {
+      throw new TypeError('Invalid customer revision');
+    }
     return Object.freeze({
       kind: row.account_kind,
       id: row.user_id ?? null,
@@ -32,7 +36,8 @@ function normalizeRows(rawRows, now = new Date()) {
       status: state,
       expiresAt: row.expires_at ?? null,
       deviceCount: Math.max(0, Number(row.device_count) || 0),
-      lastSeen: row.last_seen ?? null
+      lastSeen: row.last_seen ?? null,
+      revision: revision === null ? null : Number(revision)
     });
   });
 }

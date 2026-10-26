@@ -11,7 +11,8 @@ returns table (
   license_active boolean,
   expires_at timestamptz,
   device_count bigint,
-  last_seen timestamptz
+  last_seen timestamptz,
+  revision bigint
 )
 language plpgsql
 security definer
@@ -32,10 +33,12 @@ begin
   )
   select 'registered'::text, u.id, u.email::text,
          l.active, l.expires_at,
-         coalesce(dt.active_devices, 0), dt.last_device_seen
+         coalesce(dt.active_devices, 0), dt.last_device_seen,
+         coalesce(rev.revision, 0)::bigint
   from auth.users u
   left join public.email_licenses l on l.user_id = u.id
   left join device_totals dt on dt.user_id = u.id
+  left join public.admin_customer_revisions rev on rev.user_id = u.id
   -- The owner's two admin logins are not paying customer records.
   where not exists (
     select 1 from public.admin_users a where a.user_id = u.id
@@ -46,7 +49,7 @@ begin
     )
   union all
   select 'pending'::text, null::uuid, p.email::text,
-         p.active, p.expires_at, 0::bigint, null::timestamptz
+         p.active, p.expires_at, 0::bigint, null::timestamptz, null::bigint
   from public.pending_email_licenses p
   where not exists (
     select 1 from auth.users u where lower(u.email) = lower(p.email)
@@ -54,6 +57,7 @@ begin
 end;
 $function$;
 
+-- DEPENDENCY: only install AFTER admin_customer_revisions is created.
 -- The owner must explicitly approve deployment and privilege changes.
 -- Intended final grants, after reviewing existing grants and dependencies:
 -- revoke all on function public.admin_customer_overview() from public, anon;

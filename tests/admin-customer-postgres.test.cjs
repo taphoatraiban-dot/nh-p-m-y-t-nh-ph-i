@@ -60,6 +60,8 @@ test('PostgreSQL transaction, authorization, renewal and archived device reset',
     const sandboxSql = SQL.replace(/rollback;\s*$/i, 'commit;');
     await db.exec(sandboxSql);
     await db.exec(OVERVIEW_SQL);
+    assert.equal((await sql("select to_regprocedure('public.admin_customer_overview()') as function_name")).rows[0].function_name, null);
+    await db.exec(OVERVIEW_SQL.replace(/rollback;\s*$/i, 'commit;'));
     await setActor(IDS.admin1);
     const overview = await sql('select * from public.admin_customer_overview()');
     assert.equal(overview.rows.length, 1);
@@ -99,6 +101,24 @@ test('PostgreSQL transaction, authorization, renewal and archived device reset',
     await setActor(IDS.admin1);
     await assert.rejects(db.query('select public.admin_customer_command($1::uuid,$2,$3::uuid,$4::bigint,$5::integer,$6)',
       [reqId(7),'pause',IDS.admin2,0,null,'Lý do kiểm tra quyền chủ']), /Không thao tác trên tài khoản Admin/);
+
+    // Grants and RLS must be tested as actual PostgreSQL roles, not just owner.
+    await sql('set role authenticated');
+    const readAllowed = await sql('select * from public.admin_customer_overview()');
+    assert.equal(readAllowed.rows.length, 1);
+    const granted = await request(reqId(8), 'pause', 4);
+    assert.equal(granted.rows[0].result.success, true);
+    await assert.rejects(sql('select count(*)::int as count from public.admin_customer_commands'), /permission denied/);
+    await sql('reset role');
+    await sql('set role anon');
+    await assert.rejects(request(reqId(9), 'pause', 5), /permission denied/);
+    await assert.rejects(sql('select * from public.admin_customer_overview()'), /permission denied/);
+    await sql('reset role');
+    await setActor(IDS.customer);
+    await sql('set role authenticated');
+    await assert.rejects(request(reqId(10), 'resume', 5), /Không có quyền quản trị/);
+    await assert.rejects(sql('select * from public.admin_customer_overview()'), /Không có quyền Admin/);
+    await sql('reset role');
   } finally {
     await db.close();
   }

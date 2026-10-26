@@ -3,6 +3,8 @@
 -- The function intentionally returns no API keys, password hashes, PINs,
 -- tokens, Telegram messages, or private customer calculation data.
 
+begin;
+
 create or replace function public.admin_customer_overview()
 returns table (
   account_kind text,
@@ -59,6 +61,8 @@ $function$;
 
 -- DEPENDENCY: only install AFTER admin_customer_revisions is created.
 -- The owner must explicitly approve deployment and privilege changes.
--- Intended final grants, after reviewing existing grants and dependencies:
--- revoke all on function public.admin_customer_overview() from public, anon;
--- grant execute on function public.admin_customer_overview() to authenticated;
+revoke all on function public.admin_customer_overview() from public, anon, authenticated;
+grant execute on function public.admin_customer_overview() to authenticated;
+
+-- Review-only guard: running this draft as-is cannot persist a function.
+rollback;

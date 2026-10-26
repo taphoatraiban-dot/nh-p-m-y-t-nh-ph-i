@@ -15,6 +15,8 @@ Mô hình: một chủ sở hữu với **hai tài khoản Admin hiện hữu, t
 
 **Lưu ý:** Ba tệp hiện tại đều dùng `BEGIN ... ROLLBACK`; chạy nguyên trạng sẽ không triển khai gì. Chúng là bản để xem và kiểm thử, **không phải migration phát hành**. Chỉ sau khi chủ sở hữu duyệt mới tạo migration có `COMMIT` theo quy trình được kiểm soát.
 
+**Bản rà soát SQL gộp:** chạy `node scripts/build-customer-center-sql.cjs` từ thư mục dự án để in ra toàn bộ SQL theo đúng thứ tự phụ thuộc trong **một giao dịch `BEGIN ... ROLLBACK`**. Công cụ không có chế độ triển khai hoặc `COMMIT`. Bài kiểm thử PostgreSQL cục bộ xác nhận giao dịch nguyên trạng không lưu bảng/hàm, sau đó diễn tập bản `COMMIT` **chỉ trong cơ sở dữ liệu giả**.
+
 Không đề nghị xóa/sửa hai tài khoản Admin, thay cấu trúc bảng cũ, sửa RPC cũ, di chuyển khách hàng hoặc đặt lại hạn dùng hàng loạt.
 
 ## 2. Các quyết định chức năng được áp dụng
@@ -40,6 +42,7 @@ Không đề nghị xóa/sửa hai tài khoản Admin, thay cấu trúc bảng c
 1. Xác nhận đúng project ref và chụp lại schema/RPC/quyền/index đang chạy ở thời điểm thực hiện; xác nhận không có đối tượng trùng tên.
 2. Có bản sao lưu *đã xác minh có thể phục hồi* cho `email_licenses`, `devices`, `admin_users`, `profiles`, `pending_email_licenses` và schema/function liên quan. Xác định rõ cách phục hồi theo gói dịch vụ Supabase thực tế; **không mặc định có PITR hoặc backup trên gói Free**.
 3. Tạo bản SQL triển khai có thể xem diff (không dùng trực tiếp các tệp `ROLLBACK`); kiểm tra quyền sở hữu và grants theo người thi hành thực tế.
+   CLI Supabase chưa có trong môi trường phát triển hiện tại; không tự đặt tên tệp migration thay cho lệnh `supabase migration new` được Supabase hướng dẫn.
 4. Diễn tập trên Postgres/Supabase thử nghiệm tách biệt với dữ liệu giả: hai Admin, khách, `anon`, hết hạn/còn hạn, gửi trùng UUID, thao tác đồng thời, ngắt kết nối, khóa phiên, đổi máy và khôi phục.
 5. Chạy lại advisor bảo mật/hiệu năng, so sánh cảnh báo mới với cảnh báo có sẵn; ghi nhận ngoại lệ `SECURITY DEFINER` nếu vẫn sử dụng thiết kế hiện tại.
 6. Được chủ sở hữu cho phép **riêng** việc thi hành SQL sản xuất, với đúng bản migration đã trình và cửa sổ thực hiện.

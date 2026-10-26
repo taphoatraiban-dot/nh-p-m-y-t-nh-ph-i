@@ -4,13 +4,9 @@
 // No Supabase credentials, network calls, or production database connections.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
 
 const modulePath = process.env.PGLITE_MODULE_PATH;
-const SQL = fs.readFileSync(path.join(__dirname, '../prototypes/sql/admin_customer_command.review_only.sql'), 'utf8');
-const OVERVIEW_SQL = fs.readFileSync(path.join(__dirname, '../prototypes/sql/admin_customer_overview.proposal.sql'), 'utf8');
-const AUDIT_SQL = fs.readFileSync(path.join(__dirname, '../prototypes/sql/admin_customer_audit.review_only.sql'), 'utf8');
+const { buildReviewSql } = require('../scripts/build-customer-center-sql.cjs');
 const IDS = Object.freeze({ admin1: '00000000-0000-4000-8000-000000000001', admin2: '00000000-0000-4000-8000-000000000002', customer: '00000000-0000-4000-8000-000000000003' });
 
 test('PostgreSQL transaction, authorization, renewal and archived device reset', { skip: !modulePath && 'Set PGLITE_MODULE_PATH for isolated PostgreSQL execution' }, async () => {
@@ -54,18 +50,14 @@ test('PostgreSQL transaction, authorization, renewal and archived device reset',
     await sql(`insert into public.devices(user_id,device_id,device_name) values ('${IDS.customer}','old-device','Máy thử nghiệm cũ')`);
 
     // The actual review file must NOT persist a schema change if run verbatim.
-    await db.exec(SQL);
+    const reviewBundle = buildReviewSql();
+    await db.exec(reviewBundle);
     assert.equal((await sql("select to_regclass('public.admin_customer_commands') as table_name")).rows[0].table_name, null);
+    assert.equal((await sql("select to_regprocedure('public.admin_customer_audit(uuid,integer)') as function_name")).rows[0].function_name, null);
 
     // Explicit isolated rehearsal only: convert the final ROLLBACK in memory.
-    const sandboxSql = SQL.replace(/rollback;\s*$/i, 'commit;');
+    const sandboxSql = reviewBundle.replace(/rollback;\s*$/i, 'commit;');
     await db.exec(sandboxSql);
-    await db.exec(OVERVIEW_SQL);
-    assert.equal((await sql("select to_regprocedure('public.admin_customer_overview()') as function_name")).rows[0].function_name, null);
-    await db.exec(OVERVIEW_SQL.replace(/rollback;\s*$/i, 'commit;'));
-    await db.exec(AUDIT_SQL);
-    assert.equal((await sql("select to_regprocedure('public.admin_customer_audit(uuid,integer)') as function_name")).rows[0].function_name, null);
-    await db.exec(AUDIT_SQL.replace(/rollback;\s*$/i, 'commit;'));
     await setActor(IDS.admin1);
     const overview = await sql('select * from public.admin_customer_overview()');
     assert.equal(overview.rows.length, 1);

@@ -5330,7 +5330,7 @@ function scanRow(row){
   // BAO 2 ĐÀI: dò cứng từng đài trong crossProvinces.
   // Không dùng kết quả fallback của regionDraws; điều này tránh lỗi 2DMT
   // khi API trả thứ tự Đà Nẵng/Quảng Ngãi khác nhau.
-  if(String(row.type||"").toUpperCase().startsWith("B") && row.cross2 && Array.isArray(row.crossProvinces) && row.crossProvinces.length===2){
+  if((String(row.type||"").toUpperCase().startsWith("B") || row.type==="DAO BL") && row.cross2 && Array.isArray(row.crossProvinces) && row.crossProvinces.length===2){
     return resultForCross2B(row);
   }
   // DAO XC: dò toàn bộ hoán vị nhưng gộp kết quả vào đúng 1 dòng DAO XC.
@@ -5368,7 +5368,7 @@ function scanRow(row){
 
   for(const draw of draws){
     let r=[];
-    if(row.type.startsWith("B")) r=resultForB(row,draw);
+    if(row.type.startsWith("B") || row.type==="DAO BL") r=resultForB(row,draw);
     else if(row.type==="XC"||row.type==="XC-ĐẦU"||row.type==="XC-ĐUÔI") r=resultForXC(row,draw);
     else if(row.type==="DD"||row.type==="ĐẦU"||row.type==="ĐUÔI") r=resultForDD(row,draw);
     else if(row.type==="DA") r=resultForDA(row,draw);
@@ -5496,7 +5496,7 @@ $('date').addEventListener('change',()=>{lotteryResults={N:[],T:[],B:[]};window.
 function priceForRow(row,c){
   // QUY TẮC: phần thưởng dùng bảng GỐC ĐANG DÙNG (c), không dùng CÒ NHẬN CHO KHÁCH.
   let k=row.type.toLowerCase();
-  if(row.type==='BAO 7'){
+  if(row.type==='BAO 7' || row.type==='DAO BL'){
     const len=String((row.numbers&&row.numbers[0])||'').length;
     k=len===2?'b2':len===3?'b3':len===4?'b4':'b2';
   }

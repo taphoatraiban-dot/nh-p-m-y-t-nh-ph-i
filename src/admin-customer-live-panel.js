@@ -37,14 +37,17 @@
   entry.type = 'button';
   entry.hidden = true;
   document.body.append(entry);
-  let epoch = 0, allowed = false, root = null, selected = null, rows = [], busy = false, loadError = '';
+  let epoch = 0, viewEpoch = 0, allowed = false, root = null, selected = null, rows = [], busy = false, loadError = '', notice = '';
 
   function close() {
+    viewEpoch += 1;
     if (root) root.remove();
     root = null;
     selected = null;
     rows = [];
     loadError = '';
+    notice = '';
+    busy = false;
     entry.focus();
   }
   function revoke() {
@@ -81,9 +84,13 @@
     const header = create('div', '', 'cc-card cc-head');
     const heading = create('div');
     heading.append(create('h2', 'Trung tâm quản lý khách hàng'), create('p', 'BẢN ỨNG VIÊN · Chỉ Admin · Chưa triển khai sản xuất'));
+    const actions = create('div', '', 'cc-head');
+    const reloadButton = create('button', 'Tải lại');reloadButton.disabled = busy;
+    reloadButton.addEventListener('click', () => { if (!busy) { selected = null; notice = ''; loadRows(); } });
     const closeButton = create('button', 'Đóng');closeButton.addEventListener('click', close);
-    header.append(heading, closeButton);shell.append(header);
+    actions.append(reloadButton,closeButton);header.append(heading, actions);shell.append(header);
     const alert = create('div', loadError || 'Dữ liệu được đọc qua RPC quản trị. Mọi thay đổi yêu cầu xác nhận và xử lý giao dịch tại máy chủ.', loadError?'cc-error':'cc-alert');shell.append(alert);
+    if (notice) { const message = create('p',notice,'cc-alert');message.setAttribute('role','status');shell.append(message); }
     const layout = create('div', '', 'cc-grid');shell.append(layout);
     const list = create('section', '', 'cc-card');layout.append(list);
     const details = create('section', '', 'cc-card');layout.append(details);
@@ -109,12 +116,12 @@
       const history=create('section');
       history.append(create('h4','Nhật ký quản trị'));
       const historyRows=create('div','Đang tải nhật ký…');history.append(historyRows);details.append(history);
-      const subject=selected,ticket=epoch;
+      const subject=selected,ticket=epoch,viewTicket=viewEpoch;
       (async()=>{
         try {
           if(!subject.user_id || !await verify())throw new Error('Không thể xem nhật ký.');
           const {data,error}=await sb.rpc('admin_customer_audit',{p_user_id:subject.user_id,p_limit:30});
-          if(ticket!==epoch||selected!==subject||!root)return;
+          if(ticket!==epoch||viewTicket!==viewEpoch||selected!==subject||!root)return;
           if(error||!Array.isArray(data))throw new Error('Nhật ký chưa sẵn sàng.');
           historyRows.replaceChildren();
           for(const item of data){
@@ -123,7 +130,7 @@
             historyRows.append(line);
           }
           if(!historyRows.childNodes.length)historyRows.append(create('p','Chưa có thao tác trong nhật ký.'));
-        } catch {if(ticket===epoch&&selected===subject&&root)historyRows.textContent='Không tải được nhật ký quản trị.';}
+        } catch {if(ticket===epoch&&viewTicket===viewEpoch&&selected===subject&&root)historyRows.textContent='Không tải được nhật ký quản trị.';}
       })();
       if (selected.account_kind !== 'registered' || !selected.user_id || !Number.isSafeInteger(Number(selected.revision))) {
         details.append(create('p','Tài khoản chờ đăng ký hoặc thiếu phiên bản: chỉ xem.'));return;
@@ -146,20 +153,21 @@
         if(note.length<10||note.length>500){status.textContent='Lý do phải từ 10 đến 500 ký tự.';return;}
         if(operation==='extend'&&(!Number.isSafeInteger(count)||count<1||count>365)){status.textContent='Số ngày phải từ 1 đến 365.';return;}
         if(!['extend','pause','resume','reset_device'].includes(operation)){status.textContent='Chức năng không hợp lệ.';return;}
-        const ticket=epoch;busy=true;submit.disabled=true;status.textContent='Đang xác minh quyền và gửi yêu cầu…';
+        const ticket=epoch,viewTicket=viewEpoch;busy=true;submit.disabled=true;status.textContent='Đang xác minh quyền và gửi yêu cầu…';
         try {
-          if(!await verify() || ticket!==epoch)throw new Error('Phiên Admin không còn hợp lệ.');
+          if(!await verify() || ticket!==epoch || viewTicket!==viewEpoch)throw new Error('Phiên Admin không còn hợp lệ.');
           if(typeof crypto==='undefined'||typeof crypto.randomUUID!=='function')throw new Error('Không thể tạo mã yêu cầu an toàn.');
           const result=await sb.rpc('admin_customer_command',{
             p_request_id:crypto.randomUUID(),p_action:operation,p_user_id:subject.user_id,
             p_expected_revision:Number(subject.revision),p_days:operation==='extend'?count:null,p_reason:note
           });
-          if(ticket!==epoch)return;
+          if(ticket!==epoch||viewTicket!==viewEpoch)return;
           if(result.error||result.data?.success!==true)throw new Error('Máy chủ không xác nhận. Tải lại trước khi thử tiếp.');
+          notice = 'Máy chủ đã xác nhận thao tác. Danh sách được tải lại.';
           selected=null;
           await loadRows();
-        } catch(error) { if(ticket===epoch)status.textContent=error.message||'Thao tác không thành công.'; }
-        finally{busy=false;submit.disabled=false;}
+        } catch(error) { if(ticket===epoch&&viewTicket===viewEpoch)status.textContent=error.message||'Thao tác không thành công.'; }
+        finally{if(ticket===epoch&&viewTicket===viewEpoch){busy=false;submit.disabled=false;}}
       });
       details.append(form);
     };
@@ -167,11 +175,11 @@
     renderList();renderDetails();
   }
   async function loadRows() {
-    const ticket=epoch;
-    if(!await verify()||ticket!==epoch){revoke();return;}
+    const ticket=epoch,viewTicket=viewEpoch;
+    if(!await verify()||ticket!==epoch||viewTicket!==viewEpoch){if(ticket===epoch&&viewTicket===viewEpoch)revoke();return;}
     try {
       const {data,error}=await sb.rpc('admin_customer_overview');
-      if(ticket!==epoch)return;
+      if(ticket!==epoch||viewTicket!==viewEpoch)return;
       if(error||!Array.isArray(data))throw new Error('Không tải được danh sách quản trị.');
       loadError='';
       rows=data.filter(r=>r&&typeof r.email==='string').map(r=>Object.freeze({
@@ -179,12 +187,12 @@
         expires_at:r.expires_at,device_count:r.device_count,revision:r.revision
       }));
       render();
-    } catch { if(ticket===epoch){rows=[];selected=null;loadError='Không tải được dữ liệu quản trị. RPC có thể chưa được triển khai. Chưa có thao tác nào được thực hiện.';render();} }
+    } catch { if(ticket===epoch&&viewTicket===viewEpoch){rows=[];selected=null;loadError='Không tải được dữ liệu quản trị. RPC có thể chưa được triển khai. Chưa có thao tác nào được thực hiện.';render();} }
   }
   entry.addEventListener('click',()=>{
     if(!allowed || root || !document.body.classList.contains('app-unlocked'))return;
     root=create('div');root.id='customerCenterRoot';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');
-    root.append(create('main','','cc-shell'));document.body.append(root);loadRows();
+    root.append(create('main','','cc-shell'));document.body.append(root);render();loadRows();
   });
   new MutationObserver(()=>{
     if(!document.body.classList.contains('app-unlocked'))revoke();

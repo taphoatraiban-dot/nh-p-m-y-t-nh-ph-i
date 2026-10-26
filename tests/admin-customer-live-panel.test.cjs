@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const code = fs.readFileSync(path.join(__dirname, '../src/admin-customer-live-panel.js'), 'utf8');
 const app = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
 
-function setup({ flag = true, isAdmin = false } = {}) {
+function setup({ flag = true, isAdmin = false, rpcOverride = null } = {}) {
   let admin = isAdmin, onAuth = null, observer = null;
   const elements = [], calls = [];
   class Node {
@@ -29,6 +29,7 @@ function setup({ flag = true, isAdmin = false } = {}) {
     auth:{onAuthStateChange(handler){onAuth=handler;}},
     async rpc(name, args){
       calls.push([name,args]);
+      if (rpcOverride) { const override = rpcOverride(name,args); if (override !== undefined) return override; }
       if(name==='check_email_license')return {data:{success:true,is_admin:admin},error:null};
       if(name==='admin_customer_overview')return {data:[{account_kind:'registered',user_id:'id-1',email:'demo@example.invalid',license_active:true,expires_at:'2026-12-01T00:00:00Z',device_count:1,revision:0}],error:null};
       if(name==='admin_customer_audit')return {data:[{actor_id:'00000000-0000-4000-8000-000000000001',action:'extend',reason:'Gia hạn mẫu',occurred_at:'2026-10-26T00:00:00Z'}],error:null};
@@ -96,4 +97,41 @@ test('confirmed action uses guarded command RPC with revision and fresh request 
   assert.equal(command[1].p_expected_revision,0);
   assert.equal(command[1].p_days,30);
   assert.equal(command[1].p_request_id,'12345678-1234-4123-8123-123456789abc');
+});
+
+test('closing and reopening ignores a late overview response from the previous panel', async () => {
+  let resolveFirst;
+  let calls=0;
+  const ui=setup({isAdmin:true,rpcOverride(name){
+    if(name==='admin_customer_overview' && ++calls===1)return new Promise(resolve=>{resolveFirst=resolve;});
+  }});
+  ui.setUnlocked(true);await tick();
+  ui.entry().dispatch('click');await tick();
+  const oldRoot=ui.root();
+  ui.elements.find(e=>e.tag==='button'&&e.textContent==='Đóng').dispatch('click');
+  ui.entry().dispatch('click');await tick();await tick();
+  const newRoot=ui.root();assert.notEqual(newRoot,oldRoot);
+  resolveFirst({data:[{email:'stale@example.invalid',account_kind:'pending'}],error:null});
+  await tick();
+  assert.equal(oldRoot.removed,true);
+  assert.equal(ui.elements.some(e=>e.textContent?.includes('stale@example.invalid')),false);
+  assert.equal(newRoot.removed,false);
+});
+
+test('a late command result cannot overwrite the next panel after closing', async () => {
+  let resolveCommand;
+  const ui=setup({isAdmin:true,rpcOverride(name){
+    if(name==='admin_customer_command')return new Promise(resolve=>{resolveCommand=resolve;});
+  }});
+  ui.setUnlocked(true);await tick();ui.entry().dispatch('click');await tick();
+  ui.elements.find(e=>e.tag==='button'&&e.textContent==='Chi tiết').dispatch('click');
+  const form=ui.elements.findLast(e=>e.tag==='form');
+  ui.elements.findLast(e=>e.tag==='input'&&e.type==='email').value='demo@example.invalid';
+  ui.elements.findLast(e=>e.tag==='textarea').value='Gia hạn theo yêu cầu khách hàng';
+  const submitting=form.dispatch('submit');await tick();
+  ui.elements.find(e=>e.tag==='button'&&e.textContent==='Đóng').dispatch('click');
+  ui.entry().dispatch('click');await tick();
+  resolveCommand({data:{success:true,revision:1},error:null});await submitting;await tick();
+  assert.equal(ui.calls.filter(([name])=>name==='admin_customer_overview').length,2);
+  assert.equal(ui.root().removed,false);
 });

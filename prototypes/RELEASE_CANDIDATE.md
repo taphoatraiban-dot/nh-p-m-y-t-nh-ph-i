@@ -11,6 +11,7 @@
 - `admin_customer_command` nhận mã yêu cầu UUID, `expected_revision`, thao tác, số ngày và lý do; trình duyệt không truyền danh tính Admin để cấp quyền.
 - `admin_customer_audit` là RPC chỉ đọc bổ sung, trả nhật ký tối đa 30 thao tác cho hồ sơ được chọn; trả người thao tác, hành động, lý do, thời điểm và phiên bản. Định danh Admin đến từ máy chủ, không phải nhãn do trình duyệt tự cấp.
 - Phiên xác thực hoặc trạng thái khóa thay đổi sẽ đóng panel và loại bỏ dữ liệu đang hiển thị.
+- Giao diện có nút **Tải lại**, cho phép **Đóng ngay khi RPC còn đang tải**, thông báo thao tác được máy chủ xác nhận, và bỏ qua phản hồi cũ khi đóng/mở lại. Đây là bảo vệ phía giao diện, không thay thế idempotency và kiểm tra quyền phía SQL.
 
 ## Điều kiện để có thể kiểm thử kết nối thật
 
@@ -23,6 +24,7 @@
 ## Kết quả hiện tại
 
 - Kiểm thử DOM giả và hợp đồng RPC cục bộ: đạt trong phạm vi mô phỏng.
+- Kiểm thử hồi quy riêng cho phản hồi danh sách và lệnh quản trị đến muộn sau khi đóng/mở lại: đạt ở lớp DOM giả.
 - Thử SQL đọc/ghi phối hợp: đạt trên PGlite/PostgreSQL WASM 18.6 với dữ liệu giả.
 - **Chưa kiểm chứng** trên Supabase Auth/RLS, PostgreSQL 17 của dự án sản xuất, Safari/Chrome thật hoặc luồng mạng thực tế.
 

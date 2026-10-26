@@ -9,11 +9,12 @@
 - Dùng `check_email_license` để xác định Admin trước khi đọc và trước khi gửi thao tác; phía máy chủ còn phải độc lập kiểm tra `auth.uid()` trong `admin_users`.
 - `admin_customer_overview` trả thêm `revision` từ bảng mới; tài khoản chờ đăng ký không có lệnh ghi.
 - `admin_customer_command` nhận mã yêu cầu UUID, `expected_revision`, thao tác, số ngày và lý do; trình duyệt không truyền danh tính Admin để cấp quyền.
+- `admin_customer_audit` là RPC chỉ đọc bổ sung, trả nhật ký tối đa 30 thao tác cho hồ sơ được chọn; trả người thao tác, hành động, lý do, thời điểm và phiên bản. Định danh Admin đến từ máy chủ, không phải nhãn do trình duyệt tự cấp.
 - Phiên xác thực hoặc trạng thái khóa thay đổi sẽ đóng panel và loại bỏ dữ liệu đang hiển thị.
 
 ## Điều kiện để có thể kiểm thử kết nối thật
 
-1. Rà soát và duyệt bản SQL tạo bảng, cấp quyền RPC ở môi trường thử nghiệm tách biệt, trong thứ tự: bảng/revisions/commands → RPC ghi → RPC đọc mới.
+1. Rà soát và duyệt bản SQL tạo bảng, cấp quyền RPC ở môi trường thử nghiệm tách biệt, trong thứ tự: bảng/revisions/commands → RPC ghi → RPC đọc tổng quan và nhật ký.
 2. Tạo hai Admin thử nghiệm và một khách thử nghiệm. Không dùng tài khoản hoặc dữ liệu sản xuất để nghiệm thu thao tác.
 3. Dùng trình duyệt thật kiểm tra tất cả thao tác, mất mạng, logout, khóa, đổi phiên, gửi lệnh trùng và thao tác đồng thời.
 4. Đối chiếu công thức gia hạn và hành vi đổi thiết bị của hệ thống hiện có.

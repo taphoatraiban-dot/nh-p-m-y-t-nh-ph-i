@@ -106,6 +106,25 @@
       if (!selected) { details.append(create('p','Chọn khách hàng để xem chi tiết.'));return; }
       details.append(create('p',selected.email));
       details.append(create('p',`Hạn: ${selected.expires_at||'Chưa có'} · Thiết bị: ${selected.device_count??0}`));
+      const history=create('section');
+      history.append(create('h4','Nhật ký quản trị'));
+      const historyRows=create('div','Đang tải nhật ký…');history.append(historyRows);details.append(history);
+      const subject=selected,ticket=epoch;
+      (async()=>{
+        try {
+          if(!subject.user_id || !await verify())throw new Error('Không thể xem nhật ký.');
+          const {data,error}=await sb.rpc('admin_customer_audit',{p_user_id:subject.user_id,p_limit:30});
+          if(ticket!==epoch||selected!==subject||!root)return;
+          if(error||!Array.isArray(data))throw new Error('Nhật ký chưa sẵn sàng.');
+          historyRows.replaceChildren();
+          for(const item of data){
+            if(!item||typeof item.actor_id!=='string'||typeof item.action!=='string')continue;
+            const line=create('div',`${item.action} · Admin ${item.actor_id.slice(0,8)} · ${item.occurred_at||''} · ${item.reason||''}`,'cc-row');
+            historyRows.append(line);
+          }
+          if(!historyRows.childNodes.length)historyRows.append(create('p','Chưa có thao tác trong nhật ký.'));
+        } catch {if(ticket===epoch&&selected===subject&&root)historyRows.textContent='Không tải được nhật ký quản trị.';}
+      })();
       if (selected.account_kind !== 'registered' || !selected.user_id || !Number.isSafeInteger(Number(selected.revision))) {
         details.append(create('p','Tài khoản chờ đăng ký hoặc thiếu phiên bản: chỉ xem.'));return;
       }

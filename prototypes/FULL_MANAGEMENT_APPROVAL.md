@@ -20,6 +20,7 @@
 - `src/admin-customer-renewal.cjs` và bài kiểm thử tương ứng biểu diễn **quy tắc gia hạn đã được chủ sở hữu lựa chọn**; đây chỉ là phép tính kiểm thử ở client, không phải nguồn tính toán có thẩm quyền.
 - `prototypes/admin-customer-center.html` có mục **“Thử thao tác (giả lập)”**: nhập email xác nhận, lý do, số ngày; xem thay đổi trên bản ghi mẫu và nhật ký gắn Admin 1/2. Tất cả thay đổi nằm trong bộ nhớ trang, mất khi tải lại. Các nút thao tác thật vẫn `disabled` và không gọi API.
 - `tests/admin-customer-ui-logic.test.cjs` kiểm thử biểu mẫu giả lập bị từ chối khi nhập sai email, nhật ký gắn đúng Admin, thiết bị mẫu được cập nhật và khách không thể thao tác.
+- `sql/admin_customer_audit.review_only.sql` là đề xuất RPC đọc nhật ký có kiểm tra quyền Admin và giới hạn số dòng, không cấp quyền đọc trực tiếp bảng audit. Đã thử thành công trên PostgreSQL cục bộ với cả role `authenticated` và `anon`; file này cũng kết thúc bằng `ROLLBACK`.
 - Các lệnh chỉ chấp nhận `extend`, `pause`, `resume`, `reset_device`.
 - Trước thao tác yêu cầu nhập đúng email, lý do 10–500 ký tự, phiên bản khách hàng (`revision`), và số ngày hợp lệ (gia hạn từ 1 đến 365).
 - Trước RPC ghi phải xác nhận quyền Admin bằng RPC đọc hiện có; khi lỗi hoặc đổi phiên không được tuyên bố thành công.

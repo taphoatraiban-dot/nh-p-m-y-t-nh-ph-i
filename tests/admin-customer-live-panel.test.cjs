@@ -31,6 +31,7 @@ function setup({ flag = true, isAdmin = false } = {}) {
       calls.push([name,args]);
       if(name==='check_email_license')return {data:{success:true,is_admin:admin},error:null};
       if(name==='admin_customer_overview')return {data:[{account_kind:'registered',user_id:'id-1',email:'demo@example.invalid',license_active:true,expires_at:'2026-12-01T00:00:00Z',device_count:1,revision:0}],error:null};
+      if(name==='admin_customer_audit')return {data:[{actor_id:'00000000-0000-4000-8000-000000000001',action:'extend',reason:'Gia hạn mẫu',occurred_at:'2026-10-26T00:00:00Z'}],error:null};
       if(name==='admin_customer_command')return {data:{success:true,revision:1},error:null};
       throw new Error(name);
     }
@@ -62,6 +63,8 @@ test('authorized Admin can read and preview confirmation without any write', asy
   assert.equal(ui.calls.some(([name])=>name==='admin_customer_overview'),true);
   const detailButton=ui.elements.find(e=>e.tag==='button'&&e.textContent==='Chi tiết');
   detailButton.dispatch('click');
+  await tick();
+  assert.equal(ui.calls.some(([name])=>name==='admin_customer_audit'),true);
   const form=ui.elements.findLast(e=>e.tag==='form');
   await form.dispatch('submit');
   assert.equal(ui.calls.some(([name])=>name==='admin_customer_command'),false);

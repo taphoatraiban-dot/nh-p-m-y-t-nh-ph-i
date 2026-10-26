@@ -21,7 +21,7 @@ Không đề nghị xóa/sửa hai tài khoản Admin, thay cấu trúc bảng c
 
 1. **Gia hạn:** tài khoản còn hạn cộng số ngày vào hạn hiện tại; đã hết hạn tính từ thời điểm máy chủ thực hiện. Mỗi lệnh 1–365 ngày; không tự bỏ tạm ngưng.
 2. **Tạm ngưng/kích hoạt lại:** chỉ đổi cờ `email_licenses.active`, không xóa giấy phép.
-3. **Đặt lại thiết bị:** trước khi xóa hàng `devices` hiện hành, sao lưu đầy đủ thông tin liên kết sang `admin_device_reset_history` **trong cùng giao dịch**. Việc này cần duyệt riêng vì `claim_device` hiện chỉ chấp nhận máy mới khi không còn hàng cũ. Nếu không chấp nhận xóa liên kết hiện hành, **không được phát hành thao tác đặt lại thiết bị**.
+3. **Đặt lại thiết bị — ĐÃ ĐƯỢC CHỦ SỞ HỮU CHẤP THUẬN VỀ CƠ CHẾ:** trước khi xóa hàng `devices` hiện hành, sao lưu đầy đủ thông tin liên kết sang `admin_device_reset_history` **trong cùng giao dịch**. `claim_device` hiện chỉ chấp nhận máy mới khi không còn hàng cũ. Quyết định này **không phải quyền thi hành SQL trên sản xuất**.
 4. **Khách chờ đăng ký:** chỉ xem; không tự tạo tài khoản hay giấy phép.
 5. **Nhật ký:** lưu Admin thực hiện, UUID yêu cầu, khách, hành động, lý do, phiên bản và thời điểm; chống gia hạn lặp bằng UUID duy nhất.
 
@@ -63,4 +63,4 @@ Không đề nghị xóa/sửa hai tài khoản Admin, thay cấu trúc bảng c
 
 **B — Triển khai:** Chỉ sau khi xem kết quả diễn tập và bản migration cuối cùng, chủ sở hữu mới xác nhận **thi hành SQL lên Supabase sản xuất** bằng một chỉ đạo riêng. Merge `main` và triển khai website/VPS cần **phê duyệt riêng lần nữa**.
 
-**Trạng thái hiện tại: chưa có phê duyệt A/B cho sản xuất.**
+**Trạng thái hiện tại:** chủ sở hữu đã xác nhận cơ chế lưu lịch sử rồi xóa liên kết thiết bị hiện hành. **Chưa có phê duyệt A/B cho sản xuất.**

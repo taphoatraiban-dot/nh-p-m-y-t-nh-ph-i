@@ -89,3 +89,15 @@ test('role simulator hides all admin content for customer and restores owner vie
   assert.equal(map.accessDenied.hidden, true);
   assert.equal(map.overview.hidden, false);
 });
+
+test('device rows expose mobile card labels and preserve mock-only values', () => {
+  const { map } = launch();
+  assert.equal(map.deviceRows.children.length, 4);
+  const cells = map.deviceRows.children[0].children;
+  assert.deepEqual(Array.from(cells, cell => cell.dataset.label),
+    ['Thiết bị', 'Tài khoản', 'Lần hoạt động', 'Trạng thái']);
+  assert.equal(cells[0].textContent, 'iPhone mẫu A');
+  assert.equal(cells[2].textContent, 'Giả lập');
+  assert.match(html, /#customers table,#devices table\{min-width:0\}/);
+  assert.match(html, /#customerRows tr,#deviceRows tr\{display:block/);
+});

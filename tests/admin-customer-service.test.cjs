@@ -28,6 +28,18 @@ test('non-admin never invokes the overview RPC', async () => {
   assert.deepEqual(called, ['check_email_license']);
 });
 
+test('admin authorization requires explicit boolean true, never a truthy value', async () => {
+  for (const value of ['true', 1, {}, null, undefined]) {
+    const called = [];
+    const client = { async rpc(name) {
+      called.push(name);
+      return { data: { success: true, is_admin: value }, error: null };
+    } };
+    await assert.rejects(createCustomerService(client).list(), AccessDeniedError);
+    assert.deepEqual(called, ['check_email_license']);
+  }
+});
+
 test('failed license verification fails closed', async () => {
   const client = { async rpc() { return { data: null, error: new Error('offline') }; } };
   await assert.rejects(createCustomerService(client).list(), /kiểm tra/);
@@ -93,4 +105,30 @@ test('session switch during license verification never invokes account listing',
   release({ data: { success: true, is_admin: true }, error: null });
   assert.deepEqual(await work, { stale: true, rows: [] });
   assert.deepEqual(called, ['check_email_license']);
+});
+
+test('rapid Admin 1 to customer to Admin 2 session switch discards old results', async () => {
+  let finishOld;
+  const oldRows = new Promise(resolve => { finishOld = resolve; });
+  let licenseCheck = 0;
+  const client = { async rpc(name) {
+    if (name === 'check_email_license') {
+      licenseCheck += 1;
+      return { data: { success: true, is_admin: licenseCheck !== 2 }, error: null };
+    }
+    if (name === 'admin_customer_overview') {
+      return licenseCheck === 1 ? oldRows : { data: [{ ...safeRow, email: 'admin2-view@example.com' }], error: null };
+    }
+    throw new Error('Unexpected RPC');
+  } };
+  const service = createCustomerService(client, { now: date });
+  const firstAdmin = service.list();
+  await new Promise(resolve => setImmediate(resolve));
+  service.invalidate(); // Auth session changed to ordinary customer.
+  await assert.rejects(service.list(), AccessDeniedError);
+  service.invalidate(); // Separate login for Admin 2.
+  const secondAdmin = await service.list();
+  finishOld({ data: [safeRow], error: null });
+  assert.deepEqual(await firstAdmin, { stale: true, rows: [] });
+  assert.equal(secondAdmin.rows[0].email, 'admin2-view@example.com');
 });

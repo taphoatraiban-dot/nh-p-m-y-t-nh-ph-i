@@ -18,7 +18,7 @@ function createCustomerService(client, { now = () => new Date() } = {}) {
     const license = await client.rpc('check_email_license');
     if (requestId !== generation) return { stale: true, rows: [] };
     if (license.error) throw new Error('Không kiểm tra được quyền Admin.');
-    if (!license.data?.success || !license.data?.is_admin) throw new AccessDeniedError();
+    if (license.data?.success !== true || license.data?.is_admin !== true) throw new AccessDeniedError();
 
     const result = await client.rpc('admin_customer_overview');
     if (result.error) throw new Error('Không tải được danh sách khách hàng.');

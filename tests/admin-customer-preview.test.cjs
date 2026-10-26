@@ -33,7 +33,7 @@ test('customer table offers search, status, ordering and clear-filter controls',
   assert.match(script, /clearFilters'\)\.addEventListener/);
   assert.match(script, /expiryValue\(a\.expires\)-expiryValue\(b\.expires\)/);
   assert.match(html, /value="expired"/);
-  assert.match(html, /#customerRows tr\{display:block/);
+  assert.match(html, /#customerRows tr,#deviceRows tr\{display:block/);
   assert.match(script, /td\.dataset\.label=label/);
 });
 

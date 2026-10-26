@@ -48,6 +48,9 @@ test('PostgreSQL transaction, authorization, renewal and archived device reset',
     await sql(`insert into public.profiles(id,role) values ('${IDS.customer}','user')`);
     await sql(`insert into public.email_licenses(user_id,email,expires_at) values ('${IDS.customer}','customer@example.invalid',now()-interval '6 days')`);
     await sql(`insert into public.devices(user_id,device_id,device_name) values ('${IDS.customer}','old-device','Máy thử nghiệm cũ')`);
+    // A disposable customer-only snapshot used to prove a manual restoration path.
+    const licenseBefore = (await sql(`select * from public.email_licenses where user_id='${IDS.customer}'`)).rows[0];
+    const deviceBefore = (await sql(`select * from public.devices where user_id='${IDS.customer}'`)).rows[0];
 
     // The actual review file must NOT persist a schema change if run verbatim.
     const reviewBundle = buildReviewSql();
@@ -121,6 +124,29 @@ test('PostgreSQL transaction, authorization, renewal and archived device reset',
     await assert.rejects(sql('select * from public.admin_customer_overview()'), /Không có quyền Admin/);
     await assert.rejects(sql(`select * from public.admin_customer_audit('${IDS.customer}'::uuid,30)`), /Không có quyền Admin/);
     await sql('reset role');
+
+    // Rehearse controlled restoration on fake data only. This is NOT a production
+    // rollback script: a real incident requires an approved, verified backup.
+    await db.exec('begin;');
+    try {
+      const currentDeviceCount = (await sql(`select count(*)::int as count from public.devices where user_id='${IDS.customer}'`)).rows[0].count;
+      assert.equal(currentDeviceCount, 0, 'must not overwrite a newly claimed device');
+      await db.query('update public.email_licenses set expires_at=$1,active=$2,updated_at=$3 where user_id=$4',
+        [licenseBefore.expires_at,licenseBefore.active,licenseBefore.updated_at,IDS.customer]);
+      await sql(`insert into public.devices(user_id,device_id,device_name,active,first_seen,last_seen)
+        select user_id,device_id,device_name,active,first_seen,last_seen
+        from public.admin_device_reset_history where user_id='${IDS.customer}'
+        order by archived_at desc,id desc limit 1`);
+      await db.exec('commit;');
+    } catch (error) { await db.exec('rollback;'); throw error; }
+    const licenseRestored = (await sql(`select * from public.email_licenses where user_id='${IDS.customer}'`)).rows[0];
+    const deviceRestored = (await sql(`select * from public.devices where user_id='${IDS.customer}'`)).rows[0];
+    assert.equal(new Date(licenseRestored.expires_at).getTime(),new Date(licenseBefore.expires_at).getTime());
+    assert.equal(licenseRestored.active,licenseBefore.active);
+    assert.equal(deviceRestored.device_id,deviceBefore.device_id);
+    assert.equal(deviceRestored.device_name,deviceBefore.device_name);
+    assert.equal(new Date(deviceRestored.first_seen).getTime(),new Date(deviceBefore.first_seen).getTime());
+    assert.equal((await sql(`select count(*)::int as count from public.admin_customer_commands`)).rows[0].count,5);
   } finally {
     await db.close();
   }

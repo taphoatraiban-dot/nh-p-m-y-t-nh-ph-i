@@ -58,6 +58,7 @@ Không đề nghị xóa/sửa hai tài khoản Admin, thay cấu trúc bảng c
 
 - Các tệp SQL review-only nguyên trạng kết thúc bằng `ROLLBACK`.
 - Kiểm thử đã đạt trên PGlite/PostgreSQL WASM 18.6 với dữ liệu giả và quyền `anon`/`authenticated` giả lập; không thay thế Supabase Auth/JWT/RLS thật hay thử phục hồi backup thật.
+- Đã diễn tập hoàn trả dữ liệu **khách giả**: ghi nhận trạng thái giấy phép/thiết bị ban đầu, thực hiện gia hạn/tạm ngưng/đặt lại thiết bị, rồi khôi phục giấy phép và liên kết thiết bị từ snapshot/lịch sử trong giao dịch; xác nhận dữ liệu trở về giá trị cũ và nhật ký còn nguyên. Kịch bản có kiểm tra **không ghi đè thiết bị mới**. Đây **không** phải bằng chứng bản sao lưu production phục hồi được.
 - Chưa kiểm thử trình duyệt thật, chưa có staging cloud, chưa triển khai Supabase, chưa cập nhật `main` hoặc VPS.
 
 ## 7. Hai lựa chọn cần chủ sở hữu xác nhận riêng

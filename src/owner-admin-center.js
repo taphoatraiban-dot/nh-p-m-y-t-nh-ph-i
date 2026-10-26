@@ -63,15 +63,19 @@
   open.addEventListener('click', show);
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && overlay) close(); });
 
+  function revokePreview() {
+    authEpoch += 1;
+    lastAllowed = false;
+    lastCheck = 0;
+    open.hidden = true;
+    if (overlay) close();
+  }
+
   async function refreshPermission() {
     const unlocked = document.body.classList.contains('app-unlocked');
     if (unlocked !== wasUnlocked) {
-      authEpoch += 1;
       wasUnlocked = unlocked;
-      lastAllowed = false;
-      lastCheck = 0;
-      open.hidden = true;
-      if (overlay) close();
+      revokePreview();
     }
     if (!unlocked) return;
     if (inFlight || Date.now() - lastCheck < 5000) return;
@@ -96,6 +100,14 @@
     }
   }
   new MutationObserver(refreshPermission).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  // Auth can change without toggling app-unlocked. Invalidate synchronously;
+  // defer the RPC until after Supabase's auth-state callback has returned.
+  if (typeof sb !== 'undefined' && typeof sb.auth?.onAuthStateChange === 'function') {
+    sb.auth.onAuthStateChange(() => {
+      revokePreview();
+      queueMicrotask(refreshPermission);
+    });
+  }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPermission(); });
   refreshPermission();
 })();

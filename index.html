@@ -7773,7 +7773,8 @@ window.showHistoryItem=showHistoryItem;
       e.preventDefault();
       let mode='share';
       try{mode=JSON.parse(localStorage.getItem('TSH_PRINTER_LAN_V1')||'{}').mode||'share';}catch(_){}
-      if(mode==='native')printPhoiToMac(false,true);
+      if(mode==='macqueue'||mode==='queue')printPhoiToMac(false,false,false,true);
+      else if(mode==='native')printPhoiToMac(false,true);
       else if(mode==='airprint')printPhoiToMac(false,false,true);
       else if(mode==='queue'||mode==='macqueue')printPhoiToMac(false,false,false,true);
       else if(mode==='legacy')printPhoiToMac();

@@ -7773,7 +7773,8 @@ window.showHistoryItem=showHistoryItem;
       e.preventDefault();
       let mode='share';
       try{mode=JSON.parse(localStorage.getItem('TSH_PRINTER_LAN_V1')||'{}').mode||'share';}catch(_){}
-      if(mode==='native')printPhoiToMac(false,true);
+      if(mode==='macqueue'||mode==='queue')printPhoiToMac(false,false,false,true);
+      else if(mode==='native')printPhoiToMac(false,true);
       else if(mode==='airprint')printPhoiToMac(false,false,true);
       else if(mode==='queue'||mode==='macqueue')printPhoiToMac(false,false,false,true);
       else if(mode==='legacy')printPhoiToMac();
@@ -12279,13 +12280,19 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   printButton.click();
  }
  document.getElementById('printerPrintNow')?.addEventListener('click',function(){
-  const mode=modeField?.value||'share';
-  if(mode==='native'&&!window.TSHNativePrintBridge?.available()){
-   show('Chưa có ứng dụng Cucun Printer trên iPhone. Bấm IN QUA CHIA SẺ bên dưới để dùng đường in đã hoạt động.',false);
-   return;
-  }
+  // Safari cannot print directly to TCP 9100. Use the authenticated Mac queue
+  // instead of window.print(), which can print the entire application.
   if(!saveSettings(true))return;
-  clickPrint();
+  const queueButton=document.getElementById('printPhoiBluetooth');
+  if(!queueButton){show('Không tìm thấy chức năng in phơi.',false);return;}
+  const prior=localStorage.getItem('TSH_PRINTER_LAN_V1');
+  try{
+   const cfg=prior?JSON.parse(prior):{};
+   localStorage.setItem('TSH_PRINTER_LAN_V1',JSON.stringify({...cfg,mode:'macqueue'}));
+   queueButton.click();
+   show('Đang gửi phiếu vào hàng đợi Mac; hãy kiểm tra xác nhận từ hệ thống.',true);
+  }catch(err){show('Không thể gửi yêu cầu in: '+(err?.message||err),false);}
+  return;
  });
  document.getElementById('printerShareNow')?.addEventListener('click',function(){
   if(modeField)modeField.value='share';

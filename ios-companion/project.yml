@@ -1,0 +1,24 @@
+name: ThanTaiPrinter
+options:
+  bundleIdPrefix: vn.cuncun
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_STYLE: Automatic
+targets:
+  ThanTaiPrinter:
+    type: application
+    platform: iOS
+    sources:
+      - path: ThanTaiPrinterApp.swift
+      - path: BluetoothReceiptPrinter.swift
+      - path: ReceiptWebView.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: vn.cuncun.ThanTaiPrinter
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "Bluetooth được dùng để kết nối máy in Xprinter và in phiếu mua hàng."
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES

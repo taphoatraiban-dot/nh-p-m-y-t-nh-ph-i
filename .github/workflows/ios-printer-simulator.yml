@@ -1,0 +1,29 @@
+name: iOS Printer Companion (unsigned simulator check)
+
+# Manual only. This does not sign an iPhone app or upload to TestFlight.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulator-build:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: ios-companion
+        run: xcodegen generate
+      - name: Compile for iOS Simulator without signing
+        working-directory: ios-companion
+        run: |
+          xcodebuild -project ThanTaiPrinter.xcodeproj \
+            -scheme ThanTaiPrinter \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO build

@@ -4,7 +4,7 @@ import SwiftUI
 struct ThanTaiPrinterApp: App {
     @StateObject private var printer = BluetoothReceiptPrinter()
     @AppStorage("tsh.print.mode") private var printMode = "bluetooth"
-    @AppStorage("tsh.print.ip") private var printerIP = ""
+    @AppStorage("tsh.print.ip") private var printerIP = "192.168.1.159"
     @AppStorage("tsh.print.port") private var printerPort = 9100
 
     var body: some Scene {

@@ -1,7 +1,10 @@
 name: iOS Printer Companion (unsigned simulator check)
 
-# Manual only. This does not sign an iPhone app or upload to TestFlight.
+# Preview branch only. This does not sign an iPhone app or upload to TestFlight.
 on:
+  push:
+    branches:
+      - feature/iphone-wifi-printer-cloud-preview
   workflow_dispatch:
 
 permissions:

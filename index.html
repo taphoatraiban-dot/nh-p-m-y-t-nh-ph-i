@@ -1344,6 +1344,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 
   <div class="phoi-quick-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%;margin:7px auto 2px;align-items:stretch">
 <button type="button" id="printPhoiPOS" style="width:100%;min-width:0;margin:0;display:block;border:0;border-radius:11px;background:#111827;color:#fff;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">🖨 IN PHƠI</button>
+   <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">📱 IN BLUETOOTH</button>
    <button type="button" id="openPrintHistory" style="width:100%;min-width:0;margin:0;display:block;border:1px solid #cbd5e1;border-radius:11px;background:#fff;color:#334155;padding:9px 3px;font-size:11px;line-height:1.15;font-weight:900;white-space:normal">📋 TỔNG HỢP IN</button>
   </div>
    <div id="phoiErrorBox"></div>
@@ -7592,7 +7593,7 @@ window.showHistoryItem=showHistoryItem;
     }
     write(a); return x;
   }
-  async function printPhoiToMac(){
+  async function printPhoiToMac(forceIOSShare=false){
     const bets=document.getElementById('bets');
     const rawText=String(bets?.value||'').trim();
     if(!rawText){alert('Chưa có phơi để in.');return;}
@@ -7627,22 +7628,31 @@ window.showHistoryItem=showHistoryItem;
       'Phieu chi co gia tri trong ngay in.'
     ].filter(Boolean).join('\n');
     const text=receipt;
-    const b=document.getElementById('printPhoiPOS'),old=b?b.textContent:'';
+    const b=document.getElementById(forceIOSShare?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
     if(b){b.disabled=true;b.textContent='⏳ ĐANG IN...';}
     try{
       const body=new URLSearchParams();
       body.set('text',text);body.set('date',document.getElementById('date')?.value||'');body.set('customer',document.getElementById('customerSelect')?.value||'');
-      let r;
-      if(window.TSHPrinter && typeof window.TSHPrinter.sendPrint==='function'){
-        await window.TSHPrinter.sendPrint(text,false);
+      let r,printedResult;
+      if(forceIOSShare){
+        if(!window.TSHIOSSharePhoi)throw new Error('Chưa tải được tính năng chia sẻ ảnh phơi.');
+        printedResult=await window.TSHIOSSharePhoi.share(text);
+      }else if(window.TSHPrinter && typeof window.TSHPrinter.sendPrint==='function'){
+        printedResult=await window.TSHPrinter.sendPrint(text,false);
       }else{
         r=await fetch('/print',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:body.toString()});
         if(!r.ok)throw new Error(await r.text());
       }
+      if(printedResult?.shared){
+        if(b)b.textContent='📱 ĐÃ CHIA SẺ PHƠI';
+        alert('Đã chia sẻ ảnh phơi sang iPhone. Hãy hoàn tất lệnh in trong ứng dụng Bluetooth. Phần mềm chưa đánh dấu là đã in để tránh nhầm lẫn.');
+        setTimeout(()=>{if(b){b.disabled=false;b.textContent=old;}},1500);
+        return;
+      }
       const rec=savePrinted(text);
       if(b)b.textContent='✅ ĐÃ IN ×'+rec.printCount;
       setTimeout(()=>{if(b){b.disabled=false;b.textContent=old;}},1500);
-    }catch(err){if(b){b.disabled=false;b.textContent=old;}alert('Không gửi được lệnh in. Kiểm tra Mac mini và máy in.');}
+    }catch(err){if(b){b.disabled=false;b.textContent=old;}if(err?.name!=='AbortError')alert('Không thực hiện được thao tác in: '+(err?.message||'Hãy kiểm tra máy in và chế độ kết nối.'));}
   }
   function openHistory(){
     document.getElementById('printHistoryOverlay')?.remove();
@@ -7686,12 +7696,13 @@ window.showHistoryItem=showHistoryItem;
   }
   document.addEventListener('click',e=>{
     if(e.target.closest('#printPhoiPOS')){e.preventDefault();printPhoiToMac();}
+    if(e.target.closest('#printPhoiBluetooth')){e.preventDefault();printPhoiToMac(true);}
     if(e.target.closest('#openPrintHistory')){e.preventDefault();openHistory();}
   });
 })();
 </script>
 
-
+<script src="src/ios-share-phoi.js"></script>
 <script>
 /* ===== QUAN LY MAY IN ===== */
 (function(){
@@ -10804,6 +10815,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #finalThreeActions #qrScanBtn{background:#eaf4ff!important;border-color:#3b82f6!important;color:#174ea6!important}
 #finalThreeActions #printPhoiPOS{background:#eafbf1!important;border-color:#16a34a!important;color:#166534!important}
 #finalThreeActions #openPrintHistory{background:#fff3e6!important;border-color:#f97316!important;color:#9a3412!important}
+#finalThreeActions #printPhoiBluetooth{grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;background:#eff6ff!important;border:1.5px solid #2563eb!important;color:#1d4ed8!important;min-height:48px!important;height:48px!important;font-size:14px!important;font-weight:900!important}
 @media(max-width:380px){#liveSoiBar>div:first-child>strong{font-size:11px!important}#liveSoiToggle,#liveCheckNow{font-size:10px!important;padding:5px!important}#finalThreeActions .ft{font-size:10px!important}}
 </style>
 <script id="tt-ui-only-live-compact-1610-js">
@@ -10814,7 +10826,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    var state=document.getElementById('liveSoiState');
    if(state&&state.parentNode===bar.firstElementChild){bar.firstElementChild.insertAdjacentElement('afterend',state);}
   }
-  var p=document.getElementById('printPhoiPOS'),h=document.getElementById('openPrintHistory'),q=document.getElementById('qrScanBtn');
+  var p=document.getElementById('printPhoiPOS'),h=document.getElementById('openPrintHistory'),q=document.getElementById('qrScanBtn'),bt=document.getElementById('printPhoiBluetooth');
   if(p&&h&&q){
    var row=document.getElementById('finalThreeActions');
    if(!row){row=document.createElement('div');row.id='finalThreeActions';p.parentNode.insertBefore(row,p);}
@@ -10826,6 +10838,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var tx=document.createElement('span');tx.className='ft';tx.textContent=a[2];
     a[0].append(ic,tx);a[0].dataset.ttUiCompact='1';
    });
+   if(bt&&bt.parentNode!==row)row.appendChild(bt);
   }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply);else apply();

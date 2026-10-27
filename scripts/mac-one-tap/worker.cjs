@@ -12,7 +12,11 @@ const configFile=process.env.TSH_PRINT_CONFIG_FILE||'';
 const config=configFile?JSON.parse(fs.readFileSync(configFile,'utf8')):{};
 const base=process.env.TSH_SUPABASE_URL||config.supabaseUrl||'';
 const key=process.env.TSH_SUPABASE_SERVICE_ROLE_KEY||config.serviceRoleKey||'';
-const owner=process.env.TSH_PRINT_USER_ID||config.userId||'';
+const owners=(process.env.TSH_PRINT_USER_IDS||process.env.TSH_PRINT_USER_ID||'').split(',').filter(Boolean);
+if(!owners.length){
+  if(Array.isArray(config.userIds))owners.push(...config.userIds);
+  else if(config.userId)owners.push(config.userId);
+}
 const printerHost=process.env.TSH_PRINTER_IP||config.printerIp||'192.168.1.159';
 const printerPort=Number(process.env.TSH_PRINTER_PORT||config.printerPort||9100);
 const armed=process.env.TSH_PRINT_ARMED==='YES'||config.armed===true;
@@ -23,7 +27,7 @@ const ENDPOINT='/rest/v1/print_queue';
 function checkConfiguration(){
   if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base))throw Error('TSH_SUPABASE_URL phải là HTTPS Supabase.');
   if(!key||key.length<32)throw Error('Thiếu khóa service-role lưu RIÊNG trên Mac Mini.');
-  if(!ownerPattern.test(owner))throw Error('TSH_PRINT_USER_ID phải là UUID tài khoản sở hữu phiếu.');
+  if(!owners.length||owners.some(id=>!ownerPattern.test(id)))throw Error('Thiếu UUID tài khoản được phép gửi phơi.');
   if(!/^192\.168\.\d{1,3}\.\d{1,3}$/.test(printerHost))throw Error('Máy in phải nằm trong LAN 192.168.x.x.');
   if(!Number.isInteger(printerPort)||printerPort<1||printerPort>65535)throw Error('Cổng TCP không hợp lệ.');
   if(!Number.isFinite(Date.parse(startedAt)))throw Error('TSH_PRINT_SINCE không hợp lệ.');
@@ -78,25 +82,25 @@ function printTcp(bytes,host=printerHost,port=printerPort){
 }
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function pollOnce(){
-  const q=new URLSearchParams({select:'id,print_text',status:'eq.pending',user_id:'eq.'+owner,
+  const q=new URLSearchParams({select:'id,user_id,print_text',status:'eq.pending',user_id:'in.('+owners.join(',')+')',
     created_at:'gte.'+startedAt,order:'created_at.asc',limit:'3'});
   const jobs=await api('?'+q);
   for(const job of jobs){
-    if(!Number.isSafeInteger(job.id)||typeof job.print_text!=='string')continue;
+    if(!Number.isSafeInteger(job.id)||typeof job.print_text!=='string'||!owners.includes(job.user_id))continue;
     // Dry-run intentionally does NOT claim jobs or print customer information to logs.
     if(!armed){console.log('DRY RUN: job #'+job.id+' đang chờ; chưa gửi máy in.');continue;}
-    const claim=await api('?id=eq.'+job.id+'&user_id=eq.'+owner+'&status=eq.pending',{
+    const claim=await api('?id=eq.'+job.id+'&user_id=eq.'+job.user_id+'&status=eq.pending',{
       method:'PATCH',data:{status:'processing',attempts:1}
     });
     if(!Array.isArray(claim)||claim.length!==1)continue;
     try{
       await printTcp(ticketBytes(job.print_text));
-      await api('?id=eq.'+job.id+'&user_id=eq.'+owner+'&status=eq.processing',{
+      await api('?id=eq.'+job.id+'&user_id=eq.'+job.user_id+'&status=eq.processing',{
         method:'PATCH',data:{status:'sent',error_message:null}
       });
       console.log('Đã gửi dữ liệu TCP cho phiếu #'+job.id+' (chưa xác nhận giấy ra).');
     }catch(error){
-      await api('?id=eq.'+job.id+'&user_id=eq.'+owner+'&status=eq.processing',{
+      await api('?id=eq.'+job.id+'&user_id=eq.'+job.user_id+'&status=eq.processing',{
         method:'PATCH',data:{status:'failed',error_message:String(error.message||error).slice(0,200)}
       });
       console.error('Lỗi gửi phiếu #'+job.id+': '+String(error.message||error));

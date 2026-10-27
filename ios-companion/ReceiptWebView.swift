@@ -48,6 +48,26 @@ struct ReceiptWebView: UIViewRepresentable {
             decisionHandler(allowed ? .allow : .cancel)
         }
 
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            // Installed iOS companion: IN NGAY uses the native TCP/Bluetooth bridge,
+            // even when an earlier Safari session saved AirPrint.
+            let script = """
+            (function() {
+              try {
+                var cfg = JSON.parse(localStorage.getItem('TSH_PRINTER_LAN_V1') || '{}');
+                cfg.mode = 'native';
+                localStorage.setItem('TSH_PRINTER_LAN_V1', JSON.stringify(cfg));
+                var picker = document.getElementById('printerTransportMode');
+                if (picker) {
+                  picker.value = 'native';
+                  picker.dispatchEvent(new Event('change'));
+                }
+              } catch (error) { /* Local storage may be disabled. */ }
+            })();
+            """
+            webView.evaluateJavaScript(script, completionHandler: nil)
+        }
+
         func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
             // Accept commands only from the primary, first-party HTTPS page.
             guard message.name == "tshPrinter", message.frameInfo.isMainFrame,

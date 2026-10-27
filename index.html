@@ -1162,8 +1162,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
    <label for="printerTransportMode" style="display:block;font-size:13px;font-weight:800">Cách kết nối / in</label>
    <select id="printerTransportMode" style="width:100%;margin:5px 0 10px">
     <option value="share">📤 Chia sẻ (đã thử in được)</option>
-    <option value="airprint">🖨 AirPrint / cầu nối trên Mac</option>
-    <option value="native">🟢 Cucun Printer: Wi-Fi/IP hoặc Bluetooth</option>
+    <option value="airprint">🖨 AirPrint / cầu nối trên Mac (đang lỗi)</option>
+    <option value="native">🟢 Cucun Printer: Wi-Fi/IP hoặc Bluetooth (cần ứng dụng)</option>
     <option value="legacy">☁️ Hệ thống in đã cấu hình trước đây</option>
    </select>
    <div id="printerTransportHint" style="font-size:12px;line-height:1.5;padding:9px;border-radius:8px;background:#f1f5f9;margin-bottom:10px"></div>
@@ -1173,6 +1173,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
    <input id="printerLanPort" type="number" min="1" max="65535" step="1" value="9100">
    <button type="button" id="printerLanSave" class="green" style="width:100%;margin-top:12px">💾 LƯU CẤU HÌNH IN</button>
    <button type="button" id="printerPrintNow" style="width:100%;margin-top:8px;background:#1d4ed8;color:#fff">🖨 IN NGAY PHIẾU HIỆN TẠI</button>
+   <button type="button" id="printerShareNow" style="width:100%;margin-top:8px;background:#e0f2fe;color:#075985;border:1px solid #38bdf8">📤 IN QUA CHIA SẺ (ĐÃ THỬ THÀNH CÔNG)</button>
    <div id="printerLanStatus" class="status" role="status" aria-live="polite" style="margin-top:8px">Chưa lưu cấu hình IP.</div>
    <div style="font-size:12px;color:#475569;margin-top:8px">Đường in Wi-Fi/IP hoặc Bluetooth trực tiếp chỉ hoạt động khi mở Cuncun bằng ứng dụng Cucun Printer đã cài trên iPhone. Nếu chưa cài, chọn AirPrint hoặc Chia sẻ; không tự lưu ảnh.</div>
    <div style="font-size:11px;color:#64748b;margin-top:8px">AirPrint không dùng cổng TCP 9100. In IP/Bluetooth trực tiếp cần ứng dụng iPhone Cucun Printer đã cài; Chrome, Cốc Cốc và Safari không gửi ESC/POS TCP trực tiếp được. Hệ thống in cũ được giữ nguyên.</div>
@@ -12223,7 +12224,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  if(!ipField||!portField||!status)return;
  const labels={
   share:'Mở bảng Chia sẻ của iPhone — đây là cách đã in được. Phiếu không tự lưu vào Ảnh.',
-  airprint:'Mở hộp thoại AirPrint. XP-Q809K cần cầu nối AirPrint đang chạy trên Mac hoặc thiết bị in trung gian; IP/port bên dưới không dùng cho AirPrint.',
+  airprint:'Đang thử nghiệm: cầu nối nhận được máy nhưng từng bị kẹt “Đang in 1/1”. Chỉ xác nhận đã in khi thực sự ra giấy.',
   native:'In nhanh Wi-Fi/IP hoặc Bluetooth từ ứng dụng Cucun Printer được cài trên iPhone. Trình duyệt Cốc Cốc/Safari không thể tự gửi lệnh TCP/Bluetooth.',
   legacy:'Sử dụng cấu hình máy chủ in đã có trước đây; không thay đổi dữ liệu hay hàng đợi cũ.'
  };
@@ -12245,26 +12246,37 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   if(saved&&Object.hasOwn(labels,saved.mode)&&modeField)modeField.value=saved.mode;
  }catch(_){/* Giữ cấu hình mặc định nếu dữ liệu cục bộ không hợp lệ. */}
  updateHint();
- document.getElementById('printerLanSave')?.addEventListener('click',function(){
+ function saveSettings(silent){
   const ip=ipField.value.trim(),port=portField.value.trim();
-  if(!validIP(ip)){show('Địa chỉ IPv4 không hợp lệ. Ví dụ: 192.168.1.159',false);return;}
-  if(!validPort(port)){show('Cổng TCP phải từ 1 đến 65535.',false);return;}
-  try{
-   localStorage.setItem(KEY,JSON.stringify({ip:ip,port:Number(port),mode:modeField?.value||'share'}));
-   show('✅ Đã lưu cách in và IP '+ip+':'+port+' trên thiết bị này. Chưa kiểm tra máy in thực tế.',true);
-  }catch(_){show('Không thể lưu trên trình duyệt này. Hãy kiểm tra chế độ riêng tư hoặc dung lượng lưu trữ.',false);}
- });
- document.getElementById('printerPrintNow')?.addEventListener('click',function(){
   const mode=modeField?.value||'share';
-  if(mode==='native'&&!window.TSHNativePrintBridge?.available()){
-   show('Chưa mở trong ứng dụng Cucun Printer. Để in ngay từ trình duyệt, chọn AirPrint (cần cầu nối) hoặc Chia sẻ.',false);
-   return;
-  }
-  const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){return null}})();
-  if(!saved||saved.mode!==mode){show('Hãy bấm LƯU CẤU HÌNH IN trước khi in.',false);return;}
+  if(mode==='native'&&!validIP(ip)){show('Địa chỉ IPv4 không hợp lệ. Ví dụ: 192.168.1.159',false);return false;}
+  if(mode==='native'&&!validPort(port)){show('Cổng TCP phải từ 1 đến 65535.',false);return false;}
+  try{
+   localStorage.setItem(KEY,JSON.stringify({ip:validIP(ip)?ip:'192.168.1.159',port:validPort(port)?Number(port):9100,mode}));
+   if(!silent)show('✅ Đã lưu phương thức '+mode+' trên thiết bị này. Chưa xác nhận in giấy.',true);
+   return true;
+  }catch(_){show('Không thể lưu trên trình duyệt này. Hãy kiểm tra chế độ riêng tư hoặc dung lượng lưu trữ.',false);return false;}
+ }
+ document.getElementById('printerLanSave')?.addEventListener('click',()=>saveSettings(false));
+ function clickPrint(){
   const printButton=document.getElementById('printPhoiBluetooth');
   if(!printButton){show('Không tìm thấy nút in phơi. Hãy mở phần nhập phơi.',false);return;}
   printButton.click();
+ }
+ document.getElementById('printerPrintNow')?.addEventListener('click',function(){
+  const mode=modeField?.value||'share';
+  if(mode==='native'&&!window.TSHNativePrintBridge?.available()){
+   show('Chưa có ứng dụng Cucun Printer trên iPhone. Bấm IN QUA CHIA SẺ bên dưới để dùng đường in đã hoạt động.',false);
+   return;
+  }
+  if(!saveSettings(true))return;
+  clickPrint();
+ });
+ document.getElementById('printerShareNow')?.addEventListener('click',function(){
+  if(modeField)modeField.value='share';
+  updateHint();
+  if(!saveSettings(true))return;
+  clickPrint();
  });
 })();
 </script>

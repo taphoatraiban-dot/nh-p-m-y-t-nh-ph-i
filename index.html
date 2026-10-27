@@ -1339,6 +1339,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   <button type="button" id="pasteAll" class="soft" style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;font-size:12px">📋 DÁN TOÀN BỘ</button>
   <button type="button" class="bigok" id="okAll">OK</button>
    <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">📱 IN BLUETOOTH</button>
+  <button type="button" id="openBluetoothPrintManager" style="display:block;width:100%;min-height:48px;margin:6px 0 9px;background:#eef2ff;color:#3730a3;border:1px solid #818cf8;border-radius:11px;font-weight:900">📚 QUẢN LÝ IN BLUETOOTH</button>
 
 <div id="syntaxGuideEntry" style="display:flex;justify-content:flex-end;margin:5px 2px 9px">
  <span class="tt-license-compact" id="ttLicenseCompact" role="status" aria-live="polite">HẠN: ĐANG KIỂM TRA</span> <span class="tt-release-badge" title="Phiên bản phần mềm">V10.20.01</span> <button type="button" id="syntaxGuideOpen" style="background:#fff;color:#ad2720;border:1px solid #ffad60;border-radius:11px;padding:10px 16px;font-weight:800;font-size:14px">📖 HƯỚNG DẪN</button>
@@ -7581,7 +7582,7 @@ window.showHistoryItem=showHistoryItem;
     const x=(typeof lastSummary==='object'&&lastSummary)?lastSummary:null;
     return x?{totalGross:Number(x.totalGross)||0,totalWin:Number(x.totalWin)||0,totalThu:Number(x.totalThu)||0,finalTotal:Number(x.finalTotal)||0}:null;
   }
-  function savePrinted(text){
+  function savePrinted(text,raw){
     const date=document.getElementById('date')?.value||'';
     const customer=document.getElementById('customerSelect')?.value||'';
     const key=fingerprint(date,customer,text), a=read();
@@ -7589,7 +7590,7 @@ window.showHistoryItem=showHistoryItem;
     if(x){x.printCount=(Number(x.printCount)||1)+1;x.lastPrintedAt=Date.now();}
     else{
       const sm=currentSummary();
-      x={id:'p'+Date.now()+'_'+Math.random().toString(36).slice(2,7),key,date,customer,text,printCount:1,createdAt:Date.now(),lastPrintedAt:Date.now(),selected:true,summary:sm};
+      x={id:'p'+Date.now()+'_'+Math.random().toString(36).slice(2,7),key,date,customer,text,raw:raw||'',printCount:1,createdAt:Date.now(),lastPrintedAt:Date.now(),selected:true,summary:sm};
       a.push(x);
     }
     write(a); return x;
@@ -7645,12 +7646,14 @@ window.showHistoryItem=showHistoryItem;
         if(!r.ok)throw new Error(await r.text());
       }
       if(printedResult?.shared){
-        if(b)b.textContent='📱 ĐÃ CHIA SẺ PHƠI';
-        alert('Đã chia sẻ ảnh phơi sang iPhone. Hãy hoàn tất lệnh in trong ứng dụng Bluetooth. Phần mềm chưa đánh dấu là đã in để tránh nhầm lẫn.');
+        if(confirm('Đã chia sẻ ảnh phơi. Máy in đã in thành công ra giấy chưa? Chỉ chọn OK nếu đã in xong.')){
+          savePrinted(text,rawText);
+          if(b)b.textContent='✅ ĐÃ XÁC NHẬN IN';
+        }else if(b)b.textContent='📱 ĐÃ CHIA SẺ';
         setTimeout(()=>{if(b){b.disabled=false;b.textContent=old;}},1500);
         return;
       }
-      const rec=savePrinted(text);
+      const rec=savePrinted(text,rawText);
       if(b)b.textContent='✅ ĐÃ IN ×'+rec.printCount;
       setTimeout(()=>{if(b){b.disabled=false;b.textContent=old;}},1500);
     }catch(err){if(b){b.disabled=false;b.textContent=old;}if(err?.name!=='AbortError')alert('Không thực hiện được thao tác in: '+(err?.message||'Hãy kiểm tra máy in và chế độ kết nối.'));}
@@ -7698,12 +7701,14 @@ window.showHistoryItem=showHistoryItem;
   document.addEventListener('click',e=>{
     if(e.target.closest('#printPhoiPOS')){e.preventDefault();printPhoiToMac();}
     if(e.target.closest('#printPhoiBluetooth')){e.preventDefault();printPhoiToMac(true);}
-    if(e.target.closest('#openPrintHistory')){e.preventDefault();openHistory();}
+    if(e.target.closest('#openPrintHistory')){e.preventDefault();if(window.TSHBluetoothPrintManager)window.TSHBluetoothPrintManager.open();else openHistory();}
   });
 })();
 </script>
 
 <script src="src/ios-share-phoi.js"></script>
+<script src="src/print-history-utils.js"></script>
+<script src="src/bluetooth-print-manager.js"></script>
 <script>
 /* ===== QUAN LY MAY IN ===== */
 (function(){

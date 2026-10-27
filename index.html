@@ -7712,7 +7712,11 @@ window.showHistoryItem=showHistoryItem;
         if(q.error)throw q.error;
         printedResult={queued:true,id:q.data.id};
       }else if(forceAirPrint){
-        printedResult=printReceiptAirPrint(text);
+        // iOS Safari can print the entire app when window.print() is invoked
+        // from an iframe. Share ONLY the rendered receipt PNG instead;
+        // the user chooses Print from the iOS share sheet.
+        if(!window.TSHIOSSharePhoi)throw new Error('Chưa tải được bộ tạo ảnh phiếu 80 mm.');
+        printedResult=await window.TSHIOSSharePhoi.share(text);
       }else if(forceNative){
         if(!window.TSHNativePrintBridge?.available())throw new Error('Chế độ in trực tiếp chỉ hoạt động trong ứng dụng Cucun Printer dành cho iPhone. Trên trình duyệt, hãy bấm CHUYỂN SANG XPRINTER.');
         printedResult=await window.TSHNativePrintBridge.send(text);

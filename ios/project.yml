@@ -1,0 +1,20 @@
+name: CuncunPrinter
+options:
+  bundleIdPrefix: icu.cuncun
+targets:
+  CuncunPrinter:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - CuncunPrinterApp.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: icu.cuncun.printer
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "CUNCUN cần kết nối máy in nhiệt qua Wi-Fi nội bộ."
+        INFOPLIST_KEY_UIApplicationSupportsDocumentBrowser: NO
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        CODE_SIGN_STYLE: Automatic

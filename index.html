@@ -7623,29 +7623,35 @@ window.showHistoryItem=showHistoryItem;
     write(a); return x;
   }
   function printReceiptAirPrint(text){
-    const slip=document.createElement('section');
-    slip.id='tshAirPrintReceipt';
-    // Use the same 80 mm renderer as the working iPhone share flow.
-    // A print-only text node may inherit conflicting website styles and page sizes.
-    if(window.TSHIOSSharePhoi?.render){
-      const receiptCanvas=window.TSHIOSSharePhoi.render(text,document);
-      receiptCanvas.id='tshAirPrintCanvas';
-      slip.appendChild(receiptCanvas);
-    }else{
-      const pre=document.createElement('pre');
-      pre.textContent=text;
-      slip.appendChild(pre);
-    }
-    const style=document.createElement('style');
-    style.id='tshAirPrintReceiptStyle';
-    style.textContent='@media print{body>*:not(#tshAirPrintReceipt){display:none!important}#tshAirPrintReceipt{display:block!important;position:static!important;width:72mm;margin:0;padding:0;border:0!important;background:#fff!important}#tshAirPrintReceipt canvas{display:block!important;width:72mm!important;height:auto!important;max-width:100%!important}#tshAirPrintReceipt pre{font:10pt/1.3 monospace!important;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#000} @page{margin:2mm}}';
-    slip.style.display='none';
-    document.head.appendChild(style);
-    document.body.appendChild(slip);
-    const cleanup=()=>{slip.remove();style.remove();};
-    window.addEventListener('afterprint',cleanup,{once:true});
-    setTimeout(cleanup,120000);
-    window.print();
+    // Isolate the receipt from the application styles and DOM before Safari prints.
+    // A canvas hidden in the main document previously produced a blank/stalled job.
+    if(!window.TSHIOSSharePhoi?.render)throw new Error('Chưa tải được bộ tạo ảnh phiếu 80 mm.');
+    const canvas=window.TSHIOSSharePhoi.render(text,document);
+    const imageUrl=canvas.toDataURL('image/png');
+    const frame=document.createElement('iframe');
+    frame.setAttribute('title','Phiếu in CUNCUN 80 mm');
+    frame.style.cssText='position:fixed;left:-10000px;top:0;width:80mm;height:200mm;border:0;';
+    document.body.appendChild(frame);
+    const doc=frame.contentDocument;
+    if(!doc){frame.remove();throw new Error('Safari không tạo được trang in riêng.');}
+    doc.open();
+    doc.write('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>@page{size:80mm auto;margin:0}html,body{margin:0;padding:0;background:white;width:80mm}img{display:block;width:72mm;height:auto;margin:0 auto;image-rendering:auto}@media print{html,body{width:80mm!important}}</style></head><body><img id="receipt" alt="Phiếu CUNCUN"></body></html>');
+    doc.close();
+    const image=doc.getElementById('receipt');
+    let started=false;
+    const cleanup=()=>{setTimeout(()=>frame.remove(),1500);};
+    const printReady=()=>{
+      if(started)return;
+      started=true;
+      try{frame.contentWindow.focus();frame.contentWindow.print();}
+      catch(e){cleanup();alert('Không mở được hộp thoại in: '+e.message);}
+    };
+    image.onload=printReady;
+    image.onerror=()=>{cleanup();alert('Không tải được ảnh phiếu in.');};
+    image.src=imageUrl;
+    if(image.complete&&image.naturalWidth)printReady();
+    frame.contentWindow.addEventListener('afterprint',cleanup,{once:true});
+    setTimeout(()=>{if(frame.isConnected)frame.remove();},120000);
     return {airprint:true,printed:false};
   }
   async function printPhoiToMac(forceIOSShare=false,forceNative=false,forceAirPrint=false,forceQueue=false){

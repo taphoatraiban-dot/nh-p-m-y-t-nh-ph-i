@@ -1351,7 +1351,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 
   <button type="button" id="pasteAll" class="soft" style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;font-size:12px">📋 DÁN TOÀN BỘ</button>
   <button type="button" class="bigok" id="okAll">OK</button>
-   <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">📱 IN BLUETOOTH</button>
+   <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">📱 CHUYỂN SANG XPRINTER</button>
+   <button type="button" id="printPhoiDirect" style="display:none;width:100%;min-height:46px;margin:5px 0;border:1px solid #059669;border-radius:11px;background:#ecfdf5;color:#047857;font-weight:900">🖨 IN TRỰC TIẾP (APP IP / BLUETOOTH)</button>
   <button type="button" id="openBluetoothPrintManager" style="display:block;width:100%;min-height:48px;margin:6px 0 9px;background:#eef2ff;color:#3730a3;border:1px solid #818cf8;border-radius:11px;font-weight:900">📚 QUẢN LÝ IN BLUETOOTH</button>
 
 <div id="syntaxGuideEntry" style="display:flex;justify-content:flex-end;margin:5px 2px 9px">
@@ -7608,7 +7609,7 @@ window.showHistoryItem=showHistoryItem;
     }
     write(a); return x;
   }
-  async function printPhoiToMac(forceIOSShare=false){
+  async function printPhoiToMac(forceIOSShare=false,forceNative=false){
     const bets=document.getElementById('bets');
     const rawText=String(bets?.value||'').trim();
     if(!rawText){alert('Chưa có phơi để in.');return;}
@@ -7643,13 +7644,16 @@ window.showHistoryItem=showHistoryItem;
       'Phieu chi co gia tri trong ngay in.'
     ].filter(Boolean).join('\n');
     const text=receipt;
-    const b=document.getElementById(forceIOSShare?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
+    const b=document.getElementById(forceNative?'printPhoiDirect':forceIOSShare?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
     if(b){b.disabled=true;b.textContent='⏳ ĐANG IN...';}
     try{
       const body=new URLSearchParams();
       body.set('text',text);body.set('date',document.getElementById('date')?.value||'');body.set('customer',document.getElementById('customerSelect')?.value||'');
       let r,printedResult;
-      if(forceIOSShare){
+      if(forceNative){
+        if(!window.TSHNativePrintBridge?.available())throw new Error('Chế độ in trực tiếp chỉ hoạt động trong ứng dụng Cucun Printer dành cho iPhone. Trên trình duyệt, hãy bấm CHUYỂN SANG XPRINTER.');
+        printedResult=await window.TSHNativePrintBridge.send(text);
+      }else if(forceIOSShare){
         if(!window.TSHIOSSharePhoi)throw new Error('Chưa tải được tính năng chia sẻ ảnh phơi.');
         printedResult=await window.TSHIOSSharePhoi.share(text);
       }else if(window.TSHPrinter && typeof window.TSHPrinter.sendPrint==='function'){
@@ -7658,11 +7662,11 @@ window.showHistoryItem=showHistoryItem;
         r=await fetch('/print',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:body.toString()});
         if(!r.ok)throw new Error(await r.text());
       }
-      if(printedResult?.shared){
-        if(confirm('Đã chia sẻ ảnh phơi. Máy in đã in thành công ra giấy chưa? Chỉ chọn OK nếu đã in xong.')){
+      if(printedResult?.shared||printedResult?.sent){
+        if(confirm(printedResult.sent?'Đã gửi dữ liệu đến máy in. Phiếu đã ra giấy đầy đủ chưa? Chỉ bấm OK khi đã in xong.':'Đã mở bảng chia sẻ. Hãy chọn ứng dụng XPrinter và in. Phiếu đã ra giấy đầy đủ chưa? Chỉ bấm OK khi đã in xong.')){
           savePrinted(text,rawText);
           if(b)b.textContent='✅ ĐÃ XÁC NHẬN IN';
-        }else if(b)b.textContent='📱 ĐÃ CHIA SẺ';
+        }else if(b)b.textContent='⏳ CHƯA XÁC NHẬN IN';
         setTimeout(()=>{if(b){b.disabled=false;b.textContent=old;}},1500);
         return;
       }
@@ -7714,12 +7718,20 @@ window.showHistoryItem=showHistoryItem;
   document.addEventListener('click',e=>{
     if(e.target.closest('#printPhoiPOS')){e.preventDefault();printPhoiToMac();}
     if(e.target.closest('#printPhoiBluetooth')){e.preventDefault();printPhoiToMac(true);}
+    if(e.target.closest('#printPhoiDirect')){e.preventDefault();printPhoiToMac(false,true);}
     if(e.target.closest('#openPrintHistory')){e.preventDefault();if(window.TSHBluetoothPrintManager)window.TSHBluetoothPrintManager.open();else openHistory();}
   });
 })();
 </script>
 
 <script src="src/ios-share-phoi.js"></script>
+<script src="src/ios-native-print-bridge.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ const direct=document.getElementById('printPhoiDirect');
+ if(direct&&window.TSHNativePrintBridge?.available())direct.style.display='block';
+});
+</script>
 <script src="src/print-history-utils.js"></script>
 <script src="src/bluetooth-print-manager.js"></script>
 <script>

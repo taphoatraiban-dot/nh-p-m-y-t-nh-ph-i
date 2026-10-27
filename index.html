@@ -7683,7 +7683,7 @@ window.showHistoryItem=showHistoryItem;
       'Phieu chi co gia tri trong ngay in.'
     ].filter(Boolean).join('\n');
     const text=receipt;
-    const b=document.getElementById(forceNative?'printPhoiDirect':forceIOSShare?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
+    const b=document.getElementById(forceNative?'printPhoiDirect':(forceIOSShare||forceQueue||forceAirPrint)?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
     if(b){b.disabled=true;b.textContent='⏳ ĐANG IN...';}
     try{
       const body=new URLSearchParams();
@@ -7776,9 +7776,9 @@ window.showHistoryItem=showHistoryItem;
       // The primary iPhone print action must never open the AirPrint picker.
       // Preserve AirPrint and Share as explicit alternatives via their own controls.
       if(mode==='native')printPhoiToMac(false,true);
-      else if(mode==='queue'||mode==='macqueue'||mode==='airprint'||(mode==='share'&&/iPhone|iPad|iPod/i.test(navigator.userAgent)))printPhoiToMac(false,false,false,true);
       else if(mode==='legacy')printPhoiToMac();
-      else printPhoiToMac(true);
+      else if(mode==='iosshare')printPhoiToMac(true);
+      else printPhoiToMac(false,false,false,true); // IN PHOI always queues; never opens AirPrint
     }
     if(e.target.closest('#printPhoiDirect')){e.preventDefault();printPhoiToMac(false,true);}
     if(e.target.closest('#openPrintHistory')){e.preventDefault();if(window.TSHBluetoothPrintManager)window.TSHBluetoothPrintManager.open();else openHistory();}

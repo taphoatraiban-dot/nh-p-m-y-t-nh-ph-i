@@ -1155,6 +1155,19 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   </div>
  </div>
  
+ <div class="drawer-section" id="printerIpMenu">
+  <h3>🌐 KẾT NỐI MÁY IN QUA IP / WI-FI</h3>
+  <div class="drawer-body">
+   <div style="font-size:12px;color:#475569;margin-bottom:9px">Cấu hình máy in Xprinter XP-Q809K qua mạng LAN.</div>
+   <label for="printerLanIP" style="display:block;font-size:13px;font-weight:800">Địa chỉ IP máy in</label>
+   <input id="printerLanIP" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="192.168.1.159" value="192.168.1.159">
+   <label for="printerLanPort" style="display:block;font-size:13px;font-weight:800;margin-top:9px">Cổng TCP máy in</label>
+   <input id="printerLanPort" type="number" min="1" max="65535" step="1" value="9100">
+   <button type="button" id="printerLanSave" class="green" style="width:100%;margin-top:12px">💾 LƯU ĐỊA CHỈ IP</button>
+   <div id="printerLanStatus" class="status" role="status" aria-live="polite" style="margin-top:8px">Chưa lưu cấu hình IP.</div>
+   <div style="font-size:11px;color:#64748b;margin-top:8px">iPhone và máy in phải ở cùng mạng Wi-Fi/LAN. Đây là địa chỉ TCP của máy in, không phải địa chỉ máy chủ HTTP. Lưu IP không tự tạo kết nối in trực tiếp từ trình duyệt; chế độ in qua IP cần ứng dụng hoặc bộ chuyển tiếp hỗ trợ ESC/POS.</div>
+  </div>
+ </div>
  <div class="drawer-section printer-menu">
   <h3>🖨 MÁY IN</h3>
   <div class="drawer-body">
@@ -9958,7 +9971,7 @@ const groups=[
 ['💎 BẢNG GIÁ & KHÁCH HÀNG',['calc-menu','customers']],
 ['🗂️ QUẢN LÝ DỮ LIỆU',['history','customer-msg-menu','ottArchiveMenu','ottVaultMenu']],
 ['📊 CÔNG NỢ & THỐNG KÊ',['tshDebtMenu','stats-menu']],
-['⚙️ QUẢN LÝ HỆ THỐNG',['device-permission','device-list-section','maintenance-admin','printer-menu']],
+['⚙️ QUẢN LÝ HỆ THỐNG',['device-permission','device-list-section','maintenance-admin','printerIpMenu','printer-menu']],
 ['🔵 MIỀN BẮC',['mbDrawerEntry']],
 ['📖 HƯỚNG DẪN & HỖ TRỢ',['guide-menu','support-menu','key-menu','logout-menu']]
 ];
@@ -12139,6 +12152,39 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 </script>
 
+<script id="cuncun-printer-lan-settings">
+(function(){
+ 'use strict';
+ const KEY='TSH_PRINTER_LAN_V1';
+ const ipField=document.getElementById('printerLanIP');
+ const portField=document.getElementById('printerLanPort');
+ const status=document.getElementById('printerLanStatus');
+ if(!ipField||!portField||!status)return;
+ function validIP(value){
+  const parts=value.split('.');
+  return parts.length===4&&parts.every(p=>/^\d{1,3}$/.test(p)&&Number(p)<=255&&String(Number(p))===p);
+ }
+ function validPort(value){return /^\d{1,5}$/.test(value)&&Number(value)>=1&&Number(value)<=65535;}
+ function show(message,ok){status.textContent=message;status.className='status '+(ok?'ok':'err');}
+ try{
+  const saved=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(saved&&validIP(saved.ip)&&validPort(String(saved.port))){
+   ipField.value=saved.ip;
+   portField.value=saved.port;
+   status.textContent='Đã lưu: '+saved.ip+':'+saved.port;
+  }
+ }catch(_){/* Giữ cấu hình mặc định nếu dữ liệu cục bộ không hợp lệ. */}
+ document.getElementById('printerLanSave')?.addEventListener('click',function(){
+  const ip=ipField.value.trim(),port=portField.value.trim();
+  if(!validIP(ip)){show('Địa chỉ IPv4 không hợp lệ. Ví dụ: 192.168.1.159',false);return;}
+  if(!validPort(port)){show('Cổng TCP phải từ 1 đến 65535.',false);return;}
+  try{
+   localStorage.setItem(KEY,JSON.stringify({ip:ip,port:Number(port)}));
+   show('✅ Đã lưu IP '+ip+':'+port+' trên thiết bị này. Chưa kiểm tra kết nối thực tế.',true);
+  }catch(_){show('Không thể lưu trên trình duyệt này. Hãy kiểm tra chế độ riêng tư hoặc dung lượng lưu trữ.',false);}
+ });
+})();
+</script>
 <!-- 2026-10-27: Ẩn giao diện máy in cũ, không xóa mã hoặc dữ liệu in. -->
 <style id="tsh-bluetooth-only-20261027">
 #appDrawer .printer-menu{display:none!important}

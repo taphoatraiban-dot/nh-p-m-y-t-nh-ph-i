@@ -12133,3 +12133,11 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  else mount();
 })();
 </script>
+
+<!-- 2026-10-27: Ẩn giao diện máy in cũ, không xóa mã hoặc dữ liệu in. -->
+<style id="tsh-bluetooth-only-20261027">
+#appDrawer .printer-menu{display:none!important}
+#finalThreeActions #printPhoiPOS,#tshThreeActions #printPhoiPOS,#printPhoiPOS{display:none!important}
+#finalThreeActions,#tshThreeActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#betsCard #printPhoiBluetooth{display:block!important;visibility:visible!important;width:100%!important}
+</style>

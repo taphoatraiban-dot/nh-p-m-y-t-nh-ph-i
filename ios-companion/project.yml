@@ -15,6 +15,7 @@ targets:
       - path: ThanTaiPrinterApp.swift
       - path: BluetoothReceiptPrinter.swift
       - path: ReceiptWebView.swift
+      - path: WiFiReceiptPrinter.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: vn.cuncun.ThanTaiPrinter

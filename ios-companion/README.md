@@ -7,6 +7,9 @@
 
 - WKWebView chỉ mở `https://cuncun.icu`, không cho website khác gửi lệnh in.
 - Chọn máy BLE do iPhone phát hiện; kết nối và dò GATT.
+- Chế độ **Wi-Fi / IP**: lưu IP nội bộ của máy XP-Q809K và cổng TCP (mặc định
+  `9100`); gửi raster ESC/POS trực tiếp bằng Network.framework. Chế độ này
+  cần máy in nối LAN vào router và iPhone ở cùng Wi-Fi.
 - Chỉ chọn dịch vụ ghi ESC/POS BLE phổ biến `FFE0`, `FF00`, `18F0`.
 - Nhận PNG từ nút IN BLUETOOTH qua `src/ios-native-print-bridge.js`.
 - Chuyển ảnh sang raster ESC/POS rộng 576 điểm (giấy 80mm) và gửi dữ liệu theo
@@ -33,6 +36,7 @@ Việc tạo dự án không tự kích hoạt chức năng in trên sản xuấ
 ## Chưa hoàn thành để phát hành
 
 - Xác minh UUID và giao thức bằng XP-Q809K thực tế; thử in nhiều phiếu và tiếng Việt.
+- Xác minh máy có bật cổng TCP raw `9100` và biết địa chỉ IP trong LAN.
 - Kết nối QR ký trên server, luồng xác thực/quản lý phơi và sao lưu dữ liệu.
 - Kiểm tra quyền truy cập Admin, xử lý khôi phục kết nối và trạng thái giấy.
 - Phát hành qua phương thức ký và cài đặt iOS phù hợp.

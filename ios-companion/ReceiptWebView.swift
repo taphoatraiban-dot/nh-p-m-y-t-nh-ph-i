@@ -3,8 +3,11 @@ import WebKit
 
 struct ReceiptWebView: UIViewRepresentable {
     let printer: BluetoothReceiptPrinter
+    let route: String
+    let host: String
+    let port: Int
 
-    func makeCoordinator() -> Coordinator { Coordinator(printer: printer) }
+    func makeCoordinator() -> Coordinator { Coordinator(printer: printer, route: route, host: host, port: port) }
 
     func makeUIView(context: Context) -> WKWebView {
         let controller = WKUserContentController()
@@ -18,13 +21,25 @@ struct ReceiptWebView: UIViewRepresentable {
         return web
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        context.coordinator.route = route
+        context.coordinator.host = host
+        context.coordinator.port = port
+    }
 
     final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         let printer: BluetoothReceiptPrinter
+        var route: String
+        var host: String
+        var port: Int
         weak var web: WKWebView?
 
-        init(printer: BluetoothReceiptPrinter) { self.printer = printer }
+        init(printer: BluetoothReceiptPrinter, route: String, host: String, port: Int) {
+            self.printer = printer
+            self.route = route
+            self.host = host
+            self.port = port
+        }
 
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
                      decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -44,12 +59,14 @@ struct ReceiptWebView: UIViewRepresentable {
                   raw.hasPrefix("data:image/png;base64,"), raw.count <= 2_000_000,
                   let png = Data(base64Encoded: String(raw.dropFirst("data:image/png;base64,".count)))
             else { return }
-            printer.sendPNG(png) { [weak self] result in
+            let response: (Result<Void, Swift.Error>) -> Void = { [weak self] result in
                 switch result {
                 case .success: self?.reply(id: id, ok: true, error: "")
                 case .failure(let error): self?.reply(id: id, ok: false, error: error.localizedDescription)
                 }
             }
+            if route == "wifi" { WiFiReceiptPrinter.sendPNG(png, to: host, port: port, completion: response) }
+            else { printer.sendPNG(png, completion: response) }
         }
 
         private func reply(id: Int, ok: Bool, error: String) {

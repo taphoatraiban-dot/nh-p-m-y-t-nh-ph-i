@@ -12281,17 +12281,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   printButton.click();
  }
  document.getElementById('printerPrintNow')?.addEventListener('click',function(){
-  // iPhone Safari sends the receipt to the authenticated Mac queue, not window.print().
+  // Respect the mode explicitly selected in the printer settings.
   if(!saveSettings(true))return;
-  const queueButton=document.getElementById('printPhoiBluetooth');
-  if(!queueButton){show('Không tìm thấy chức năng in phơi.',false);return;}
-  try{
-   const prior=localStorage.getItem('TSH_PRINTER_LAN_V1');
-   const cfg=prior?JSON.parse(prior):{};
-   localStorage.setItem('TSH_PRINTER_LAN_V1',JSON.stringify({...cfg,mode:'macqueue'}));
-   queueButton.click();
-   show('Đang gửi phiếu vào hàng đợi Mac; kiểm tra trạng thái để xác nhận.',true);
-  }catch(err){show('Không thể gửi yêu cầu in: '+(err?.message||err),false);}
+  clickPrint();
  });
  document.getElementById('printerShareNow')?.addEventListener('click',function(){
   if(modeField)modeField.value='share';

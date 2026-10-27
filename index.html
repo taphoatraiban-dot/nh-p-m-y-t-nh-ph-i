@@ -7767,20 +7767,6 @@ window.showHistoryItem=showHistoryItem;
       all.forEach(x=>x.selected=ids.includes(x.id));write(all);alert('Đã COPY '+picked.length+' phơi. Sang Telegram và DÁN.');
     };
   }
-  // Capture the two primary print actions before any legacy AirPrint handlers.
-  // A single explicit queue path avoids Safari's system printer picker.
-  document.addEventListener('click',function(e){
-    const target=e.target instanceof Element?e.target:null;
-    if(!target||!target.closest('#printPhoiBluetooth,#printerPrintNow'))return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    try{
-      const key='TSH_PRINTER_LAN_V1';
-      const saved=JSON.parse(localStorage.getItem(key)||'{}');
-      localStorage.setItem(key,JSON.stringify({...saved,mode:'macqueue'}));
-    }catch(_){/* Queue operation uses authenticated Supabase regardless of local preferences. */}
-    void printPhoiToMac(false,false,false,true);
-  },true);
   document.addEventListener('click',e=>{
     if(e.target.closest('#printPhoiPOS')){e.preventDefault();printPhoiToMac();}
     if(e.target.closest('#printPhoiBluetooth')){

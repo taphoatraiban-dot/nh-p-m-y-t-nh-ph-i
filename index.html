@@ -7775,7 +7775,7 @@ window.showHistoryItem=showHistoryItem;
       try{mode=JSON.parse(localStorage.getItem('TSH_PRINTER_LAN_V1')||'{}').mode||'share';}catch(_){}
       if(mode==='native')printPhoiToMac(false,true);
       else if(mode==='airprint')printPhoiToMac(false,false,true);
-      else if(mode==='queue')printPhoiToMac(false,false,false,true);
+      else if(mode==='queue'||mode==='macqueue')printPhoiToMac(false,false,false,true);
       else if(mode==='legacy')printPhoiToMac();
       else printPhoiToMac(true);
     }
@@ -12236,6 +12236,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  const hint=document.getElementById('printerTransportHint');
  if(!ipField||!portField||!status)return;
  const labels={
+  macqueue:'Gửi phiếu vào hàng đợi Supabase; Mac Mini tự in khi chương trình worker đang chạy.',
   queue:'Gửi phơi an toàn vào hàng đợi. Mac Mini sẽ nhận và in khi worker đang chạy.',
    share:'Mở bảng Chia sẻ của iPhone — đây là cách đã in được. Phiếu không tự lưu vào Ảnh.',
   airprint:'Đang thử nghiệm: cầu nối nhận được máy nhưng từng bị kẹt “Đang in 1/1”. Chỉ xác nhận đã in khi thực sự ra giấy.',

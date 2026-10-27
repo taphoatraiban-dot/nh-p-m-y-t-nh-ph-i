@@ -7623,35 +7623,26 @@ window.showHistoryItem=showHistoryItem;
     write(a); return x;
   }
   function printReceiptAirPrint(text){
-    // Isolate the receipt from the application styles and DOM before Safari prints.
-    // A canvas hidden in the main document previously produced a blank/stalled job.
-    if(!window.TSHIOSSharePhoi?.render)throw new Error('Chưa tải được bộ tạo ảnh phiếu 80 mm.');
+    // Safari must print the receipt image, never the app DOM or an iframe.
+    if(!window.TSHIOSSharePhoi?.render)throw Error('Chưa tải được bộ tạo phiếu 80 mm.');
     const canvas=window.TSHIOSSharePhoi.render(text,document);
-    const imageUrl=canvas.toDataURL('image/png');
-    const frame=document.createElement('iframe');
-    frame.setAttribute('title','Phiếu in CUNCUN 80 mm');
-    frame.style.cssText='position:fixed;left:-10000px;top:0;width:80mm;height:200mm;border:0;';
-    document.body.appendChild(frame);
-    const doc=frame.contentDocument;
-    if(!doc){frame.remove();throw new Error('Safari không tạo được trang in riêng.');}
-    doc.open();
-    doc.write('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>@page{size:80mm auto;margin:0}html,body{margin:0;padding:0;background:white;width:80mm}img{display:block;width:72mm;height:auto;margin:0 auto;image-rendering:auto}@media print{html,body{width:80mm!important}}</style></head><body><img id="receipt" alt="Phiếu CUNCUN"></body></html>');
-    doc.close();
-    const image=doc.getElementById('receipt');
-    let started=false;
-    const cleanup=()=>{setTimeout(()=>frame.remove(),1500);};
-    const printReady=()=>{
-      if(started)return;
-      started=true;
-      try{frame.contentWindow.focus();frame.contentWindow.print();}
-      catch(e){cleanup();alert('Không mở được hộp thoại in: '+e.message);}
-    };
-    image.onload=printReady;
-    image.onerror=()=>{cleanup();alert('Không tải được ảnh phiếu in.');};
-    image.src=imageUrl;
-    if(image.complete&&image.naturalWidth)printReady();
-    frame.contentWindow.addEventListener('afterprint',cleanup,{once:true});
-    setTimeout(()=>{if(frame.isConnected)frame.remove();},120000);
+    const image= document.createElement('img');
+    image.id='cuncun-print-receipt-only';
+    image.alt='Phiếu tính tiền CUNCUN';
+    image.src=canvas.toDataURL('image/png');
+    const style=document.createElement('style');
+    style.id='cuncun-print-receipt-style';
+    style.textContent='@media print{@page{size:80mm auto;margin:0!important}body.cuncun-receipt-print> :not(#cuncun-print-receipt-only){display:none!important}html,body.cuncun-receipt-print{width:80mm!important;margin:0!important;padding:0!important;min-height:0!important;background:#fff!important}body.cuncun-receipt-print #cuncun-print-receipt-only{display:block!important;position:static!important;width:72mm!important;max-width:72mm!important;height:auto!important;margin:0 auto!important;visibility:visible!important;break-inside:avoid!important}}';
+    image.style.cssText='display:none';
+    document.head.appendChild(style);
+    document.body.appendChild(image);
+    document.body.classList.add('cuncun-receipt-print');
+    let cleaned=false;
+    const cleanup=()=>{if(cleaned)return;cleaned=true;document.body.classList.remove('cuncun-receipt-print');image.remove();style.remove();window.removeEventListener('afterprint',cleanup);};
+    window.addEventListener('afterprint',cleanup,{once:true});
+    // Keep the receipt isolated while the iOS print dialog is active.
+    setTimeout(cleanup,180000);
+    try{window.print();}catch(e){cleanup();throw e;}
     return {airprint:true,printed:false};
   }
   async function printPhoiToMac(forceIOSShare=false,forceNative=false,forceAirPrint=false,forceQueue=false){
@@ -7716,7 +7707,7 @@ window.showHistoryItem=showHistoryItem;
         // from an iframe. Share ONLY the rendered receipt PNG instead;
         // the user chooses Print from the iOS share sheet.
         if(!window.TSHIOSSharePhoi)throw new Error('Chưa tải được bộ tạo ảnh phiếu 80 mm.');
-        printedResult=await window.TSHIOSSharePhoi.share(text);
+        printedResult=printReceiptAirPrint(text);
       }else if(forceNative){
         if(!window.TSHNativePrintBridge?.available())throw new Error('Chế độ in trực tiếp chỉ hoạt động trong ứng dụng Cucun Printer dành cho iPhone. Trên trình duyệt, hãy bấm CHUYỂN SANG XPRINTER.');
         printedResult=await window.TSHNativePrintBridge.send(text);

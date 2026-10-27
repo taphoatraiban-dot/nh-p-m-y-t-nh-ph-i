@@ -1338,13 +1338,14 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 
   <button type="button" id="pasteAll" class="soft" style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;font-size:12px">📋 DÁN TOÀN BỘ</button>
   <button type="button" class="bigok" id="okAll">OK</button>
+   <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">📱 IN BLUETOOTH</button>
+
 <div id="syntaxGuideEntry" style="display:flex;justify-content:flex-end;margin:5px 2px 9px">
  <span class="tt-license-compact" id="ttLicenseCompact" role="status" aria-live="polite">HẠN: ĐANG KIỂM TRA</span> <span class="tt-release-badge" title="Phiên bản phần mềm">V10.20.01</span> <button type="button" id="syntaxGuideOpen" style="background:#fff;color:#ad2720;border:1px solid #ffad60;border-radius:11px;padding:10px 16px;font-weight:800;font-size:14px">📖 HƯỚNG DẪN</button>
 </div>
 
   <div class="phoi-quick-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%;margin:7px auto 2px;align-items:stretch">
 <button type="button" id="printPhoiPOS" style="width:100%;min-width:0;margin:0;display:block;border:0;border-radius:11px;background:#111827;color:#fff;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">🖨 IN PHƠI</button>
-   <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">📱 IN BLUETOOTH</button>
    <button type="button" id="openPrintHistory" style="width:100%;min-width:0;margin:0;display:block;border:1px solid #cbd5e1;border-radius:11px;background:#fff;color:#334155;padding:9px 3px;font-size:11px;line-height:1.15;font-weight:900;white-space:normal">📋 TỔNG HỢP IN</button>
   </div>
    <div id="phoiErrorBox"></div>
@@ -10815,7 +10816,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #finalThreeActions #qrScanBtn{background:#eaf4ff!important;border-color:#3b82f6!important;color:#174ea6!important}
 #finalThreeActions #printPhoiPOS{background:#eafbf1!important;border-color:#16a34a!important;color:#166534!important}
 #finalThreeActions #openPrintHistory{background:#fff3e6!important;border-color:#f97316!important;color:#9a3412!important}
-#finalThreeActions #printPhoiBluetooth{grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;background:#eff6ff!important;border:1.5px solid #2563eb!important;color:#1d4ed8!important;min-height:48px!important;height:48px!important;font-size:14px!important;font-weight:900!important}
+#betsCard #printPhoiBluetooth{display:block!important;width:100%!important;visibility:visible!important;min-height:52px!important;margin:8px 0!important;background:#eff6ff!important;border:2px solid #2563eb!important;color:#1d4ed8!important;font-size:15px!important;font-weight:900!important;box-shadow:0 2px 8px rgba(37,99,235,.12)!important}
 @media(max-width:380px){#liveSoiBar>div:first-child>strong{font-size:11px!important}#liveSoiToggle,#liveCheckNow{font-size:10px!important;padding:5px!important}#finalThreeActions .ft{font-size:10px!important}}
 </style>
 <script id="tt-ui-only-live-compact-1610-js">
@@ -10826,7 +10827,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    var state=document.getElementById('liveSoiState');
    if(state&&state.parentNode===bar.firstElementChild){bar.firstElementChild.insertAdjacentElement('afterend',state);}
   }
-  var p=document.getElementById('printPhoiPOS'),h=document.getElementById('openPrintHistory'),q=document.getElementById('qrScanBtn'),bt=document.getElementById('printPhoiBluetooth');
+  var p=document.getElementById('printPhoiPOS'),h=document.getElementById('openPrintHistory'),q=document.getElementById('qrScanBtn');
   if(p&&h&&q){
    var row=document.getElementById('finalThreeActions');
    if(!row){row=document.createElement('div');row.id='finalThreeActions';p.parentNode.insertBefore(row,p);}
@@ -10838,7 +10839,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var tx=document.createElement('span');tx.className='ft';tx.textContent=a[2];
     a[0].append(ic,tx);a[0].dataset.ttUiCompact='1';
    });
-   if(bt&&bt.parentNode!==row)row.appendChild(bt);
   }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply);else apply();

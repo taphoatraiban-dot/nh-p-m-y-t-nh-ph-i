@@ -12290,15 +12290,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    const cfg=prior?JSON.parse(prior):{};
    localStorage.setItem('TSH_PRINTER_LAN_V1',JSON.stringify({...cfg,mode:'macqueue'}));
    queueButton.click();
-   show('Đã yêu cầu gửi riêng phiếu vào hàng đợi Mac. Kiểm tra trạng thái trước khi xác nhận in giấy.',true);
+   show('Đang gửi phiếu vào hàng đợi Mac; hãy kiểm tra xác nhận từ hệ thống.',true);
   }catch(err){show('Không thể gửi yêu cầu in: '+(err?.message||err),false);}
   return;
-  if(false){
-   show('Chưa có ứng dụng Cucun Printer trên iPhone. Bấm IN QUA CHIA SẺ bên dưới để dùng đường in đã hoạt động.',false);
-   return;
-  }
-  if(!saveSettings(true))return;
-  clickPrint();
  });
  document.getElementById('printerShareNow')?.addEventListener('click',function(){
   if(modeField)modeField.value='share';

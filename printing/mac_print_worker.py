@@ -3,6 +3,7 @@
 The worker never uses a service-role key. Old pending jobs are intentionally ignored.
 """
 import os,sys,json,time,socket,datetime,urllib.request,urllib.parse
+import mac_auth
 from PIL import Image,ImageDraw,ImageFont
 import qrcode
 BASE="https://zigpqddlhvjbjrwhfhaa.supabase.co/rest/v1/print_queue"
@@ -10,9 +11,14 @@ KEY="sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni"
 TOKEN=os.environ.get("CUNCUN_ACCESS_TOKEN")
 ACTIVATED=os.environ.get("CUNCUN_PRINT_ACTIVATED_AT")
 IP=os.environ.get("CUNCUN_PRINTER_IP","192.168.1.159")
-if not TOKEN or not ACTIVATED: sys.exit("Set CUNCUN_ACCESS_TOKEN and CUNCUN_PRINT_ACTIVATED_AT first.")
-HEAD={"apikey":KEY,"Authorization":"Bearer "+TOKEN,"Content-Type":"application/json","Prefer":"return=representation"}
+if not ACTIVATED:
+    state=mac_auth.session()
+    ACTIVATED=state.get("activation") or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    state["activation"]=ACTIVATED
+    mac_auth.save(state)
+HEAD={"apikey":KEY,"Authorization":"Bearer "+(TOKEN or ""),"Content-Type":"application/json","Prefer":"return=representation"}
 def api(method,params,body=None):
+    HEAD["Authorization"]="Bearer "+(TOKEN or mac_auth.token())
     url=BASE+"?"+urllib.parse.urlencode(params)
     req=urllib.request.Request(url,headers=HEAD,method=method,data=json.dumps(body).encode() if body is not None else None)
     with urllib.request.urlopen(req,timeout=15) as resp:
@@ -51,6 +57,7 @@ def raster(text):
     return bytes(out)+b"\n\n\n\x1d\x56\x00"
 while True:
     try:
+        if not TOKEN: HEAD["Authorization"]="Bearer "+mac_auth.token()
         jobs=api("GET",{"select":"id,print_text","status":"eq.pending","created_at":"gte."+ACTIVATED,"order":"id.asc","limit":"10"})
         for job in jobs:
             filter={"id":"eq."+str(job["id"]),"status":"eq.pending"}

@@ -1164,7 +1164,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
     <option value="macqueue">🖨 Mac Mini – In tự động một chạm</option>
      <option value="queue">⚡ IN NGAY qua Mac Mini (hàng đợi bảo mật)</option>
      <option value="share">📤 Chia sẻ (đã thử in được)</option>
-    <option value="airprint">🖨 AirPrint / cầu nối trên Mac (đang lỗi)</option>
+    <option value="airprint" selected>🖨 AirPrint / cầu nối trên Mac</option>
     <option value="native">🟢 Cucun Printer: Wi-Fi/IP hoặc Bluetooth (cần ứng dụng)</option>
     <option value="legacy">☁️ Hệ thống in đã cấu hình trước đây</option>
    </select>
@@ -12271,7 +12271,13 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    portField.value=saved.port;
    status.textContent='Đã lưu: '+saved.ip+':'+saved.port;
   }
-  if(saved&&Object.hasOwn(labels,saved.mode)&&modeField)modeField.value=saved.mode;
+  if(modeField){
+   // Khôi phục AirPrint cho cấu hình native chưa hoạt động; giữ nguyên các chế độ khác.
+   if(saved?.mode==='native'){
+    modeField.value='airprint';
+    localStorage.setItem(KEY,JSON.stringify({...saved,mode:'airprint'}));
+   }else if(saved&&Object.hasOwn(labels,saved.mode))modeField.value=saved.mode;
+  }
  }catch(_){/* Giữ cấu hình mặc định nếu dữ liệu cục bộ không hợp lệ. */}
  updateHint();
  function saveSettings(silent){

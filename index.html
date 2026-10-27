@@ -7671,18 +7671,28 @@ window.showHistoryItem=showHistoryItem;
     const code=Math.random().toString(36).slice(2,6).toUpperCase();
     const date=document.getElementById('date')?.value||`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
     const customer=document.getElementById('customerSelect')?.value||'';
-    const sm=currentSummary()||{totalGross:0,finalTotal:0};
+    // Only print an actual calculated result, never a raw input with zeroed totals.
+    const sm=currentSummary();
+    if(!sm||!lastCalc){alert('Hãy bấm OK để TÍNH PHƠI trước khi in phiếu tính tiền.');return;}
     const money=n=>Math.round(Math.abs(Number(n)||0)).toLocaleString('vi-VN');
     const balance=Number(sm.finalTotal)||0;
     const balanceLabel=balance>=0?'THU':'BU';
+    const signed=n=>(Number(n)<0?'-':'+')+money(n);
+    const regions=['N','T','B'].filter(k=>lastSummary?.[k]&&[lastSummary[k].gross,lastSummary[k].win,lastSummary[k].thu].some(v=>Number(v)!==0))
+      .map(k=>`${k}: XAC ${money(lastSummary[k].gross)}  TRUNG ${money(lastSummary[k].win)}  THU/BU ${signed(lastSummary[k].thu)}k`);
     const receipt=[
       `${date}  ${pad(now.getHours())}:${pad(now.getMinutes())}  MA: ${code}`,
       customer?`KHACH: ${customer}`:'',
       '--------------------------------',
+      'PHOI DA TINH:',
       rawText,
       '--------------------------------',
+      ...regions,
       `TIEN XAC: ${money(sm.totalGross)}k`,
-      `${balanceLabel}: ${money(balance)}k`,
+      `TIEN TRUNG: ${money(sm.totalWin)}k`,
+      `THU/BU TRONG NGAY: ${signed(lastSummary.totalThu)}k`,
+      `CU: ${signed(lastSummary.old||0)}k`,
+      `TONG ${balanceLabel}: ${money(balance)}k`,
       '--------------------------------',
       `MA PHIEU: ${code}`,
       '[[QR:Thần Số Học]]',

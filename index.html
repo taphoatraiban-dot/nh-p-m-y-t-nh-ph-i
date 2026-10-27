@@ -7776,9 +7776,10 @@ window.showHistoryItem=showHistoryItem;
       // The primary iPhone print action must never open the AirPrint picker.
       // Preserve AirPrint and Share as explicit alternatives via their own controls.
       if(mode==='native')printPhoiToMac(false,true);
+      else if(mode==='airprint')printPhoiToMac(false,false,true);
+      else if(mode==='queue'||mode==='macqueue')printPhoiToMac(false,false,false,true);
       else if(mode==='legacy')printPhoiToMac();
-      else if(mode==='iosshare')printPhoiToMac(true);
-      else printPhoiToMac(false,false,false,true); // IN PHOI always queues; never opens AirPrint
+      else printPhoiToMac(true);
     }
     if(e.target.closest('#printPhoiDirect')){e.preventDefault();printPhoiToMac(false,true);}
     if(e.target.closest('#openPrintHistory')){e.preventDefault();if(window.TSHBluetoothPrintManager)window.TSHBluetoothPrintManager.open();else openHistory();}
@@ -12296,13 +12297,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   if(modeField)modeField.value='share';
   updateHint();
   if(!saveSettings(true))return;
-  // Explicit share button bypasses the default iPhone queue route.
-  try{
-   const key='TSH_PRINTER_LAN_V1';
-   const cfg=JSON.parse(localStorage.getItem(key)||'{}');
-   localStorage.setItem(key,JSON.stringify({...cfg,mode:'iosshare'}));
-   clickPrint();
-  }catch(err){show('Không thể mở chia sẻ: '+(err?.message||err),false);}
+  clickPrint();
  });
 })();
 </script>

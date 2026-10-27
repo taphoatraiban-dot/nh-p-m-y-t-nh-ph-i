@@ -1,0 +1,28 @@
+name: Verify Mac print worker
+on:
+  push:
+    branches:
+      - feature/cuncun-one-tap-print-20261028
+  pull_request:
+    paths:
+      - 'printing/**'
+      - 'index.html'
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile Python files
+        run: python -m py_compile printing/mac_auth.py printing/mac_print_worker.py printing/mac_bridge_local.py
+      - name: Check web integration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text()
+          for item in ('value="queue"', 'forceQueue=false', 'printedResult?.queued', "mode==='queue'"):
+              assert item in s, item
+          print('Queue UI integration found')
+          PY

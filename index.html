@@ -1161,7 +1161,9 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
    <div style="font-size:12px;color:#475569;margin-bottom:9px">Giữ song song mọi cách in. Chọn phương thức dùng cho nút IN NGAY; có thể đổi sang phương thức khác bất kỳ lúc nào.</div>
    <label for="printerTransportMode" style="display:block;font-size:13px;font-weight:800">Cách kết nối / in</label>
    <select id="printerTransportMode" style="width:100%;margin:5px 0 10px">
-    <option value="share">📤 Chia sẻ (đã thử in được)</option>
+    <option value="macqueue">🖨 Mac Mini – In tự động một chạm</option>
+     <option value="queue">⚡ IN NGAY qua Mac Mini (hàng đợi bảo mật)</option>
+     <option value="share">📤 Chia sẻ (đã thử in được)</option>
     <option value="airprint">🖨 AirPrint / cầu nối trên Mac (đang lỗi)</option>
     <option value="native">🟢 Cucun Printer: Wi-Fi/IP hoặc Bluetooth (cần ứng dụng)</option>
     <option value="legacy">☁️ Hệ thống in đã cấu hình trước đây</option>
@@ -7646,7 +7648,7 @@ window.showHistoryItem=showHistoryItem;
     window.print();
     return {airprint:true,printed:false};
   }
-  async function printPhoiToMac(forceIOSShare=false,forceNative=false,forceAirPrint=false){
+  async function printPhoiToMac(forceIOSShare=false,forceNative=false,forceAirPrint=false,forceQueue=false){
     const bets=document.getElementById('bets');
     const rawText=String(bets?.value||'').trim();
     if(!rawText){alert('Chưa có phơi để in.');return;}
@@ -7687,7 +7689,13 @@ window.showHistoryItem=showHistoryItem;
       const body=new URLSearchParams();
       body.set('text',text);body.set('date',document.getElementById('date')?.value||'');body.set('customer',document.getElementById('customerSelect')?.value||'');
       let r,printedResult;
-      if(forceAirPrint){
+      if(forceQueue){
+        const auth=await sb.auth.getUser();
+        if(!auth.data?.user?.id)throw new Error("Vui lòng đăng nhập Cuncun trước khi in.");
+        const q=await sb.from("print_queue").insert({print_text:text,customer:customer,draw_date:date,status:"pending"}).select("id").single();
+        if(q.error)throw q.error;
+        printedResult={queued:true,id:q.data.id};
+      }else if(forceAirPrint){
         printedResult=printReceiptAirPrint(text);
       }else if(forceNative){
         if(!window.TSHNativePrintBridge?.available())throw new Error('Chế độ in trực tiếp chỉ hoạt động trong ứng dụng Cucun Printer dành cho iPhone. Trên trình duyệt, hãy bấm CHUYỂN SANG XPRINTER.');
@@ -7700,6 +7708,10 @@ window.showHistoryItem=showHistoryItem;
       }else{
         r=await fetch('/print',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:body.toString()});
         if(!r.ok)throw new Error(await r.text());
+      }
+      if(printedResult?.queued){
+        if(b){b.textContent="✅ ĐÃ GỬI HÀNG ĐỢI #"+printedResult.id;setTimeout(()=>{b.disabled=false;b.textContent=old;},2500);}
+        return;
       }
       if(printedResult?.shared||printedResult?.sent||printedResult?.airprint){
         const question=printedResult.airprint?'Đã mở AirPrint. Phiếu đã in ra giấy chưa? Chỉ bấm OK nếu giấy đã in xong.':printedResult.sent?'Đã gửi dữ liệu đến máy in. Phiếu đã ra giấy đầy đủ chưa? Chỉ bấm OK khi đã in xong.':'Đã mở bảng chia sẻ. Hãy chọn ứng dụng in (nếu xuất hiện). Phiếu đã ra giấy đầy đủ chưa? Chỉ bấm OK khi đã in xong.';
@@ -7763,6 +7775,7 @@ window.showHistoryItem=showHistoryItem;
       try{mode=JSON.parse(localStorage.getItem('TSH_PRINTER_LAN_V1')||'{}').mode||'share';}catch(_){}
       if(mode==='native')printPhoiToMac(false,true);
       else if(mode==='airprint')printPhoiToMac(false,false,true);
+      else if(mode==='queue'||mode==='macqueue')printPhoiToMac(false,false,false,true);
       else if(mode==='legacy')printPhoiToMac();
       else printPhoiToMac(true);
     }
@@ -12223,7 +12236,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  const hint=document.getElementById('printerTransportHint');
  if(!ipField||!portField||!status)return;
  const labels={
-  share:'Mở bảng Chia sẻ của iPhone — đây là cách đã in được. Phiếu không tự lưu vào Ảnh.',
+  macqueue:'Gửi phiếu vào hàng đợi Supabase; Mac Mini tự in khi chương trình worker đang chạy.',
+  queue:'Gửi phơi an toàn vào hàng đợi. Mac Mini sẽ nhận và in khi worker đang chạy.',
+   share:'Mở bảng Chia sẻ của iPhone — đây là cách đã in được. Phiếu không tự lưu vào Ảnh.',
   airprint:'Đang thử nghiệm: cầu nối nhận được máy nhưng từng bị kẹt “Đang in 1/1”. Chỉ xác nhận đã in khi thực sự ra giấy.',
   native:'In nhanh Wi-Fi/IP hoặc Bluetooth từ ứng dụng Cucun Printer được cài trên iPhone. Trình duyệt Cốc Cốc/Safari không thể tự gửi lệnh TCP/Bluetooth.',
   legacy:'Sử dụng cấu hình máy chủ in đã có trước đây; không thay đổi dữ liệu hay hàng đợi cũ.'

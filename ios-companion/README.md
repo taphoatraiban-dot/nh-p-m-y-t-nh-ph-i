@@ -1,4 +1,4 @@
-# Thần Tài – iPhone Bluetooth companion (thử nghiệm)
+# Cucun Printer – iPhone LAN/Bluetooth companion (thử nghiệm)
 
 **Chưa phát hành, chưa kiểm thử trên XP-Q809K thật.** Đây là nguồn khởi đầu cho
 ứng dụng iOS, không phải bản cài đặt `.ipa` và không thay thế ứng dụng XPrinter.
@@ -8,8 +8,9 @@
 - WKWebView chỉ mở `https://cuncun.icu`, không cho website khác gửi lệnh in.
 - Chọn máy BLE do iPhone phát hiện; kết nối và dò GATT.
 - Chế độ **Wi-Fi / IP**: lưu IP nội bộ của máy XP-Q809K và cổng TCP (mặc định
-  `9100`); gửi raster ESC/POS trực tiếp bằng Network.framework. Chế độ này
+  `9100`); điền sẵn IP `192.168.1.159` từ phiếu self-test của chủ máy; gửi raster ESC/POS trực tiếp bằng Network.framework. Chế độ này
   cần máy in nối LAN vào router và iPhone ở cùng Wi-Fi.
+- Mặc định mở chế độ Wi-Fi/IP, yêu cầu quyền truy cập mạng cục bộ của iOS.
 - Chỉ chọn dịch vụ ghi ESC/POS BLE phổ biến `FFE0`, `FF00`, `18F0`.
 - Nhận PNG từ nút IN BLUETOOTH qua `src/ios-native-print-bridge.js`.
 - Chuyển ảnh sang raster ESC/POS rộng 576 điểm (giấy 80mm) và gửi dữ liệu theo
@@ -28,10 +29,9 @@
    **dừng**: bản XP-Q809K có thể dùng Bluetooth Classic hoặc UUID/SDK riêng.
    Cần tài liệu SDK chính thức trước khi tiếp tục, không đoán lệnh.
 
-**Quan trọng:** Ứng dụng đang tải website sản xuất và cần file
-`src/ios-native-print-bridge.js` cùng đường gọi trong `index.html` đã được
-triển khai thì nút Bluetooth mới chuyển lệnh cho app. Hiện chưa triển khai.
-Việc tạo dự án không tự kích hoạt chức năng in trên sản xuất.
+**Quan trọng:** Website sản xuất đã có `src/ios-native-print-bridge.js`
+và nút **IN TRỰC TIẾP** chỉ hiện khi truy cập từ ứng dụng này. Trên Safari
+vẫn phải dùng bảng chia sẻ. Việc xây dựng nguồn không tự cài app lên iPhone.
 
 ## Chưa hoàn thành để phát hành
 

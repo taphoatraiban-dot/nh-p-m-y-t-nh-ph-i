@@ -3,9 +3,10 @@ import SwiftUI
 @main
 struct ThanTaiPrinterApp: App {
     @StateObject private var printer = BluetoothReceiptPrinter()
-    @AppStorage("tsh.print.mode") private var printMode = "bluetooth"
+    @AppStorage("tsh.print.mode") private var printMode = "wifi"
     @AppStorage("tsh.print.ip") private var printerIP = "192.168.1.159"
     @AppStorage("tsh.print.port") private var printerPort = 9100
+    @State private var lanTestStatus = ""
 
     var body: some Scene {
         WindowGroup {
@@ -44,6 +45,18 @@ struct ThanTaiPrinterApp: App {
                         }.textFieldStyle(.roundedBorder).padding(.horizontal)
                         Text("XP-Q809K phải nối LAN vào bộ phát Wi-Fi. iPhone cần ở cùng mạng nội bộ; 5G ở xa không kết nối trực tiếp bằng IP riêng.")
                             .font(.caption).foregroundStyle(.secondary).padding(.horizontal)
+                        Button("🧾 IN THỬ QUA IP") {
+                            lanTestStatus = "Đang gửi lệnh thử..."
+                            WiFiReceiptPrinter.sendTest(to: printerIP, port: printerPort) { result in
+                                switch result {
+                                case .success: lanTestStatus = "Đã gửi lệnh. Hãy kiểm tra giấy đã ra chưa."
+                                case .failure(let error): lanTestStatus = "Không gửi được: \(error.localizedDescription)"
+                                }
+                            }
+                        }.buttonStyle(.borderedProminent)
+                        if !lanTestStatus.isEmpty {
+                            Text(lanTestStatus).font(.footnote).padding(.horizontal)
+                        }
                     }
                     ReceiptWebView(printer: printer, route: printMode, host: printerIP, port: printerPort)
                 }

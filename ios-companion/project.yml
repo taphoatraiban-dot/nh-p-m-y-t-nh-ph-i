@@ -21,5 +21,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: vn.cuncun.ThanTaiPrinter
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "Bluetooth được dùng để kết nối máy in Xprinter và in phiếu mua hàng."
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Cucun Printer kết nối đến máy in Xprinter qua mạng Wi-Fi/LAN nội bộ để in phiếu mua hàng."
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES

@@ -26,13 +26,24 @@ enum WiFiReceiptPrinter {
 
     static func sendPNG(_ image: Data, to host: String, port: Int,
                         completion: @escaping (Result<Void, Swift.Error>) -> Void) {
+        let bytes: Data
+        do { bytes = try BluetoothReceiptPrinter.escposRaster(image) }
+        catch { completion(.failure(error)); return }
+        sendBytes(bytes, to: host, port: port, completion: completion)
+    }
+
+    static func sendTest(to host: String, port: Int,
+                         completion: @escaping (Result<Void, Swift.Error>) -> Void) {
+        let bytes = Data([0x1b, 0x40]) + Data("CUNCUN - LAN TEST\nIP CONNECTED\n\n\n".utf8)
+        sendBytes(bytes, to: host, port: port, completion: completion)
+    }
+
+    private static func sendBytes(_ bytes: Data, to host: String, port: Int,
+                                  completion: @escaping (Result<Void, Swift.Error>) -> Void) {
         guard privateIPv4(host) else { completion(.failure(Error.invalidAddress)); return }
         guard (1...65535).contains(port), let endpointPort = NWEndpoint.Port(rawValue: UInt16(port)) else {
             completion(.failure(Error.invalidPort)); return
         }
-        let bytes: Data
-        do { bytes = try BluetoothReceiptPrinter.escposRaster(image) }
-        catch { completion(.failure(error)); return }
         let connection = NWConnection(host: NWEndpoint.Host(host), port: endpointPort, using: .tcp)
         let queue = DispatchQueue(label: "vn.cuncun.receipt.wifi")
         var finished = false

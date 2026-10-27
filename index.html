@@ -11178,12 +11178,12 @@ body.app-unlocked #drawerClose{display:flex!important;visibility:visible!importa
   if(!edge||!drawer||!backdrop)return;
   edge.textContent='';edge.setAttribute('aria-label','Vuốt thanh mờ sang phải để mở menu');
   var x0=null,y0=null,tracking=false;
-  // Chi bat dau tren thanh nho canh trai, khi da mo khoa; khong can thiep man hinh mo khoa.
+  // Vuot tu bat ky do cao nao trong vung 24px sat mep trai; chi khi da mo khoa.
   document.addEventListener('touchstart',function(e){
    tracking=false;x0=null;
    if(!document.body.classList.contains('app-unlocked')||drawer.classList.contains('open')||e.touches.length!==1)return;
    var t=e.touches[0],r=edge.getBoundingClientRect();
-   if(t.clientX>=r.left && t.clientX<=r.right+8 && t.clientY>=r.top-12 && t.clientY<=r.bottom+20){x0=t.clientX;y0=t.clientY;tracking=true;}
+   if(t.clientX>=0 && t.clientX<=24 && !e.target.closest('#appDrawer, #drawerBackdrop')){x0=t.clientX;y0=t.clientY;tracking=true;}
   },{capture:true,passive:true});
   document.addEventListener('touchend',function(e){
    if(!tracking||x0===null||!e.changedTouches.length)return;

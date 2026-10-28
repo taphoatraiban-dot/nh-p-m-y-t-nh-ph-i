@@ -80,11 +80,26 @@
           if (!confirm('XOÁ TOÀN BỘ ' + entries.length + ' phơi đã in trên trình duyệt này? Không thể hoàn tác.')) return;
           write([]); render();
         } else if (action === 'print' && item) {
-          if (!root.TSHIOSSharePhoi) throw Error('Chưa sẵn sàng in Bluetooth.');
-          await root.TSHIOSSharePhoi.share(String(item.text || utils.message(item)));
-          if (confirm('Máy in đã in xong phơi này? Chỉ chọn OK nếu giấy đã ra thành công.')) {
+          const receipt = String(item.text || utils.message(item));
+          if (root.TSHNativePrintBridge?.available()) {
+            // Reprint using the same iPhone -> Wi-Fi printer transport as IN TRUC TIEP.
+            const result = await root.TSHNativePrintBridge.send(receipt);
+            if (!result?.sent) throw Error('Máy in chưa xác nhận đã nhận lệnh.');
             item.printCount = (Number(item.printCount) || 1) + 1;
-            item.lastPrintedAt = Date.now(); item.printStatus = 'confirmed'; write(entries); render();
+            item.lastPrintedAt = Date.now();
+            item.printStatus = 'sent';
+            write(entries); render();
+            alert('Đã gửi lệnh IN LẠI đến máy in. Hãy kiểm tra giấy in.');
+          } else {
+            // Browser-only fallback; do not claim the share sheet has printed.
+            if (!root.TSHIOSSharePhoi) throw Error('Chưa sẵn sàng in.');
+            await root.TSHIOSSharePhoi.share(receipt);
+            if (confirm('Phiếu đã in ra giấy đầy đủ chưa? Chỉ bấm OK nếu đã in xong.')) {
+              item.printCount = (Number(item.printCount) || 1) + 1;
+              item.lastPrintedAt = Date.now();
+              item.printStatus = 'confirmed';
+              write(entries); render();
+            }
           }
         }
       } catch (error) {

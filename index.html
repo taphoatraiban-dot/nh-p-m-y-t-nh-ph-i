@@ -12629,5 +12629,27 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  });
 })();
 </script>
+<!-- Cuncun QR demo entry: isolated from live print and accounting -->
+<style id="cuncun-qr-demo-entry-style">
+#cuncunQrDemoLink{display:block;box-sizing:border-box;margin:10px 0;padding:12px 14px;border:2px solid #a71919;border-radius:9px;background:#fff7f7;color:#9d1111!important;text-align:center;text-decoration:none!important;font-size:16px;font-weight:800;line-height:1.4}
+#cuncunQrDemoLink:focus-visible{outline:3px solid #222;outline-offset:2px}
+</style>
+<script id="cuncun-qr-demo-entry">
+(function(){
+ function mount(){
+  if(document.getElementById('cuncunQrDemoLink'))return;
+  var target=document.getElementById('printPhoiBluetooth')||document.getElementById('printPhoiDirect')||document.getElementById('betsCard');
+  if(!target)return;
+  var a=document.createElement('a');
+  a.id='cuncunQrDemoLink';
+  a.href='/demo-phieu-qr.html?v=323ea8d';
+  a.textContent='XEM GIAO DIỆN PHIẾU QR MỚI (DEMO)';
+  a.setAttribute('aria-label','Mở bản demo phiếu QR 80mm trong trang mới');
+  a.target='_blank';a.rel='noopener noreferrer';
+  target.insertAdjacentElement('afterend',a);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
+</script>
 
 </html>

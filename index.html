@@ -13239,4 +13239,51 @@ body.app-unlocked #liveSoiBar{display:block!important}
 #appDrawer .cuncun-group .drawer-section.logout-menu>.drawer-body{padding:5px!important}
 #appDrawer .cuncun-group .drawer-section.logout-menu button{min-height:42px!important}
 </style>
+
+<!-- aligned short menu labels 20261029 -->
+<style>
+#appDrawer .cuncun-group{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch!important;gap:7px!important}
+#appDrawer .cuncun-group .drawer-section:not(.cuncun-expanded):not(.logout-menu){height:52px!important;min-height:52px!important;max-height:52px!important;display:flex!important;align-items:stretch!important}
+#appDrawer .cuncun-group .drawer-section:not(.cuncun-expanded):not(.logout-menu)>h3{
+ width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+ padding:7px 24px 7px 8px!important;display:flex!important;align-items:center!important;
+ justify-content:center!important;text-align:center!important;position:relative!important;
+ font-size:13px!important;line-height:1.2!important;font-weight:800!important;
+ white-space:normal!important;word-break:normal!important;overflow-wrap:normal!important;
+ overflow:hidden!important;box-sizing:border-box!important;
+}
+#appDrawer .cuncun-group .drawer-section:not(.cuncun-expanded)>h3::after{
+ position:absolute!important;right:8px!important;top:50%!important;transform:translateY(-50%)!important;
+ margin:0!important;align-self:auto!important;
+}
+#appDrawer .cuncun-group-title{text-align:center!important}
+</style>
+<script>
+(function(){
+ const labels={
+ 'history':'🕘 Lịch sử','customer-msg-menu':'💬 Tin khách',
+ 'ottArchiveMenu':'🗃️ Kho phơi','ottVaultMenu':'🔐 Kho tin',
+ 'tshDebtMenu':'📒 Công nợ','stats-menu':'📊 Thống kê',
+ 'device-permission':'🔐 Cấp quyền','device-list-section':'📱 Thiết bị',
+ 'maintenance-admin':'🛠️ Bảo trì','printerIpMenu':'🖨️ Kết nối in',
+ 'printer-menu':'🖨️ Máy in','mbDrawerEntry':'🔵 Miền Bắc',
+ 'calc-menu':'💎 Bảng giá','customers':'👥 Khách hàng',
+ 'guide-menu':'📖 Hướng dẫn','support-menu':'💬 Hỗ trợ'
+ };
+ function run(){
+  var drawer=document.getElementById('appDrawer');if(!drawer)return;
+  drawer.querySelectorAll('.cuncun-group .drawer-section').forEach(function(section){
+   var head=section.querySelector(':scope > h3');if(!head)return;
+   var cls=Object.keys(labels).find(function(k){return section.id===k||section.classList.contains(k)});
+   if(cls&&head.dataset.ccShort!=='1'){
+    head.dataset.ccShort='1';
+    head.dataset.ccOriginal=head.textContent;
+    head.textContent=labels[cls];
+   }
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+ window.addEventListener('load',run);
+})();
+</script>
 </html>

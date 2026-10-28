@@ -151,7 +151,7 @@
           entries.filter(x=>region(x)===activeRegion).forEach(x=>selected.delete(String(x.id)));render();
         } else if (action === 'copy-region' || action === 'copy-selected') {
           const rows=entries.filter(x=>region(x)===activeRegion&&(action==='copy-region'||selected.has(String(x.id)))).sort((a,b)=>stamp(a)-stamp(b));
-          if(!rows.length){alert('Không có tin nào để sao chép.');return;}
+          if(!rows.length){notify('Không có tin nào để sao chép.');return;}
           await copyToClipboard(rows.map(x=>String(x.raw||utils.message(x))).join('\n\n'));
           alert('Đã sao chép '+rows.length+' tin '+activeRegion+'.');
         } else if (action === 'delete-region' || action === 'delete-selected') {
@@ -187,7 +187,7 @@
           alert('Đã sao chép toàn bộ ' + entries.length + ' tin. Mở Telegram và DÁN.');
         } else if (action === 'copy' && item) {
           await copyToClipboard(utils.message(item));
-          alert('Đã sao chép tin này. Mở Telegram và DÁN.');
+          notify('Đã sao chép tin này. Mở Telegram và DÁN.');
         } else if (action === 'delete' && item) {
           if (!await askDelete('Xóa riêng phơi này khỏi lịch sử trên iPhone? Không thể hoàn tác.')) return;
           write(entries.filter(row => String(row.id) !== id)); render();
@@ -205,7 +205,7 @@
             item.lastPrintedAt = Date.now();
             item.printStatus = 'sent';
             write(entries); render();
-            alert('Đã gửi lệnh IN LẠI đến máy in. Hãy kiểm tra giấy in.');
+            notify('Đã gửi lệnh IN LẠI. Hãy kiểm tra giấy in.');
           } else {
             // Browser-only fallback; do not claim the share sheet has printed.
             if (!root.TSHIOSSharePhoi) throw Error('Chưa sẵn sàng in.');

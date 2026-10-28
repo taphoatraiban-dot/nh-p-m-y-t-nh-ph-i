@@ -7899,7 +7899,26 @@ window.showHistoryItem=showHistoryItem;
       customer, items, total:fmtAmount(balance),
       totalLabel:balance>=0?'TỔNG THU':'TỔNG BÙ',code
     });
-    const text=receipt;
+    let text=receipt;
+    // Add an informational QR to the actual direct-print image. This QR is NOT a server-issued verification token.
+    if(forceNative){
+      try{
+        const qrLib=await import('https://esm.sh/qrcode@1.5.4?bundle');
+        const createQr=qrLib.create||qrLib.default?.create;
+        if(typeof createQr!=='function')throw new Error('Thư viện QR chưa sẵn sàng.');
+        const payload='CUNCUN PHIEU (CHUA XAC THUC)\\nMa: '+code+'\\nNgay: '+date+'\\nTong: '+fmtAmount(balance);
+        const qr=createQr(payload,{errorCorrectionLevel:'M'});
+        const size=qr.modules.size;
+        const cells=qr.modules.data;
+        const qrMatrix=Array.from({length:size},(_,y)=>Array.from({length:size},(_,x)=>Boolean(cells[y*size+x])));
+        const receiptData=JSON.parse(receipt.slice(11));
+        receiptData.qrMatrix=qrMatrix;
+        text='[[TABLE80]]'+JSON.stringify(receiptData);
+      }catch(qrError){
+        alert('Không tạo được QR, chưa gửi lệnh in: '+(qrError?.message||qrError));
+        return;
+      }
+    }
     const b=document.getElementById(forceNative?'printPhoiDirect':(forceIOSShare||forceQueue||forceAirPrint)?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
     tshPrintInFlight=true;
     if(b){b.disabled=true;b.textContent='⏳ ĐANG IN...';}
@@ -8022,7 +8041,7 @@ window.showHistoryItem=showHistoryItem;
 })();
 </script>
 
-<script src="src/ios-share-phoi.js?v=20261028-table80-direct-v3"></script>
+<script src="src/ios-share-phoi.js?v=20261028-table80-qr-v4"></script>
 <script src="src/ios-native-print-bridge.js?v=20261028-receipt-bold-v2"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){

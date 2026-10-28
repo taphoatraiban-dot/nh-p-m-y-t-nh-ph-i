@@ -973,6 +973,14 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 </style>
 </head>
 <body>
+<button id="cuncunTopReload" type="button" aria-label="Tải lại trang Cuncun" title="Tải lại trang" style="position:fixed;right:12px;top:calc(env(safe-area-inset-top, 0px) + 8px);z-index:290000;background:#2563eb;color:#fff;border:2px solid #fff;border-radius:24px;padding:9px 13px;font-size:14px;font-weight:800;box-shadow:0 2px 9px #0005;min-height:40px">↻ TẢI LẠI</button>
+<script>
+document.getElementById('cuncunTopReload').addEventListener('click',function(){
+  if(!window.confirm('Tải lại trang? Nội dung chưa lưu trong ô nhập có thể bị mất.'))return;
+  const u=new URL(window.location.href);u.searchParams.set('cuncun_refresh',String(Date.now()));window.location.replace(u.href);
+});
+</script>
+
 <style id="ott-guide-24-style">
 #ottGuideCorner{display:none!important;position:fixed;right:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2147481000;border:0;border-radius:30px;background:#bd1c2b;color:#fff;padding:10px 15px;font:700 13px system-ui;box-shadow:0 4px 18px #0004;cursor:pointer}
 #ottGuideOverlay{position:fixed;inset:0;z-index:2147482000;background:#07121ff5;display:none;flex-direction:column;align-items:center;justify-content:center;padding:env(safe-area-inset-top,8px) 8px env(safe-area-inset-bottom,8px);box-sizing:border-box}

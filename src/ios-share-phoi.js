@@ -25,7 +25,7 @@
   function renderTable(data,doc){
     const canvas=doc.createElement('canvas');
     canvas.width=WIDTH;
-    const columns=[PAD,PAD+46,PAD+112,PAD+188,WIDTH-PAD-94,WIDTH-PAD];
+    const columns=[PAD,PAD+46,PAD+106,PAD+166,WIDTH-PAD-112,WIDTH-PAD];
     const inner=columns[4]-columns[3]-10;
     const linesFor=(value)=>{
       const result=[];
@@ -41,7 +41,7 @@
       return result;
     };
     const items=(data.items||[]).map(x=>({...x,wrapped:linesFor(x.content)}));
-    const heights=items.map(x=>Math.max(56,x.wrapped.length*32+20));
+    const heights=items.map(x=>Math.max(64,x.wrapped.length*32+22));
     const top=216, headerH=56, bottom=68;
     const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+62;
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
@@ -59,24 +59,26 @@
     let y=top;
     const gridLine=(yy)=>line(PAD,yy,WIDTH-PAD,yy);
     gridLine(y);gridLine(y+headerH);
-    const headers=['STT','MIỀN','LOẠI','NỘI DUNG','TIỀN'];
-    ctx.font='bold 21px sans-serif';ctx.textAlign='center';
+    const headers=['STT','MIỀN','LOẠI','NỘI DUNG','TIỀN THU'];
+    ctx.font='bold 17px sans-serif';ctx.textAlign='center';
     headers.forEach((h,i)=>ctx.fillText(h,(columns[i]+columns[i+1])/2,y+headerH/2));
     y+=headerH;
     items.forEach((item,i)=>{
       const h=heights[i];
-      ctx.font='bold 21px sans-serif';ctx.textAlign='center';
+      ctx.font='bold 18px sans-serif';ctx.textAlign='center';
       ctx.fillText(String(i+1),(columns[0]+columns[1])/2,y+23);
       ctx.fillText(String(item.region||''),(columns[1]+columns[2])/2,y+23);
       ctx.fillText(String(item.type||''),(columns[2]+columns[3])/2,y+23);
-      ctx.font='bold 23px sans-serif';ctx.textAlign='left';
-      item.wrapped.forEach((t,j)=>ctx.fillText(t,columns[3]+5,y+20+j*32));
-      ctx.font='bold 22px sans-serif';ctx.textAlign='right';
-      ctx.fillText(String(item.amount||''),columns[5]-5,y+23);
+      ctx.font='bold 20px sans-serif';ctx.textAlign='left';
+      ctx.save();ctx.beginPath();ctx.rect(columns[3]+4,y+2,columns[4]-columns[3]-8,h-4);ctx.clip();
+      item.wrapped.forEach((t,j)=>ctx.fillText(t,columns[3]+5,y+22+j*32));
+      ctx.restore();
+      ctx.font='bold 21px sans-serif';ctx.textAlign='right';
+      ctx.fillText(String(item.amount||''),columns[5]-5,y+24,columns[5]-columns[4]-8);
       y+=h;gridLine(y);
     });
     ctx.font='bold 29px sans-serif';ctx.textAlign='right';
-    ctx.fillText(data.totalLabel||'TỔNG THU',columns[4]-8,y+bottom/2);
+    ctx.fillText(data.totalLabel||'TỔNG THU',columns[4]-8,y+bottom/2,columns[4]-columns[3]-8);
     ctx.fillText(String(data.total||''),columns[5]-5,y+bottom/2);
     gridLine(y+bottom);
     for(let i=0;i<columns.length;i++)line(columns[i],top,columns[i],y+bottom);

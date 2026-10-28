@@ -7900,22 +7900,30 @@ window.showHistoryItem=showHistoryItem;
       totalLabel:balance>=0?'TỔNG THU':'TỔNG BÙ',code
     });
     let text=receipt;
-    // Add an informational QR to the actual direct-print image. This QR is NOT a server-issued verification token.
+    // Only a server-issued, persisted verification token may be printed as a valid QR.
     if(forceNative){
       try{
+        const {data:{session},error:authError}=await sb.auth.getSession();
+        if(authError||!session?.access_token)throw new Error('Hãy đăng nhập lại để cấp QR xác thực.');
+        const receiptData=JSON.parse(receipt.slice(11));
+        const issueResponse=await fetch(SUPABASE_URL+'/functions/v1/receipt-verify',{
+          method:'POST',
+          headers:{'content-type':'application/json','authorization':'Bearer '+session.access_token,'apikey':SUPABASE_PUBLISHABLE_KEY},
+          body:JSON.stringify({action:'issue',receipt:receiptData})
+        });
+        const issued=await issueResponse.json();
+        if(!issueResponse.ok||!issued.token||!issued.receipt_code)throw new Error('Máy chủ chưa cấp được QR ('+(issued.error||issueResponse.status)+').');
         const qrLib=await import('https://esm.sh/qrcode@1.5.4?bundle');
         const createQr=qrLib.create||qrLib.default?.create;
         if(typeof createQr!=='function')throw new Error('Thư viện QR chưa sẵn sàng.');
-        const payload='CUNCUN PHIEU (CHUA XAC THUC)\\nMa: '+code+'\\nNgay: '+date+'\\nTong: '+fmtAmount(balance);
-        const qr=createQr(payload,{errorCorrectionLevel:'M'});
-        const size=qr.modules.size;
-        const cells=qr.modules.data;
-        const qrMatrix=Array.from({length:size},(_,y)=>Array.from({length:size},(_,x)=>Boolean(cells[y*size+x])));
-        const receiptData=JSON.parse(receipt.slice(11));
-        receiptData.qrMatrix=qrMatrix;
+        const verifyUrl='https://cuncun.icu/verify.html?token='+encodeURIComponent(issued.token);
+        const qr=createQr(verifyUrl,{errorCorrectionLevel:'M'});
+        const size=qr.modules.size,cells=qr.modules.data;
+        receiptData.code=issued.receipt_code;
+        receiptData.qrMatrix=Array.from({length:size},(_,y)=>Array.from({length:size},(_,x)=>Boolean(cells[y*size+x])));
         text='[[TABLE80]]'+JSON.stringify(receiptData);
       }catch(qrError){
-        alert('Không tạo được QR, chưa gửi lệnh in: '+(qrError?.message||qrError));
+        alert('Chưa in: không tạo được QR xác thực. '+(qrError?.message||qrError));
         return;
       }
     }
@@ -8041,7 +8049,7 @@ window.showHistoryItem=showHistoryItem;
 })();
 </script>
 
-<script src="src/ios-share-phoi.js?v=20261028-table80-qr-v4"></script>
+<script src="src/ios-share-phoi.js?v=20261028-table80-verified-v5"></script>
 <script src="src/ios-native-print-bridge.js?v=20261028-receipt-bold-v2"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){

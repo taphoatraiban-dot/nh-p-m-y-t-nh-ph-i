@@ -7859,42 +7859,33 @@ window.showHistoryItem=showHistoryItem;
       alert('Tiền từng dòng chưa khớp TIỀN XÁC. Hãy bấm OK tính lại trước khi in.');
       return;
     }
-    const width=32;
-    const fmtAmount=n=>money(n)+'k';
-    // Distribute the actual net amount payable across printed lines, preserving the exact total.
-    // This also accounts for winnings/old balance included in finalTotal.
-    const receiptRows=[];
-    let allocated=0;
-    pricedRows.forEach((row,i)=>{
-      const numbers=Array.isArray(row.numbers)?row.numbers.join('.'):'';
-      const label=[row.station||row.scopeStation||row.region||'',numbers,row.type||'',row.points!=null?String(row.points)+'n':''].filter(Boolean).join(' ');
-      const number=String(i+1).padStart(2,' ');
-      const lineNet=i===pricedRows.length-1
-        ? Math.round(balance)-allocated
-        : Math.round((Number(row.gross)||0)/grossRows*balance);
-      allocated+=lineNet;
-      const amount=(lineNet<0?'-':'')+fmtAmount(lineNet);
-      const left=number+' '+label;
-      const available=width-amount.length-1;
-      if(left.length<=available)receiptRows.push(left.padEnd(available,' ' )+' '+amount);
-      else{
-        receiptRows.push(left);
-        receiptRows.push(' '.repeat(Math.max(0,width-amount.length))+amount);
-      }
+    const fmtAmount=n=>(n<0?'-':'')+money(n)+'k';
+    // Original user-authored text is the only source for the NỘI DUNG column.
+    const originalLines=rawText.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    const headerLine=/^(?:[234]dmn|[23]dmt|hn|mb|mn|mt|hanoi)(?:\s|$)/i;
+    const contentLines=originalLines.filter(x=>!headerLine.test(x));
+    const netLines=pricedRows.map(row=>Number(row.gross)||0);
+    const detailed=contentLines.length===pricedRows.length;
+    const items=[];
+    if(detailed){
+      let assigned=0;
+      contentLines.forEach((content,i)=>{
+        const value=i===contentLines.length-1?Math.round(balance)-assigned:Math.round(balance*(netLines[i]/grossRows));
+        assigned+=value;
+        const row=pricedRows[i];
+        items.push({region:row.region==='N'?'MN':row.region==='T'?'MT':'MB',type:String(row.type||''),content,amount:fmtAmount(value)});
+      });
+    }else{
+      // Expanded bets cannot be mapped 1:1 to input lines safely: keep the raw text intact,
+      // show a single combined total rather than fabricating amounts per original line.
+      items.push({region:'',type:'',content:originalLines.join('\n'),amount:fmtAmount(balance)});
+    }
+    const receipt='[[TABLE80]]'+JSON.stringify({
+      title:'PHIẾU MUA HÀNG',
+      date, time:pad(now.getHours())+':'+pad(now.getMinutes()),
+      customer, items, total:fmtAmount(balance),
+      totalLabel:balance>=0?'TỔNG THU':'TỔNG BÙ',code
     });
-    const receipt=[
-      '         PHIEU MUA HANG',
-      `NGAY: ${date}  GIO: ${pad(now.getHours())}:${pad(now.getMinutes())}`,
-      customer?`KHACH: ${customer}`:'',
-      '--------------------------------',
-      'STT NOI DUNG             SO TIEN',
-      '--------------------------------',
-      ...receiptRows,
-      '--------------------------------',
-      `TONG ${balance>=0?'THU':'BU'}: ${fmtAmount(balance)}`,
-      '--------------------------------',
-      `MA PHIEU: ${code}`
-    ].filter(Boolean).join('\n');
     const text=receipt;
     const b=document.getElementById(forceNative?'printPhoiDirect':(forceIOSShare||forceQueue||forceAirPrint)?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
     tshPrintInFlight=true;

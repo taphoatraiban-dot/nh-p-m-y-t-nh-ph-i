@@ -10589,6 +10589,14 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 /* CUNCUN 2026-10-28: hide redundant refresh buttons on main page */
 #cuncunTopReload,#cuncunReloadMain{display:none!important}
 </style>
+<style id="cuncun-price-panel-layout-fix-20261028">
+/* Keep all saved prices in a standalone sheet, never clipped by the drawer. */
+#cuncunPriceOverlay{z-index:999999!important}
+#cuncunPricePanel{width:min(100%,560px)!important;display:block!important}
+#cuncunPricePanel #tshPriceManage,#cuncunPricePanel #drawerPriceList{display:block!important;visibility:visible!important;max-height:none!important;overflow:visible!important}
+#cuncunPricePanel .drawer-price-item{display:grid!important}
+#cuncunReloadMain,#cuncunTopReload{display:none!important;visibility:hidden!important}
+</style>
 <!-- cuncun-price-external-panel-20261028 -->
 <style>
 #cuncunTopReload{display:none!important}
@@ -10624,6 +10632,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    if(moved && moved!==target)close();
    if(!moved){previousParent=target.parentNode;previousNext=target.nextSibling;moved=target;content.appendChild(target);}
    if(details)details.open=true;
+   if(list){list.style.display='grid';list.style.maxHeight='none';list.style.overflow='visible';}
    document.getElementById('appDrawer')?.classList.remove('open','active','show');
    document.getElementById('drawerBackdrop')?.classList.remove('open');
    overlay.classList.add('is-open');

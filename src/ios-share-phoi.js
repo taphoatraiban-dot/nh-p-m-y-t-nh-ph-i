@@ -43,7 +43,7 @@
     const items=(data.items||[]).map(x=>({...x,wrapped:linesFor(x.content)}));
     const heights=items.map(x=>Math.max(56,x.wrapped.length*32+20));
     const top=216, headerH=56, bottom=68;
-    const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+62;
+    const qr=data.qrMatrix;\n    const hasQr=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length&&row.every(bit=>bit===0||bit===1||bit===true||bit===false));\n    const qrSize=hasQr?240:0;\n    const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+62+(hasQr?qrSize+92:0);
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     canvas.height=Math.max(200,height);
     const ctx=canvas.getContext('2d');

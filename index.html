@@ -3600,6 +3600,43 @@ function parseBets(){
      text=rawBlocks.join('\n');
    }
  }
+ // FINAL INVARIANT: preserve every XC-DUOI wager from shared shorthand.
+ // Legacy normalization may retain all XC but only the last XDUOI.
+ // Reconcile only the matching original station block; never change other bets.
+ {
+   const original=_raw2057.replace(/\r\n?/g,'\n').split('\n');
+   const normalized=text.split('\n');
+   const shared=/^((?:\d{3}\s*\.\s*)+\d{3})\s*xc\s*(\d+(?:[,.]\d+)?)\s*\.\s*xduoi\s*(\d+(?:[,.]\d+)?)\s*\.?$/i;
+   const isHeader=s=>/^(?:[234]dm[nt]|hn|mb|hanoi|btre|btr|bentre|vtau|blieu|bacleu|tpho|dnai|ctho|st|dt|cmau|vl|bd|tg|kg|ag|tn)$/i.test(s.trim());
+   for(let i=0;i<original.length;i++){
+     const m=original[i].trim().match(shared);
+     if(!m)continue;
+     let header='';
+     for(let k=i-1;k>=0;k--)if(isHeader(original[k])){header=original[k].trim();break;}
+     if(!header)continue;
+     const nums=m[1].split(/\s*\.\s*/).filter(Boolean);
+     const xc=m[2],tail=m[3];
+     let start=normalized.findIndex(line=>line.trim().toLowerCase()===header.toLowerCase());
+     if(start<0)continue;
+     let end=start+1;
+     while(end<normalized.length && !isHeader(normalized[end]))end++;
+     const section=normalized.slice(start+1,end);
+     const isTarget=line=>{
+       const z=line.trim().match(/^(\d{3})\s*(xc|xduoi|xcduoi|xdui)\s*(\d+(?:[,.]\d+)?)\s*\.?$/i);
+       return z && nums.includes(z[1]) &&
+         ((z[2].toLowerCase()==='xc' && Number(z[3].replace(',','.'))===Number(xc.replace(',','.'))) ||
+          (z[2].toLowerCase()!=='xc' && Number(z[3].replace(',','.'))===Number(tail.replace(',','.'))));
+     };
+     const existing=section.filter(isTarget);
+     if(!existing.length)continue;
+     const first=section.findIndex(isTarget);
+     const canonical=nums.map(n=>n+'xc'+xc+'.').concat(nums.map(n=>n+'xduoi'+tail+'.'));
+     const rest=section.filter(line=>!isTarget(line));
+     rest.splice(first,0,...canonical);
+     normalized.splice(start+1,end-start-1,...rest);
+   }
+   text=normalized.join('\n');
+ }
  for(let line of text.split("\n")){
   let s=line.trim(); if(!s) continue;
   // Nếu người dùng ghi rõ ngày đầu dòng (CN/T2...T7), ngày đó được ưu tiên cho 3DMN/2DMN.

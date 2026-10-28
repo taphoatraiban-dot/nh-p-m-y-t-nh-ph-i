@@ -3623,7 +3623,7 @@ function parseBets(){
 
   // LOCK 28-10: shared XC followed by XC-DUOI must never be dropped by
   // Telegram normalization or legacy shared-function expansion.
-  // Example: 111.911.191xc3.xduoi10. -> 3 XC + 1 tail wager (191).
+  // Example: 111.911.191xc3.xduoi10. -> 3 XC + 3 XC-DUOI, all numbers.
   // This deliberately handles only the exact, unambiguous syntax.
   {
     const mixed=s.match(/^((?:\d{3}\s*\.\s*)+\d{3})\s*xc\s*(\d+(?:[,.]\d+)?)\s*\.\s*xduoi\s*(\d+(?:[,.]\d+)?)\s*\.?$/i);
@@ -3635,7 +3635,7 @@ function parseBets(){
         && Number.isFinite(xcPoints) && xcPoints>0
         && Number.isFinite(tailPoints) && tailPoints>0){
         for(const n of nums) addBet(rows,st,n,'xc',xcPoints);
-        addBet(rows,st,nums[nums.length-1],'xc_duoi',tailPoints);
+        for(const n of nums) addBet(rows,st,n,'xc_duoi',tailPoints);
         continue;
       }
     }

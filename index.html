@@ -10094,6 +10094,43 @@ function show(pg){page=pg;document.querySelectorAll('#mbApp .mb-panel').forEach(
 function setup(){if(!$('mbOpen'))return;$('mbNav').innerHTML=names.map(([id,name])=>`<button type="button" data-page="${id}">${name}</button>`).join('');$('mbNav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)show(b.dataset.page)});$('mbOpen').addEventListener('click',()=>{$('mbApp').classList.add('mb-visible');$('mbApp').setAttribute('aria-hidden','false');document.body.style.overflow='hidden';show('calc')});$('mbClose').addEventListener('click',()=>{$('mbApp').classList.remove('mb-visible');$('mbApp').setAttribute('aria-hidden','true');document.body.style.overflow='';});$('mbDate').value=$('mbDebtDate').value=new Date().toLocaleDateString('en-CA');$('mbPriceGroup').onchange=renderPrices;$('mbPriceProfile').onchange=()=>{selected=$('mbPriceProfile').value;renderPrices()};$('mbAddProfile').onclick=()=>{const group=$('mbPriceGroup').value;const name=prompt('Tên bảng giá MB mới:');if(!name?.trim())return;const id='mb'+Date.now();state.profiles.push({id,name:name.trim(),group,rates:{}});selected=id;save();renderPrices()};$('mbCloneProfile').onclick=()=>{const p=profile();if(!p)return;const id='mb'+Date.now();state.profiles.push({...JSON.parse(JSON.stringify(p)),id,name:p.name+' (sao chép)'});selected=id;save();renderPrices()};$('mbDeleteProfile').onclick=()=>{const p=profile();if(!p||state.profiles.filter(x=>x.group===p.group).length<2){alert('Cần giữ ít nhất một bảng mỗi nhóm.');return}if(!confirm('Xóa bảng giá '+p.name+'?'))return;state.profiles=state.profiles.filter(x=>x.id!==p.id);selected=state.profiles.find(x=>x.group===p.group).id;save();renderPrices()};$('mbSavePrice').onclick=savePrice;$('mbCalculate').onclick=calculate;$('mbSaveSlip').onclick=()=>storeText('slips');$('mbSaveMessage').onclick=()=>storeText('messages');$('mbClearSlips').onclick=()=>clearItems('slips');$('mbClearMessages').onclick=()=>clearItems('messages');$('mbAddDebt').onclick=addDebt;$('mbDemoStake').oninput=updateDemo;$('mbDemoFactor').onchange=updateDemo;$('mbGuideNorth').onclick=()=>renderGuide('north');$('mbGuideSouth').onclick=()=>renderGuide('south');$('mbPrint').onclick=()=>{const content=$('mbBets').value.trim();if(!content)return alert('Chưa có phơi MB để in');const w=window.open('','_blank');if(!w)return alert('Trình duyệt chặn cửa sổ in');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Phơi MB</title><style>body{font-family:Arial,sans-serif;margin:12px}pre{white-space:pre-wrap}</style></head><body><h3>PHIẾU MIỀN BẮC (IN THỬ)</h3><pre>'+esc(content)+'</pre>
 
 
+<!-- cuncun-price-external-panel-20261028 -->
+<style>
+#cuncunTopReload{display:none!important}
+#cuncunPriceOverlay{position:fixed;inset:0;z-index:350000;background:rgba(15,23,42,.65);display:none;align-items:stretch;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px);box-sizing:border-box}
+#cuncunPriceOverlay.is-open{display:flex}
+#cuncunPricePanel{background:#fff;color:#111827;border-radius:16px;width:min(100%,520px);max-height:100%;overflow:auto;overscroll-behavior:contain;padding:14px;box-sizing:border-box}
+#cuncunPricePanel #tshPriceManage{display:block!important}
+#cuncunPricePanel #tshPriceManage>summary{display:none}
+#cuncunPricePanel .drawer-price-list{display:block!important}
+</style>
+<script>
+(function(){
+ function init(){
+  if(document.getElementById('cuncunPriceOverlay'))return;
+  const overlay=document.createElement('div');overlay.id='cuncunPriceOverlay';
+  overlay.innerHTML='<div id="cuncunPricePanel" role="dialog" aria-modal="true" aria-label="Quản lý bảng giá"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px"><strong style="font-size:19px">💎 QUẢN LÝ BẢNG GIÁ</strong><button type="button" id="cuncunPriceClose" style="padding:10px 15px;border:0;border-radius:9px;background:#fee2e2;color:#991b1b;font-weight:800">✕ ĐÓNG</button></div><div id="cuncunPriceContent"></div></div>';
+  document.body.appendChild(overlay);
+  function open(){
+   const details=document.getElementById('tshPriceManage');
+   const list=document.getElementById('drawerPriceList');
+   const content=document.getElementById('cuncunPriceContent');
+   if(details){content.appendChild(details);details.open=true;}
+   else if(list)content.appendChild(list);
+   overlay.classList.add('is-open');
+   const drawer=document.getElementById('appDrawer');
+   if(drawer){drawer.classList.remove('open','active','show');drawer.setAttribute('aria-hidden','true');}
+  }
+  document.getElementById('cuncunPriceClose').addEventListener('click',()=>overlay.classList.remove('is-open'));
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('is-open')});
+  for(const id of ['addPriceDrawer','drawerBangTinhTitle']){
+   const btn=document.getElementById(id);
+   if(btn)btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();open()},true);
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else init();
+})();
+</script>
 </body></html>');w.document.close();w.focus();w.print()};renderPrices();updateDemo();show('calc')}
 function renderPrices(){let group=$('mbPriceGroup').value;let ps=state.profiles.filter(x=>x.group===group);if(!ps.some(x=>x.id===selected))selected=ps[0]?.id;$('mbPriceProfile').innerHTML=ps.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');$('mbPriceProfile').value=selected;const p=profile();$('mbPriceFields').innerHTML=categories.map(([id,name,def])=>{const r=effective(p,id);return `<div class="mb-card" data-rate="${id}"><b>${name}</b><div class="mb-grid"><div><label>Đơn vị</label><select class="mb-rate-unit"><option value="point" ${ (r.unit||def)==='point'?'selected':''}>Điểm</option><option value="money" ${(r.unit||def)==='money'?'selected':''}>Tiền</option></select></div><div><label>Giá thu (đ/điểm hoặc hệ số)</label><input class="mb-rate-price" inputmode="decimal" value="${esc(r.price??'')}"></div><div><label>Thưởng (đ/điểm hoặc hệ số)</label><input class="mb-rate-reward" inputmode="decimal" value="${esc(r.reward??'')}"></div></div></div>`}).join('');$('mbCalcPrice').innerHTML=state.profiles.filter(x=>x.group==='customer').map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}
 function savePrice(){const p=profile();if(!p)return;const rates={};for(const el of document.querySelectorAll('#mbPriceFields [data-rate]')){const id=el.dataset.rate;const price=el.querySelector('.mb-rate-price').value.trim().replace(',','.');const reward=el.querySelector('.mb-rate-reward').value.trim().replace(',','.');if([price,reward].some(x=>x!==''&&(!Number.isFinite(Number(x))||Number(x)<0)))return alert('Giá không hợp lệ: '+id);rates[id]={unit:el.querySelector('.mb-rate-unit').value,price,reward}}p.rates=rates;save();alert('Đã lưu bảng giá MB: '+p.name)}

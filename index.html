@@ -7849,21 +7849,43 @@ window.showHistoryItem=showHistoryItem;
     if(!sm||!lastCalc){alert('Hãy bấm OK để TÍNH PHƠI trước khi in phiếu tính tiền.');return;}
     const money=n=>Math.round(Math.abs(Number(n)||0)).toLocaleString('vi-VN');
     const balance=Number(sm.finalTotal)||0;
-    const sourceLines=String(rawText||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    // Use the SAME parsed, priced rows as the calculation; do not guess line amounts.
+    const pricedRows=parsedForPrint.rows.filter(row=>!row.hidden);
+    const grossRows=pricedRows.reduce((sum,row)=>sum+(Number(row.gross)||0),0);
+    if(!pricedRows.length||Math.abs(grossRows-Number(sm.totalGross))>0.1){
+      alert('Tiền từng dòng chưa khớp TIỀN XÁC. Hãy bấm OK tính lại trước khi in.');
+      return;
+    }
+    const width=32;
+    const fmtAmount=n=>money(n)+'k';
+    const receiptRows=[];
+    pricedRows.forEach((row,i)=>{
+      const numbers=Array.isArray(row.numbers)?row.numbers.join('.'):'';
+      const label=[row.station||row.scopeStation||row.region||'',numbers,row.type||'',row.points!=null?String(row.points)+'n':''].filter(Boolean).join(' ');
+      const number=String(i+1).padStart(2,' ');
+      const amount=fmtAmount(row.gross);
+      const left=number+' '+label;
+      const available=width-amount.length-1;
+      if(left.length<=available)receiptRows.push(left.padEnd(available,' ' )+' '+amount);
+      else{
+        receiptRows.push(left);
+        receiptRows.push(' '.repeat(Math.max(0,width-amount.length))+amount);
+      }
+    });
     const receipt=[
-      '          PHIEU MUA HANG',
+      '         PHIEU MUA HANG',
       `NGAY: ${date}  GIO: ${pad(now.getHours())}:${pad(now.getMinutes())}`,
       customer?`KHACH: ${customer}`:'',
       '--------------------------------',
-      'STT  NOI DUNG              SO TIEN',
+      'STT NOI DUNG             SO TIEN',
       '--------------------------------',
-      ...sourceLines.map((line,i)=>`${String(i+1).padStart(2,' ')}   ${line}`),
+      ...receiptRows,
       '--------------------------------',
-      `TIEN XAC: ${money(sm.totalGross)}k`,
-      `TONG ${balance>=0?'THU':'BU'}: ${money(balance)}k`,
+      `TIEN XAC: ${fmtAmount(sm.totalGross)}`,
+      `TONG ${balance>=0?'THU':'BU'}: ${fmtAmount(balance)}`,
       '--------------------------------',
       `MA PHIEU: ${code}`
-    ].filter(Boolean).join('\n');
+    ].filter(Boolean).join('\\n');
     const text=receipt;
     const b=document.getElementById(forceNative?'printPhoiDirect':(forceIOSShare||forceQueue||forceAirPrint)?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
     tshPrintInFlight=true;

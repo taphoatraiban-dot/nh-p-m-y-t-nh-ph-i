@@ -13038,4 +13038,47 @@ body.app-unlocked #liveSoiBar{display:block!important}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
+
+<!-- telegram strict hide and logout bottom 20261029 -->
+<style>
+/* Legacy Telegram setup and bot panels remain functional but not visible. */
+#tgDrawerSections20261022 #tgTenantPanel,
+#tgDrawerSections20261022 #tgForwardInbox,
+#tgDrawerSections20261022 #tgLegacyMenu,
+#tgDrawerSections20261022 #tgCustomerVpsSetup{display:none!important}
+#tgDrawerSections20261022 .cc-tg-settings{margin-top:8px!important}
+#tgDrawerSections20261022 .cc-tg-settings #tgVpsKeyMenu{margin:4px 0!important}
+#appDrawer .logout-menu{margin-top:auto!important}
+#appDrawer .cuncun-group.cc-logout-last{margin-top:auto!important}
+</style>
+<script>
+(function(){
+ function arrange(){
+  var body=document.getElementById('tgDrawerThreeBody20261022');
+  if(body){
+   var advanced=body.querySelector('.cc-tg-settings');
+   var key=document.getElementById('tgVpsKeyMenu');
+   if(advanced&&key&&key.parentNode!==advanced)advanced.appendChild(key);
+   if(advanced&&advanced.open&&!advanced.dataset.ccUserOpened){advanced.open=false}
+   if(advanced&&!advanced.dataset.ccBound){
+    advanced.dataset.ccBound='1';
+    advanced.addEventListener('toggle',function(){advanced.dataset.ccUserOpened=advanced.open?'1':''});
+   }
+  }
+  var drawer=document.getElementById('appDrawer');
+  if(drawer){
+   var logout=drawer.querySelector('.drawer-section.logout-menu');
+   if(logout){
+    var group=logout.closest('.cuncun-group');
+    if(group&&group.parentNode===drawer){
+     group.classList.add('cc-logout-last');
+     if(group.nextElementSibling)drawer.appendChild(group);
+    }else if(logout.parentNode===drawer&&logout.nextElementSibling)drawer.appendChild(logout);
+   }
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arrange);else arrange();
+ window.addEventListener('load',arrange);
+})();
+</script>
 </html>

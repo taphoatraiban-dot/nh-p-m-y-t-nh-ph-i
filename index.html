@@ -7858,12 +7858,19 @@ window.showHistoryItem=showHistoryItem;
     }
     const width=32;
     const fmtAmount=n=>money(n)+'k';
+    // Distribute the actual net amount payable across printed lines, preserving the exact total.
+    // This also accounts for winnings/old balance included in finalTotal.
     const receiptRows=[];
+    let allocated=0;
     pricedRows.forEach((row,i)=>{
       const numbers=Array.isArray(row.numbers)?row.numbers.join('.'):'';
       const label=[row.station||row.scopeStation||row.region||'',numbers,row.type||'',row.points!=null?String(row.points)+'n':''].filter(Boolean).join(' ');
       const number=String(i+1).padStart(2,' ');
-      const amount=fmtAmount(row.gross);
+      const lineNet=i===pricedRows.length-1
+        ? Math.round(balance)-allocated
+        : Math.round((Number(row.gross)||0)/grossRows*balance);
+      allocated+=lineNet;
+      const amount=(lineNet<0?'-':'')+fmtAmount(lineNet);
       const left=number+' '+label;
       const available=width-amount.length-1;
       if(left.length<=available)receiptRows.push(left.padEnd(available,' ' )+' '+amount);
@@ -7881,7 +7888,6 @@ window.showHistoryItem=showHistoryItem;
       '--------------------------------',
       ...receiptRows,
       '--------------------------------',
-      `TIEN XAC: ${fmtAmount(sm.totalGross)}`,
       `TONG ${balance>=0?'THU':'BU'}: ${fmtAmount(balance)}`,
       '--------------------------------',
       `MA PHIEU: ${code}`

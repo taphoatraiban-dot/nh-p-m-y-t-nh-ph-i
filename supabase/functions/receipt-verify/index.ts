@@ -30,9 +30,16 @@ Deno.serve(async (req) => {
     if (action === "issue") {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);
-      const code = String(body.receipt_code || "");
-      const snapshot = body.receipt_snapshot;
-      if (!/^[A-Za-z0-9_-]{6,80}$/.test(code) || !snapshot || typeof snapshot !== "object" || Array.isArray(snapshot) || JSON.stringify(snapshot).length > 16000) return respond({ error: "invalid_receipt" }, 400);
+      // Issue only for a server-stored print job belonging to the caller.
+      const jobId = Number(body.print_queue_id);
+      if (!Number.isSafeInteger(jobId) || jobId < 1) return respond({ error: "invalid_print_job" }, 400);
+      const { data: job, error: jobError } = await db.from("print_queue")
+        .select("id,user_id,print_text,customer,draw_date,status")
+        .eq("id", jobId).eq("user_id", user.id).maybeSingle();
+      if (jobError || !job || !job.print_text) return respond({ error: "print_job_not_found" }, 404);
+      const code = "CQ-" + String(job.id);
+      const snapshot = { print_queue_id: job.id, print_text: job.print_text, customer: job.customer, draw_date: job.draw_date };
+      if (JSON.stringify(snapshot).length > 16000) return respond({ error: "receipt_too_large" }, 413);
       const token = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
       const { error } = await db.from("receipt_verifications").insert({ owner_user_id: user.id, receipt_code: code, receipt_snapshot: snapshot, token_hash: await hash(token) });
       if (error) return respond({ error: error.code === "23505" ? "receipt_already_exists" : "issue_failed" }, error.code === "23505" ? 409 : 500);

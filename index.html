@@ -3481,7 +3481,19 @@ function parseBets(){
      if(nums.length<2) return _whole;
      return nums.map(n=>indent+n+xc.replace(/\s+/g,'')+'.').concat(nums.map(n=>indent+n+xd.replace(/\s+/g,'')+'.')).join('\n');
    });
- const _fixed2057=tshFixJoinedBaoXC(_sharedFixed1910);
+ // Expand an unambiguous shared XC + XDUOI group BEFORE any legacy
+ // Telegram normalizer. This works independently for every line/station.
+ // Preserve station headers and all other lines verbatim.
+ const _expandedSharedXcDuoi=_sharedFixed1910.replace(
+   /^([ \t]*)((?:\d{3}\s*\.\s*)+\d{3})\s*xc\s*(\d+(?:[,.]\d+)?)\s*\.\s*xduoi\s*(\d+(?:[,.]\d+)?)\s*\.?[ \t]*$/gim,
+   (_whole,indent,group,xcPoints,duoiPoints)=>{
+     const numbers=group.split(/\s*\.\s*/).filter(Boolean);
+     if(numbers.length<2 || !numbers.every(n=>/^\d{3}$/.test(n)))return _whole;
+     return numbers.map(n=>indent+n+'xc'+xcPoints+'.')
+       .concat(numbers.map(n=>indent+n+'xduoi'+duoiPoints+'.')).join('\n');
+   }
+ );
+ const _fixed2057=tshFixJoinedBaoXC(_expandedSharedXcDuoi);
  let rows=[],errors=[],st={region:"N",stations:1,label:"Mặc định"};
  let hasExplicitStation=false;
  let text=normalizeLoosePhoiWithoutChangingFunctionCount(cleanTelegramPhoiText(ttSeparateJoinedBets(ttUnifiedNormalize(_fixed2057))));

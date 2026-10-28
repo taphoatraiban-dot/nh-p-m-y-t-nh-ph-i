@@ -7780,15 +7780,12 @@ window.showHistoryItem=showHistoryItem;
       e.preventDefault();
       let mode='share';
       try{mode=JSON.parse(localStorage.getItem('TSH_PRINTER_LAN_V1')||'{}').mode||'share';}catch(_){}
-      // The primary iPhone print action must never open the AirPrint picker.
-      // Preserve AirPrint and Share as explicit alternatives via their own controls.
-      if(mode==='native')printPhoiToMac(false,true);
-      else if(mode==='airprint')printPhoiToMac(false,false,true);
-      else if(mode==='queue'||mode==='macqueue')printPhoiToMac(false,false,false,true);
-      else if(mode==='legacy')printPhoiToMac();
+      // Printing rebuild: only verified Share or authenticated queue.
+      // Old localStorage values must not silently trigger broken AirPrint/native paths.
+      if(mode==='queue')printPhoiToMac(false,false,false,true);
       else printPhoiToMac(true);
     }
-    if(e.target.closest('#printPhoiDirect')){e.preventDefault();printPhoiToMac(false,true);}
+    if(e.target.closest('#printPhoiDirect')){e.preventDefault();alert('In trực tiếp chưa được hỗ trợ trong bản cài lại. Hãy dùng Chia sẻ hoặc hàng đợi Mac Mini.');}
     if(e.target.closest('#openPrintHistory')){e.preventDefault();if(window.TSHBluetoothPrintManager)window.TSHBluetoothPrintManager.open();else openHistory();}
   });
 })();

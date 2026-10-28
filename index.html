@@ -12750,4 +12750,35 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  setInterval(init,1500);
 })();
 </script>
+
+<!-- cuncun compact controls 20261029 -->
+<style>
+.quick-head>.quick-box #quickCustomerSlot,.quick-head>.quick-box #quickDateSlot{background:#eef0f3!important;border:0!important;border-radius:13px!important;height:44px!important;min-height:44px!important;max-height:44px!important;box-sizing:border-box!important}
+#quickCustomerSlot select,#quickCustomerSlot #customerSelect{background:transparent!important;background-color:transparent!important;color:#111!important;-webkit-text-fill-color:#111!important;font-size:18px!important;font-weight:900!important;text-align:center!important;height:44px!important;min-height:44px!important;width:100%!important;border:0!important;box-shadow:none!important}
+#quickDateSlot .cc-date-text{color:#111!important;font-size:18px!important;font-weight:900!important;height:44px!important;min-height:44px!important}
+#quickDateSlot .cc-date-text:before{content:'‹';position:absolute;left:10px;font-size:25px;color:#111}
+#quickDateSlot .cc-date-text:after{content:'›';position:absolute;right:10px;font-size:25px;color:#111}
+#quickDateSlot{position:relative!important}
+body.app-unlocked #liveSoiBar{display:block!important}
+#liveSoiBar.cc-live-off{padding:0!important;margin:6px 0!important;background:transparent!important;border:0!important}
+#liveSoiBar.cc-live-off>:first-child{display:flex!important}
+#liveSoiBar.cc-live-off>:first-child>strong,#liveSoiBar.cc-live-off #liveCheckNow,#liveSoiBar.cc-live-off #liveSoiState,#liveSoiBar.cc-live-off #liveQuality,#liveSoiBar.cc-live-off #liveSoiHits,#liveSoiBar.cc-live-off>small{display:none!important}
+#liveSoiBar.cc-live-off #liveSoiToggle{padding:5px 12px!important;font-size:12px!important;background:#f1f3f5!important;color:#555!important;border:1px solid #d6dbe1!important}
+</style>
+<script>
+(function(){
+ function sync(){
+  var src=document.getElementById('date'),label=document.querySelector('#quickDateSlot .cc-date-text');
+  if(src&&label){
+   var d=new Date(),iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+   var p=src.value.split('-');
+   label.textContent=src.value===iso?'HÔM NAY':p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):'CHỌN NGÀY';
+  }
+  var bar=document.getElementById('liveSoiBar'),toggle=document.getElementById('liveSoiToggle');
+  if(bar&&toggle)bar.classList.toggle('cc-live-off',toggle.textContent.trim()==='Bật LIVE');
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync);else sync();
+ setInterval(sync,500);
+})();
+</script>
 </html>

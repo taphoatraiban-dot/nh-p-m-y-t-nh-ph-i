@@ -3621,6 +3621,26 @@ function parseBets(){
     continue;
   }
 
+  // LOCK 28-10: shared XC followed by XC-DUOI must never be dropped by
+  // Telegram normalization or legacy shared-function expansion.
+  // Example: 111.911.191xc3.xduoi10. -> 3 XC + 1 tail wager (191).
+  // This deliberately handles only the exact, unambiguous syntax.
+  {
+    const mixed=s.match(/^((?:\d{3}\s*\.\s*)+\d{3})\s*xc\s*(\d+(?:[,.]\d+)?)\s*\.\s*xduoi\s*(\d+(?:[,.]\d+)?)\s*\.?$/i);
+    if(mixed){
+      const nums=mixed[1].split(/\s*\.\s*/).filter(Boolean);
+      const xcPoints=Number(mixed[2].replace(',','.'));
+      const tailPoints=Number(mixed[3].replace(',','.'));
+      if(nums.length>=2 && nums.every(n=>/^\d{3}$/.test(n))
+        && Number.isFinite(xcPoints) && xcPoints>0
+        && Number.isFinite(tailPoints) && tailPoints>0){
+        for(const n of nums) addBet(rows,st,n,'xc',xcPoints);
+        addBet(rows,st,nums[nums.length-1],'xc_duoi',tailPoints);
+        continue;
+      }
+    }
+  }
+
   // LOCK 19-10-2026: DAY DAI DUNG CHUNG NHIEU HAM (KHONG GIOI HAN NHOM).
   // Xu ly truc tiep bang addBet, khong phu thuoc cac regex tach phoi ben duoi.
   // 121314.171819.2021.222334da1.b10. -> 4 DA + 11 B2.

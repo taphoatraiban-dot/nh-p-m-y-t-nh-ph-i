@@ -12740,14 +12740,16 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    var value=src.value, picker=slot.querySelector('.cc-date-input'), label=slot.querySelector('.cc-date-text');
    if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return;
    if(picker.value!==value)picker.value=value;
-   var p=value.split('-');label.textContent='ngày '+Number(p[2])+' tháng '+Number(p[1])+', '+p[0];
+   var p=value.split('-');var d=new Date(),todayIso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+   var next=value===todayIso?'HÔM NAY':p[2]+'/'+p[1]+'/'+p[0];
+   if(label.textContent!==next)label.textContent=next;
   }
   if(!src.dataset.ccDateBound){src.dataset.ccDateBound='1';src.addEventListener('change',refresh);src.addEventListener('input',refresh)}
   refresh();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
  window.addEventListener('load',init);
- setInterval(init,1500);
+ // Avoid polling: other date renderers must not overwrite this control.
 })();
 </script>
 
@@ -12779,7 +12781,7 @@ body.app-unlocked #liveSoiBar{display:block!important}
   if(bar&&toggle)bar.classList.toggle('cc-live-off',toggle.textContent.trim()==='Bật LIVE');
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync);else sync();
- setInterval(sync,1500);
+ // Date text updates on native change/input events only.
 })();
 </script>
 </html>

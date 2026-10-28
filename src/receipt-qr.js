@@ -30,7 +30,7 @@
     const create=qr.create||(qr.default&&qr.default.create);
     if(typeof create!=='function')throw Error('Không tải được bộ mã hóa QR.');
     const generated=create(url,{errorCorrectionLevel:'M'});
-    const n=generated.modules.size;
+    const n=generated.modules.size;\n    if(n<21||n>177)throw Error('Kích thước QR không được hỗ trợ.');
     return Array.from({length:n},(_,y)=>Array.from({length:n},(_,x)=>generated.modules.get(x,y)?1:0));
   }
   async function makeTableReceipt(receipt,printQueueId,accessToken){

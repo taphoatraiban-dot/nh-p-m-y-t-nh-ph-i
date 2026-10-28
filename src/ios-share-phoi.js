@@ -43,7 +43,7 @@
     const items=(data.items||[]).map(x=>({...x,wrapped:linesFor(x.content)}));
     const heights=items.map(x=>Math.max(49,x.wrapped.length*29+15));
     const top=128, headerH=46, bottom=58;
-    const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+80;
+    const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+55;
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     canvas.height=Math.max(200,height);
     const ctx=canvas.getContext('2d');

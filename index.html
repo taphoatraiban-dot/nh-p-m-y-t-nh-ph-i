@@ -3645,10 +3645,11 @@ function parseBets(){
    const rawLines=_raw2057.replace(/\r\n?/g,'\n').split('\n');
    const lines=text.split('\n');
    const header=s=>/^(?:[234]dm[nt]|hn|mb|hanoi|btre|btr|bentre|vtau|blieu|tpho|dnai|ctho|st|dt|cmau|vl|bd|tg|kg|ag|tn)$/i.test(s.trim());
-   const mixed=/^(\d{3})\s*[.,]\s*(\d{3})\s*bdao\s*(\d+(?:[,.]\d+)?)n?\s*\.\s*xdao\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i;
+   const mixed=/(\d{3})\s*[.,]\s*(\d{3})\s*bdao\s*(\d+(?:[,.]\d+)?)n?\s*\.\s*xdao\s*(\d+(?:[,.]\d+)?)n?(?=\s*[.,]|\s*$)/gi;
    for(let i=0;i<rawLines.length;i++){
-     const m=rawLines[i].trim().match(mixed);
-     if(!m)continue;
+     mixed.lastIndex=0;
+     const matches=[...rawLines[i].matchAll(mixed)];
+     if(!matches.length)continue;
      let station='';
      for(let k=i-1;k>=0;k--)if(header(rawLines[k])){station=rawLines[k].trim();break;}
      if(!station)continue;
@@ -3657,13 +3658,15 @@ function parseBets(){
      let end=start+1;
      while(end<lines.length&&!header(lines[end]))end++;
      const section=lines.slice(start+1,end);
-     const stake=Number(m[4].replace(',','.'));
-     for(const n of [m[1],m[2]]){
-       const present=section.some(l=>{
-         const z=l.trim().match(/^(\d{3})\s*(?:xdao|xcdao|daoxc|dxc)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i);
-         return z&&z[1]===n&&Number(z[2].replace(',','.'))===stake;
-       });
-       if(!present)section.push(n+'xdao'+m[4]+'.');
+     for(const m of matches){
+       const stake=Number(m[4].replace(',','.'));
+       for(const n of [m[1],m[2]]){
+         const present=section.some(l=>{
+           const rx=/(\d{3})\s*(?:xdao|xcdao|daoxc|dxc)\s*(\d+(?:[,.]\d+)?)n?(?=\s*[.\s]|$)/gi;
+           return [...l.matchAll(rx)].some(z=>z[1]===n&&Number(z[2].replace(',','.'))===stake);
+         });
+         if(!present)section.push(n+'xdao'+m[4]+'.');
+       }
      }
      lines.splice(start+1,end-start-1,...section);
    }

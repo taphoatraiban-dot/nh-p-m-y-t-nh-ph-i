@@ -8328,7 +8328,7 @@ document.addEventListener('DOMContentLoaded',function(){
       const iso=isoLocal(d);
       const b=document.createElement('button');
       b.type='button'; b.dataset.date=iso;
-      b.textContent=(i===0?'HÔM NAY':names[d.getDay()])+' '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+      b.textContent='Ngày '+d.getDate()+' tháng '+(d.getMonth()+1)+', '+d.getFullYear();
       b.onclick=()=>{
         date.value=iso;
         date.dispatchEvent(new Event('change',{bubbles:true}));
@@ -8341,7 +8341,7 @@ document.addEventListener('DOMContentLoaded',function(){
     date.removeAttribute("min"); date.removeAttribute("max");
     if(!date.value) date.value=isoLocal(base);
   }
-  setTimeout(rebuild8Days,50);
+  // Chỉ hiển thị ngày đầy đủ tại nút chọn ngày chính, không tạo thêm ô chọn ngày.\n  setTimeout(rebuild8Days,50);
   setTimeout(rebuild8Days,700);
 })();
 </script>

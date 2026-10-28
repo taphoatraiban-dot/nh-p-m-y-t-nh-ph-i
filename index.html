@@ -1106,6 +1106,10 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 <aside class="app-drawer" id="appDrawer" aria-hidden="true">
  <div class="drawer-head"><div class="dh-title">🧧 cuncun.icu</div><button class="drawer-close" id="drawerClose">×</button></div>
+ <div style="padding:9px 12px;background:#eff6ff;border-bottom:1px solid #bfdbfe">
+  <button type="button" id="cuncunReloadPage" style="display:block;width:100%;background:#1d4ed8;color:#fff;font-weight:800;padding:12px;border:0;border-radius:10px">🔄 TẢI LẠI TRANG / CẬP NHẬT</button>
+  <small style="display:block;margin-top:5px;color:#475569">Tải lại giao diện và mã mới; không xóa lịch sử, tài khoản hoặc cấu hình máy in. Nội dung chưa lưu có thể mất.</small>
+ </div>
  <div class="drawer-section calc-menu">
   <h3><span id="drawerBangTinhTitle" style="cursor:pointer">💎 BẢNG GIÁ ↗</span><button type="button" class="drawer-add-price" id="addPriceDrawer">＋ THÊM GIÁ</button></h3>
   <div class="drawer-body">
@@ -12498,3 +12502,17 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 #finalThreeActions,#tshThreeActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 #betsCard #printPhoiBluetooth{display:block!important;visibility:visible!important;width:100%!important;margin:0!important} #betsCard #printPhoiDirect{display:block!important;visibility:visible!important;margin:0!important}
 </style>
+
+<script id="cuncun-manual-refresh">
+(function(){
+ document.addEventListener('click',function(event){
+  if(!event.target.closest('#cuncunReloadPage'))return;
+  const bets=document.getElementById('bets');
+  if(bets && bets.value.trim() && !confirm('Tải lại trang? Nội dung đang nhập nhưng chưa lưu có thể mất.'))return;
+  try{sessionStorage.setItem('cuncun_manual_refresh_at',String(Date.now()));}catch(_){}
+  const url=new URL(window.location.href);
+  url.searchParams.set('cuncun_refresh',String(Date.now()));
+  window.location.replace(url.toString());
+ });
+})();
+</script>

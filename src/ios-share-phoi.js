@@ -24,7 +24,7 @@
   }
   function render(text,doc){
     if(!String(text||'').trim())throw Error('Phơi đang trống.');
-    const lines=wrap(text);
+    const lines=wrap(String(text).replace(/^\[\[QR:[^\n]*\]\]$/gm,'').trimEnd());
     const height=Math.max(160,PAD*2+(lines.length+2)*LINE);
     if(height>MAX_HEIGHT)throw Error('Phơi quá dài để chia sẻ một ảnh. Hãy tách thành các phiếu nhỏ hơn.');
     const canvas=doc.createElement('canvas');canvas.width=WIDTH;canvas.height=height;
@@ -39,7 +39,7 @@
     if(!base64)throw Error('Không xuất được ảnh phơi.');
     const bin=atob(base64),bytes=new Uint8Array(bin.length);
     for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-    return new fileCtor([bytes],'phoi-in-80mm.png',{type:'image/png'});
+    return new fileCtor([bytes],'phieu-mua-hang-80mm.png',{type:'image/png'});
   }
   function share(text,nav,doc,fileCtor){
     const n=nav||((typeof navigator!=='undefined')?navigator:null);
@@ -50,7 +50,7 @@
     const image=fileFromCanvas(render(text,d),F);
     if(!n.canShare({files:[image]}))throw Error('Trình duyệt không cho phép chia sẻ ảnh phơi sang ứng dụng in.');
     // Called synchronously in the print button's user gesture.
-    return n.share({files:[image],title:'Phơi đề 80 mm'}).then(()=>({ok:true,shared:true}));
+    return n.share({files:[image],title:'Phiếu mua hàng 80 mm'}).then(()=>({ok:true,shared:true}));
   }
   return {wrap,render,share};
 });

@@ -102,6 +102,8 @@
     backdrop.addEventListener('click', async event => {
       const button = event.target.closest('[data-action]');
       if (!button || !backdrop.contains(button)) return;
+      event.preventDefault();
+      event.stopPropagation();
       const action = button.dataset.action;
       if (action === 'close') { backdrop.remove(); return; }
       const id = button.closest('[data-id]')?.dataset.id;
@@ -136,13 +138,25 @@
           write(entries.filter(x=>!ids.has(String(x.id))));
           ids.forEach(id=>selected.delete(id));render();
         } else if (action === 'edit' && item) {
-          const previous=String(item.raw||item.text||'');
-          const updated=prompt('Sửa nội dung phơi (không tự in lại):',previous);
-          if(updated===null)return;
-          if(!updated.trim()){alert('Nội dung phơi không được để trống.');return;}
-          item.raw=updated.trim();item.text=updated.trim();
-          item.editedAt=Date.now();
+          const article=button.closest('[data-id]');
+          const pre=article?.querySelector('pre');
+          if(!pre)return;
+          const editor=document.createElement('textarea');
+          editor.setAttribute('aria-label','Sửa nội dung phơi');
+          editor.style.cssText='width:100%;min-height:140px;font-size:16px;padding:10px;border:2px solid #2563eb;border-radius:8px;box-sizing:border-box';
+          editor.value=String(item.raw||item.text||'');
+          pre.replaceWith(editor);
+          const controls=article.querySelector('div[style*="display:grid"]');
+          if(controls)controls.innerHTML='<button type="button" data-action="save-edit" style="padding:12px;background:#16a34a;color:white;border-radius:8px">💾 Lưu sửa</button><button type="button" data-action="cancel-edit" style="padding:12px;background:#e2e8f0;border-radius:8px">Hủy</button>';
+          editor.focus();
+        } else if (action === 'save-edit' && item) {
+          const value=button.closest('[data-id]')?.querySelector('textarea')?.value.trim();
+          if(!value){alert('Nội dung không được để trống.');return;}
+          item.raw=value;item.text=value;item.editedAt=Date.now();
           write(entries);render();
+          alert('Đã lưu nội dung sửa. Không tự in lại.');
+        } else if (action === 'cancel-edit') {
+          render();
         } else if (action === 'copy-all') {
           if (!entries.length) { alert('Chưa có phơi đã in để sao chép.'); return; }
           await copyToClipboard(utils.combined(entries.slice().sort((a,b) => (b.lastPrintedAt || 0) - (a.lastPrintedAt || 0))));
@@ -188,7 +202,11 @@
       const id=event.target?.dataset?.selectId;
       if(!id)return;
       if(event.target.checked)selected.add(id);else selected.delete(id);
+      const label=backdrop.querySelector('[data-action="toggle-actions"]')?.previousElementSibling;
+      if(label)label.textContent=selected.size+' tin đã chọn · Lưu 48 giờ';
     });
+    // Prevent global calculator click handlers from intercepting manager controls.
+    backdrop.addEventListener('click',event=>event.stopPropagation());
     render();
   }
   root.TSHBluetoothPrintManager = {open};

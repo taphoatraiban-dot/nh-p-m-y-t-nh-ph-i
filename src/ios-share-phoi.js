@@ -42,7 +42,7 @@
     };
     const items=(data.items||[]).map(x=>({...x,wrapped:linesFor(x.content)}));
     const heights=items.map(x=>Math.max(49,x.wrapped.length*29+15));
-    const top=128, headerH=46, bottom=58;
+    const top=194, headerH=46, bottom=58;
     const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+55;
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     canvas.height=Math.max(200,height);
@@ -50,10 +50,10 @@
     ctx.fillStyle='#fff';ctx.fillRect(0,0,WIDTH,canvas.height);
     ctx.fillStyle='#000';ctx.textBaseline='middle';
     ctx.font='bold 34px sans-serif';ctx.textAlign='center';
-    ctx.fillText(data.title||'PHIẾU MUA HÀNG',WIDTH/2,32);
+    ctx.fillText(data.title||'PHIẾU MUA HÀNG',WIDTH/2,98);
     ctx.textAlign='left';ctx.font='bold 22px sans-serif';
-    ctx.fillText('NGÀY: '+(data.date||'')+'  '+(data.time||''),PAD,77);
-    ctx.fillText('KHÁCH: '+(data.customer||''),PAD,105);
+    ctx.fillText('NGÀY: '+(data.date||'')+'  '+(data.time||''),PAD,143);
+    ctx.fillText('KHÁCH: '+(data.customer||''),PAD,171);
     const line=(x1,y1,x2,y2)=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();};
     ctx.strokeStyle='#000';ctx.lineWidth=2.5;
     let y=top;

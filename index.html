@@ -13081,4 +13081,43 @@ body.app-unlocked #liveSoiBar{display:block!important}
  window.addEventListener('load',arrange);
 })();
 </script>
+
+<!-- telegram key button fix and unified controls 20261029 -->
+<style>
+#appDrawer button:not(.drawer-close):not([id*="logout" i]):not([id*="delete" i]):not([id*="remove" i]),
+#appDrawer select,
+#appDrawer .cc-tg-settings button,
+#appDrawer .cc-tg-settings select{
+ background:#eef0f3!important;color:#171717!important;-webkit-text-fill-color:#171717!important;
+ border:1px solid #d8dce2!important;border-radius:10px!important;
+ font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+ font-size:14px!important;font-weight:800!important;box-shadow:none!important;
+}
+#appDrawer button:disabled{opacity:.55!important}
+#tgVpsKeyMenu .drawer-body>details{display:block!important}
+#tgVpsKeyMenu #tgMemberQuickSetup{display:block!important}
+</style>
+<script>
+(function(){
+ function repair(){
+  var keyPanel=document.getElementById('tgVpsKeyMenu');
+  var advanced=document.querySelector('#tgDrawerThreeBody20261022 .cc-tg-settings');
+  var key=document.getElementById('tgMemberKey');
+  var quick=document.querySelector('#tgMemberQuickSetup button');
+  if(!keyPanel||!advanced||!key||!quick)return;
+  if(keyPanel.parentElement!==advanced)advanced.appendChild(keyPanel);
+  var setup=key.closest('details');
+  if(!setup)return;
+  quick.onclick=function(ev){
+   ev.preventDefault();
+   advanced.open=true;
+   setup.open=true;
+   keyPanel.scrollIntoView({behavior:'smooth',block:'center'});
+   key.focus({preventScroll:true});
+  };
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',repair);else repair();
+ window.addEventListener('load',repair);
+})();
+</script>
 </html>

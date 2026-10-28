@@ -43,7 +43,9 @@
     const items=(data.items||[]).map(x=>({...x,wrapped:linesFor(x.content)}));
     const heights=items.map(x=>Math.max(64,x.wrapped.length*32+22));
     const top=216, headerH=56, bottom=68;
-    const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+62;
+    const qr=data.qrMatrix;
+    const qrValid=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length);
+    const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+(qrValid?340:62);
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     canvas.height=Math.max(200,height);
     const ctx=canvas.getContext('2d');
@@ -85,6 +87,15 @@
     y+=bottom;
     ctx.font='bold 21px sans-serif';ctx.textAlign='center';
     ctx.fillText('MÃ PHIẾU: '+(data.code||''),WIDTH/2,y+35);
+    if(qrValid){
+      const moduleSize=Math.floor(240/qr.length),qrSize=moduleSize*qr.length;
+      const left=Math.floor((WIDTH-qrSize)/2),topQr=y+55;
+      ctx.fillStyle='#fff';ctx.fillRect(left-12,topQr-12,qrSize+24,qrSize+24);
+      ctx.fillStyle='#000';
+      qr.forEach((row,ry)=>row.forEach((dark,rx)=>{if(dark)ctx.fillRect(left+rx*moduleSize,topQr+ry*moduleSize,moduleSize,moduleSize);}));
+      ctx.font='bold 19px sans-serif';ctx.textAlign='center';
+      ctx.fillText('QR THÔNG TIN - CHƯA XÁC THỰC',WIDTH/2,topQr+qrSize+30);
+    }
     return canvas;
   }
   function render(text,doc){

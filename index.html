@@ -7840,6 +7840,7 @@ window.showHistoryItem=showHistoryItem;
   }
   let tshPrintInFlight=false;
   async function printPhoiToMac(forceIOSShare=false,forceNative=false,forceAirPrint=false,forceQueue=false){
+    // One-tap direct printing continues to use the real receipt table, not the demo page.
     if(tshPrintInFlight){alert('Đang xử lý lệnh in trước. Vui lòng chờ để tránh in trùng.');return;}
     const bets=document.getElementById('bets');
     const rawText=String(bets?.value||'').trim();
@@ -7888,6 +7889,8 @@ window.showHistoryItem=showHistoryItem;
       // show a single combined total rather than fabricating amounts per original line.
       items.push({region:'',type:'',content:originalLines.join('\n'),amount:fmtAmount(balance)});
     }
+    // Direct, AirPrint, and queue share the same 80mm receipt payload.
+    // QR verification is intentionally omitted until its backend is deployed.
     const receipt='[[TABLE80]]'+JSON.stringify({
       title:'PHIẾU MUA HÀNG',
       date, time:pad(now.getHours())+':'+pad(now.getMinutes()),
@@ -12629,27 +12632,6 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  });
 })();
 </script>
-<!-- Cuncun QR demo entry: isolated from live print and accounting -->
-<style id="cuncun-qr-demo-entry-style">
-#cuncunQrDemoLink{display:block;box-sizing:border-box;margin:10px 0;padding:12px 14px;border:2px solid #a71919;border-radius:9px;background:#fff7f7;color:#9d1111!important;text-align:center;text-decoration:none!important;font-size:16px;font-weight:800;line-height:1.4}
-#cuncunQrDemoLink:focus-visible{outline:3px solid #222;outline-offset:2px}
-</style>
-<script id="cuncun-qr-demo-entry">
-(function(){
- function mount(){
-  if(document.getElementById('cuncunQrDemoLink'))return;
-  var target=document.getElementById('printPhoiBluetooth')||document.getElementById('printPhoiDirect')||document.getElementById('betsCard');
-  if(!target)return;
-  var a=document.createElement('a');
-  a.id='cuncunQrDemoLink';
-  a.href='/demo-phieu-qr.html?v=323ea8d';
-  a.textContent='XEM GIAO DIỆN PHIẾU QR MỚI (DEMO)';
-  a.setAttribute('aria-label','Mở bản demo phiếu QR 80mm trong trang mới');
-  a.target='_blank';a.rel='noopener noreferrer';
-  target.insertAdjacentElement('afterend',a);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
-})();
-</script>
+
 
 </html>

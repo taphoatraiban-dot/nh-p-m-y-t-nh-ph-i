@@ -12813,4 +12813,26 @@ body.app-unlocked #liveSoiBar{display:block!important}
 }
 #betsCard #okAll{background:#dc192c!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 </style>
+
+<!-- cuncun live below print manager 20261029 -->
+<style>
+/* Keep LIVE controls compact below print manager, preserving existing listeners. */
+#liveSoiBar{margin:8px 0!important;padding:7px 9px!important;border-radius:12px!important}
+#liveSoiBar.cc-live-off{margin:7px 0!important;padding:0!important;border:0!important;background:transparent!important}
+#liveSoiBar.cc-live-off #liveSoiToggle{font-size:12px!important;padding:6px 12px!important}
+</style>
+<script>
+(function(){
+ function moveLive(){
+  var bar=document.getElementById('liveSoiBar');
+  var grid=document.getElementById('tshPrintActionGrid');
+  if(!bar||!grid)return;
+  if(grid.nextElementSibling!==bar)grid.insertAdjacentElement('afterend',bar);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',moveLive);else moveLive();
+ var observer=new MutationObserver(function(){moveLive()});
+ function observe(){var root=document.getElementById('betsCard');if(root)observer.observe(root,{childList:true,subtree:true})}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe);else observe();
+})();
+</script>
 </html>

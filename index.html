@@ -10585,6 +10585,10 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  else boot();
 })();
 </script>
+<style id="cuncun-hide-main-reload">
+/* CUNCUN 2026-10-28: hide redundant refresh buttons on main page */
+#cuncunTopReload,#cuncunReloadMain{display:none!important}
+</style>
 <!-- cuncun-price-external-panel-20261028 -->
 <style>
 #cuncunTopReload{display:none!important}
@@ -10602,18 +10606,30 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   const overlay=document.createElement('div');overlay.id='cuncunPriceOverlay';
   overlay.innerHTML='<div id="cuncunPricePanel" role="dialog" aria-modal="true" aria-label="Quản lý bảng giá"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px"><strong style="font-size:19px">💎 QUẢN LÝ BẢNG GIÁ</strong><button type="button" id="cuncunPriceClose" style="padding:10px 15px;border:0;border-radius:9px;background:#fee2e2;color:#991b1b;font-weight:800">✕ ĐÓNG</button></div><div id="cuncunPriceContent"></div></div>';
   document.body.appendChild(overlay);
+  let previousParent=null, previousNext=null, moved=null;
+  function close(){
+   overlay.classList.remove('is-open');
+   if(moved && previousParent){
+    if(previousNext && previousNext.parentNode===previousParent) previousParent.insertBefore(moved,previousNext);
+    else previousParent.appendChild(moved);
+   }
+   moved=null;previousParent=null;previousNext=null;
+  }
   function open(){
    const details=document.getElementById('tshPriceManage');
    const list=document.getElementById('drawerPriceList');
    const content=document.getElementById('cuncunPriceContent');
-   if(details){content.appendChild(details);details.open=true;}
-   else if(list)content.appendChild(list);
+   const target=details||list;
+   if(!target)return;
+   if(moved && moved!==target)close();
+   if(!moved){previousParent=target.parentNode;previousNext=target.nextSibling;moved=target;content.appendChild(target);}
+   if(details)details.open=true;
+   document.getElementById('appDrawer')?.classList.remove('open','active','show');
+   document.getElementById('drawerBackdrop')?.classList.remove('open');
    overlay.classList.add('is-open');
-   const drawer=document.getElementById('appDrawer');
-   if(drawer){drawer.classList.remove('open','active','show');drawer.setAttribute('aria-hidden','true');}
   }
-  document.getElementById('cuncunPriceClose').addEventListener('click',()=>overlay.classList.remove('is-open'));
-  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('is-open')});
+  document.getElementById('cuncunPriceClose').addEventListener('click',close);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
   for(const id of ['addPriceDrawer','drawerBangTinhTitle']){
    const btn=document.getElementById(id);
    if(btn)btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();open()},true);

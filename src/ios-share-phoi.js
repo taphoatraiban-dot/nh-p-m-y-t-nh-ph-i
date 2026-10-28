@@ -6,7 +6,7 @@
   if(root)root.TSHIOSSharePhoi=api;
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
-  const WIDTH=576, PAD=22, FONT=22, LINE=30, MAX_HEIGHT=14000;
+  const WIDTH=576, PAD=18, FONT=24, LINE=34, MAX_HEIGHT=14000;
   function wrap(text,maxChars=39){
     const lines=[];
     for(const raw of String(text||'').replace(/\r\n?/g,'\n').split('\n')){
@@ -30,8 +30,15 @@
     const canvas=doc.createElement('canvas');canvas.width=WIDTH;canvas.height=height;
     const ctx=canvas.getContext('2d');if(!ctx)throw Error('Không tạo được hình ảnh phơi.');
     ctx.fillStyle='#fff';ctx.fillRect(0,0,WIDTH,height);
-    ctx.fillStyle='#000';ctx.font=FONT+'px monospace';ctx.textBaseline='top';
-    lines.forEach((line,i)=>ctx.fillText(line,PAD,PAD+i*LINE));
+    ctx.fillStyle='#000';ctx.font='bold '+FONT+'px monospace';ctx.textBaseline='top';
+    lines.forEach((line,i)=>{
+      const title=/PHIEU MUA HANG/i.test(line);
+      const total=/^TONG (THU|BU):/i.test(line);
+      ctx.font=(title?'bold 32px':total?'bold 29px':'bold '+FONT+'px')+' monospace';
+      const text=line.trim();
+      const x=title?Math.max(PAD,(WIDTH-ctx.measureText(text).width)/2):PAD;
+      ctx.fillText(title?text:line,x,PAD+i*LINE);
+    });
     return canvas;
   }
   function fileFromCanvas(canvas,fileCtor){

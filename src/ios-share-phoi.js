@@ -94,7 +94,7 @@
       ctx.fillStyle='#000';
       qr.forEach((row,ry)=>row.forEach((dark,rx)=>{if(dark)ctx.fillRect(left+rx*moduleSize,topQr+ry*moduleSize,moduleSize,moduleSize);}));
       ctx.font='bold 19px sans-serif';ctx.textAlign='center';
-      ctx.fillText('QR THÔNG TIN - CHƯA XÁC THỰC',WIDTH/2,topQr+qrSize+30);
+      ctx.fillText('QUÉT QR ĐỂ XÁC THỰC PHIẾU',WIDTH/2,topQr+qrSize+30);
     }
     return canvas;
   }

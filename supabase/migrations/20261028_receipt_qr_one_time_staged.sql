@@ -1,8 +1,6 @@
 -- Staged only. Review and back up production before applying.
 -- Private verification records: never expose raw tokens to browser clients.
-create schema if not exists receipt_security;
-revoke all on schema receipt_security from public, anon, authenticated;
-create table if not exists receipt_security.verifications (
+create table if not exists public.receipt_verifications (
   id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references auth.users(id),
   receipt_code text not null,
@@ -17,9 +15,9 @@ create table if not exists receipt_security.verifications (
   unique (owner_user_id, receipt_code)
 );
 create index if not exists receipt_verifications_owner_idx
-  on receipt_security.verifications(owner_user_id, issued_at desc);
-alter table receipt_security.verifications enable row level security;
-revoke all on receipt_security.verifications from public, anon, authenticated;
+  on public.receipt_verifications(owner_user_id, issued_at desc);
+alter table public.receipt_verifications enable row level security;
+revoke all on public.receipt_verifications from public, anon, authenticated;
 -- No client policies. Server functions must verify identity/ownership.
 -- Atomic one-time redemption should use:
 -- update ... set status='redeemed',redeemed_at=now(),redeemed_by=$actor

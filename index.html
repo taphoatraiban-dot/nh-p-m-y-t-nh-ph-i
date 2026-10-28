@@ -7769,8 +7769,9 @@ window.showHistoryItem=showHistoryItem;
 /* ===== IN PHOI + LICH SU IN + TONG HOP TELEGRAM ===== */
 (function(){
   const KEY='TSH_PRINT_HISTORY_V1';
-  const read=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(_){return []}};
-  const write=a=>localStorage.setItem(KEY,JSON.stringify(a.slice(-1000)));
+  const historyKeep=a=>a.filter(x=>{const t=Number(x.createdAt||x.lastPrintedAt||Date.parse(x.date||''));return t>0&&Date.now()-t<172800000&&Date.now()>=t-60000;});
+  const read=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(a))return [];const fresh=historyKeep(a);if(fresh.length!==a.length)localStorage.setItem(KEY,JSON.stringify(fresh));return fresh;}catch(_){return []}};
+  const write=a=>localStorage.setItem(KEY,JSON.stringify(historyKeep(a).slice(-1000)));
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt=v=>Math.round(Number(v)||0).toLocaleString('vi-VN')+'k';
   const fingerprint=(date,customer,text)=>[date,customer,String(text).trim().replace(/\r/g,'')].join('\n---\n');

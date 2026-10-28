@@ -12089,7 +12089,7 @@ manage.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0";
 const hideChatBtn=document.createElement("button");hideChatBtn.type="button";hideChatBtn.className="soft";hideChatBtn.textContent="Xóa nhóm / cá nhân khỏi danh sách";hideChatBtn.style.cssText="flex:1;min-width:155px;color:#b91c1c;font-size:12px";
 const restoreChatSelect=document.createElement("select");restoreChatSelect.setAttribute("aria-label","Nhóm hoặc cá nhân đã ẩn");restoreChatSelect.style.cssText="flex:1;min-width:130px;display:none";
 const restoreChatBtn=document.createElement("button");restoreChatBtn.type="button";restoreChatBtn.className="soft";restoreChatBtn.textContent="Khôi phục";restoreChatBtn.style.display="none";
-manage.append(hideChatBtn,restoreChatSelect,restoreChatBtn);
+manage.append(hideChatBtn);
 groups.parentNode.append(manage);
 hideChatBtn.onclick=async()=>{
  const chat=data.groups.find(g=>String(g.chat_id)===groups.value&&g.enabled!==false);
@@ -12126,8 +12126,8 @@ function render(){
  for(const g of data.groups.filter(g=>g.enabled!==false))groups.add(new Option(g.group_name,String(g.chat_id)));
  restoreChatSelect.replaceChildren();
  for(const g of data.groups.filter(g=>g.enabled===false))restoreChatSelect.add(new Option(g.group_name,String(g.chat_id)));
- restoreChatSelect.style.display=restoreChatSelect.options.length?"block":"none";
- restoreChatBtn.style.display=restoreChatSelect.options.length?"block":"none";
+ restoreChatSelect.style.display="none";
+ restoreChatBtn.style.display="none";
  hideChatBtn.disabled=!groups.options.length;
  if(!data.groups.length)groups.add(new Option("Chưa có nhóm",""));
  else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:(Array.from(groups.options).find(o=>data.messages.some(m=>String(m.chat_id)===o.value))?.value||groups.options[0]?.value||"");
@@ -12942,5 +12942,15 @@ body.app-unlocked #liveSoiBar{display:block!important}
 }
 #betsCard #okAll{color:#fff!important;-webkit-text-fill-color:#fff!important}
 #liveSoiBar .cc-live-header .cc-live-status{font-size:12px!important;font-weight:800!important}
+</style>
+
+<!-- telegram simplified safe view 20261029 -->
+<style>
+/* Hide legacy bot UI and connection setup, not the active member inbox. */
+#tgForwardInbox > summary,
+#tgForwardInbox > .compact-body > :not(#tgMemberInbox){display:none!important}
+#tgForwardInbox{border:0!important;background:transparent!important;box-shadow:none!important;margin:0!important;padding:0!important}
+#tgForwardInbox > .compact-body{padding:0!important}
+#tgCustomerSetup,#tgMemberChatManage select[aria-label="Nhóm hoặc cá nhân đã ẩn"],#tgMemberChatManage button[data-restore-chat]{display:none!important}
 </style>
 </html>

@@ -3430,7 +3430,15 @@ function normalizeLoosePhoiWithoutChangingFunctionCount(text){
 
 function parseBets(){
  // Chỉ chuẩn hoá trên bản sao; DÒ SAI/OK không được tự sửa nội dung gốc.
- const _raw2057=ttFixCompactBetSeparators(String($("bets")?.value||""));
+ // Telegram text can contain invisible Unicode and non-breaking spaces.
+ // Sanitize only the parsing copy so Telegram and manual typing follow the same path.
+ const _telegramSafeInput=String($("bets")?.value||"")
+   .replace(/\r\n?/g,"\n")
+   .replace(/[\u200B-\u200D\u2060\uFEFF]/g,"")
+   .replace(/[\u00A0\u202F\u2007]/g," ")
+   .replace(/[\uFF0E\u2024]/g,".")
+   .replace(/[\uFF0C]/g,",");
+ const _raw2057=ttFixCompactBetSeparators(_telegramSafeInput);
  // Chặn cược sai độ dài số trên phơi gốc cho TẤT CẢ các đài MN/MT/MB.
  // DD đúng 2 chữ số; XC đúng 3 chữ số. Bất kỳ token sai đều khóa toàn phơi.
  const _strictLengthRe=/(?:^|[^0-9])([0-9]+)\s*(xc|dd)\s*([0-9]+(?:[,.][0-9]+)?)(?:n)?(?=\s*(?:\.|$|\n))/gim;

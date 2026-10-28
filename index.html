@@ -13120,4 +13120,31 @@ body.app-unlocked #liveSoiBar{display:block!important}
  window.addEventListener('load',repair);
 })();
 </script>
+
+<!-- VPS key resilient open fix 20261029 -->
+<script>
+(function(){
+ function openKey(e){
+  var key=document.getElementById('tgMemberKey');
+  if(!key)return;
+  var advanced=document.querySelector('#tgDrawerThreeBody20261022 .cc-tg-settings');
+  var section=document.getElementById('tgVpsKeyMenu');
+  if(advanced)advanced.open=true;
+  if(section&&section.tagName==='DETAILS')section.open=true;
+  var p=key.parentElement;
+  while(p&&p!==document.body){
+   if(p.tagName==='DETAILS')p.open=true;
+   if(p===section)break;
+   p=p.parentElement;
+  }
+  key.scrollIntoView({behavior:'auto',block:'center'});
+  key.focus({preventScroll:true});
+ }
+ document.addEventListener('click',function(e){
+  var btn=e.target.closest('#tgMemberQuickSetup button');
+  if(!btn)return;
+  e.preventDefault();e.stopImmediatePropagation();openKey(e);
+ },true);
+})();
+</script>
 </html>

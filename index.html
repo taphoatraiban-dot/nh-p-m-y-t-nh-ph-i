@@ -12716,4 +12716,38 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 </script>
 
+
+<!-- cuncun unified date 20261029 -->
+<style>
+#quickDateSlot{position:relative;min-height:44px}
+#quickDateSlot .cc-date-text{display:flex;justify-content:center;align-items:center;min-height:44px;font-weight:800;font-size:15px}
+#quickDateSlot .cc-date-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:5;cursor:pointer}
+#tshDateAnyWrap,#daybar{display:none!important}
+</style>
+<script>
+(function(){
+ function init(){
+  var slot=document.getElementById('quickDateSlot'),src=document.getElementById('date');
+  if(!slot||!src)return;
+  if(!slot.querySelector('.cc-date-input')){
+   slot.replaceChildren();
+   var label=document.createElement('span');label.className='cc-date-text';
+   var picker=document.createElement('input');picker.type='date';picker.className='cc-date-input';picker.setAttribute('aria-label','Chọn ngày');
+   slot.append(label,picker);
+   picker.addEventListener('change',function(){if(!picker.value)return;src.removeAttribute('min');src.removeAttribute('max');src.value=picker.value;src.dispatchEvent(new Event('change',{bubbles:true}));refresh()});
+  }
+  function refresh(){
+   var value=src.value, picker=slot.querySelector('.cc-date-input'), label=slot.querySelector('.cc-date-text');
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return;
+   if(picker.value!==value)picker.value=value;
+   var p=value.split('-');label.textContent='ngày '+Number(p[2])+' tháng '+Number(p[1])+', '+p[0];
+  }
+  if(!src.dataset.ccDateBound){src.dataset.ccDateBound='1';src.addEventListener('change',refresh);src.addEventListener('input',refresh)}
+  refresh();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+ window.addEventListener('load',init);
+ setInterval(init,1500);
+})();
+</script>
 </html>

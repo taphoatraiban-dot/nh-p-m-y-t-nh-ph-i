@@ -12841,4 +12841,43 @@ body.app-unlocked #liveSoiBar{display:block!important}
 #betsCard>summary{font-size:25px!important;line-height:1.15!important;text-align:left!important;padding:7px 13px!important;min-height:35px!important}
 #syntaxGuideEntry #ttLicenseCompact,#syntaxGuideEntry .tt-release-badge{display:none!important}
 </style>
+
+<!-- compact two print buttons 20261029 -->
+<style>
+/* Two equal compact print controls, keep native click handlers intact. */
+#tshPrintActionGrid{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:8px!important;
+ margin:8px 0!important;
+ align-items:stretch!important;
+}
+#tshPrintActionGrid #printPhoiBluetooth{display:none!important}
+#tshPrintActionGrid #printPhoiDirect,
+#tshPrintActionGrid #openBluetoothPrintManager{
+ display:flex!important;
+ grid-column:auto!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:44px!important;
+ height:44px!important;
+ padding:6px 4px!important;
+ margin:0!important;
+ align-items:center!important;
+ justify-content:center!important;
+ font-size:clamp(11px,3vw,14px)!important;
+ line-height:1.1!important;
+ white-space:nowrap!important;
+ border-radius:12px!important;
+ background:#eef0f3!important;
+ color:#171717!important;
+ -webkit-text-fill-color:#171717!important;
+ border:1px solid #d8dce2!important;
+ box-shadow:none!important;
+}
+@media(max-width:350px){
+ #tshPrintActionGrid #printPhoiDirect,
+ #tshPrintActionGrid #openBluetoothPrintManager{font-size:11px!important}
+}
+</style>
 </html>

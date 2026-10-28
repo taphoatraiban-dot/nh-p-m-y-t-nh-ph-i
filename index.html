@@ -12786,4 +12786,31 @@ body.app-unlocked #liveSoiBar{display:block!important}
 </script>
 <!-- hide print phoi button 20261029 -->
 <style>#tshPrintActionGrid #printPhoiBluetooth{display:none!important}#tshPrintActionGrid{grid-template-columns:minmax(0,1fr)!important}</style>
+
+<!-- cuncun neutral action buttons 20261029 -->
+<style>
+/* Neutral buttons only: preserve OK red and all calculation/printing handlers. */
+#betsCard #clearBets,#betsCard #checkPhoi,
+#tshPrintActionGrid #printPhoiDirect,
+#tshPrintActionGrid #openBluetoothPrintManager,
+#syntaxGuideEntry #syntaxGuideOpen,
+#liveSoiBar #liveSoiToggle,#liveSoiBar #liveCheckNow{
+ background:#eef0f3!important;
+ background-image:none!important;
+ color:#171717!important;
+ -webkit-text-fill-color:#171717!important;
+ border:1px solid #d8dce2!important;
+ box-shadow:none!important;
+ border-radius:13px!important;
+ font-weight:850!important;
+}
+#betsCard #clearBets:active,#betsCard #checkPhoi:active,
+#tshPrintActionGrid #printPhoiDirect:active,
+#tshPrintActionGrid #openBluetoothPrintManager:active,
+#syntaxGuideEntry #syntaxGuideOpen:active,
+#liveSoiBar #liveSoiToggle:active,#liveSoiBar #liveCheckNow:active{
+ background:#dfe3e8!important;
+}
+#betsCard #okAll{background:#dc192c!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+</style>
 </html>

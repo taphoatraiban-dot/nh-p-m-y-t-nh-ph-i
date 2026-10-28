@@ -7186,7 +7186,9 @@ function openResultBoard(detail){
   overlay.addEventListener('click',e=>{if(e.target===overlay || e.target.closest('.result-board-close')) overlay.remove();});
 }
 
+// Capture summary actions before older document handlers can stop bubbling on iPhone.
 document.addEventListener('click',async(e)=>{
+  if(!(e.target instanceof Element))return;
   const hitRow=e.target.closest('.legacy-hit[data-result-detail]');
   if(hitRow){
     e.preventDefault();
@@ -7215,7 +7217,7 @@ document.addEventListener('click',async(e)=>{
   if(copy){e.preventDefault();await handleCopyTotal();return;}
   const shot=e.target.closest('#shotTotal');
   if(shot){e.preventDefault();openCutImage();return;}
-});
+},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape') document.getElementById('resultBoardOverlay')?.remove();});
 $('logoutBtn2')?.addEventListener('click',doLogout);
 renderCustomers();buildDays();

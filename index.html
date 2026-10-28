@@ -10597,6 +10597,30 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 #cuncunPricePanel .drawer-price-item{display:grid!important}
 #cuncunReloadMain,#cuncunTopReload{display:none!important;visibility:hidden!important}
 </style>
+<style id="cuncun-price-menu-roles-20261028">
+/* Main picker remains visible; drawer contains management controls only. */
+#appDrawer #drawerPriceList{display:none!important}
+#appDrawer #tshPricePicker{display:none!important}
+#appDrawer #tshPriceManage>summary{display:block!important}
+#cuncunPricePanel #drawerPriceList{display:grid!important}
+#cuncunPricePanel #tshPricePicker{display:none!important}
+</style>
+<script id="cuncun-price-picker-sync-20261028">
+(function(){
+ function sync(){
+  const select=document.getElementById('customerSelect');
+  if(!select)return;
+  let saved={};try{saved=JSON.parse(localStorage.getItem('phoi_customers_v3')||'{}')||{}}catch(_){}
+  const names=Object.keys(saved);
+  if(!names.length)return;
+  const existing=Array.from(select.options).map(o=>o.value);
+  for(const name of names){if(!existing.includes(name)){const option=document.createElement('option');option.value=name;option.textContent=name;select.appendChild(option);}}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync);else sync();
+ document.getElementById('customerSelect')?.addEventListener('focus',sync);
+ document.addEventListener('click',e=>{if(e.target?.closest?.('#addPriceDrawer,#drawerPriceList'))setTimeout(sync,150);});
+})();
+</script>
 <!-- cuncun-price-external-panel-20261028 -->
 <style>
 #cuncunTopReload{display:none!important}

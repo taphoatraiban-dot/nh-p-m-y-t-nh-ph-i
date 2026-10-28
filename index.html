@@ -1362,7 +1362,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  <button type="button" id="cuncunReloadMain" style="border:1px solid #93c5fd;background:#eff6ff;color:#1d4ed8;border-radius:9px;padding:9px 13px;font-weight:800;font-size:13px;min-height:40px">🔄 TẢI LẠI TRANG</button>
 </div>
 <details class="compact-section green" id="betsCard">
- <summary>📝 NHẬP DỮ LIỆU</summary>
+ <summary aria-label="Nhập dữ liệu" title="Nhập dữ liệu">📝</summary>
  <div class="compact-body">
   <div class="daybar" id="daybar"></div>
   <div class="grid"><label style="display:none">Ngày đang tính<input id="date" type="date"></label><label style="display:none">Khách / Giá nhận<input id="rateDisplay" readonly></label></div>
@@ -12835,4 +12835,10 @@ body.app-unlocked #liveSoiBar{display:block!important}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe);else observe();
 })();
 </script>
+
+<!-- compact input header and hide license badges 20261029 -->
+<style>
+#betsCard>summary{font-size:25px!important;line-height:1.15!important;text-align:left!important;padding:7px 13px!important;min-height:35px!important}
+#syntaxGuideEntry #ttLicenseCompact,#syntaxGuideEntry .tt-release-badge{display:none!important}
+</style>
 </html>

@@ -7849,8 +7849,7 @@ window.showHistoryItem=showHistoryItem;
       `TIEN XAC: ${money(sm.totalGross)}k`,
       `TONG ${balance>=0?'THU':'BU'}: ${money(balance)}k`,
       '--------------------------------',
-      `MA PHIEU: ${code}`,
-      'QUET QR: CHUA KICH HOAT'
+      `MA PHIEU: ${code}`
     ].filter(Boolean).join('\n');
     const text=receipt;
     const b=document.getElementById(forceNative?'printPhoiDirect':(forceIOSShare||forceQueue||forceAirPrint)?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';

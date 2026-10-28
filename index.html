@@ -1350,6 +1350,9 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  </div>
 </details>
 
+<div style="display:flex;justify-content:flex-end;padding:5px 10px 2px">
+ <button type="button" id="cuncunReloadMain" style="border:1px solid #93c5fd;background:#eff6ff;color:#1d4ed8;border-radius:9px;padding:9px 13px;font-weight:800;font-size:13px;min-height:40px">🔄 TẢI LẠI TRANG</button>
+</div>
 <details class="compact-section green" id="betsCard">
  <summary>📝 NHẬP DỮ LIỆU</summary>
  <div class="compact-body">
@@ -12534,7 +12537,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 <script id="cuncun-manual-refresh">
 (function(){
  document.addEventListener('click',function(event){
-  if(!event.target.closest('#cuncunReloadPage'))return;
+  if(!event.target.closest('#cuncunReloadPage, #cuncunReloadMain'))return;
   const bets=document.getElementById('bets');
   if(bets && bets.value.trim() && !confirm('Tải lại trang? Nội dung đang nhập nhưng chưa lưu có thể mất.'))return;
   try{sessionStorage.setItem('cuncun_manual_refresh_at',String(Date.now()));}catch(_){}

@@ -3638,8 +3638,8 @@ function parseBets(){
    text=normalized.join('\n');
  }
  // REGRESSION LOCK 28-10: a two-number BDAO+XDAO wager must retain
- // BOTH explicitly entered DAO XC wagers, even when the numbers are
- // permutations of one another (300 and 033). Restore missing tokens
+ // the FIRST DAO XC wager missing from legacy normalization, even when the numbers are
+ // permutations of one another (300 and 033). The second is already emitted by legacy normalization; restoring it again duplicates 120k. Restore only the missing first token
  // after ALL normalizers, scoped to the original station block.
  {
    const rawLines=_raw2057.replace(/\r\n?/g,'\n').split('\n');
@@ -3660,7 +3660,7 @@ function parseBets(){
      const section=lines.slice(start+1,end);
      for(const m of matches){
        const stake=Number(m[4].replace(',','.'));
-       for(const n of [m[1],m[2]]){
+       for(const n of [m[1]]){
          const present=section.some(l=>{
            const rx=/(\d{3})\s*(?:xdao|xcdao|daoxc|dxc)\s*(\d+(?:[,.]\d+)?)n?(?=\s*[.\s]|$)/gi;
            return [...l.matchAll(rx)].some(z=>z[1]===n&&Number(z[2].replace(',','.'))===stake);

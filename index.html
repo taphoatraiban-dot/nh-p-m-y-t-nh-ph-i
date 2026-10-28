@@ -849,6 +849,9 @@ function init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<!-- Draft branch only: both admin panels require explicit preview/candidate URL flags. -->
+<script src="src/owner-admin-center.js" defer></script>
+<script src="src/admin-customer-live-panel.js" defer></script>
 <style id="ts-pin-access-gate">
 /* Closed by default; only show private app after showApp() marks successful authentication. */
 html body:not(.app-unlocked) #appCard,

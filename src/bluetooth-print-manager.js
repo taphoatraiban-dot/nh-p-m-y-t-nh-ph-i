@@ -63,6 +63,30 @@
     let activeRegion = 'MN';
     let actionsOpen = false;
     const dayClosed = new Set();
+    function notify(message) {
+      const old=backdrop.querySelector('#tshPrintNotice'); if(old)old.remove();
+      const el=document.createElement('div');
+      el.id='tshPrintNotice';
+      el.style.cssText='position:sticky;bottom:12px;z-index:15;margin:10px auto;max-width:550px;background:#172554;color:white;padding:13px;border-radius:10px;font-size:14px;box-shadow:0 5px 20px #0005';
+      el.textContent=message;
+      backdrop.querySelector('section')?.appendChild(el);
+    }
+    function askDelete(message) {
+      return new Promise(resolve=>{
+        const layer=document.createElement('div');
+        layer.style.cssText='position:fixed;inset:0;z-index:320000;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px';
+        const panel=document.createElement('div');
+        panel.style.cssText='background:white;color:#111827;border-radius:14px;padding:20px;max-width:350px;width:100%;box-sizing:border-box';
+        const msg=document.createElement('p');msg.textContent=message;msg.style.cssText='font-size:16px;line-height:1.5;margin:0 0 18px';
+        const controls=document.createElement('div');controls.style.cssText='display:flex;gap:10px';
+        const cancel=document.createElement('button');cancel.type='button';cancel.textContent='HỦY';cancel.style.cssText='flex:1;padding:13px;background:#e2e8f0;border-radius:9px';
+        const accept=document.createElement('button');accept.type='button';accept.textContent='XÁC NHẬN XÓA';accept.style.cssText='flex:1;padding:13px;background:#dc2626;color:white;border-radius:9px';
+        function done(value){layer.remove();resolve(value);}
+        cancel.addEventListener('click',e=>{e.stopPropagation();done(false)});
+        accept.addEventListener('click',e=>{e.stopPropagation();done(true)});
+        controls.append(cancel,accept);panel.append(msg,controls);layer.append(panel);backdrop.append(layer);
+      });
+    }
     function render() {
       const all = read(), entries = keep(all);
       if (all.length !== entries.length) write(entries);
@@ -133,7 +157,7 @@
         } else if (action === 'delete-region' || action === 'delete-selected') {
           const targets=entries.filter(x=>region(x)===activeRegion&&(action==='delete-region'||selected.has(String(x.id))));
           if(!targets.length)return;
-          if(!confirm('Xóa '+targets.length+' phơi '+activeRegion+'? Không thể hoàn tác.'))return;
+          if(!await askDelete('Xóa '+targets.length+' phơi '+activeRegion+'? Không thể hoàn tác.'))return;
           const ids=new Set(targets.map(x=>String(x.id)));
           write(entries.filter(x=>!ids.has(String(x.id))));
           ids.forEach(id=>selected.delete(id));render();
@@ -151,10 +175,10 @@
           editor.focus();
         } else if (action === 'save-edit' && item) {
           const value=button.closest('[data-id]')?.querySelector('textarea')?.value.trim();
-          if(!value){alert('Nội dung không được để trống.');return;}
+          if(!value){notify('Nội dung không được để trống.');return;}
           item.raw=value;item.text=value;item.editedAt=Date.now();
           write(entries);render();
-          alert('Đã lưu nội dung sửa. Không tự in lại.');
+          notify('Đã lưu nội dung sửa. Không tự in lại.');
         } else if (action === 'cancel-edit') {
           render();
         } else if (action === 'copy-all') {
@@ -165,11 +189,11 @@
           await copyToClipboard(utils.message(item));
           alert('Đã sao chép tin này. Mở Telegram và DÁN.');
         } else if (action === 'delete' && item) {
-          if (!confirm('Xoá riêng phơi này khỏi lịch sử trên iPhone? Không thể hoàn tác.')) return;
+          if (!await askDelete('Xóa riêng phơi này khỏi lịch sử trên iPhone? Không thể hoàn tác.')) return;
           write(entries.filter(row => String(row.id) !== id)); render();
         } else if (action === 'delete-all') {
           if (!entries.length) return;
-          if (!confirm('XOÁ TOÀN BỘ ' + entries.length + ' phơi đã in trên trình duyệt này? Không thể hoàn tác.')) return;
+          if (!await askDelete('XÓA TOÀN BỘ ' + entries.length + ' phơi đã in? Không thể hoàn tác.')) return;
           write([]); render();
         } else if (action === 'print' && item) {
           const receipt = String(item.text || utils.message(item));
@@ -195,7 +219,7 @@
           }
         }
       } catch (error) {
-        if (error?.name !== 'AbortError') alert('Không thực hiện được: ' + (error?.message || String(error)));
+        if (error?.name !== 'AbortError') notify('Không thực hiện được: ' + (error?.message || String(error)));
       }
     });
     backdrop.addEventListener('change',event=>{

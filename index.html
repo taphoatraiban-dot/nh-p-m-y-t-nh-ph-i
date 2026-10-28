@@ -7887,7 +7887,19 @@ window.showHistoryItem=showHistoryItem;
         if(b){b.textContent="✅ ĐÃ GỬI HÀNG ĐỢI #"+printedResult.id;setTimeout(()=>{b.disabled=false;b.textContent=old;},2500);}
         return;
       }
-      if(printedResult?.shared||printedResult?.sent||printedResult?.airprint){
+      // Native bridge confirms the receipt bytes were sent to the printer socket.
+      // Persist it as SENT (not physically confirmed), even if the user dismisses
+      // the paper-confirmation prompt, so it remains visible in print history.
+      if(printedResult?.sent){
+        const rec=savePrinted(text,rawText);
+        rec.printStatus='sent';
+        const entries=read(), saved=entries.find(x=>x.id===rec.id);
+        if(saved){saved.printStatus='sent';write(entries);}
+        if(b)b.textContent='📤 ĐÃ GỬI LỆNH IN';
+        setTimeout(()=>{if(b){b.disabled=false;b.textContent=old;}},1500);
+        return;
+      }
+      if(printedResult?.shared||printedResult?.airprint){
         const question=printedResult.airprint?'Đã mở AirPrint. Phiếu đã in ra giấy chưa? Chỉ bấm OK nếu giấy đã in xong.':printedResult.sent?'Đã gửi dữ liệu đến máy in. Phiếu đã ra giấy đầy đủ chưa? Chỉ bấm OK khi đã in xong.':'Đã mở bảng chia sẻ. Hãy chọn ứng dụng in (nếu xuất hiện). Phiếu đã ra giấy đầy đủ chưa? Chỉ bấm OK khi đã in xong.';
         if(confirm(question)){
           savePrinted(text,rawText);

@@ -47,7 +47,7 @@
       list.innerHTML = entries.length ? entries.map((item, idx) => `
         <article data-id="${escape(item.id)}" style="background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:11px;margin:9px 0">
           <strong>Phơi ${idx + 1} • ${escape(item.customer || 'Không tên')}</strong>
-          <div style="color:#64748b;font-size:12px">${escape(item.date || '')} • Đã xác nhận in ×${Number(item.printCount) || 1}</div>
+          <div style="color:#64748b;font-size:12px">${escape(item.date || '')} • ${item.printStatus === 'sent' ? 'Đã gửi lệnh in' : 'Đã xác nhận in'} ×${Number(item.printCount) || 1}</div>
           <pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;background:#f1f5f9;padding:9px;border-radius:8px;font-size:12px">${escape(utils.message(item))}</pre>
           <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
             <button type="button" data-action="copy" style="background:#dbeafe;color:#1d4ed8;border-radius:8px;padding:9px 3px;font-weight:800">📋 COPY TIN</button>
@@ -84,7 +84,7 @@
           await root.TSHIOSSharePhoi.share(String(item.text || utils.message(item)));
           if (confirm('Máy in đã in xong phơi này? Chỉ chọn OK nếu giấy đã ra thành công.')) {
             item.printCount = (Number(item.printCount) || 1) + 1;
-            item.lastPrintedAt = Date.now(); write(entries); render();
+            item.lastPrintedAt = Date.now(); item.printStatus = 'confirmed'; write(entries); render();
           }
         }
       } catch (error) {

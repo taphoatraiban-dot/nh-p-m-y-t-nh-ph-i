@@ -2380,10 +2380,32 @@ function ttNormalizeClearNaturalBetNames(raw){
   // "123 đảo xc 10", "123 đảo xỉu chủ 10".
   .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo|đào|dào)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
 }
+// LOCK: accent-insensitive Vietnamese lottery text. Operates on a parsing
+// copy; keeps digits, decimal commas, bet order and original UI text intact.
+function ttFoldVietnamesePhoi(raw){
+ return String(raw??'').replace(/đ/gi,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function ttNormalizeAccentedStationAndBets(raw){
+ const folded=ttFoldVietnamesePhoi(raw);
+ return folded.split(/\r?\n/).map(line=>{
+   const m=line.match(/^(\s*)(bac\s*lieu|ben\s*tre|vung\s*tau)\s*[:.\-]?\s*(\d.*)$/i);
+   if(m){
+     const station=m[2].toLowerCase().replace(/\s+/g,'');
+     const alias=station==='baclieu'?'blieu':station==='bentre'?'btre':'vtau';
+     return m[1]+alias+'\n'+m[1]+m[3];
+   }
+   const head=line.match(/^(\s*)(bac\s*lieu|ben\s*tre|vung\s*tau)\s*$/i);
+   if(head){
+     const station=head[2].toLowerCase().replace(/\s+/g,'');
+     return head[1]+(station==='baclieu'?'blieu':station==='bentre'?'btre':'vtau');
+   }
+   return line;
+ }).join('\n');
+}
 function ttUnifiedNormalize(raw){
  // Preserve the canonical b7lo spelling in DÒ SAI and visible normalized text.
  // Existing parser recognizes b7lo directly; do not rewrite it to bao7 here.
- raw=ttFixCompactBetSeparators(ttNormalizeClearNaturalBetNames(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw))));
+ raw=ttFixCompactBetSeparators(ttNormalizeAccentedStationAndBets(ttNormalizeClearNaturalBetNames(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw)))));
  // LOCK 18/10: aliases and DAU-DUOI syntax. Only at start of a line
  // or after a region/station separator; never change numbers or stakes.
  raw=String(raw??'').replace(/\r\n?/g,'\n');

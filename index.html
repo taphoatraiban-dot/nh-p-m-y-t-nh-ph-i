@@ -12772,13 +12772,14 @@ body.app-unlocked #liveSoiBar{display:block!important}
   if(src&&label){
    var d=new Date(),iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
    var p=src.value.split('-');
-   label.textContent=src.value===iso?'HÔM NAY':p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):'CHỌN NGÀY';
+   var next=src.value===iso?'HÔM NAY':p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):'CHỌN NGÀY';
+   if(label.textContent!==next)label.textContent=next;
   }
   var bar=document.getElementById('liveSoiBar'),toggle=document.getElementById('liveSoiToggle');
   if(bar&&toggle)bar.classList.toggle('cc-live-off',toggle.textContent.trim()==='Bật LIVE');
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync);else sync();
- setInterval(sync,500);
+ setInterval(sync,1500);
 })();
 </script>
 </html>

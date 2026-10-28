@@ -1923,12 +1923,20 @@ function loginLockRemaining(){
     if(!$('appCard')?.classList.contains('hidden')) resetIdleClock();
   },{passive:true});
 });
-document.addEventListener("visibilitychange",()=>{
-  if(!$('appCard')?.classList.contains('hidden')){
-    if(Date.now()-lastActivityAt>=IDLE_LIMIT_MS) forceLogout("Tự động đăng xuất sau 5 phút không thao tác.");
-    else resetIdleClock();
-  }
+// Lock immediately when Safari/CuncunPrint goes into the background.
+let tshBackgroundLockPending=false;
+function tshLockOnExit(){
+  if(tshBackgroundLockPending || $('appCard')?.classList.contains('hidden'))return;
+  tshBackgroundLockPending=true;
+  // Hide sensitive content synchronously before the async session check.
+  document.body.classList.remove('app-unlocked');
+  $('appCard')?.classList.add('hidden');
+  Promise.resolve(forceLogout('Đã khóa khi rời ứng dụng.')).finally(()=>{tshBackgroundLockPending=false;});
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)tshLockOnExit();
 });
+window.addEventListener('pagehide',tshLockOnExit);
 
 function showApp(){
   if(typeof hidePublicCoverForApp==="function") hidePublicCoverForApp();

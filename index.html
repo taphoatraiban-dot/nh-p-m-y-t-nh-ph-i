@@ -1158,15 +1158,11 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  <div class="drawer-section" id="printerIpMenu">
   <h3>🖨 QUẢN LÝ KẾT NỐI MÁY IN</h3>
   <div class="drawer-body">
-   <div style="font-size:12px;color:#475569;margin-bottom:9px">Giữ song song mọi cách in. Chọn phương thức dùng cho nút IN NGAY; có thể đổi sang phương thức khác bất kỳ lúc nào.</div>
+   <div style="font-size:12px;color:#475569;margin-bottom:9px">Thiết lập in mới: chỉ hiện hai cách có thể kiểm chứng. AirPrint và kết nối trực tiếp chưa hoạt động đã được gỡ khỏi danh sách.</div>
    <label for="printerTransportMode" style="display:block;font-size:13px;font-weight:800">Cách kết nối / in</label>
    <select id="printerTransportMode" style="width:100%;margin:5px 0 10px">
-    <option value="macqueue">🖨 Mac Mini – In tự động một chạm</option>
-     <option value="queue">⚡ IN NGAY qua Mac Mini (hàng đợi bảo mật)</option>
-     <option value="share">📤 Chia sẻ (đã thử in được)</option>
-    <option value="airprint" selected>🖨 AirPrint / cầu nối trên Mac</option>
-    <option value="native">🟢 Cucun Printer: Wi-Fi/IP hoặc Bluetooth (cần ứng dụng)</option>
-    <option value="legacy">☁️ Hệ thống in đã cấu hình trước đây</option>
+    <option value="share" selected>📤 CHIA SẺ — cách đã in được trên iPhone</option>
+    <option value="queue">🖨 IN NGAY — qua Mac Mini khi worker hoạt động</option>
    </select>
    <div id="printerTransportHint" style="font-size:12px;line-height:1.5;padding:9px;border-radius:8px;background:#f1f5f9;margin-bottom:10px"></div>
    <label for="printerLanIP" style="display:block;font-size:13px;font-weight:800">Địa chỉ IP máy in</label>
@@ -1364,7 +1360,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 
   <button type="button" id="pasteAll" class="soft" style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;font-size:12px">📋 DÁN TOÀN BỘ</button>
   <button type="button" class="bigok" id="okAll">OK</button>
-   <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">🖨 IN PHƠI (CÁCH ĐÃ CHỌN)</button>
+   <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;margin:0;border:1px solid #2563eb;border-radius:11px;background:#eff6ff;color:#1d4ed8;padding:9px 4px;font-size:12px;line-height:1.15;font-weight:900;white-space:normal">🖨 IN PHƠI</button>
    <button type="button" id="printPhoiDirect" style="display:none;width:100%;min-height:46px;margin:5px 0;border:1px solid #059669;border-radius:11px;background:#ecfdf5;color:#047857;font-weight:900">🖨 IN TRỰC TIẾP (APP IP / BLUETOOTH)</button>
   <button type="button" id="openBluetoothPrintManager" style="display:block;width:100%;min-height:48px;margin:6px 0 9px;background:#eef2ff;color:#3730a3;border:1px solid #818cf8;border-radius:11px;font-weight:900">📚 QUẢN LÝ IN BLUETOOTH</button>
 
@@ -12272,11 +12268,11 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    status.textContent='Đã lưu: '+saved.ip+':'+saved.port;
   }
   if(modeField){
-   // Khôi phục AirPrint cho cấu hình native chưa hoạt động; giữ nguyên các chế độ khác.
-   if(saved?.mode==='native'){
-    modeField.value='airprint';
-    localStorage.setItem(KEY,JSON.stringify({...saved,mode:'airprint'}));
-   }else if(saved&&Object.hasOwn(labels,saved.mode))modeField.value=saved.mode;
+   // Printing reset: unsupported historical modes must never reopen AirPrint.
+   if(saved?.mode && !['share','queue'].includes(saved.mode)){
+    modeField.value='share';
+    localStorage.setItem(KEY,JSON.stringify({...saved,mode:'share'}));
+  }else if(saved&&Object.hasOwn(labels,saved.mode))modeField.value=saved.mode;
   }
  }catch(_){/* Giữ cấu hình mặc định nếu dữ liệu cục bộ không hợp lệ. */}
  updateHint();

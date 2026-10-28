@@ -7814,7 +7814,9 @@ window.showHistoryItem=showHistoryItem;
     try{window.print();}catch(e){cleanup();throw e;}
     return {airprint:true,printed:false};
   }
+  let tshPrintInFlight=false;
   async function printPhoiToMac(forceIOSShare=false,forceNative=false,forceAirPrint=false,forceQueue=false){
+    if(tshPrintInFlight){alert('Đang xử lý lệnh in trước. Vui lòng chờ để tránh in trùng.');return;}
     const bets=document.getElementById('bets');
     const rawText=String(bets?.value||'').trim();
     if(!rawText){alert('Chưa có phơi để in.');return;}
@@ -7860,6 +7862,7 @@ window.showHistoryItem=showHistoryItem;
     ].filter(Boolean).join('\n');
     const text=receipt;
     const b=document.getElementById(forceNative?'printPhoiDirect':(forceIOSShare||forceQueue||forceAirPrint)?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
+    tshPrintInFlight=true;
     if(b){b.disabled=true;b.textContent='⏳ ĐANG IN...';}
     try{
       const body=new URLSearchParams();
@@ -7906,6 +7909,7 @@ window.showHistoryItem=showHistoryItem;
       if(b)b.textContent='✅ ĐÃ IN ×'+rec.printCount;
       setTimeout(()=>{if(b){b.disabled=false;b.textContent=old;}},1500);
     }catch(err){if(b){b.disabled=false;b.textContent=old;}if(err?.name!=='AbortError')alert('Không thực hiện được thao tác in: '+(err?.message||'Hãy kiểm tra máy in và chế độ kết nối.'));}
+    finally{tshPrintInFlight=false;}
   }
   function openHistory(){
     document.getElementById('printHistoryOverlay')?.remove();

@@ -12880,4 +12880,35 @@ body.app-unlocked #liveSoiBar{display:block!important}
  #tshPrintActionGrid #openBluetoothPrintManager{font-size:11px!important}
 }
 </style>
+
+<!-- compact collapsible LIVE 20261029 -->
+<style>
+#liveSoiBar.cc-collapsed{padding:0!important;margin:7px 0!important;border:1px solid #d8dce2!important;background:#eef0f3!important;border-radius:12px!important;overflow:hidden!important}
+#liveSoiBar.cc-collapsed > :not(.cc-live-header){display:none!important}
+#liveSoiBar .cc-live-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;cursor:pointer;color:#171717;font-weight:800;font-size:13px}
+#liveSoiBar .cc-live-header .cc-live-status{font-size:11px;font-weight:700;color:#555}
+#liveSoiBar.cc-collapsed .cc-live-header{min-height:27px}
+#liveSoiBar.cc-collapsed #liveSoiToggle{display:none!important}
+</style>
+<script>
+(function(){
+ function install(){
+  var bar=document.getElementById('liveSoiBar');if(!bar)return;
+  if(!bar.querySelector('.cc-live-header')){
+   var head=document.createElement('div');head.className='cc-live-header';
+   head.setAttribute('role','button');head.setAttribute('tabindex','0');head.setAttribute('aria-label','Mở hoặc thu gọn chi tiết LIVE soi phơi');
+   head.innerHTML='<span>🔴 LIVE SOI PHƠI</span><span class="cc-live-status">Mở chi tiết ▾</span>';
+   bar.insertBefore(head,bar.firstChild);
+   function toggle(){bar.classList.toggle('cc-collapsed');update()}
+   function update(){head.querySelector('.cc-live-status').textContent=bar.classList.contains('cc-collapsed')?'Mở chi tiết ▾':'Thu gọn ▴';head.setAttribute('aria-expanded',String(!bar.classList.contains('cc-collapsed')))}
+   head.addEventListener('click',toggle);
+   head.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
+   bar.classList.add('cc-collapsed');update();
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+ var root=document.getElementById('betsCard');
+ if(root)new MutationObserver(install).observe(root,{childList:true,subtree:true});
+})();
+</script>
 </html>

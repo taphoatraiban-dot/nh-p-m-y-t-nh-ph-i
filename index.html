@@ -3575,6 +3575,19 @@ function parseBets(){
    if(_gs.length===2) return [_line];
    return _gs.map(g=>g+'da'+_m[2]+(_m[3]||'')+'.');
  }).join("\n");
+ // LOCK 28-10: preserve each station block in a combined Telegram phoi.
+ // Legacy normalizers can consume the second block or carry numbers across
+ // station headers. The existing station parser and direct shared-XC handler
+ // must receive each original block unchanged.
+ {
+   const rawBlocks=_raw2057.replace(/\r\n?/g,'\n').trim().split('\n').map(x=>x.trim()).filter(Boolean);
+   const header=/^(?:btre|bentre|hn|mb|hanoi)$/i;
+   const wager=/^(?:\d{3}\s*\.\s*)+\d{3}\s*xc\s*\d+(?:[,.]\d+)?\s*\.\s*xduoi\s*\d+(?:[,.]\d+)?\s*\.?$/i;
+   if(rawBlocks.length>=4 && rawBlocks.length%2===0
+      && rawBlocks.every((line,i)=>i%2===0?header.test(line):wager.test(line))){
+     text=rawBlocks.join('\n');
+   }
+ }
  for(let line of text.split("\n")){
   let s=line.trim(); if(!s) continue;
   // Nếu người dùng ghi rõ ngày đầu dòng (CN/T2...T7), ngày đó được ưu tiên cho 3DMN/2DMN.

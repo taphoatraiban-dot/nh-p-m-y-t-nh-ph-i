@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       const snapshot = body.receipt_snapshot;
       if (!/^[A-Za-z0-9_-]{6,80}$/.test(code) || !snapshot || typeof snapshot !== "object" || Array.isArray(snapshot) || JSON.stringify(snapshot).length > 16000) return respond({ error: "invalid_receipt" }, 400);
       const token = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
-      const { error } = await db.schema("receipt_security").from("verifications").insert({ owner_user_id: user.id, receipt_code: code, receipt_snapshot: snapshot, token_hash: await hash(token) });
+      const { error } = await db.from("receipt_verifications").insert({ owner_user_id: user.id, receipt_code: code, receipt_snapshot: snapshot, token_hash: await hash(token) });
       if (error) return respond({ error: error.code === "23505" ? "receipt_already_exists" : "issue_failed" }, error.code === "23505" ? 409 : 500);
       return respond({ receipt_code: code, token }); // Return once; never store raw token.
     }
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     if (!/^[a-f0-9]{64}$/.test(token)) return respond({ error: "invalid_token" }, 400);
     const token_hash = await hash(token);
     if (action === "check") {
-      const { data, error } = await db.schema("receipt_security").from("verifications").select("receipt_code,status,issued_at,redeemed_at").eq("token_hash", token_hash).maybeSingle();
+      const { data, error } = await db.from("receipt_verifications").select("receipt_code,status,issued_at,redeemed_at").eq("token_hash", token_hash).maybeSingle();
       if (error) return respond({ error: "lookup_failed" }, 500);
       if (!data) return respond({ error: "not_found" }, 404);
       return respond(data);
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const user = await actor(req);
     if (!user) return respond({ error: "unauthorized" }, 401);
     // Atomic conditional update: only the first concurrent redemption can succeed.
-    const { data, error } = await db.schema("receipt_security").from("verifications")
+    const { data, error } = await db.from("receipt_verifications")
       .update({ status: "redeemed", redeemed_at: new Date().toISOString(), redeemed_by: user.id })
       .eq("token_hash", token_hash).eq("owner_user_id", user.id).eq("status", "active")
       .select("receipt_code,redeemed_at").maybeSingle();

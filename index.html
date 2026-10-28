@@ -7885,7 +7885,7 @@ window.showHistoryItem=showHistoryItem;
       `TONG ${balance>=0?'THU':'BU'}: ${fmtAmount(balance)}`,
       '--------------------------------',
       `MA PHIEU: ${code}`
-    ].filter(Boolean).join('\\n');
+    ].filter(Boolean).join('\n');
     const text=receipt;
     const b=document.getElementById(forceNative?'printPhoiDirect':(forceIOSShare||forceQueue||forceAirPrint)?'printPhoiBluetooth':'printPhoiPOS'),old=b?b.textContent:'';
     tshPrintInFlight=true;

@@ -12634,6 +12634,59 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  });
 })();
 </script>
-
+<!-- Independent iPhone summary controls: do not rely on the calculation script's delegated handler. -->
+<style id="summary-touch-fix">
+#copyTotal,#shotTotal,.old-op,#oldBalanceInput{pointer-events:auto!important;touch-action:manipulation!important;position:relative!important;z-index:2!important}
+#copyTotal,#shotTotal,.old-op{cursor:pointer!important;-webkit-tap-highlight-color:rgba(180,20,20,.18)}
+</style>
+<script id="summary-touch-fix-script">
+(function(){
+ 'use strict';
+ function bind(){
+   var root=document.getElementById('out');if(!root)return;
+   root.querySelectorAll('#copyTotal,#shotTotal,.old-op').forEach(function(button){
+     if(button.dataset.summaryTouchBound==='1')return;
+     button.dataset.summaryTouchBound='1';
+     button.type='button';
+     button.addEventListener('click',function(e){
+       e.preventDefault();e.stopImmediatePropagation();
+       try{
+         if(button.id==='copyTotal'){
+           if(typeof handleCopyTotal==='function')handleCopyTotal();
+           else{
+             var value=document.getElementById('finalTotalBox')?.textContent?.trim()||'';
+             if(!value)return alert('Chưa có tổng để sao chép.');
+             if(navigator.clipboard?.writeText)navigator.clipboard.writeText(value).then(function(){alert('Đã sao chép: '+value)},function(){prompt('Sao chép tổng:',value)});
+             else prompt('Sao chép tổng:',value);
+           }
+         }else if(button.id==='shotTotal'){
+           if(typeof openCutImage==='function')openCutImage();
+           else alert('Không tải được chức năng cắt ảnh. Hãy tải lại trang.');
+         }else{
+           var input=root.querySelector('#oldBalanceInput');if(!input)return;
+           var sign=button.dataset.op==='-'?'-':'+';
+           var v=input.value.trim();
+           input.value=!v?sign:/[+-]$/.test(v)?v.slice(0,-1)+sign:v+sign;
+           input.dispatchEvent(new Event('input',{bubbles:true}));
+           input.focus();
+         }
+       }catch(err){alert('Không thực hiện được: '+(err?.message||err));}
+     });
+   });
+ }
+ function init(){
+   bind();
+   var root=document.getElementById('out');
+   if(root&&typeof MutationObserver!=='undefined'){
+     var pending=false;
+     new MutationObserver(function(){
+       if(pending)return;pending=true;
+       queueMicrotask(function(){pending=false;bind()});
+     }).observe(root,{childList:true,subtree:true});
+   }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 
 </html>

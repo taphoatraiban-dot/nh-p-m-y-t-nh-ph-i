@@ -6,25 +6,52 @@ main{max-width:440px;margin:30px auto;background:white;border:1px solid #d9dce2;
 h1{font-size:23px}#status{font-weight:800;font-size:24px;margin:22px 0}
 .ok{color:#117a35}.bad{color:#b3261e}.muted{color:#59636e}
 button{padding:14px;border:0;border-radius:8px;background:#b3261e;color:white;font-weight:700;width:100%}
-</style></head><body><main>
+button:disabled{opacity:.5;cursor:not-allowed}#redeemBox{margin-top:20px;padding-top:18px;border-top:1px solid #e3e5e9}#redeemNote{font-size:14px;line-height:1.5}a{color:#b3261e}</style></head><body><main>
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực một lần</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-</main><script>
+<section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
+ const box=document.getElementById('redeemBox'),btn=document.getElementById('redeemBtn'),note=document.getElementById('redeemNote');
  const token=new URL(location.href).searchParams.get('token')||'';
  history.replaceState(null,'',location.pathname);
  if(!/^[a-f0-9]{64}$/.test(token)){status.textContent='QR KHÔNG HỢP LỆ';status.className='bad';return;}
- try{
-  const response=await fetch('https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/receipt-verify',{
-    method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'check',token})
-  });
-  const data=await response.json();
-  if(!response.ok)throw Error('Không tìm thấy phiếu hoặc máy chủ chưa sẵn sàng');
-  status.textContent=data.status==='active'?'PHIẾU CHƯA SỬ DỤNG':data.status==='redeemed'?'PHIẾU ĐÃ SỬ DỤNG':'PHIẾU ĐÃ HỦY';
-  status.className=data.status==='active'?'ok':'bad';
-  details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Đã sử dụng: '+new Date(data.redeemed_at).toLocaleString('vi-VN'):'');
- }catch(e){status.textContent='CHƯA XÁC THỰC ĐƯỢC';status.className='bad';details.textContent=e.message;}
+ const endpoint='https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/receipt-verify';
+ const pubkey='sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni';
+ async function call(action,jwt){
+   const headers={'content-type':'application/json','apikey':pubkey};
+   if(jwt)headers.authorization='Bearer '+jwt;
+   const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action,token})});
+   const data=await response.json();
+   if(!response.ok)throw Error(data.error==='unauthorized'?'Bạn cần đăng nhập tài khoản chủ phiếu.':data.error==='not_active_or_not_owned'?'Phiếu đã sử dụng hoặc tài khoản này không phải chủ phiếu.':data.error||'Máy chủ không phản hồi.');
+   return data;
+ }
+ function show(data){
+   const active=data.status==='active';
+   status.textContent=active?'PHIẾU CHƯA SỬ DỤNG':data.status==='redeemed'?'PHIẾU ĐÃ SỬ DỤNG':'PHIẾU ĐÃ HỦY';
+   status.className=active?'ok':'bad';
+   details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Đã sử dụng: '+new Date(data.redeemed_at).toLocaleString('vi-VN'):'');
+   box.hidden=!active;
+ }
+ try{show(await call('check'));}
+ catch(e){status.textContent='CHƯA XÁC THỰC ĐƯỢC';status.className='bad';details.textContent=e.message;return;}
+ btn.addEventListener('click',async()=>{
+   if(btn.disabled)return;
+   if(!window.supabase?.createClient){note.textContent='Chưa tải được đăng nhập. Hãy mở lại trang.';return;}
+   const client=window.supabase.createClient('https://zigpqddlhvjbjrwhfhaa.supabase.co',pubkey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+   const {data:{session},error}=await client.auth.getSession();
+   if(error||!session?.access_token){note.innerHTML='Bạn chưa đăng nhập. <a href="/">Mở phần mềm để đăng nhập</a>, sau đó quét lại QR.';return;}
+   if(!confirm('Xác nhận phiếu đã sử dụng? Sau khi xác nhận, mọi lần quét tiếp theo sẽ hiện PHIẾU ĐÃ SỬ DỤNG.'))return;
+   btn.disabled=true;btn.textContent='ĐANG XÁC NHẬN…';
+   try{
+     await call('redeem',session.access_token);
+     show(await call('check'));
+     note.textContent='Đã xác nhận thành công.';
+   }catch(e){
+     note.textContent='Không xác nhận được: '+e.message;
+     try{show(await call('check'));}catch(_){}
+   }finally{btn.disabled=false;btn.textContent='XÁC NHẬN ĐÃ SỬ DỤNG';}
+ });
 })();
 </script></body></html>

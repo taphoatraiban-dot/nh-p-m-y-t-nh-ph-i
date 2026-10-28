@@ -13182,4 +13182,37 @@ body.app-unlocked #liveSoiBar{display:block!important}
 #appDrawer #tgDrawerSections20261022 #tgMemberInbox{padding:2px!important}
 #appDrawer #tgDrawerSections20261022 .cc-tg-settings{padding:6px!important}
 </style>
+
+<!-- telegram screenshot definitive compact 20261029 -->
+<style>
+/* No ancestor assumptions: panels can be moved by legacy scripts. */
+#tgForwardInbox,#tgLegacyBot,#tgLegacyForward,#tgLegacyMenu,#tgAutoGroupInbox{display:none!important;visibility:hidden!important}
+#tgVpsKeyMenu>h3{display:none!important}
+#tgVpsKeyMenu{border:0!important;background:transparent!important;padding:0!important;margin:0!important;box-shadow:none!important}
+#tgVpsKeyMenu>.drawer-body{padding:0!important}
+#tgMemberQuickSetup{border:0!important;background:transparent!important;margin:4px 0!important;padding:0!important}
+#tgMemberQuickSetup>div{display:none!important}
+#tgDrawerSections20261022 .cc-tg-settings{margin:6px 0!important}
+#tgDrawerSections20261022 .cc-tg-settings>summary{min-height:42px!important;display:flex!important;align-items:center!important}
+#appDrawer .drawer-body button,#appDrawer .drawer-body select,#appDrawer .drawer-body>details>summary{
+ box-sizing:border-box!important;min-height:42px!important;border-radius:9px!important;
+ font-size:14px!important;font-weight:750!important;letter-spacing:0!important;
+}
+</style>
+<script>
+(function(){
+ function hideLegacy(){
+  ['tgForwardInbox','tgLegacyBot','tgLegacyForward','tgLegacyMenu','tgAutoGroupInbox'].forEach(function(id){
+   var el=document.getElementById(id);
+   if(el){el.hidden=true;el.style.setProperty('display','none','important');}
+  });
+  var advanced=document.querySelector('#tgDrawerThreeBody20261022 .cc-tg-settings');
+  var key=document.getElementById('tgVpsKeyMenu');
+  if(advanced&&key&&key.parentElement!==advanced)advanced.appendChild(key);
+  if(key)key.open=false;
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideLegacy);else hideLegacy();
+ window.addEventListener('load',hideLegacy);
+})();
+</script>
 </html>

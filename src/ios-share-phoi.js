@@ -22,8 +22,72 @@
     }
     return lines;
   }
+  function renderTable(data,doc){
+    const canvas=doc.createElement('canvas');
+    canvas.width=WIDTH;
+    const columns=[PAD,PAD+46,PAD+112,PAD+188,WIDTH-PAD-94,WIDTH-PAD];
+    const inner=columns[4]-columns[3]-10;
+    const linesFor=(value)=>{
+      const result=[];
+      const ctx=doc.createElement('canvas').getContext('2d');
+      ctx.font='bold 21px sans-serif';
+      String(value||'').split('\n').forEach(part=>{
+        let line='';
+        for(const ch of part){
+          if(line&&ctx.measureText(line+ch).width>inner){result.push(line);line=ch;}else line+=ch;
+        }
+        result.push(line);
+      });
+      return result;
+    };
+    const items=(data.items||[]).map(x=>({...x,wrapped:linesFor(x.content)}));
+    const heights=items.map(x=>Math.max(49,x.wrapped.length*29+15));
+    const top=128, headerH=46, bottom=58;
+    const height=top+headerH+heights.reduce((a,b)=>a+b,0)+bottom+80;
+    if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
+    canvas.height=Math.max(200,height);
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,WIDTH,canvas.height);
+    ctx.fillStyle='#000';ctx.textBaseline='middle';
+    ctx.font='bold 34px sans-serif';ctx.textAlign='center';
+    ctx.fillText(data.title||'PHIẾU MUA HÀNG',WIDTH/2,32);
+    ctx.textAlign='left';ctx.font='bold 22px sans-serif';
+    ctx.fillText('NGÀY: '+(data.date||'')+'  '+(data.time||''),PAD,77);
+    ctx.fillText('KHÁCH: '+(data.customer||''),PAD,105);
+    const line=(x1,y1,x2,y2)=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();};
+    ctx.strokeStyle='#000';ctx.lineWidth=2.5;
+    let y=top;
+    const gridLine=(yy)=>line(PAD,yy,WIDTH-PAD,yy);
+    gridLine(y);gridLine(y+headerH);
+    const headers=['STT','MIỀN','LOẠI','NỘI DUNG','TIỀN'];
+    ctx.font='bold 18px sans-serif';ctx.textAlign='center';
+    headers.forEach((h,i)=>ctx.fillText(h,(columns[i]+columns[i+1])/2,y+headerH/2));
+    y+=headerH;
+    items.forEach((item,i)=>{
+      const h=heights[i];
+      ctx.font='bold 19px sans-serif';ctx.textAlign='center';
+      ctx.fillText(String(i+1),(columns[0]+columns[1])/2,y+23);
+      ctx.fillText(String(item.region||''),(columns[1]+columns[2])/2,y+23);
+      ctx.fillText(String(item.type||''),(columns[2]+columns[3])/2,y+23);
+      ctx.font='bold 21px sans-serif';ctx.textAlign='left';
+      item.wrapped.forEach((t,j)=>ctx.fillText(t,columns[3]+5,y+18+j*29));
+      ctx.font='bold 19px sans-serif';ctx.textAlign='right';
+      ctx.fillText(String(item.amount||''),columns[5]-5,y+23);
+      y+=h;gridLine(y);
+    });
+    ctx.font='bold 27px sans-serif';ctx.textAlign='right';
+    ctx.fillText(data.totalLabel||'TỔNG THU',columns[4]-8,y+bottom/2);
+    ctx.fillText(String(data.total||''),columns[5]-5,y+bottom/2);
+    gridLine(y+bottom);
+    for(let i=0;i<columns.length;i++)line(columns[i],top,columns[i],y+bottom);
+    y+=bottom;
+    ctx.font='bold 19px sans-serif';ctx.textAlign='center';
+    ctx.fillText('MÃ PHIẾU: '+(data.code||''),WIDTH/2,y+35);
+    return canvas;
+  }
   function render(text,doc){
     if(!String(text||'').trim())throw Error('Phơi đang trống.');
+    if(String(text).startsWith('[[TABLE80]]'))return renderTable(JSON.parse(String(text).slice(11)),doc);
     const lines=wrap(String(text).replace(/^\[\[QR:[^\n]*\]\]$/gm,'').trimEnd());
     const height=Math.max(160,PAD*2+(lines.length+2)*LINE);
     if(height>MAX_HEIGHT)throw Error('Phơi quá dài để chia sẻ một ảnh. Hãy tách thành các phiếu nhỏ hơn.');

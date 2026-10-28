@@ -12991,4 +12991,51 @@ body.app-unlocked #liveSoiBar{display:block!important}
  if(root)new MutationObserver(organize).observe(root,{childList:true,subtree:true});
 })();
 </script>
+
+<!-- telegram clean compact layout 20261029 -->
+<style>
+#tgDrawerSections20261022 .drawer-body{padding:6px!important}
+#tgDrawerSections20261022 #tgMemberInbox{display:block!important;margin:0!important;padding:4px!important;border:0!important;box-shadow:none!important}
+#tgDrawerSections20261022 #tgMemberInbox>summary{display:none!important}
+#tgDrawerSections20261022 #tgMemberInbox #tgMemberStatus{font-size:12px!important;margin:3px 0 7px!important}
+#tgDrawerSections20261022 #tgMemberInbox button,#tgDrawerSections20261022 #tgMemberInbox select{background:#eef0f3!important;color:#171717!important;-webkit-text-fill-color:#171717!important;border:1px solid #d8dce2!important;border-radius:9px!important;font-size:13px!important;font-weight:700!important;box-shadow:none!important}
+#tgDrawerSections20261022 #tgMemberInbox button{padding:7px 8px!important;min-height:36px!important}
+#tgDrawerSections20261022 #tgMemberInbox #tgMemberGroup{height:40px!important;min-height:40px!important}
+#tgDrawerSections20261022 #tgMemberInbox #tgMemberActions{gap:6px!important}
+#tgDrawerSections20261022 .cc-tg-advanced{padding:5px 8px!important;margin:6px 0!important;background:#f5f6f8!important}
+#tgDrawerSections20261022 .cc-tg-settings{margin:8px 0!important;padding:7px 9px!important;border:1px solid #d8dce2!important;border-radius:10px!important;background:#eef0f3!important}
+#tgDrawerSections20261022 .cc-tg-settings>summary{font-size:13px!important;font-weight:800!important;color:#171717!important}
+#tgDrawerSections20261022 .cc-tg-settings>*:not(summary){margin-top:8px!important}
+#tgDrawerSections20261022 #tgForwardInbox{display:none!important}
+#tgDrawerSections20261022 #tgMemberInbox .cc-tg-setup{display:none!important}
+#tgDrawerSections20261022 #tgMemberInbox .cc-tg-setup.cc-tg-setup-open{display:block!important}
+</style>
+<script>
+(function(){
+ function tidy(){
+  var body=document.getElementById('tgDrawerThreeBody20261022');
+  var inbox=document.getElementById('tgMemberInbox');
+  if(!body||!inbox)return;
+  if(inbox.parentNode!==body)body.insertBefore(inbox,body.firstChild);
+  inbox.open=true;
+  var setup=body.querySelector('.cc-tg-settings');
+  if(!setup){
+   setup=document.createElement('details');setup.className='cc-tg-settings';
+   var title=document.createElement('summary');title.textContent='⚙️ Cài đặt Telegram nâng cao';setup.appendChild(title);
+   body.appendChild(setup);
+  }
+  ['tgTenantPanel','tgCustomerVpsSetup','tgVpsKeyMenu','tgForwardInbox'].forEach(function(id){
+   var node=document.getElementById(id);if(node&&node.parentNode!==setup)setup.appendChild(node);
+  });
+  var manage=document.getElementById('tgMemberChatManage');
+  var existing=inbox.querySelector('.cc-tg-advanced');
+  if(existing&&existing.parentNode!==setup)setup.appendChild(existing);
+  var details=inbox.querySelector('details:not(.cc-tg-advanced)');
+  if(details&&!details.classList.contains('cc-tg-setup')){details.classList.add('cc-tg-setup');setup.appendChild(details);details.classList.add('cc-tg-setup-open')}
+  if(setup.open===undefined)setup.open=false;
+ }
+ function boot(){tidy();setTimeout(tidy,350)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
 </html>

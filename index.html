@@ -12911,4 +12911,36 @@ body.app-unlocked #liveSoiBar{display:block!important}
  if(root)new MutationObserver(install).observe(root,{childList:true,subtree:true});
 })();
 </script>
+
+<!-- unified button typography 20261029 -->
+<style>
+/* Consistent typography for main controls, preserve OK's red background. */
+#quickCustomerSlot select,#quickCustomerSlot #customerSelect,
+#quickDateSlot .cc-date-text,
+#betsCard #clearBets,#betsCard #checkPhoi,
+#betsCard #okAll,
+#tshPrintActionGrid #printPhoiDirect,
+#tshPrintActionGrid #openBluetoothPrintManager,
+#liveSoiBar .cc-live-header,
+#syntaxGuideEntry #syntaxGuideOpen{
+ font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+ font-size:clamp(14px,3.6vw,17px)!important;
+ font-weight:800!important;
+ letter-spacing:0!important;
+ line-height:1.2!important;
+}
+#quickCustomerSlot select,#quickCustomerSlot #customerSelect,
+#quickDateSlot .cc-date-text,
+#betsCard #clearBets,#betsCard #checkPhoi,
+#tshPrintActionGrid #printPhoiDirect,
+#tshPrintActionGrid #openBluetoothPrintManager,
+#liveSoiBar .cc-live-header,
+#liveSoiBar .cc-live-header .cc-live-status,
+#syntaxGuideEntry #syntaxGuideOpen{
+ color:#171717!important;
+ -webkit-text-fill-color:#171717!important;
+}
+#betsCard #okAll{color:#fff!important;-webkit-text-fill-color:#fff!important}
+#liveSoiBar .cc-live-header .cc-live-status{font-size:12px!important;font-weight:800!important}
+</style>
 </html>

@@ -1125,6 +1125,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
    <div id="drawerCustomerMount" class="drawer-editor-mount"></div>
   </div>
  </div>
+ <div class="drawer-section qr-rewards-menu"><h3>💰 QUẢN LÝ TRẢ THƯỞNG QR</h3><div class="drawer-body"><button type="button" id="cuncunQrDrawerOpen" style="width:100%;min-height:42px;background:#fff1f2;border:1px solid #dc2626;border-radius:10px;color:#991b1b;font-weight:900">💰 MỞ QUẢN LÝ TRẢ THƯỞNG QR</button></div></div>
  <div class="drawer-section history"><h3>🕘 LỊCH SỬ GẦN NHẤT</h3><div class="drawer-body"><div class="history-list" id="recentHistory"><div class="history-row"><span>Chưa có lịch sử</span><small>—</small></div></div></div></div>
  <div class="drawer-section customer-msg-menu"><h3>💬 TIN NHẮN TỪNG KHÁCH</h3><div class="drawer-body"><div class="customer-msg-note">Lưu tối đa 24h</div><div class="customer-msg-list" id="customerMessageList"><div class="history-row"><span>Chưa có tin nhắn</span><small>—</small></div></div></div></div>
  <div class="drawer-section stats-menu"><h3>📊 THỐNG KÊ</h3><div class="drawer-body"><button type="button" class="stats-open-btn" id="openStatsBtn">THỐNG KÊ</button></div></div>
@@ -1391,7 +1392,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 #cuncunQrManagerOpen{display:none!important}
 
 /* iPhone layout fix: existing legacy !important rules overridden */
-body.app-unlocked #betsCard #okAll{width:50%!important;max-width:50%!important;min-width:0!important;margin:8px auto!important;height:52px!important;display:block!important}
+body.app-unlocked #betsCard #okAll{width:60%!important;max-width:60%!important;min-width:0!important;display:block!important;margin:8px auto!important;position:relative!important;left:auto!important;right:auto!important;transform:none!important}
+body.app-unlocked #betsCard #okAll{width:60%!important;max-width:60%!important;min-width:0!important;margin:8px auto!important;height:52px!important;display:block!important}
 body.app-unlocked #betsCard #tshPrintActionGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
 body.app-unlocked #betsCard #tshPrintActionGrid>button{grid-column:auto!important;grid-row:auto!important;width:100%!important;min-width:0!important;min-height:42px!important;height:auto!important;padding:6px 2px!important;font-size:clamp(9px,2.6vw,12px)!important;line-height:1.15!important;white-space:normal!important}
 body.app-unlocked #betsCard #printPhoiBluetooth{display:none!important}
@@ -1418,6 +1420,7 @@ body.app-unlocked #betsCard #cuncunCompactBottom button{font-size:11px!important
 <script>
 (function(){
  const open=document.getElementById('cuncunQrManagerOpen');
+ const drawerOpen=document.getElementById('cuncunQrDrawerOpen');
  const close=document.getElementById('cuncunQrManagerClose');
  const modal=document.getElementById('cuncunQrManagerModal');
  const frame=document.getElementById('cuncunQrManagerFrame');
@@ -1427,6 +1430,7 @@ body.app-unlocked #betsCard #cuncunCompactBottom button{font-size:11px!important
  modal.style.setProperty('z-index','2147483647','important');
  modal.style.setProperty('isolation','isolate');
  modal.style.setProperty('overflow','hidden');
+ drawerOpen?.addEventListener('click',()=>open.click());
  open.addEventListener('click',function(){
    frame.setAttribute('src','/qr-management.html?v=group-date-delete-fix-20261029-3');
    modal.hidden=false;

@@ -30,12 +30,18 @@ Deno.serve(async (req) => {
     if (action === "owner-history") {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);
+      const page = Number(body?.page ?? 0);
+      if (!Number.isSafeInteger(page) || page < 0 || page > 10000)
+        return respond({ error: "invalid_page" }, 400);
+      const pageSize = 100;
+      const start = page * pageSize;
       const { data, error } = await db.from("receipt_verifications")
         .select("receipt_code,status,issued_at,redeemed_at,receipt_snapshot,paid_amount_vnd")
         .eq("owner_user_id", user.id).eq("status", "redeemed")
-        .order("redeemed_at", { ascending: false }).limit(100);
+        .order("redeemed_at", { ascending: false }).order("id", { ascending: false })
+        .range(start, start + pageSize);
       if (error) return respond({ error: "history_failed" }, 500);
-      return respond({ receipts: (data || []).map((row: any) => ({
+      return respond({ page, hasMore: (data || []).length > pageSize, receipts: (data || []).slice(0,pageSize).map((row: any) => ({
         code: row.receipt_code,
         customer: String(row.receipt_snapshot?.customer || "").slice(0,100),
         drawDate: String(row.receipt_snapshot?.date || "").slice(0,20),

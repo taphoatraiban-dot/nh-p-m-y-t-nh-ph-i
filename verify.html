@@ -130,7 +130,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const diagnostics=rows.map((row,i)=>[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported)||null);
    // Fail closed when diagnostic station differs from the wager's own station.
    const stationKey=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase().replace(/[^a-z0-9]/g,'');
-   const stationAlias={tn:'tayninh',ag:'angiang',bt:'binhthuan'};
+   const stationAlias={tn:'tayninh',ag:'angiang',bt:'binhthuan',hn:'mienbac',mb:'mienbac',hanoi:'mienbac',hanoibac:'mienbac',bac:'mienbac'};
    const sameStation=(a,b)=>{const x=stationKey(a),y=stationKey(b);return !!x&&!!y&&(stationAlias[x]||x)===(stationAlias[y]||y)};
    const stationVerified=(row,i)=>{
      const coverage=result.stationCoverage?.[i];

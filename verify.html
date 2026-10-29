@@ -234,6 +234,49 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const records=Array.isArray(response.receipts)?response.receipts:[];
      historyStatus.textContent=records.length?'Hiển thị '+records.length+' phiếu đã xác nhận gần nhất. Phiếu cũ chưa lưu số tiền thực trả.':'Chưa có phiếu được xác nhận trả thưởng.';
      if(!records.length)return;
+     // Summary covers only the returned latest 100 redeemed receipts.
+     // Missing historical amounts are excluded rather than treated as zero.
+     const valid=records.filter(rec=>rec.payoutAmount!==null&&rec.payoutAmount!==undefined&&Number.isSafeInteger(Number(rec.payoutAmount))&&Number(rec.payoutAmount)>=0);
+     const missing=records.length-valid.length;
+     const grandTotal=valid.reduce((sum,rec)=>sum+Number(rec.payoutAmount),0);
+     const summary=document.createElement('section');
+     summary.style.cssText='padding:12px;margin:12px 0;border:1px solid #ddd;border-radius:8px';
+     const intro=document.createElement('p');
+     intro.style.fontWeight='800';
+     intro.textContent='TỔNG ĐÃ GHI NHẬN: '+grandTotal.toLocaleString('vi-VN')+' đ ('+valid.length+' phiếu có số tiền)';
+     summary.appendChild(intro);
+     const warning=document.createElement('p');
+     warning.className='muted';
+     warning.textContent='Chỉ tổng hợp '+records.length+' phiếu gần nhất'+(records.length===100?' (có thể còn phiếu cũ chưa tải)':'')+'. '+missing+' phiếu chưa lưu tiền thực trả, không cộng vào tổng.';
+     summary.appendChild(warning);
+     const groups=new Map();
+     valid.forEach(rec=>{
+       const customer=String(rec.customer||'Chưa lưu').trim()||'Chưa lưu';
+       const date=String(rec.redeemedAt||'').slice(0,10)||'Không rõ ngày';
+       for(const [kind,key] of [['Khách',customer],['Ngày xác nhận',date]]){
+         const id=kind+'|'+key;
+         const previous=groups.get(id)||{kind,key,count:0,total:0};
+         previous.count++;previous.total+=Number(rec.payoutAmount);groups.set(id,previous);
+       }
+     });
+     if(groups.size){
+       const summaryTable=document.createElement('table');
+       summaryTable.style.cssText='width:100%;border-collapse:collapse;font-size:14px';
+       const header=document.createElement('tr');
+       ['Nhóm','Tên / ngày','Số phiếu','Đã trả'].forEach(value=>{
+         const th=document.createElement('th');th.textContent=value;th.style.cssText='text-align:left;border:1px solid #ddd;padding:8px';header.appendChild(th);
+       });
+       summaryTable.appendChild(header);
+       [...groups.values()].sort((a,b)=>a.kind.localeCompare(b.kind)||b.total-a.total).forEach(group=>{
+         const tr=document.createElement('tr');
+         [group.kind,group.key,String(group.count),group.total.toLocaleString('vi-VN')+' đ'].forEach(value=>{
+           const td=document.createElement('td');td.textContent=value;td.style.cssText='border:1px solid #ddd;padding:8px';tr.appendChild(td);
+         });
+         summaryTable.appendChild(tr);
+       });
+       summary.appendChild(summaryTable);
+     }
+     historyTable.appendChild(summary);
      const table=document.createElement('table');
      table.style.cssText='border-collapse:collapse;width:100%;font-size:14px';
      const head=document.createElement('thead'),hr=document.createElement('tr');

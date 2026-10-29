@@ -36,7 +36,9 @@
       const raw=String(item.amount||'').replace(/[^0-9,.-]/g,'').replace(/[.,](?=\d{3}(?:\D|$))/g,'').replace(',','.');
       section.total+=Number(raw)||0;
     }
-    const height=205+sections.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+140+(data.qrMatrix?330:0);
+    const qrSize=Array.isArray(data.qrMatrix)&&data.qrMatrix.length>=21?Math.floor(240/data.qrMatrix.length)*data.qrMatrix.length:0;
+    // 80 mm paper at 203 dpi: ~80 dots = 10 mm after the QR caption.
+    const height=205+sections.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+135+(qrSize?qrSize+30:0)+82;
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=height;
     const ctx=canvas.getContext('2d');

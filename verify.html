@@ -3,10 +3,10 @@
 <title>Xác thực phiếu CuncunPrint</title><style>
 body{font-family:system-ui,-apple-system,sans-serif;background:#f5f6f8;margin:0;padding:24px;color:#17202a}
 main{max-width:440px;margin:30px auto;background:white;border:1px solid #d9dce2;border-radius:16px;padding:24px}
-h1{font-size:23px}.snapshot{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f6f8;border:1px solid #d9dce2;border-radius:10px;padding:14px;font-size:14px;line-height:1.5}.snapshot[hidden]{display:none}#status{font-weight:800;font-size:24px;margin:22px 0}
+h1{font-size:23px}.snapshot{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f6f8;border:1px solid #d9dce2;border-radius:10px;padding:14px;font-size:15px;line-height:1.7}.snapshot[hidden]{display:none}#status{font-weight:800;font-size:24px;margin:22px 0}
 .ok{color:#117a35}.bad{color:#b3261e}.muted{color:#59636e}
 button{padding:14px;border:0;border-radius:8px;background:#b3261e;color:white;font-weight:700;width:100%}
-button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap;overflow-wrap:anywhere}#redeemBox{margin-top:20px;padding-top:18px;border-top:1px solid #e3e5e9}#redeemNote{font-size:14px;line-height:1.5}a{color:#b3261e}</style></head><body><main>
+button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap;overflow-wrap:anywhere}#redeemBox{margin-top:20px;padding-top:18px;border-top:1px solid #e3e5e9}#redeemNote{font-size:14px;line-height:1.5}#publicResultMessage{white-space:pre-wrap;line-height:1.6}.receipt-row{padding:12px 0;border-top:1px solid #d9dce2}.receipt-row:first-child{border-top:0}.receipt-meta{font-size:13px;color:#59636e;font-weight:700}.receipt-content{font-weight:750;font-size:17px;margin:5px 0}.receipt-amount{font-weight:700;text-align:right}.receipt-total{font-size:20px;font-weight:850;border-top:2px solid #17202a;padding-top:12px;margin-top:12px}a{color:#b3261e}</style></head><body><main>
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực một lần</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
@@ -36,9 +36,25 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    box.hidden=true; // Only the verified issuing account may see redemption controls.
    const receipt=data.receipt_snapshot;
    snapshotBox.hidden=!receipt;
-   if(receipt){const lines=['Ngày: '+String(receipt.date||''),'Khách: '+String(receipt.customer||''),''];
-     (Array.isArray(receipt.items)?receipt.items:[]).forEach((item,i)=>{if(typeof item==='string'){lines.push('Dòng '+(i+1)+': '+item);return;}if(!item||typeof item!=='object')return;lines.push('Dòng '+(i+1)+': '+[item.region,item.type,item.content].filter(Boolean).join(' | ')+(item.amount?' — Tiền thu: '+item.amount:''));});
-     lines.push('','Tổng tiền: '+String(receipt.total||''));snapshotEl.textContent=lines.join('\n');
+   if(receipt){
+     snapshotEl.replaceChildren();
+     const add=(className,text)=>{const el=document.createElement('div');el.className=className;el.textContent=text;snapshotEl.appendChild(el);return el;};
+     const date=String(receipt.date||'');
+     const formatted=/^\\d{4}-\\d{2}-\\d{2}$/.test(date)?date.slice(8,10)+'/'+date.slice(5,7)+'/'+date.slice(0,4):date;
+     add('receipt-meta','NGÀY: '+formatted+(receipt.time?' • '+String(receipt.time):''));
+     add('receipt-meta','KHÁCH: '+String(receipt.customer||'Không ghi'));
+     const items=Array.isArray(receipt.items)?receipt.items:[];
+     items.forEach((item,i)=>{
+       const line=document.createElement('div');line.className='receipt-row';snapshotEl.appendChild(line);
+       const put=(cls,txt)=>{const e=document.createElement('div');e.className=cls;e.textContent=txt;line.appendChild(e);};
+       if(typeof item==='string'){put('receipt-meta','DÒNG '+(i+1));put('receipt-content',item);return;}
+       if(!item||typeof item!=='object')return;
+       put('receipt-meta','DÒNG '+(i+1)+' • '+[item.region,item.type].filter(Boolean).join(' • '));
+       put('receipt-content',String(item.content||''));
+       if(item.amount)put('receipt-amount','TIỀN THU: '+String(item.amount));
+     });
+     add('receipt-total','TỔNG TIỀN: '+String(receipt.total||''));
+
    }
  }
  try{show(await call('check'));}

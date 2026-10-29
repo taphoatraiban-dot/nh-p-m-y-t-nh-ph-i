@@ -20,6 +20,7 @@ export function calculateQrPayout(rows, diagnostics, rates) {
     else if(['XC','XC-ĐẦU','XC-ĐUÔI'].includes(type))key='xc';
     else if(['DD','ĐẦU','ĐUÔI'].includes(type))key='dd';
     else if(type==='DA')key=row.region==='B'?'daMB':(row.cross2||row.daMode==='cross'||row.crossProvinces?.length===2)?'da2':'dathang';
+    if(type==='DA'&&row.numbers.length<2)return {ready:false,reason:'missing_da_pair',index:i,lines};
     else return {ready:false,reason:'unsupported_type',index:i,lines};
     const rate=Number(rates[key]);
     if(!Number.isFinite(rate)||rate<=0)return {ready:false,reason:'missing_rate',index:i,lines};

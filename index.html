@@ -5740,7 +5740,7 @@ $('saveCustomer').onclick=()=>{let n=$('customerName').value.trim()||$('customer
 $('deleteCustomer').onclick=()=>{const n=$('customerSelect').value;if(typeof confirmDeletePrice==='function')return confirmDeletePrice(n);if(Object.keys(v3Customers).length<=1)return alert('Phải giữ ít nhất 1 khách.');};
 $('multiPriceBtn').onclick=()=>alert('Chọn khách rồi sửa các ô “Cò nhận cho khách”, sau đó bấm LƯU KHÁCH.');
 function buildDays(){const bar=$('daybar');bar.innerHTML='';const base=new Date();for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()-i);const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const label=i===0?'Hôm nay':`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;const b=document.createElement('button');b.textContent=label;b.dataset.date=iso;b.onclick=()=>{ $('date').value=iso;$('date').dispatchEvent(new Event('change',{bubbles:true}));document.querySelectorAll('#daybar button').forEach(x=>x.classList.remove('active'));b.classList.add('active');};bar.appendChild(b);if($('date').value===iso){b.classList.add('active');}}}
-$('date').addEventListener('change',()=>{lotteryResults={N:[],T:[],B:[]};window.__lotteryPartialDraws=[];window.__lotteryResultPending=true;if(typeof liveSoiStop==='function'&&liveSoiRunning)liveSoiStop('Đã đổi ngày, bấm OK để dò ngày mới.');document.querySelectorAll('#daybar button').forEach(b=>b.classList.toggle('active',b.dataset.date===$('date').value));setStatus('Đã chọn ngày '+$('date').value+'; bấm OK để dò kết quả đúng ngày.');});
+$('date').addEventListener('change',()=>{const chosen=$('date').value;const alternate=$('tshAnyDate');if(alternate&&alternate.value!==chosen)alternate.value=chosen;lotteryResults={N:[],T:[],B:[]};window.__lotteryPartialDraws=[];window.__lotteryResultPending=true;if(typeof liveSoiStop==='function'&&liveSoiRunning)liveSoiStop('Đã đổi ngày, bấm OK để dò ngày mới.');document.querySelectorAll('#daybar button').forEach(b=>b.classList.toggle('active',b.dataset.date===$('date').value));setStatus('Đã chọn ngày '+$('date').value+'; bấm OK để dò kết quả đúng ngày.');});
 function priceForRow(row,c){
   // QUY TẮC: phần thưởng dùng bảng GỐC ĐANG DÙNG (c), không dùng CÒ NHẬN CHO KHÁCH.
   let k=row.type.toLowerCase();
@@ -8368,7 +8368,7 @@ document.addEventListener('DOMContentLoaded',function(){
         bar.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));
       };
       bar.appendChild(b);
-      if((date.value||iso)===iso) b.classList.add('active');
+      if(date.value===iso) b.classList.add('active');
     }
     const minD=new Date(base); minD.setDate(base.getDate()-7);
     date.removeAttribute("min"); date.removeAttribute("max");

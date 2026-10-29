@@ -49,3 +49,7 @@ test('no fallback to current price when nested rate missing',()=>assert.equal(ca
 test('missing count must not be interpreted as zero',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,diagnosticOnly:true,matches:[{number:'12'}]}],rates).ready,false));
 test('null count must not be interpreted as zero',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,diagnosticOnly:true,matches:[{number:'12',count:null}]}],rates).ready,false));
 test('string count must not be interpreted as a verified number',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,diagnosticOnly:true,matches:[{number:'12',count:'1'}]}],rates).ready,false));
+
+test('diagnostic row mismatch is rejected',()=>assert.equal(calculateQrPayout([row('B2')],[{...matches(1),index:2}],rates).ready,false));
+test('diagnostic type mismatch is rejected',()=>assert.equal(calculateQrPayout([row('B2')],[{...matches(1),type:'XC'}],rates).ready,false));
+test('matching diagnostic identity is accepted',()=>assert.equal(calculateQrPayout([row('B2')],[{...matches(1),index:0,type:'B2'}],rates).total,150));

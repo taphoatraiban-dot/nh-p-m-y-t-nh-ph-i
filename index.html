@@ -7941,7 +7941,9 @@ window.showHistoryItem=showHistoryItem;
           gross:Number(row.gross)||0
         })),
         totalGross:Number(sm.totalGross)||0,
-        finalTotal:balance
+        finalTotal:balance,
+        payoutRatesSnapshot:(typeof selectedPrice==='object'&&selectedPrice)?JSON.parse(JSON.stringify(selectedPrice)):null,
+        drawDate:date
       },
       totalLabel:balance>=0?'TỔNG THU':'TỔNG BÙ',code
     });

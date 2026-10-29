@@ -112,7 +112,10 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  try {
    const result=await call('public-result');
    const rows=Array.isArray(result.source?.pricedRows)?result.source.pricedRows:[];
-   const rates=result.source?.payoutRatesSnapshot;
+   // Legacy receipt: current X74 rates explicitly confirmed by the owner.
+   // Read-only estimate; the original receipt remains unchanged.
+   const isLegacyX74=details.textContent.includes('CQ-8162EB1B-9AA')&&result.source?.drawDate==='2026-10-29';
+   const rates=result.source?.payoutRatesSnapshot||(isLegacyX74?{b2:74,b3:640,b4:5000,xc:640,dd:74,da2:540,dathang:700,daMB:640}:null);
    const diagnostics=rows.map((row,i)=>[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported)||null);
    // Fail closed when diagnostic station differs from the wager's own station.
    const stationKey=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -150,7 +153,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const preview=window.calculateQrPayout(rows,diagnostics,rates);
      if(!preview?.ready)msg.textContent='CHƯA XÁC ĐỊNH TIỀN THƯỞNG: '+String(preview?.reason||'cần đối chiếu');
      else {
-       msg.textContent='KẾT QUẢ TẠM TÍNH — chưa xác nhận thanh toán.';
+       msg.textContent=isLegacyX74&&!result.source?.payoutRatesSnapshot?'TẠM TÍNH THEO BẢNG GIÁ X74 HIỆN TẠI — không phải giá gốc; chưa xác nhận thanh toán.':'KẾT QUẢ TẠM TÍNH — chưa xác nhận thanh toán.';
        const table=document.createElement('table');table.className='receipt-table';
        const header=document.createElement('tr');
        for(const name of ['ĐÀI','SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;header.append(th)}

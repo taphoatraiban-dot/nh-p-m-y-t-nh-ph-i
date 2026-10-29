@@ -40,8 +40,8 @@ export function calculateQrPayout(rows, diagnostics, rates) {
     }
     const entries=type==='DA'?d.pairs:d.matches;
     if(!Array.isArray(entries))return fail('missing_matches',i,lines);
-    const counts=entries.map(x=>Number(type==='DA'?x.times:x.count));
-    if(counts.some(x=>!Number.isSafeInteger(x)||x<0))return fail('invalid_match_count',i,lines);
+    const counts=entries.map(x=>type==='DA'?x?.times:x?.count);
+    if(counts.some(x=>typeof x!=='number'||!Number.isSafeInteger(x)||x<0))return fail('invalid_match_count',i,lines);
     const units=counts.reduce((a,b)=>a+b,0);
     if(!Number.isSafeInteger(units))return fail('unsafe_match_units',i,lines);
     const amount=units*points*rate;

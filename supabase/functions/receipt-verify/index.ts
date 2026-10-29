@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const action = String(body?.action || "");
-    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "owner-detail", "owner-delete", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
-    if (action === "owner-detail" || action === "owner-delete") {
+    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "owner-detail", "owner-delete", "owner-delete-all", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    if (action === "owner-detail" || action === "owner-delete" || action === "owner-delete-all") {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);
       if (action === "owner-detail") {
@@ -40,6 +40,21 @@ Deno.serve(async (req) => {
         if (!data) return respond({ error: "not_found" }, 404);
         return respond({ receipt: { code:data.receipt_code,status:data.status,issuedAt:data.issued_at,
           redeemedAt:data.redeemed_at,paidAmount:data.paid_amount_vnd,snapshot:data.receipt_snapshot } });
+      }
+      if (action === "owner-delete-all") {
+        if (body?.confirmation !== "XOA TAT CA PHIEU VINH VIEN")
+          return respond({ error:"confirmation_required" },400);
+        // Bounded batches prevent unbounded request sizes and allow visible progress.
+        const { data: batch, error: listError } = await db.from("receipt_verifications")
+          .select("receipt_code").eq("owner_user_id",user.id)
+          .order("id",{ascending:true}).limit(100);
+        if (listError) return respond({error:"delete_list_failed"},500);
+        if (!batch?.length) return respond({deletedCount:0,hasMore:false});
+        const {data: deleted,error} = await db.from("receipt_verifications")
+          .delete().eq("owner_user_id",user.id)
+          .in("receipt_code",batch.map((r:any)=>r.receipt_code)).select("receipt_code");
+        if (error) return respond({error:"delete_failed"},500);
+        return respond({deletedCount:(deleted||[]).length,hasMore:batch.length===100});
       }
       const codes = body?.codes;
       if (!Array.isArray(codes) || codes.length < 1 || codes.length > 100 ||

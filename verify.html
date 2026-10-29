@@ -16,7 +16,17 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 .receipt-table .receipt-station{font-size:17px;font-weight:900;background:#f4f4f4;padding:9px}
 .receipt-table .receipt-number{font-weight:800}
 .receipt-table .receipt-money{text-align:right;font-weight:800}
-.receipt-total{font-size:21px;font-weight:900;text-align:right;overflow-wrap:normal}.payout-value{display:block;white-space:nowrap;font-size:clamp(19px,5.1vw,27px);font-variant-numeric:tabular-nums}.payout-label{display:block;font-size:15px;margin-bottom:5px}.receipt-table.payout-table{font-size:13px}.receipt-table.payout-table th,.receipt-table.payout-table td{padding:8px 2px;overflow-wrap:normal;word-break:normal}.receipt-table.payout-table td:last-child{font-size:12px;font-variant-numeric:tabular-nums}
+.receipt-total{font-size:21px;font-weight:900;text-align:right;overflow-wrap:normal}.payout-value{display:block;white-space:nowrap;font-size:clamp(19px,5.1vw,27px);font-variant-numeric:tabular-nums}.payout-label{display:block;font-size:15px;margin-bottom:5px}.receipt-table.payout-table{font-size:13px}.receipt-table.payout-table th,.receipt-table.payout-table td{padding:8px 2px;overflow-wrap:normal;word-break:normal}.receipt-table.payout-table td:last-child{font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.receipt-table.payout-table th:nth-child(1){width:20%}
+.receipt-table.payout-table th:nth-child(2){width:19%}
+.receipt-table.payout-table th:nth-child(3){width:11%}
+.receipt-table.payout-table th:nth-child(4){width:16%}
+.receipt-table.payout-table th:nth-child(5){width:34%}
+.receipt-table.payout-table td:first-child{overflow-wrap:anywhere}
+.receipt-table.payout-table td:nth-child(2){overflow-wrap:anywhere}
+#publicDrawTable{min-width:0}
+#publicDrawTable .receipt-total{margin-bottom:18px;text-align:center}
+@media(max-width:480px){.receipt-table.payout-table{font-size:12px}.receipt-table.payout-table th,.receipt-table.payout-table td{padding:8px 1px}.receipt-table.payout-table td:last-child{font-size:11px}.receipt-table.payout-table th{font-size:11px}.payout-value{font-size:clamp(20px,6vw,26px)}}
 @media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
 </style><script type="module">import {calculateQrPayout} from './qr-payout-preview.mjs'; window.calculateQrPayout=calculateQrPayout;</script>
 </head><body><main>

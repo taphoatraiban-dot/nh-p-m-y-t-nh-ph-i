@@ -37,6 +37,18 @@ Deno.serve(async (req) => {
           || typeof snapshot.total !== 'string'
           || typeof snapshot.date !== 'string'
           || JSON.stringify(snapshot).length > 16000) return respond({ error: "invalid_receipt" }, 400);
+      // A newly issued QR must be independently payable from the frozen customer
+      // rates. Never issue a seemingly valid QR with missing price metadata.
+      const verification = snapshot.verificationSource;
+      const payoutKeys = ["b2", "b3", "b4", "xc", "dd", "da2", "dathang", "daMB"];
+      if (!verification || !String(verification.customerPriceKey || "").trim()
+          || !Array.isArray(verification.pricedRows) || !verification.pricedRows.length
+          || !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(verification.drawDate || ""))
+          || !verification.payoutRatesSnapshot
+          || !payoutKeys.every(key => Number.isFinite(Number(verification.payoutRatesSnapshot[key]))
+              && Number(verification.payoutRatesSnapshot[key]) > 0)) {
+        return respond({ error: "missing_customer_price_snapshot" }, 400);
+      }
       const token = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
       const code = "CQ-" + crypto.randomUUID().slice(0,12).toUpperCase();
       const { error } = await db.from("receipt_verifications").insert({

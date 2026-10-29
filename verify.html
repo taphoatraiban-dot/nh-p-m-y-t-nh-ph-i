@@ -164,7 +164,10 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      }
      const activeRows=Array.isArray(src?.pricedRows)?src.pricedRows.filter(r=>!r.hidden&&!r.nonWinning):[];
      const stationRows=Array.isArray(result.stationCoverage)?result.stationCoverage:[];
-     const missingStations=stationRows.some((st,i)=>Boolean(src?.pricedRows?.[i])&&!src.pricedRows[i].hidden&&!src.pricedRows[i].nonWinning&&!st?.ready);
+     const missingStations=activeRows.some(row=>{
+       const i=src.pricedRows.indexOf(row);
+       return !stationRows[i]?.ready;
+     });
      const unsupported=activeRows.some(row=>{
        const i=src.pricedRows.indexOf(row);
        return !(result.daDiagnostics?.[i]?.supported||result.specialDiagnostics?.[i]?.supported||result.matchDiagnostics?.[i]?.supported);
@@ -189,10 +192,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        const fmtCount=(diagnostic)=>{
          if(!diagnostic)return '';
          if(Array.isArray(diagnostic.matches)){
+           if(diagnostic.matches.some(m=>!Number.isInteger(Number(m.count))||Number(m.count)<0))return 'DỮ LIỆU ĐỐI CHIẾU KHÔNG HỢP LỆ';
            const hits=diagnostic.matches.filter(m=>Number(m.count)>0);
            return hits.length?hits.map(m=>String(m.number)+' ×'+String(m.count)).join(', '):'Chưa thấy số khớp';
          }
          if(Array.isArray(diagnostic.pairs)){
+           if(diagnostic.pairs.some(p=>!Number.isInteger(Number(p.times))||Number(p.times)<0))return 'DỮ LIỆU CẶP KHÔNG HỢP LỆ';
            return diagnostic.pairs.length?diagnostic.pairs.map(p=>String(p.a)+'-'+String(p.b)+' ×'+String(p.times)).join(', '):'Chưa thấy cặp khớp';
          }
          return '';

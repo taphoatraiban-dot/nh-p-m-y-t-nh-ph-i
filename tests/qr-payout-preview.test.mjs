@@ -25,3 +25,9 @@ test('missing diagnostic never returns zero',()=>assert.equal(calculateQrPayout(
 test('missing frozen rate fails closed',()=>assert.equal(calculateQrPayout([row('B2')],[matches(1)],{}).ready,false));
 test('negative matches rejected',()=>assert.equal(calculateQrPayout([row('B2')],[matches(-1)],rates).ready,false));
 test('hidden row ignored',()=>assert.equal(calculateQrPayout([row('DAO XC',{hidden:true})],[],rates).total,0));
+
+test('empty receipt is not a confirmed zero payout',()=>assert.equal(calculateQrPayout([],[],rates).ready,false));
+test('zero points rejected',()=>assert.equal(calculateQrPayout([row('B2',{points:0})],[matches(1)],rates).ready,false));
+test('non-integer count rejected',()=>assert.equal(calculateQrPayout([row('B2')],[matches(0.5)],rates).ready,false));
+test('overflowed payout rejected',()=>assert.equal(calculateQrPayout([row('B2',{points:1e15})],[matches(999999)],rates).ready,false));
+test('unverified diagnostic cannot be used to pay',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,matches:[{count:1}]}],rates).ready,false));

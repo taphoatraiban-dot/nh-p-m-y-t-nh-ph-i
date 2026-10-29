@@ -34,7 +34,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>LỊCH SỬ TRẢ THƯỞNG</h2><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>LỊCH SỬ TRẢ THƯỞNG</h2><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><label for="paidAmountVnd" style="display:block;font-weight:750;margin-bottom:8px">SỐ TIỀN ĐÃ TRẢ THỰC TẾ (đ)</label><input id="paidAmountVnd" type="number" min="0" max="1000000000000" step="1" inputmode="numeric" placeholder="Nhập số tiền thực trả, ví dụ 1480000" style="box-sizing:border-box;width:100%;padding:14px;font-size:19px;margin-bottom:12px;border:1px solid #aaa;border-radius:8px" /><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -394,7 +394,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const client=window.supabase.createClient('https://zigpqddlhvjbjrwhfhaa.supabase.co',pubkey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
    const {data:{session},error}=await client.auth.getSession();
    if(error||!session?.access_token){note.innerHTML='Bạn chưa đăng nhập. <a href="/">Mở phần mềm để đăng nhập</a>, sau đó quét lại QR.';return;}
-   if(!confirm('Bạn đã TRẢ THƯỞNG THỰC TẾ cho phiếu này chưa? Xác nhận sẽ khóa phiếu chống trả trùng, không thể hoàn tác.'))return;
+   const amountInput=document.getElementById('paidAmountVnd');
+   const amount=Number(amountInput.value);
+   if(amountInput.value.trim()===''||!Number.isSafeInteger(amount)||amount<0||amount>1000000000000){
+     note.textContent='Nhập số tiền đã trả thực tế bằng đồng, không để trống.';amountInput.focus();return;
+   }
+   if(!confirm('Xác nhận ĐÃ TRẢ '+amount.toLocaleString('vi-VN')+' đ cho phiếu này? Phiếu sẽ bị khóa chống trả trùng và không thể hoàn tác.'))return;
    btn.disabled=true;btn.textContent='ĐANG XÁC NHẬN…';
    try{
      await call('redeem',session.access_token);

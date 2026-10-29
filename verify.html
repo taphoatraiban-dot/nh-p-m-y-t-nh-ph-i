@@ -66,7 +66,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    try{
      const result=await call('public-result');
      output.textContent='Ngày quay: '+String(result.drawDate||'Chưa xác định')+'\\n'+String(result.message||'')+
-       (Array.isArray(result.resultStatus)&&result.resultStatus.length?'\\n'+result.resultStatus.map(x=>x.region+': '+(x.complete?'Đã đủ giải':'Chưa đủ giải')+' ('+x.stations+' đài)').join('\\n'):'');
+       (Array.isArray(result.resultStatus)&&result.resultStatus.length?'\\n'+result.resultStatus.map(x=>x.region+': '+(x.complete?'Đã đủ giải':'Chưa đủ giải')+' ('+x.stations+' đài)').join('\\n'):'')+ (Array.isArray(result.scanDetails)&&result.scanDetails.length?'\\n\\nKẾT QUẢ TỪNG DÒNG:\\n'+result.scanDetails.map(x=>'Dòng '+x.line+': '+(x.status==='win'?'TRÚNG '+x.matches.length+' lần':x.status==='lose'?'KHÔNG TRÚNG':'CHỜ XÁC MINH')+(x.reason?' — '+x.reason:'')+(x.status==='win'?' — '+x.matches.map(m=>m.prize.toUpperCase()+': '+m.number).join(', '):'')).join('\\n'):'\\nPhiếu cũ chưa có dữ liệu chi tiết để dò từng dòng.');
    }catch(e){output.textContent='Không tra cứu được: '+e.message;}
    finally{button.disabled=false;}
  });

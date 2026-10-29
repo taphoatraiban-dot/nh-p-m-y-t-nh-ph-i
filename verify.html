@@ -16,7 +16,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 .receipt-table .receipt-station{font-size:17px;font-weight:900;background:#f4f4f4;padding:9px}
 .receipt-table .receipt-number{font-weight:800}
 .receipt-table .receipt-money{text-align:right;font-weight:800}
-.receipt-total{font-size:21px;font-weight:900;text-align:right}
+.receipt-total{font-size:21px;font-weight:900;text-align:right;overflow-wrap:normal}.payout-value{display:block;white-space:nowrap;font-size:clamp(19px,5.1vw,27px);font-variant-numeric:tabular-nums}.payout-label{display:block;font-size:15px;margin-bottom:5px}.receipt-table.payout-table{font-size:13px}.receipt-table.payout-table th,.receipt-table.payout-table td{padding:8px 2px;overflow-wrap:normal;word-break:normal}.receipt-table.payout-table td:last-child{font-size:12px;font-variant-numeric:tabular-nums}
 @media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
 </style><script type="module">import {calculateQrPayout} from './qr-payout-preview.mjs'; window.calculateQrPayout=calculateQrPayout;</script>
 </head><body><main>
@@ -60,7 +60,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      // Customer identity is intentionally not returned to QR visitors.
      const title=document.createElement('div');title.className='receipt-paper-title';title.textContent='PHIẾU MUA HÀNG';snapshotEl.insertBefore(title,snapshotEl.firstChild);
      const items=Array.isArray(receipt.items)?receipt.items:[];
-     const table=document.createElement('table');table.className='receipt-table';
+     const table=document.createElement('table');table.className='receipt-table payout-table';
      const colgroup=document.createElement('colgroup');
      for(const width of ['25%','26%','18%','31%']){const col=document.createElement('col');col.style.width=width;colgroup.appendChild(col)}
      table.appendChild(colgroup);
@@ -140,34 +140,34 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      msg.textContent='CHỜ KẾT QUẢ / CHƯA ĐỦ DỮ LIỆU. Không kết luận trúng hoặc không trúng.';
    } else if(!rates||typeof window.calculateQrPayout!=='function'){
      msg.textContent='ĐÃ CÓ KẾT QUẢ DÒ SỐ. Thiếu bảng giá gốc nên chưa xác định tiền thưởng.';
-     const table=document.createElement('table');table.className='receipt-table';
+     const table=document.createElement('table');table.className='receipt-table payout-table';
      const head=document.createElement('tr');
-     for(const name of ['ĐÀI','SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;head.append(th)}table.append(head);
+     for(const name of ['ĐÀI','SỐ / LOẠI','ĐIỂM','LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;head.append(th)}table.append(head);
      rows.forEach((row,i)=>{if(row?.hidden||row?.nonWinning)return;
        const d=diagnostics[i],entries=Array.isArray(d?.pairs)?d.pairs:d?.matches;
        const count=Array.isArray(entries)?entries.reduce((sum,x)=>sum+(x.count??x.times),0):null;
        const tr=document.createElement('tr');
-       for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count??'CHỜ KẾT QUẢ'),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
+       for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(row.points??'—'),String(count??'CHỜ KẾT QUẢ'),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
      });host.append(table);
    } else {
      const preview=window.calculateQrPayout(rows,diagnostics,rates);
      if(!preview?.ready)msg.textContent='CHƯA XÁC ĐỊNH TIỀN THƯỞNG: '+String(preview?.reason||'cần đối chiếu');
      else {
        msg.textContent=isLegacyX74&&!result.source?.payoutRatesSnapshot?'TẠM TÍNH THEO BẢNG GIÁ X74 HIỆN TẠI — không phải giá gốc; chưa xác nhận thanh toán.':'KẾT QUẢ TẠM TÍNH — chưa xác nhận thanh toán.';
-       const table=document.createElement('table');table.className='receipt-table';
+       const table=document.createElement('table');table.className='receipt-table payout-table';
        const header=document.createElement('tr');
-       for(const name of ['ĐÀI','SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;header.append(th)}
+       for(const name of ['ĐÀI','SỐ / LOẠI','ĐIỂM','LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;header.append(th)}
        table.append(header);
        rows.forEach((row,i)=>{
          const line=preview.lines?.find(x=>x.index===i);if(row?.hidden||row?.nonWinning)return;
          const tr=document.createElement('tr');
          const count=diagnostics[i]?.pairs?.reduce((n,x)=>n+x.times,0)??diagnostics[i]?.matches?.reduce((n,x)=>n+x.count,0);
          const amount=line?.amount;
-         for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
+         for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(row.points??'—'),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
          table.append(tr);
        });
        host.append(table);
-       const total=document.createElement('p');total.className='receipt-total';total.textContent='TỔNG THƯỞNG TẠM TÍNH: '+Math.round(preview.total*1000).toLocaleString('vi-VN')+' đ';host.append(total);
+       const total=document.createElement('p');total.className='receipt-total';const label=document.createElement('span');label.className='payout-label';label.textContent='TỔNG THƯỞNG TẠM TÍNH';const value=document.createElement('span');value.className='payout-value';value.textContent=Math.round(preview.total*1000).toLocaleString('vi-VN')+' đ';total.append(label,value);host.append(total);
      }
    }
  }catch(_){document.getElementById('publicDrawStatus').textContent='Chưa lấy được dữ liệu dò. Vui lòng tải lại trang.';}

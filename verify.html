@@ -16,14 +16,14 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
  const box=document.getElementById('redeemBox'),btn=document.getElementById('redeemBtn'),note=document.getElementById('redeemNote');
  const token=new URL(location.href).searchParams.get('token')||'';
- history.replaceState(null,'',location.pathname);
+ // Keep QR token in URL so anyone can reopen, share, or refresh the public verification page.
  if(!/^[a-f0-9]{64}$/.test(token)){status.textContent='QR KHÔNG HỢP LỆ';status.className='bad';return;}
  const endpoint='https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/receipt-verify';
  const pubkey='sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni';
  async function call(action,jwt){
    const headers={'content-type':'application/json','apikey':pubkey};
    if(jwt)headers.authorization='Bearer '+jwt;
-   const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action,token})});
+   const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action,token}),cache:'no-store'});
    const data=await response.json();
    if(!response.ok)throw Error(data.error==='unauthorized'?'Bạn cần đăng nhập tài khoản chủ phiếu.':data.error==='not_active_or_not_owned'?'Phiếu đã sử dụng hoặc tài khoản này không phải chủ phiếu.':data.error||'Máy chủ không phản hồi.');
    return data;

@@ -45,3 +45,7 @@ test('matching DA cross mode accepted',()=>assert.equal(calculateQrPayout([row('
 test('nested frozen tra payout rates are accepted',()=>assert.equal(calculateQrPayout([row('B2')],[matches(1)],{tra:rates}).total,150));
 test('nested frozen payout rates are accepted',()=>assert.equal(calculateQrPayout([row('B2')],[matches(1)],{payout:rates}).total,150));
 test('no fallback to current price when nested rate missing',()=>assert.equal(calculateQrPayout([row('B2')],[matches(1)],{tra:{},b2:75}).ready,false));
+
+test('missing count must not be interpreted as zero',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,diagnosticOnly:true,matches:[{number:'12'}]}],rates).ready,false));
+test('null count must not be interpreted as zero',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,diagnosticOnly:true,matches:[{number:'12',count:null}]}],rates).ready,false));
+test('string count must not be interpreted as a verified number',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,diagnosticOnly:true,matches:[{number:'12',count:'1'}]}],rates).ready,false));

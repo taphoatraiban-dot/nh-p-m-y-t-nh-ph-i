@@ -229,6 +229,11 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  let historyNextPage=0;
  let historyHasMore=false;
  historyNextBtn.addEventListener('click',()=>loadOwnerHistory(true));
+ for(const id of ['historyCustomerFilter','historyFromFilter','historyToFilter']){
+   document.getElementById(id).addEventListener('change',()=>{
+     historyStatus.textContent='Bộ lọc đã thay đổi. Bấm XEM PHIẾU ĐÃ TRẢ để cập nhật danh sách.';
+   });
+ }
  let historyVisibleRecords=[];
  const vietnamDate=timestamp=>{
    if(!timestamp)return '';

@@ -41,3 +41,7 @@ test('invalid XC number rejected',()=>assert.equal(calculateQrPayout([row('XC',{
 test('invalid 4-digit number rejected',()=>assert.equal(calculateQrPayout([row('B4',{numbers:['123']})],[matches(1)],rates).ready,false));
 test('DA mode mismatch rejected',()=>assert.equal(calculateQrPayout([row('DA',{cross2:true})],[{supported:true,diagnosticOnly:true,cross:false,pairs:[{times:1}]}],rates).ready,false));
 test('matching DA cross mode accepted',()=>assert.equal(calculateQrPayout([row('DA',{cross2:true})],[{supported:true,diagnosticOnly:true,cross:true,pairs:[{times:1}]}],rates).total,1100));
+
+test('nested frozen tra payout rates are accepted',()=>assert.equal(calculateQrPayout([row('B2')],[matches(1)],{tra:rates}).total,150));
+test('nested frozen payout rates are accepted',()=>assert.equal(calculateQrPayout([row('B2')],[matches(1)],{payout:rates}).total,150));
+test('no fallback to current price when nested rate missing',()=>assert.equal(calculateQrPayout([row('B2')],[matches(1)],{tra:{},b2:75}).ready,false));

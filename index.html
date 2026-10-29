@@ -10731,6 +10731,38 @@ function repair(){
 document.addEventListener('DOMContentLoaded',()=>{repair();setTimeout(repair,600);});
 })();
 </script>
+<style id="cuncun-price-add-action-v2">
+#appDrawer #cuncunAddPriceVisible{display:block!important;width:100%!important;margin:10px 0!important;padding:13px!important;border:0!important;border-radius:10px!important;background:#d92323!important;color:#fff!important;font-weight:900!important;font-size:16px!important}
+</style>
+<script id="cuncun-price-add-action-script-v2">
+(function(){
+ function install(){
+  const section=document.querySelector('#appDrawer .calc-menu');
+  const list=document.getElementById('drawerPriceList');
+  const original=document.getElementById('addPriceDrawer');
+  if(!section||!list||!original||document.getElementById('cuncunAddPriceVisible'))return;
+  const btn=document.createElement('button');
+  btn.type='button';btn.id='cuncunAddPriceVisible';btn.textContent='＋ THÊM BẢNG GIÁ';
+  const details=document.getElementById('tshPriceManage');
+  (details||list.parentElement).insertBefore(btn,list);
+  btn.addEventListener('click',function(e){
+   e.preventDefault();e.stopPropagation();
+   const editor=document.getElementById('customerCard');
+   const mount=document.getElementById('drawerCustomerMount');
+   if(editor&&mount&&!mount.contains(editor))mount.appendChild(editor);
+   if(editor){editor.open=true;editor.classList.add('drawer-editor-open');}
+   const field=document.getElementById('customerName');
+   if(field)field.value='';
+   const panel=document.getElementById('cuncunPriceOverlay');
+   if(panel)panel.classList.remove('is-open');
+   if(mount)mount.style.display='block';
+   if(editor)setTimeout(()=>editor.scrollIntoView({behavior:'smooth',block:'start'}),50);
+   if(field)setTimeout(()=>field.focus(),100);
+  });
+ }
+ document.addEventListener('DOMContentLoaded',()=>{install();setTimeout(install,700);});
+})();
+</script>
 </body>
 
 <style id="v81-style">

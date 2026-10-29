@@ -34,6 +34,8 @@ export function calculateQrPayout(rows, diagnostics, rates) {
     if(!Number.isFinite(rate)||rate<=0)return fail('missing_rate',i,lines);
     const d=diagnostics?.[i];
     if(!d?.supported||d.diagnosticOnly!==true)return fail('unverified_diagnostic',i,lines);
+    if(d.index!==undefined&&d.index!==i)return fail('diagnostic_index_mismatch',i,lines);
+    if(d.type!==undefined&&String(d.type).toUpperCase()!==type)return fail('diagnostic_type_mismatch',i,lines);
     if(type==='DA'&&typeof d.cross==='boolean'){
       const cross=!!(row.cross2||row.daMode==='cross'||row.crossProvinces?.length===2);
       if(d.cross!==cross)return fail('da_mode_mismatch',i,lines);

@@ -133,6 +133,14 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        lines.push('TIỀN THU: '+String(src.finalTotal??''));
        lines.push('Số dòng đã tính: '+(Array.isArray(src.pricedRows)?src.pricedRows.length:0));
      }
+     if(Array.isArray(result.stationCoverage)){
+       lines.push('','CHI TIẾT ĐỐI CHIẾU (CHƯA PHẢI KẾT QUẢ THANH TOÁN):');
+       result.stationCoverage.forEach((station,i)=>{
+         const row=src?.pricedRows?.[i]||{};
+         lines.push((i+1)+'. '+String(row.type||station.type||'')+' '+(Array.isArray(row.numbers)?row.numbers.join('.'):''),station.ready?'   Đủ kết quả đài':'   Thiếu kết quả đài');
+       });
+     }
+     lines.push('','Chưa xác nhận trúng hoặc số tiền thưởng. Không dùng để thanh toán.');
      ownerMessage.textContent=lines.join('\n');
    } catch(e){ownerMessage.textContent=e.message;}
    finally{ownerCheck.disabled=false;}

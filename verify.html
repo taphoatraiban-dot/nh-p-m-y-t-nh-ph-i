@@ -24,7 +24,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 .receipt-table.payout-table th:nth-child(5){width:34%}
 .receipt-table.payout-table td:first-child{overflow-wrap:anywhere}
 .receipt-table.payout-table td:nth-child(2){overflow-wrap:anywhere}
-#publicDrawTable{min-width:0}
+#publicDrawTable{min-width:0}#publicDrawStatus{white-space:pre-line}
 #publicDrawTable .receipt-total{margin-bottom:18px;text-align:center}
 @media(max-width:480px){.receipt-table.payout-table{font-size:12px}.receipt-table.payout-table th,.receipt-table.payout-table td{padding:8px 1px}.receipt-table.payout-table td:last-child{font-size:11px}.receipt-table.payout-table th{font-size:11px}.payout-value{font-size:clamp(20px,6vw,26px)}}
 @media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
@@ -149,7 +149,15 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const msg=document.getElementById('publicDrawStatus'),host=document.getElementById('publicDrawTable');
    host.replaceChildren();
    if(!complete){
-     msg.textContent='CHỜ KẾT QUẢ / CHƯA ĐỦ DỮ LIỆU. Không kết luận trúng hoặc không trúng.';
+     const pending=rows.map((row,i)=>{
+       if(row?.hidden||row?.nonWinning||stationVerified(row,i)&&diagnostics[i]&&
+         (Array.isArray(diagnostics[i].pairs)?diagnostics[i].pairs:diagnostics[i].matches)?.every(e=>Number.isSafeInteger(e.count??e.times)&&(e.count??e.times)>=0))return null;
+       const coverage=result.stationCoverage?.[i];
+       const stations=Array.isArray(coverage?.stations)?coverage.stations.map(s=>String(s.requested||'?')+': '+(s.complete?'đủ kết quả':'chưa đủ kết quả')).join(', '):'không có dữ liệu đài';
+       const diagnostic=[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported)||null;
+       return (i+1)+'. '+String(row?.type||'')+' '+(row?.numbers||[]).join('.')+' — '+stations+(diagnostic?.supported?' (cần kiểm tra khớp đài)':' (chưa có dữ liệu dò hợp lệ)');
+     }).filter(Boolean);
+     msg.textContent='CHƯA XÁC MINH ĐỦ KẾT QUẢ — không kết luận trúng hoặc không trúng.\n'+pending.join('\n');
    } else if(!rates||typeof window.calculateQrPayout!=='function'){
      msg.textContent='ĐÃ CÓ KẾT QUẢ DÒ SỐ. Thiếu bảng giá gốc nên chưa xác định tiền thưởng.';
      const table=document.createElement('table');table.className='receipt-table payout-table';

@@ -26,7 +26,7 @@
     const items=Array.isArray(data.items)?data.items:[];
     const W=WIDTH,L=PAD,R=WIDTH-PAD;
     const col=[L,L+157,L+281,L+379,R];
-    const rowH=52,headerH=48,groupH=48;
+    const rowH=66,headerH=60,groupH=60;
     const sections=[];
     for(const item of items){
       const name=String(item.station||item.region||'KHÁC');
@@ -47,35 +47,35 @@
     const txt=(v,x,y,size=23,align='center',maxWidth=0)=>{ctx.font='bold '+size+'px sans-serif';ctx.textAlign=align;ctx.fillText(String(v??''),x,y,maxWidth||undefined);};
     const ln=(x,y,xx,yy)=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(xx,yy);ctx.stroke();};
     ctx.lineWidth=2.5;
-    txt(data.title||'PHIẾU MUA HÀNG',W/2,65,36);
-    txt('NGÀY: '+(data.date||'')+' '+(data.time||''),L,119,23,'left');
-    txt('KHÁCH: '+(data.customer||''),L,159,23,'left',R-L);
+    txt(data.title||'PHIẾU MUA HÀNG',W/2,65,40);
+    txt('NGÀY: '+(data.date||'')+' '+(data.time||''),L,119,28,'left');
+    txt('KHÁCH: '+(data.customer||''),L,159,28,'left',R-L);
     let y=205;
     const cells=(values,h)=>{
       ln(L,y,R,y);ln(L,y+h,R,y+h);
       col.forEach(x=>ln(x,y,x,y+h));
-      values.forEach((v,i)=>txt(v,(col[i]+col[i+1])/2,y+h/2,i===3?22:23,'center',col[i+1]-col[i]-9));
+      values.forEach((v,i)=>txt(v,(col[i]+col[i+1])/2,y+h/2,i===3?27:29,'center',col[i+1]-col[i]-9));
       y+=h;
     };
     sections.forEach(g=>{
       ctx.fillStyle='#eee';ctx.fillRect(L,y,R-L,groupH);ctx.fillStyle='#000';
       ln(L,y,R,y);ln(L,y+groupH,R,y+groupH);ln(L,y,L,y+groupH);ln(R,y,R,y+groupH);
-      txt(g.name,W/2,y+groupH/2,26,'center',R-L-12);y+=groupH;
+      txt(g.name,W/2,y+groupH/2,31,'center',R-L-12);y+=groupH;
       cells(['SỐ','LOẠI','ĐIỂM','TIỀN THU'],headerH);
       g.rows.forEach(item=>cells([item.number||item.content||'',item.type||'',item.points||'',item.amount||''],rowH));
       ln(L,y,R,y);ln(L,y+rowH,R,y+rowH);ln(L,y,L,y+rowH);ln(col[3],y,col[3],y+rowH);ln(R,y,R,y+rowH);
-      txt('TỔNG ĐÀI',(L+col[3])/2,y+rowH/2,25);
-      txt(Math.round(g.total).toLocaleString('vi-VN')+'k',(col[3]+R)/2,y+rowH/2,23);
+      txt('TỔNG ĐÀI',(L+col[3])/2,y+rowH/2,30);
+      txt(Math.round(g.total).toLocaleString('vi-VN')+'k',(col[3]+R)/2,y+rowH/2,28);
       y+=rowH;
     });
-    txt(data.totalLabel||'TỔNG THU',L,y+40,29,'left');
-    txt(data.total||'',R,y+40,31,'right');y+=90;
-    txt('MÃ PHIẾU: '+(data.code||''),W/2,y+17,19,'center',R-L-8);y+=45;
+    txt(data.totalLabel||'TỔNG THU',L,y+40,34,'left');
+    txt(data.total||'',R,y+40,36,'right');y+=90;
+    txt('MÃ PHIẾU: '+(data.code||''),W/2,y+17,23,'center',R-L-8);y+=45;
     const qr=data.qrMatrix;
     if(Array.isArray(qr)&&qr.length>=21&&qr.every(a=>Array.isArray(a)&&a.length===qr.length)){
       const unit=Math.max(1,Math.floor(240/qr.length)),size=unit*qr.length,x=Math.floor((W-size)/2);
       qr.forEach((row,ry)=>row.forEach((bit,rx)=>{if(bit)ctx.fillRect(x+rx*unit,y+ry*unit,unit,unit);}));
-      txt('QUÉT QR ĐỂ XÁC THỰC PHIẾU',W/2,y+size+30,18);
+      txt('QUÉT QR ĐỂ XÁC THỰC PHIẾU',W/2,y+size+30,23);
     }
     return canvas;
   }

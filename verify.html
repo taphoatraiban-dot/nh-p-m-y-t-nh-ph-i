@@ -47,8 +47,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    status.className=active?'ok':'bad';
    details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Đã sử dụng: '+new Date(data.redeemed_at).toLocaleString('vi-VN'):'');
    box.hidden=true; // Only the verified issuing account may see redemption controls.
-   const receipt=data.receipt_snapshot;
-   snapshotBox.hidden=!receipt;
+   // Public QR lookup shows status only; receipt contents require owner authorization.
+   const receipt=null;
+   snapshotBox.hidden=true;
    if(receipt){
      snapshotEl.replaceChildren();
      const add=(className,text)=>{const el=document.createElement('div');el.className=className;el.textContent=text;snapshotEl.appendChild(el);return el;};

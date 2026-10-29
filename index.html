@@ -10876,7 +10876,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    var btn=document.getElementById('finalDateButton'); if(!btn){btn=document.createElement('button');btn.type='button';btn.id='finalDateButton';slot.insertBefore(btn,bar)}
    var today=new Date(); today.setHours(12,0,0,0); var selected=inp.value||iso(today); bar.innerHTML='';
    for(var i=0;i<14;i++)(function(i){var d=new Date(today);d.setDate(today.getDate()-i);var v=iso(d),b=document.createElement('button');b.type='button';b.dataset.date=v;b.textContent=label(d,i);if(v===selected)b.classList.add('active');b.onclick=function(e){e.preventDefault();e.stopPropagation();inp.value=v;inp.dispatchEvent(new Event('change',{bubbles:true}));bar.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x===b)});btn.textContent=b.textContent;slot.classList.remove('final-open')};bar.appendChild(b)})(i);
-   var a=bar.querySelector('button.active')||bar.querySelector('button');if(a){inp.value=a.dataset.date;btn.textContent=a.textContent}
+   var a=bar.querySelector('button.active');
+   if(!a && selected){var chosen=new Date(selected+'T12:00:00');if(!isNaN(chosen.getTime())){a=document.createElement('button');a.type='button';a.dataset.date=selected;a.textContent=label(chosen,1);a.classList.add('active');a.onclick=function(e){e.preventDefault();e.stopPropagation();inp.value=selected;inp.dispatchEvent(new Event('change',{bubbles:true}));btn.textContent=a.textContent;slot.classList.remove('final-open')};bar.insertBefore(a,bar.firstChild);}}
+   if(!a)a=bar.querySelector('button');if(a){if(inp.value!==a.dataset.date)inp.value=a.dataset.date;btn.textContent=a.textContent}
    btn.onclick=function(e){e.preventDefault();e.stopPropagation();slot.classList.toggle('final-open')};
  }
  function setupActions(){

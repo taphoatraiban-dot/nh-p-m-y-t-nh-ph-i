@@ -1,5 +1,6 @@
 name: QR payout preview tests
 on:
+  workflow_dispatch:
   push:
     branches:
       - feature/qr-complete-review-20261029

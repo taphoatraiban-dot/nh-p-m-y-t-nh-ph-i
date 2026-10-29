@@ -9386,101 +9386,11 @@ window.addEventListener('DOMContentLoaded',function(){
 #quickDateSlot #daybar button.active{background:#d91f2d!important;color:#fff!important}
 #quickDateSlot>#date{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;left:-9999px!important}
 </style>
-<script id="FINAL_DATE_CLICK_FIX_1407_JS">
-(function(){
- function pad(n){return String(n).padStart(2,'0')}
- function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
- function txt(d,i){return i===0?'HÔM NAY '+pad(d.getDate())+'/'+pad(d.getMonth()+1):pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()}
- function init(){
-   var slot=document.getElementById('quickDateSlot'); if(!slot)return;
-   var input=document.getElementById('date');
-   if(!input){ input=document.createElement('input'); input.type='date'; input.id='date'; slot.appendChild(input); }
-   var bar=document.getElementById('daybar');
-   if(!bar){ bar=document.createElement('div'); bar.id='daybar'; slot.appendChild(bar); }
-   var btn=document.getElementById('finalDateButton');
-   if(!btn){ btn=document.createElement('button'); btn.type='button'; btn.id='finalDateButton'; slot.insertBefore(btn,bar); }
-   var now=new Date(); now.setHours(12,0,0,0);
-   var selected=input.value || iso(now);
-   bar.innerHTML='';
-   for(let i=0;i<14;i++){
-     let d=new Date(now); d.setDate(now.getDate()-i); let value=iso(d);
-     let b=document.createElement('button'); b.type='button'; b.dataset.date=value; b.textContent=txt(d,i);
-     if(value===selected)b.classList.add('active');
-     b.addEventListener('click',function(e){
-       e.preventDefault(); e.stopPropagation();
-       input.value=value; input.dispatchEvent(new Event('change',{bubbles:true}));
-       bar.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));
-       btn.textContent=b.textContent; slot.classList.remove('final-open');
-     });
-     bar.appendChild(b);
-   }
-   var active=bar.querySelector('.active')||bar.querySelector('button');
-   if(active){btn.textContent=active.textContent;if(!input.value)input.value=active.dataset.date;}
-   btn.onclick=function(e){e.preventDefault();e.stopPropagation();slot.classList.toggle('final-open');};
- }
- document.addEventListener('click',function(e){var s=document.getElementById('quickDateSlot');if(s&&!s.contains(e.target))s.classList.remove('final-open');});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
- setTimeout(init,700);
-})();
-</script>
+<!-- Legacy date controller FINAL_DATE_CLICK_FIX_1407_JS disabled; canonical controller is FINAL_FIX_1243_JS -->
 
 
-<style id="FINAL_DATE_HARD_FIX_1410">
-.quick-head{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;align-items:start!important}
-.quick-head>.quick-box{display:grid!important;grid-template-rows:22px 44px!important;gap:5px!important;height:71px!important;margin:0!important;padding:0!important}
-.quick-head>.quick-box>label{height:22px!important;line-height:22px!important;margin:0!important;padding:0!important;text-align:center!important}
-#quickCustomerSlot,#quickDateSlot{position:relative!important;width:100%!important;height:44px!important;min-height:44px!important;max-height:44px!important;margin:0!important;padding:0!important;overflow:visible!important}
-#quickCustomerSlot select,#quickCustomerSlot #customerSelect,#tshDateHardButton{box-sizing:border-box!important;width:100%!important;height:44px!important;min-height:44px!important;max-height:44px!important;margin:0!important;border:1px solid #d6a72c!important;border-radius:12px!important;background:#df1f2d!important;color:#fff!important;font-size:16px!important;font-weight:900!important;text-align:center!important;line-height:44px!important}
-#tshDateHardButton{display:block!important;position:relative!important;padding:0 34px 0 12px!important;cursor:pointer!important;-webkit-tap-highlight-color:transparent!important;touch-action:manipulation!important;z-index:2147483000!important}
-#tshDateHardButton:after{content:'⌄';position:absolute;right:12px;top:0;height:44px;line-height:41px;color:#fff;font-size:18px}
-#quickDateSlot.hard-open #tshDateHardButton:after{content:'⌃'}
-#tshDateHardMenu{display:none;position:absolute;left:0;right:0;top:48px;max-height:286px;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#fff;border:1px solid #d6a72c;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:4px;z-index:2147483647!important;pointer-events:auto!important;touch-action:pan-y!important}
-#quickDateSlot.hard-open #tshDateHardMenu{display:block!important}
-#tshDateHardMenu button{display:block!important;box-sizing:border-box!important;width:100%!important;height:42px!important;min-height:42px!important;margin:1px 0!important;padding:0 8px!important;border:0!important;border-radius:8px!important;background:#fff!important;color:#172554!important;font-size:14px!important;font-weight:850!important;line-height:42px!important;text-align:center!important;pointer-events:auto!important;touch-action:manipulation!important}
-#tshDateHardMenu button.active{background:#df1f2d!important;color:#fff!important}
-#quickDateSlot>#daybar,#quickDateSlot>#tshDateTrigger,#quickDateSlot>#finalDateButton{display:none!important;pointer-events:none!important}
-#quickDateSlot>#date{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;left:-9999px!important}
-</style>
-<script id="FINAL_DATE_HARD_FIX_1410_JS">
-(function(){
- function pad(n){return String(n).padStart(2,'0')}
- function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
- function lab(d,i){return i===0?'HÔM NAY '+pad(d.getDate())+'/'+pad(d.getMonth()+1):pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()}
- function init(){
-  var slot=document.getElementById('quickDateSlot'); if(!slot)return;
-  var inp=document.getElementById('date'); if(!inp){inp=document.createElement('input');inp.type='date';inp.id='date';slot.appendChild(inp)}
-  var oldB=document.getElementById('tshDateHardButton'); if(oldB)oldB.remove();
-  var oldM=document.getElementById('tshDateHardMenu'); if(oldM)oldM.remove();
-  var btn=document.createElement('button');btn.type='button';btn.id='tshDateHardButton';
-  var menu=document.createElement('div');menu.id='tshDateHardMenu';
-  slot.appendChild(btn);slot.appendChild(menu);
-  var today=new Date();today.setHours(12,0,0,0);
-  var selected=inp.value||iso(today), activeBtn=null;
-  for(var i=0;i<14;i++){
-   var d=new Date(today);d.setDate(today.getDate()-i);var v=iso(d);
-   var b=document.createElement('button');b.type='button';b.dataset.date=v;b.textContent=lab(d,i);
-   if(v===selected){b.classList.add('active');activeBtn=b}
-   b.addEventListener('pointerup',function(e){e.preventDefault();e.stopPropagation();choose(this)},true);
-   b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();choose(this)},true);
-   menu.appendChild(b);
-  }
-  function choose(b){
-   if(b.dataset.done==='1'){b.dataset.done='0';return} b.dataset.done='1';setTimeout(function(){b.dataset.done='0'},80);
-   inp.value=b.dataset.date;
-   try{inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}))}catch(_){ }
-   menu.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x===b)});
-   btn.textContent=b.textContent;slot.classList.remove('hard-open');
-  }
-  if(!activeBtn&&selected){var chosen=new Date(selected+'T12:00:00');if(!isNaN(chosen.getTime())){activeBtn=document.createElement('button');activeBtn.type='button';activeBtn.dataset.date=selected;activeBtn.textContent=lab(chosen,1);activeBtn.classList.add('active');activeBtn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();choose(this)});menu.insertBefore(activeBtn,menu.firstChild)}}
-  if(!activeBtn)activeBtn=menu.firstElementChild;
-  if(activeBtn){btn.textContent=activeBtn.textContent;inp.value=activeBtn.dataset.date}
-  btn.addEventListener('pointerup',function(e){e.preventDefault();e.stopPropagation();slot.classList.toggle('hard-open')},true);
-  btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation()},true);
-  document.addEventListener('pointerup',function(e){if(!slot.contains(e.target))slot.classList.remove('hard-open')},true);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-})();
-</script>
+
+<!-- Legacy date controller FINAL_DATE_HARD_FIX_1410_JS disabled; canonical controller is FINAL_FIX_1243_JS -->
 <style id="source2-verify-style">
 #s2VerifyWrap{margin-top:10px;border:1px solid #cbd5e1;border-radius:11px;background:white;padding:10px;color:#1f2937}
 #s2VerifyWrap summary{font-size:14px;font-weight:900;cursor:pointer;color:#1e40af;list-style:none}

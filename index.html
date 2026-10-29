@@ -10779,27 +10779,35 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 </style>
 <script id="FINAL_FIX_1243_JS">
 (function(){
- function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
- function label(d,i){return i===0?'HÔM NAY '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'):String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()}
- function setupDate(){
-   var slot=document.getElementById('quickDateSlot'),bar=document.getElementById('daybar'),inp=document.getElementById('date'); if(!slot||!bar||!inp)return;
-   document.querySelectorAll('#tshDateTrigger').forEach(function(x){x.remove()});
-   var btn=document.getElementById('finalDateButton'); if(!btn){btn=document.createElement('button');btn.type='button';btn.id='finalDateButton';slot.insertBefore(btn,bar)}
-   var today=new Date(); today.setHours(12,0,0,0); var selected=inp.value||iso(today); bar.innerHTML='';
-   for(var i=0;i<14;i++)(function(i){var d=new Date(today);d.setDate(today.getDate()-i);var v=iso(d),b=document.createElement('button');b.type='button';b.dataset.date=v;b.textContent=label(d,i);if(v===selected)b.classList.add('active');b.onclick=function(e){e.preventDefault();e.stopPropagation();inp.value=v;inp.dispatchEvent(new Event('change',{bubbles:true}));bar.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x===b)});btn.textContent=b.textContent;slot.classList.remove('final-open')};bar.appendChild(b)})(i);
-   var a=bar.querySelector('button.active');
-   if(!a && selected){var chosen=new Date(selected+'T12:00:00');if(!isNaN(chosen.getTime())){a=document.createElement('button');a.type='button';a.dataset.date=selected;a.textContent=label(chosen,1);a.classList.add('active');a.onclick=function(e){e.preventDefault();e.stopPropagation();inp.value=selected;inp.dispatchEvent(new Event('change',{bubbles:true}));btn.textContent=a.textContent;slot.classList.remove('final-open')};bar.insertBefore(a,bar.firstChild);}}
-   if(!a)a=bar.querySelector('button');if(a){if(inp.value!==a.dataset.date)inp.value=a.dataset.date;btn.textContent=a.textContent}
-   btn.onclick=function(e){e.preventDefault();e.stopPropagation();slot.classList.toggle('final-open')};
- }
- function setupActions(){
-   var p=document.getElementById('printPhoiPOS'),h=document.getElementById('openPrintHistory'),q=document.getElementById('qrScanBtn');if(!p||!h||!q)return;
-   var row=document.getElementById('finalThreeActions');if(!row){row=document.createElement('div');row.id='finalThreeActions';p.parentNode.insertBefore(row,p)}
-   [[p,'🖨️','IN PHƠI'],[h,'📋','TỔNG HỢP IN'],[q,'📷','SCAN QR']].forEach(function(a){if(a[0].parentNode!==row)row.appendChild(a[0]);a[0].innerHTML='<span class="fi">'+a[1]+'</span><span class="ft">'+a[2]+'</span>'});
- }
- function run(){setupDate();setupActions()}
- document.addEventListener('click',function(e){var s=document.getElementById('quickDateSlot');if(s&&!s.contains(e.target))s.classList.remove('final-open')},true);
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();setTimeout(run,500);setTimeout(run,1500);
+  // One source of truth: #date. All UI reads and writes this value only.
+  const pad=n=>String(n).padStart(2,'0');
+  const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const valid=v=>/^\\d{4}-\\d{2}-\\d{2}$/.test(v)&&!isNaN(new Date(v+'T12:00:00').getTime());
+  const show=v=>{const [y,m,d]=v.split('-');return d+'/'+m+'/'+y};
+  function init(){
+    const slot=document.getElementById('quickDateSlot'),inp=document.getElementById('date');
+    if(!slot||!inp)return;
+    if(slot.dataset.canonicalDateReady==='1')return;
+    slot.dataset.canonicalDateReady='1';
+    const original=valid(inp.value)?inp.value:iso(new Date());
+    inp.value=original;
+    slot.querySelectorAll('#finalDateButton,#tshDateTrigger,#tshDateHardButton,#tshDateHardMenu').forEach(el=>el.remove());
+    const bar=document.getElementById('daybar');if(bar)bar.remove();
+    const control=document.createElement('div');control.id='canonicalDateControl';
+    control.style.cssText='display:flex;align-items:center;justify-content:space-between;width:100%;height:44px;gap:4px';
+    const prev=document.createElement('button'),display=document.createElement('button'),next=document.createElement('button');
+    prev.type=display.type=next.type='button';prev.textContent='❮';next.textContent='❯';
+    [prev,next].forEach(b=>b.style.cssText='border:0;background:transparent;font-size:20px;font-weight:800;padding:0 8px;height:44px');
+    display.id='finalDateButton';display.style.cssText='flex:1;border:0;background:transparent;font-size:17px;font-weight:900;height:44px;padding:0';
+    function sync(){if(!valid(inp.value))inp.value=iso(new Date());display.textContent=show(inp.value);}
+    function change(v){if(!valid(v))return;inp.value=v;inp.dispatchEvent(new Event('change',{bubbles:true}));sync();}
+    function step(n){const d=new Date(inp.value+'T12:00:00');d.setDate(d.getDate()+n);change(iso(d));}
+    prev.onclick=()=>step(-1);next.onclick=()=>step(1);
+    display.onclick=()=>{if(typeof inp.showPicker==='function'){try{inp.showPicker();return}catch(_){}}inp.click()};
+    inp.addEventListener('change',sync);
+    control.append(prev,display,next);slot.appendChild(control);sync();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 <style id="FIX_3_ACTIONS_1410">

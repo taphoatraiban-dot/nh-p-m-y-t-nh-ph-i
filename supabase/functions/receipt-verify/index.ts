@@ -79,9 +79,9 @@ Deno.serve(async (req) => {
       // Do not calculate or disclose payouts without a verified draw result and
       // the immutable payout rates attached at issuance.
       const source = owned.receipt_snapshot?.verificationSource;
-      if (!source?.rawText || !source?.drawDate || !source?.payoutRatesSnapshot) {
+      if (!source?.rawText || !source?.drawDate || !Array.isArray(source?.pricedRows)) {
         return respond({ allowed: true, ready: false,
-          message: "Phiếu chưa có đủ dữ liệu cược, ngày quay và bảng giá gốc để tính thưởng." });
+          message: "Phiếu chưa có đủ dữ liệu cược hoặc ngày quay để dò kết quả." });
       }
       const date = String(source.drawDate);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {

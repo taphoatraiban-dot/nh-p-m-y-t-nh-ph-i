@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
         dlak:"daklak",qnam:"quangnam",dnang:"danang",kh:"khanhhoa",
         bdinh:"binhdinh",qtri:"quangtri",glai:"gialai",nthuan:"ninhthuan",
         qngai:"quangngai",ktum:"kontum",hue:"thuathienhue",
-        qb:"quangbinh",hn:"mienbac",mb:"mienbac",hanoi:"mienbac"
+        qb:"quangbinh",hn:"mienbac",mb:"mienbac",hanoi:"mienbac",\n        hanoibac:"mienbac",mienbac:"mienbac",bac:"mienbac"
       };
       const stationCoverage = (Array.isArray(source.pricedRows) ? source.pricedRows : []).map((row: any) => {
         const region = row?.region === "N" ? "MN" : row?.region === "T" ? "MT" : "MB";

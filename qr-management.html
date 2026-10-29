@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quản lý trả thưởng QR - Cuncun</title>
-<style>body{font-family:system-ui,sans-serif;margin:0;background:#f5f6f8;color:#17202a}main{max-width:720px;margin:auto;padding:18px}section{background:white;padding:18px;border:1px solid #ddd;border-radius:14px;margin:14px 0}h1{font-size:23px}h2{font-size:19px}button{border:0;border-radius:10px;padding:13px 16px;background:#b91c1c;color:white;font-weight:800;font-size:15px;margin:4px 4px 4px 0}button:disabled{opacity:.5}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #ddd;padding:9px;text-align:left}input{padding:10px;font-size:16px;max-width:100%;box-sizing:border-box}label{display:block;margin:8px 0}.muted{color:#56616e}#status{white-space:pre-wrap}</style>
+<style>body{font-family:system-ui,sans-serif;margin:0;background:#f5f6f8;color:#17202a}main{max-width:720px;margin:auto;padding:18px}section{background:white;padding:18px;border:1px solid #ddd;border-radius:14px;margin:14px 0}h1{font-size:23px}h2{font-size:19px}button{border:0;border-radius:10px;padding:13px 16px;background:#b91c1c;color:white;font-weight:800;font-size:15px;margin:4px 4px 4px 0}button:disabled{opacity:.5}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #ddd;padding:9px;text-align:left}input{padding:10px;font-size:16px;max-width:100%;box-sizing:border-box}label{display:block;margin:8px 0}.muted{color:#56616e}#status{white-space:pre-wrap}.receipt-card{border:1px solid #d7dce3;border-radius:12px;padding:12px;margin:9px 0;background:#fff;overflow-wrap:anywhere}.receipt-card strong{display:block;font-size:17px;color:#991b1b}.receipt-card p{margin:7px 0;font-size:15px}.receipt-card small{font-size:14px;color:#4b5563}</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><main>
 <a href="/" style="color:#991b1b;font-weight:800">← VỀ PHẦN MỀM</a><h1>QUẢN LÝ TRẢ THƯỞNG QR</h1><p id="status">Đang kiểm tra tài khoản đăng nhập…</p>
 <section id="loginPanel" hidden><h2>ĐĂNG NHẬP TÀI KHOẢN CHỦ</h2><p class="muted">Đăng nhập bằng tài khoản Cuncun của bạn. Mật khẩu được gửi trực tiếp tới Supabase Auth, không lưu trong báo cáo.</p><form id="loginForm"><label>Email <input id="loginEmail" type="email" autocomplete="username" required style="width:100%"></label><label>Mật khẩu <input id="loginPassword" type="password" autocomplete="current-password" required style="width:100%"></label><button id="loginBtn" type="submit">ĐĂNG NHẬP</button></form><p id="loginMessage" class="muted" aria-live="polite"></p></section><section id="content" hidden><button type="button" id="openToggle" aria-expanded="true" style="width:100%;background:white;color:#17202a;text-align:left;padding:5px 0"><strong>Phiếu chưa xác nhận trả thưởng ▲</strong></button><div id="openBody"><p class="muted">Phiếu chưa xác nhận không đồng nghĩa với công nợ. Không tự tính tiền phải trả.</p><label>Tìm phiếu <input id="openSearch" type="search" placeholder="Mã phiếu hoặc tên khách" style="width:100%"></label><button id="openBtn">XEM PHIẾU</button><button id="openShowMore" hidden>XEM THÊM 10</button><button id="openMore" hidden>TẢI THÊM</button><p id="openStatus"></p><div style="overflow:auto" id="openTable"></div></div></section>
@@ -20,7 +20,15 @@ function renderOpen(){
  const shown=found.slice(0,openShown);
  $('openShowMore').hidden=found.length<=openShown;
  $('openStatus').textContent='Đã tải '+openRows.length+' phiếu; phù hợp '+found.length+'; đang hiển thị '+shown.length+'.';
- table($('openTable'),['Mã phiếu','Khách','Ngày quay','Ngày phát hành'],shown.map(r=>[r.code,r.customer,r.drawDate,r.issuedAt?new Date(r.issuedAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'']));
+ const container=$('openTable');container.replaceChildren();
+ if(!shown.length){const p=document.createElement('p');p.textContent='Không có phiếu phù hợp.';container.appendChild(p)}
+ for(const r of shown){
+  const card=document.createElement('article');card.className='receipt-card';
+  const code=document.createElement('strong');code.textContent=safe(r.code);card.appendChild(code);
+  const customer=document.createElement('p');customer.textContent='Khách: '+safe(r.customer);card.appendChild(customer);
+  const info=document.createElement('small');info.textContent='Ngày quay: '+safe(r.drawDate)+' · Phát hành: '+(r.issuedAt?new Date(r.issuedAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'');card.appendChild(info);
+  container.appendChild(card);
+ }
 }
 async function loadOpen(more=false){
  if(!more){openRows=[];openPage=0;openShown=10}

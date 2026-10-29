@@ -53,3 +53,10 @@ test('different pairs have independent occurrence counts', () => {
     {a:'04',b:'40',times:1},{a:'04',b:'72',times:1},{a:'40',b:'72',times:1}
   ]);
 });
+
+test('zero occurrences on both stations never pay', () => {
+  assert.deepEqual(countPairs(['04','40'], [[],[]]), []);
+});
+test('more than two occurrences of both numbers count three pairs', () => {
+  assert.deepEqual(countPairs(['04','40'], [['104','204','304'],['140','240','340']]), [{a:'04',b:'40',times:3}]);
+});

@@ -26,7 +26,34 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const action = String(body?.action || "");
-    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "owner-detail", "owner-delete", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    if (action === "owner-detail" || action === "owner-delete") {
+      const user = await actor(req);
+      if (!user) return respond({ error: "unauthorized" }, 401);
+      if (action === "owner-detail") {
+        const code = String(body?.code || "");
+        if (!/^CQ-[A-Z0-9-]{6,40}$/.test(code)) return respond({ error: "invalid_code" }, 400);
+        const { data, error } = await db.from("receipt_verifications")
+          .select("receipt_code,status,issued_at,redeemed_at,paid_amount_vnd,receipt_snapshot")
+          .eq("owner_user_id",user.id).eq("receipt_code",code).maybeSingle();
+        if (error) return respond({ error: "detail_failed" }, 500);
+        if (!data) return respond({ error: "not_found" }, 404);
+        return respond({ receipt: { code:data.receipt_code,status:data.status,issuedAt:data.issued_at,
+          redeemedAt:data.redeemed_at,paidAmount:data.paid_amount_vnd,snapshot:data.receipt_snapshot } });
+      }
+      const codes = body?.codes;
+      if (!Array.isArray(codes) || codes.length < 1 || codes.length > 100 ||
+          new Set(codes).size !== codes.length ||
+          !codes.every((c:unknown)=>typeof c==="string" && /^CQ-[A-Z0-9-]{6,40}$/.test(c)))
+        return respond({ error: "invalid_codes" }, 400);
+      if (body?.confirmation !== "XOA VINH VIEN") return respond({ error: "confirmation_required" }, 400);
+      // Delete only exact owner-owned receipts. Their QR hashes disappear too:
+      // public checks return not_found, including previously redeemed receipts.
+      const { data, error } = await db.from("receipt_verifications")
+        .delete().eq("owner_user_id",user.id).in("receipt_code",codes).select("receipt_code");
+      if (error) return respond({ error: "delete_failed" }, 500);
+      return respond({ deletedCodes:(data||[]).map((r:any)=>r.receipt_code),deletedCount:(data||[]).length });
+    }
     if (action === "owner-open") {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);

@@ -1,0 +1,26 @@
+name: QR verification page syntax
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'verify.html'
+      - 'tests/verify-html-syntax.test.mjs'
+      - '.github/workflows/qr-verify-syntax.yml'
+  pull_request:
+    paths:
+      - 'verify.html'
+      - 'tests/verify-html-syntax.test.mjs'
+      - '.github/workflows/qr-verify-syntax.yml'
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify inline JavaScript parses
+        run: node --test tests/verify-html-syntax.test.mjs

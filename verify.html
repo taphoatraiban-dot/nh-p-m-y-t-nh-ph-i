@@ -191,13 +191,15 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const payoutDiagnostics=payoutRows.map((row,i)=>
        [result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]]
          .find(d=>d?.supported)||null);
-     const preview=window.calculateQrPayout&&rateSnapshot&&!missingStations&&!invalidDiagnostics&&!unsupported
+     const preview=typeof window.calculateQrPayout==='function'&&rateSnapshot&&!missingStations&&!invalidDiagnostics&&!unsupported
        ?window.calculateQrPayout(payoutRows,payoutDiagnostics,rateSnapshot):null;
      if(preview?.ready){
        lines.push('','ƯỚC TÍNH THEO DỮ LIỆU SƠ BỘ: '+Math.round(preview.total*1000).toLocaleString('vi-VN')+' đ');
        lines.push('CHỈ THAM KHẢO — CHƯA ĐƯỢC XÁC NHẬN ĐỂ THANH TOÁN.');
      }else if(preview){
        lines.push('CHƯA THỂ ƯỚC TÍNH THƯỞNG: '+String(preview.reason||'thiếu dữ liệu'));
+     }else if(typeof window.calculateQrPayout!=='function'){
+       lines.push('CHƯA TẢI ĐƯỢC BỘ TÍNH THƯỞNG. Hãy tải lại trang để thử lại.');
      }else if(!rateSnapshot){
        lines.push('CHỜ BẢNG GIÁ GỐC: máy chủ chưa trả bảng giá tại thời điểm lập phiếu. Không tính thưởng theo giá hiện tại.');
      }else if(missingStations||invalidDiagnostics||unsupported){

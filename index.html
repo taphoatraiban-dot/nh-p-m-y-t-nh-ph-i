@@ -7954,6 +7954,7 @@ window.showHistoryItem=showHistoryItem;
         totalGross:Number(sm.totalGross)||0,
         finalTotal:balance,
         payoutRatesSnapshot:(typeof selectedPrice==='object'&&selectedPrice)?JSON.parse(JSON.stringify(selectedPrice)):null,
+        payoutRatesSnapshotVersion:1,
         drawDate:date
       },
       totalLabel:balance>=0?'TỔNG THU':'TỔNG BÙ',code

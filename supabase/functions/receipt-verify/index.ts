@@ -126,11 +126,10 @@ Deno.serve(async (req) => {
       };
       const stationCoverage = (Array.isArray(source.pricedRows) ? source.pricedRows : []).map((row: any) => {
         const region = row?.region === "N" ? "MN" : row?.region === "T" ? "MT" : "MB";
-        // Ordinary rows are scoped to their own station. Only cross-station DA may use both stations.
-        const isCrossDa = String(row?.type || "").toUpperCase() === "DA" &&
-          (row?.cross2 === true || row?.daMode === "cross");
-        const names = isCrossDa && Array.isArray(row?.crossProvinces) && row.crossProvinces.length === 2
-          ? row.crossProvinces : [row?.scopeStation || row?.station];
+        // Multi-station wagers must validate every selected station, including B3/B4/XC.
+        const selected = Array.isArray(row?.crossProvinces) ? row.crossProvinces.filter((s: unknown) => typeof s === "string" && s.trim()) : [];
+        const multi = row?.cross2 === true && selected.length >= 2 && !row?.scopeStation;
+        const names = multi ? selected : [row?.scopeStation || row?.station];
         const matches = names.map((name: unknown) => {
           const normalized = normalizeStation(name);
           const canonical = aliases[normalized] || normalized;
@@ -231,10 +230,10 @@ Deno.serve(async (req) => {
           const a=numbers[i], b=numbers[j];
           const first=perStation[0].hits.find(h => h.number === a)?.count || 0;
           const second=perStation[0].hits.find(h => h.number === b)?.count || 0;
-          const times=cross ? Math.min(
-            first + (perStation[1].hits.find(h => h.number === a)?.count || 0),
-            second + (perStation[1].hits.find(h => h.number === b)?.count || 0)) :
-            Math.min(first,second);
+          const times=cross ? (
+            first * (perStation[1].hits.find(h => h.number === b)?.count || 0) +
+            second * (perStation[1].hits.find(h => h.number === a)?.count || 0)
+          ) : first * second;
           if (times > 0) pairs.push({ a,b,times });
         }
         return { index, supported: true, diagnosticOnly: true, cross, stations: perStation, pairs };

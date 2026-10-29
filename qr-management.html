@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quản lý trả thưởng QR - Cuncun</title>
-<style>body{font-family:system-ui,sans-serif;margin:0;background:#f5f6f8;color:#17202a}main{max-width:720px;margin:auto;padding:18px}section{background:white;padding:18px;border:1px solid #ddd;border-radius:14px;margin:14px 0}h1{font-size:23px}h2{font-size:19px}button{border:0;border-radius:10px;padding:13px 16px;background:#b91c1c;color:white;font-weight:800;font-size:15px;margin:4px 4px 4px 0}button:disabled{opacity:.5}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #ddd;padding:9px;text-align:left}input{padding:10px;font-size:16px;max-width:100%;box-sizing:border-box}label{display:block;margin:8px 0}.muted{color:#56616e}#status{white-space:pre-wrap}.receipt-card{border:1px solid #d7dce3;border-radius:12px;padding:12px;margin:9px 0;background:#fff;overflow-wrap:anywhere}.receipt-card strong{display:block;font-size:17px;color:#991b1b}.receipt-card p{margin:7px 0;font-size:15px}.receipt-card small{font-size:14px;color:#4b5563}.customer-group{border:1px solid #ddd;border-radius:12px;margin:12px 0;padding:10px}.customer-group summary{font-weight:800;font-size:17px;padding:8px;cursor:pointer}.receipt-card{position:relative}.receipt-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.receipt-actions button{padding:8px 12px;font-size:13px}.receipt-actions input{width:22px;height:22px}#detailPanel{position:fixed;inset:0;background:#f5f6f8;z-index:9999;overflow:auto;padding:18px}#detailPanel table{font-size:14px;background:white}#detailPanel td,#detailPanel th{padding:8px 6px;overflow-wrap:anywhere}#detailPanel h3{font-size:19px}#detailPanel[hidden]{display:none}</style>
+<style>body{font-family:system-ui,sans-serif;margin:0;background:#f5f6f8;color:#17202a}main{max-width:720px;margin:auto;padding:18px}section{background:white;padding:18px;border:1px solid #ddd;border-radius:14px;margin:14px 0}h1{font-size:23px}h2{font-size:19px}button{border:0;border-radius:10px;padding:13px 16px;background:#b91c1c;color:white;font-weight:800;font-size:15px;margin:4px 4px 4px 0}button:disabled{opacity:.5}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #ddd;padding:9px;text-align:left}input{padding:10px;font-size:16px;max-width:100%;box-sizing:border-box}label{display:block;margin:8px 0}.muted{color:#56616e}#status{white-space:pre-wrap}.receipt-card{border:1px solid #d7dce3;border-radius:12px;padding:12px;margin:9px 0;background:#fff;overflow-wrap:anywhere}.receipt-card strong{display:block;font-size:17px;color:#991b1b}.receipt-card p{margin:7px 0;font-size:15px}.receipt-card small{font-size:14px;color:#4b5563}.customer-group{border:1px solid #ddd;border-radius:12px;margin:12px 0;padding:10px}.customer-group summary{font-weight:800;font-size:17px;padding:8px;cursor:pointer}.receipt-card{position:relative}.receipt-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.receipt-actions button{padding:8px 12px;font-size:13px}.receipt-actions input{width:22px;height:22px}#detailPanel{position:fixed;inset:0;background:#f5f6f8;z-index:9999;overflow:auto;padding:18px}#detailPanel table{font-size:14px;background:white}#detailPanel td,#detailPanel th{padding:8px 6px;overflow-wrap:anywhere}#detailPanel h3{font-size:19px}#detailPanel[hidden]{display:none}#confirmOverlay{position:fixed;inset:0;z-index:100000;background:#0009;display:grid;place-items:center;padding:16px}#confirmOverlay[hidden]{display:none}#confirmBox{background:white;border-radius:14px;padding:20px;max-width:430px;width:100%;box-sizing:border-box}#confirmText{white-space:pre-wrap}#confirmInput{width:100%;margin:12px 0}</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><main>
 <a href="/" style="color:#991b1b;font-weight:800">← VỀ PHẦN MỀM</a><h1>QUẢN LÝ TRẢ THƯỞNG QR</h1><p id="status">Đang kiểm tra tài khoản đăng nhập…</p>
 <section id="loginPanel" hidden><h2>ĐĂNG NHẬP TÀI KHOẢN CHỦ</h2><p class="muted">Đăng nhập bằng tài khoản Cuncun của bạn. Mật khẩu được gửi trực tiếp tới Supabase Auth, không lưu trong báo cáo.</p><form id="loginForm"><label>Email <input id="loginEmail" type="email" autocomplete="username" required style="width:100%"></label><label>Mật khẩu <input id="loginPassword" type="password" autocomplete="current-password" required style="width:100%"></label><button id="loginBtn" type="submit">ĐĂNG NHẬP</button></form><p id="loginMessage" class="muted" aria-live="polite"></p></section><section id="content" hidden><button type="button" id="openToggle" aria-expanded="true" style="width:100%;background:white;color:#17202a;text-align:left;padding:5px 0"><strong>Phiếu chưa xác nhận trả thưởng ▲</strong></button><div id="openBody"><p class="muted">Phiếu chưa xác nhận không đồng nghĩa với công nợ. Không tự tính tiền phải trả.</p><label>Tìm phiếu <input id="openSearch" type="search" placeholder="Mã phiếu hoặc tên khách" style="width:100%"></label><button id="openBtn">XEM PHIẾU</button><button id="openShowMore" hidden>XEM THÊM 10</button><button id="openMore" hidden>TẢI THÊM</button><button id="selectVisible">CHỌN TẤT CẢ ĐANG HIỆN</button><button id="clearSelection">BỎ CHỌN</button><button id="deleteSelected" disabled>XÓA PHIẾU ĐÃ CHỌN</button><button id="deleteAll" type="button" style="background:#7f1d1d">XÓA TẤT CẢ PHIẾU</button><p id="selectionStatus"></p><p id="openStatus"></p><div style="overflow:auto" id="openTable"></div></div></section>
 <section id="paid" hidden><button type="button" id="paidToggle" aria-expanded="true" style="width:100%;background:white;color:#17202a;text-align:left;padding:5px 0"><strong>Lịch sử đã trả thưởng ▲</strong></button><div id="paidBody"><label>Tên khách <input id="customer" type="search" placeholder="Tất cả khách"></label><label>Từ ngày xác nhận <input id="from" type="date"></label><label>Đến ngày xác nhận <input id="to" type="date"></label><button id="paidBtn">XEM LỊCH SỬ</button><button id="paidMore" hidden>TẢI THÊM</button><button id="csvBtn" disabled>XUẤT CSV</button><p id="paidStatus"></p><div style="overflow:auto" id="paidTable"></div></div></section>
-</main><div id="detailPanel" hidden><button id="detailClose">← ĐÓNG CHI TIẾT</button><h2>CHI TIẾT PHIẾU</h2><div id="detailContent"></div></div><script>
+</main><div id="confirmOverlay" hidden><div id="confirmBox" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><h2 id="confirmTitle">XÁC NHẬN XÓA VĨNH VIỄN</h2><p id="confirmText"></p><label>Nhập mã xác nhận <input id="confirmInput" autocomplete="off"></label><button type="button" id="confirmYes">XÁC NHẬN XÓA</button><button type="button" id="confirmNo">HỦY</button></div></div><div id="detailPanel" hidden><button id="detailClose">← ĐÓNG CHI TIẾT</button><h2>CHI TIẾT PHIẾU</h2><div id="detailContent"></div></div><script>
 (async()=>{
 const $=id=>document.getElementById(id), endpoint='https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/receipt-verify',pubkey='sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni';
 let jwt='',openRows=[],paidRows=[],openPage=0,paidPage=0,visible=[],openShown=10,selectedCodes=new Set(),currentShown=[];
@@ -22,10 +22,13 @@ function renderOpen(){
  $('openStatus').textContent='Đã tải '+openRows.length+' phiếu; phù hợp '+found.length+'; đang hiện '+currentShown.length+'.';
  const container=$('openTable');container.replaceChildren();
  const groups=new Map();
- for(const r of currentShown){const name=safe(r.customer)||'Chưa lưu tên';if(!groups.has(name))groups.set(name,[]);groups.get(name).push(r)}
+ for(const r of currentShown){const date=safe(r.drawDate)||'Chưa rõ ngày';const name=safe(r.customer)||'Chưa lưu tên';if(!groups.has(date))groups.set(date,new Map());const people=groups.get(date);if(!people.has(name))people.set(name,[]);people.get(name).push(r)}
  if(!groups.size){const p=document.createElement('p');p.textContent='Không có phiếu phù hợp';container.appendChild(p)}
- for(const [name,receipts] of groups){
-  const group=document.createElement('details');group.className='customer-group';group.open=true;
+ for(const [date,people] of groups){
+  const dayGroup=document.createElement('details');dayGroup.className='customer-group';dayGroup.open=true;
+  const dayTitle=document.createElement('summary');dayTitle.textContent='Ngày quay: '+date+' ('+[...people.values()].reduce((n,a)=>n+a.length,0)+' phiếu)';dayGroup.appendChild(dayTitle);
+  for(const [name,receipts] of people){
+  const group=document.createElement('details');group.className='customer-group';group.open=false;
   const summary=document.createElement('summary');summary.textContent=name+' ('+receipts.length+' phiếu đang hiện)';group.appendChild(summary);
   for(const r of receipts){
    const card=document.createElement('article');card.className='receipt-card';
@@ -37,9 +40,21 @@ function renderOpen(){
    const view=document.createElement('button');view.type='button';view.textContent='XEM CHI TIẾT';view.onclick=()=>showDetail(r.code);actions.appendChild(view);
    card.appendChild(actions);group.appendChild(card);
   }
-  container.appendChild(group);
+  dayGroup.appendChild(group);
+  }
+  container.appendChild(dayGroup);
  }
  updateSelection();
+}
+function requestDeletion(message,phrase){
+ return new Promise(resolve=>{
+  const overlay=$('confirmOverlay'),input=$('confirmInput');
+  $('confirmText').textContent=message+'\\nNhập chính xác: '+phrase;
+  input.value='';overlay.hidden=false;input.focus();
+  const finish=ok=>{overlay.hidden=true;$('confirmYes').onclick=null;$('confirmNo').onclick=null;resolve(ok)};
+  $('confirmYes').onclick=()=>{if(input.value.trim()!==phrase){input.setCustomValidity('Mã xác nhận chưa đúng');input.reportValidity();input.setCustomValidity('');return}finish(true)};
+  $('confirmNo').onclick=()=>finish(false);
+ });
 }
 function updateSelection(){
  $('selectionStatus').textContent='Đã chọn '+selectedCodes.size+' phiếu';
@@ -119,9 +134,8 @@ $('detailClose').onclick=()=>{$('detailPanel').hidden=true};
 $('selectVisible').onclick=()=>{currentShown.forEach(r=>selectedCodes.add(r.code));renderOpen()};
 $('clearSelection').onclick=()=>{selectedCodes.clear();renderOpen()};
 $('deleteAll').onclick=async()=>{
- if(!confirm('CẢNH BÁO: Xóa VĨNH VIỄN TOÀN BỘ phiếu QR của tài khoản này, kể cả phiếu đã trả thưởng và lịch sử thanh toán. TẤT CẢ mã QR giấy sẽ mất hiệu lực. Không thể khôi phục.'))return;
- const typed=prompt('Nhập chính xác XOA TAT CA PHIEU VINH VIEN để xác nhận:');
- if(typed!=='XOA TAT CA PHIEU VINH VIEN')return;
+ const typed='XOA TAT CA PHIEU VINH VIEN';
+ if(!await requestDeletion('Xóa vĩnh viễn TOÀN BỘ phiếu QR của tài khoản, kể cả lịch sử đã trả. Tất cả QR giấy mất hiệu lực, không thể khôi phục.',typed))return;
  $('deleteAll').disabled=true;
  let count=0;
  try{
@@ -139,9 +153,8 @@ $('deleteAll').onclick=async()=>{
 $('deleteSelected').onclick=async()=>{
  const codes=[...selectedCodes];
  if(!codes.length)return;
- if(!confirm('XÓA VĨNH VIỄN '+codes.length+' PHIẾU? QR sẽ không còn xác thực được, kể cả phiếu đã in. KHÔNG THỂ KHÔI PHỤC.'))return;
- const typed=prompt('Nhập chính xác XOA VINH VIEN để xác nhận xóa '+codes.length+' phiếu:');
- if(typed!=='XOA VINH VIEN')return;
+ const typed='XOA VINH VIEN';
+ if(!await requestDeletion('Xóa vĩnh viễn '+codes.length+' phiếu đã chọn? Mã QR sẽ mất hiệu lực, không thể khôi phục.',typed))return;
  $('deleteSelected').disabled=true;
  try{
   const d=await api('owner-delete',0,{codes,confirmation:typed});

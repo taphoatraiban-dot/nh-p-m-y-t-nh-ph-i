@@ -7922,7 +7922,7 @@ window.showHistoryItem=showHistoryItem;
       }
       const value=Math.round(((Number(row.gross)||0)*Number(price.receive||0)-payout)*(Number(price.repay)||1));
       computed+=value;
-      items.push({region:row.region==='N'?'MN':row.region==='T'?'MT':'MB',station:String(row.station||''),type:typeLabel(row.type),number:(row.numbers||[]).join('–'),points:displayPoints(row),content:(row.numbers||[]).join('–'),amount:fmtAmount(value)});
+      items.push({region:row.region==='N'?'MN':row.region==='T'?'MT':'MB',station:String((row.crossProvinces&&row.crossProvinces.length?row.crossProvinces.join(' + '):row.scopeStation||row.station)||''),type:typeLabel(row.type),number:(row.numbers||[]).join('–'),points:displayPoints(row),content:(row.numbers||[]).join('–'),amount:fmtAmount(value)});
     }
     const remainder=Math.round(balance-computed);
     if(remainder)items.push({station:'SỐ DƯ CHUYỂN',number:'',type:'',points:'',content:'Số dư cũ',amount:fmtAmount(remainder)});
@@ -8108,7 +8108,7 @@ window.showHistoryItem=showHistoryItem;
 })();
 </script>
 
-<script src="src/ios-share-phoi.js?v=20261029-four-column-v2"></script>
+<script src="src/ios-share-phoi.js?v=20261029-four-column-v4"></script>
 <script src="src/ios-native-print-bridge.js?v=20261028-receipt-bold-v2"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){

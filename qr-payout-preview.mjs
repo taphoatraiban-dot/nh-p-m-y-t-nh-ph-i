@@ -27,7 +27,10 @@ export function calculateQrPayout(rows, diagnostics, rates) {
     else if(['DD','ĐẦU','ĐUÔI'].includes(type))key='dd';
     else if(type==='DA')key=row.region==='B'?'daMB':
       (row.cross2||row.daMode==='cross'||row.crossProvinces?.length===2)?'da2':'dathang';
-    const rate=Number(rates[key]);
+    // A snapshot can use nested payout rate objects; never substitute live rates.
+    const frozen=rates.tra&&typeof rates.tra==='object'?rates.tra:
+      rates.payout&&typeof rates.payout==='object'?rates.payout:rates;
+    const rate=Number(frozen[key]);
     if(!Number.isFinite(rate)||rate<=0)return fail('missing_rate',i,lines);
     const d=diagnostics?.[i];
     if(!d?.supported||d.diagnosticOnly!==true)return fail('unverified_diagnostic',i,lines);

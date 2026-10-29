@@ -60,3 +60,10 @@ test('zero occurrences on both stations never pay', () => {
 test('more than two occurrences of both numbers count three pairs', () => {
   assert.deepEqual(countPairs(['04','40'], [['104','204','304'],['140','240','340']]), [{a:'04',b:'40',times:3}]);
 });
+
+test('a pair with leading zeros can repeat twice', () => {
+  assert.deepEqual(countPairs(['04','40'], [['104','204'],['140','240']]), [{a:'04',b:'40',times:2}]);
+});
+test('unrelated prize endings do not affect the matched pair', () => {
+  assert.deepEqual(countPairs(['47','74'], [['147','999','274','888']]), [{a:'47',b:'74',times:1}]);
+});

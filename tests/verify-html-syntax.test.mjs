@@ -26,3 +26,12 @@ test('history paging and Vietnam-local date filtering keep expected safeguards',
   assert.match(html, /if\(fromInput&&toInput&&fromInput>toInput\)throw Error/, 'Date range must be validated before requesting page');
   assert.match(html, /historyCsvBtn\.disabled=!records\.length/, 'CSV export must be disabled for empty results');
 });
+
+test('owner payment overview remains read-only until explicit redemption', () => {
+  const html = readFileSync(new URL('../verify.html', import.meta.url), 'utf8');
+  for(const id of ['ownerOpenBtn','ownerOpenMoreBtn','ownerOpenStatus','ownerOpenTable']) {
+    assert.ok(html.includes('id="' + id + '"'), 'Missing '+id);
+  }
+  assert.match(html, /call\('owner-open',jwt,\{page:openPage\}\)/);
+  assert.match(html, /Đây không phải số tiền công nợ/);
+});

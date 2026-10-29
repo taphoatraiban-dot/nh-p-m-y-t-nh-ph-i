@@ -7930,6 +7930,19 @@ window.showHistoryItem=showHistoryItem;
       title:'PHIẾU MUA HÀNG',
       date, time:pad(now.getHours())+':'+pad(now.getMinutes()),
       customer, items, total:fmtAmount(balance),
+      // Preserve the source and the priced calculation as issued. These are
+      // verification metadata, never a replacement for the original slip.
+      verificationSource:{
+        rawText,
+        calculatedAt:now.toISOString(),
+        pricedRows:pricedRows.map(row=>({
+          region:String(row.region||''),
+          type:String(row.type||''),
+          gross:Number(row.gross)||0
+        })),
+        totalGross:Number(sm.totalGross)||0,
+        finalTotal:balance
+      },
       totalLabel:balance>=0?'TỔNG THU':'TỔNG BÙ',code
     });
     let text=receipt;

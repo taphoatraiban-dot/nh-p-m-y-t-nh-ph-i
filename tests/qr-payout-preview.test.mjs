@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateQrPayout} from '../qr-payout-preview.mjs';
 const rates={b2:75,b3:650,b4:5500,xc:650,dd:75,da2:550,dathang:730,daMB:650};
-const row=(type,extra={})=>({type,points:2,region:'N',...extra});
+const row=(type,extra={})=>({type,points:2,region:'N',numbers:['12','34'],...extra});
 const matches=(count)=>({supported:true,diagnosticOnly:true,matches:[{number:'12',count}]});
 test('bao2 2 hits pays rate times points times hits',()=>{
  const r=calculateQrPayout([row('B2')],[matches(2)],rates);
@@ -31,3 +31,5 @@ test('zero points rejected',()=>assert.equal(calculateQrPayout([row('B2',{points
 test('non-integer count rejected',()=>assert.equal(calculateQrPayout([row('B2')],[matches(0.5)],rates).ready,false));
 test('overflowed payout rejected',()=>assert.equal(calculateQrPayout([row('B2',{points:1e15})],[matches(999999)],rates).ready,false));
 test('unverified diagnostic cannot be used to pay',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,matches:[{count:1}]}],rates).ready,false));
+
+test('missing bet numbers blocks payout',()=>assert.equal(calculateQrPayout([row('B2',{numbers:[]})],[matches(1)],rates).ready,false));

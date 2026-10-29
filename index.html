@@ -7910,13 +7910,18 @@ window.showHistoryItem=showHistoryItem;
     const contentLines=originalLines.filter(x=>!headerLine.test(x));
     // The receipt must bind to the selected customer's exact table.
     // Never fall back to another customer's current/default table.
-    const price=v3Customers[customer]||customers[customer];
-    const requiredPayoutKeys=['b2','b3','b4','xc','dd','da2','dathang','daMB'];
-    if(!customer||!price||typeof price!=='object'||
-      !requiredPayoutKeys.every(k=>Number.isFinite(Number(price[k]))&&Number(price[k])>0)){
-      alert('Không tìm thấy bảng giá hợp lệ của khách đang chọn. Hãy chọn đúng khách, kiểm tra bảng giá rồi bấm OK lại trước khi in QR.');
+    // customerSelect is populated from customers (the saved customer-price table).
+    // Prefer it over the separate V3 cache, which can contain stale defaults.
+    const selectedPrice=customers[customer]||v3Customers[customer];
+    const requiredPayoutKeys=['b2','b3','b4','xc','dd','da2','dathang'];
+    if(!customer||!selectedPrice||typeof selectedPrice!=='object'||
+      !requiredPayoutKeys.every(k=>Number.isFinite(Number(selectedPrice[k]))&&Number(selectedPrice[k])>0)){
+      alert('Bảng giá khách đang chọn chưa hợp lệ. Hãy kiểm tra bảng giá và bấm OK lại trước khi in QR.');
       return;
     }
+    // Older custom customer tables do not contain daMB; the original
+    // priceForRow logic uses xc as its fallback for northern DA.
+    const price={...selectedPrice,daMB:Number(selectedPrice.daMB)>0?Number(selectedPrice.daMB):Number(selectedPrice.xc)};
     const items=[];
     let computed=0;
     for(const row of pricedRows){

@@ -87,7 +87,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      // Only sum explicit receipt amounts when they are unambiguous and share the same unit.
      // Never derive or overwrite the authoritative receipt total.
      const amounts=items.filter(x=>x&&typeof x==='object'&&typeof x.amount==='string').map(x=>x.amount.trim());
-     if(amounts.length===items.length&&amounts.length>0){
+     if(amounts.length===items.length&&amounts.length>0&&items.every(x=>x&&typeof x==='object'&&x.station!=='SỐ DƯ CHUYỂN')){
        const parsed=amounts.map(x=>x.match(/^([+-]?\\d+(?:[.,]\\d+)?)\\s*(k|đ|vnd)?$/i));
        const units=parsed.map(x=>x?.[2]?.toLowerCase()||'');
        if(parsed.every(Boolean)&&units.every(u=>u===units[0])){

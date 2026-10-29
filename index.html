@@ -3483,7 +3483,12 @@ function parseBets(){
    .replace(/[\u00A0\u202F\u2007]/g," ")
    .replace(/[\uFF0E\u2024]/g,".")
    .replace(/[\uFF0C]/g,",");
- const _raw2057=ttFixCompactBetSeparators(_telegramSafeInput);
+ // Normalize explicit station names attached to a wager, preserving the raw textarea.
+ // Do not infer a station when the source contains only an unlabelled number.
+ const _stationSafeInput=_telegramSafeInput
+   .replace(/(^|\n)[ \t]*(?:s[oó]c[ \t]*tr[aă]ng|soc[ \t]*trang|soctrang|strang)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1strang\n')
+   .replace(/(^|\n)[ \t]*(?:ctho|can[ \t]*tho|c[aầ]n[ \t]*th[oơ]|ct)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1ctho\n');
+ const _raw2057=ttFixCompactBetSeparators(_stationSafeInput);
  // Chặn cược sai độ dài số trên phơi gốc cho TẤT CẢ các đài MN/MT/MB.
  // DD đúng 2 chữ số; XC đúng 3 chữ số. Bất kỳ token sai đều khóa toàn phơi.
  const _strictLengthRe=/(?:^|[^0-9])([0-9]+)\s*(xc|dd)\s*([0-9]+(?:[,.][0-9]+)?)(?:n)?(?=\s*(?:\.|$|\n))/gim;

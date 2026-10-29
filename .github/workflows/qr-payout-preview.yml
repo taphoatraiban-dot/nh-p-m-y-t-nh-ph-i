@@ -1,0 +1,24 @@
+name: QR payout preview tests
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/qr-complete-review-20261029
+  pull_request:
+    paths:
+      - 'qr-payout-preview.mjs'
+      - 'tests/qr-payout-preview.test.mjs'
+      - 'tests/qr-receipt-privacy.test.mjs'
+      - 'supabase/functions/receipt-verify/index.ts'
+      - '.github/workflows/qr-payout-preview.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/qr-payout-preview.test.mjs tests/qr-receipt-privacy.test.mjs

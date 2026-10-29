@@ -18,11 +18,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 .receipt-table .receipt-money{text-align:right;font-weight:800}
 .receipt-total{font-size:21px;font-weight:900;text-align:right}
 @media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
-</style></head><body><main>
+</style><script type="module">import {calculateQrPayout} from './qr-payout-preview.mjs'; window.calculateQrPayout=calculateQrPayout;</script>
+</head><body><main>
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -46,8 +47,10 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    status.className=active?'ok':'bad';
    details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Đã sử dụng: '+new Date(data.redeemed_at).toLocaleString('vi-VN'):'');
    box.hidden=true; // Only the verified issuing account may see redemption controls.
-   const receipt=data.receipt_snapshot;
-   snapshotBox.hidden=!receipt;
+   // Public QR lookup shows status only; receipt contents require owner authorization.
+   const receipt=null;
+   snapshotBox.hidden=true;
+   snapshotEl.replaceChildren();
    if(receipt){
      snapshotEl.replaceChildren();
      const add=(className,text)=>{const el=document.createElement('div');el.className=className;el.textContent=text;snapshotEl.appendChild(el);return el;};
@@ -133,6 +136,120 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        lines.push('TIỀN THU: '+String(src.finalTotal??''));
        lines.push('Số dòng đã tính: '+(Array.isArray(src.pricedRows)?src.pricedRows.length:0));
      }
+     if(Array.isArray(result.stationCoverage)){
+       lines.push('','CHI TIẾT ĐỐI CHIẾU (CHƯA PHẢI KẾT QUẢ THANH TOÁN):');
+       const countRows=result.stationCoverage.length;
+       const completeRows=result.stationCoverage.filter(st=>st?.ready===true).length;
+       lines.push('Kết quả đài: '+completeRows+'/'+countRows+' dòng đủ dữ liệu');
+       result.stationCoverage.forEach((station,i)=>{
+         const row=src?.pricedRows?.[i]||{};
+         lines.push((i+1)+'. '+String(row.type||station.type||'')+' '+(Array.isArray(row.numbers)?row.numbers.join('.'):''),station.ready?'   Đủ kết quả đài':'   Thiếu kết quả đài');
+         const da=result.daDiagnostics?.[i], sp=result.specialDiagnostics?.[i], bl=result.matchDiagnostics?.[i];
+         const diagnostic=da?.supported?da:sp?.supported?sp:bl?.supported?bl:null;
+         if(row.hidden===true||row.nonWinning===true){
+           lines.push('   Dòng hiển thị/phụ trợ: không tính thưởng độc lập');
+         }else if(!station.ready){
+           lines.push('   Chưa thể kết luận: thiếu kết quả giải hoặc đài');
+         }else if(!diagnostic){
+           lines.push('   Chưa hỗ trợ đối chiếu đầy đủ: KHÔNG kết luận không trúng');
+         }
+         if(diagnostic&&station.ready&&!row.hidden&&!row.nonWinning){
+           if(Array.isArray(diagnostic.pairs))lines.push('   Cặp khớp: '+(diagnostic.pairs.length?diagnostic.pairs.map(p=>p.a+'-'+p.b+' ('+p.times+' lần)').join(', '):'Không có'));
+           if(Array.isArray(diagnostic.matches))lines.push('   Số khớp: '+(diagnostic.matches.filter(m=>m.count>0).map(m=>m.number+' ('+m.count+' lần)').join(', ')||'Không có'));
+         }
+       });
+     }
+     if(Array.isArray(result.resultCoverage)){
+       lines.push('','TÌNH TRẠNG KẾT QUẢ XỔ SỐ:');
+       result.resultCoverage.forEach(c=>{
+         lines.push(String(c.region||'')+': '+(Array.isArray(c.stations)?c.stations.filter(st=>st.complete).length+'/'+c.stations.length+' đài đủ giải':'Chưa xác định'));
+       });
+     }
+     const activeRows=Array.isArray(src?.pricedRows)?src.pricedRows.filter(r=>!r.hidden&&!r.nonWinning):[];
+     const stationRows=Array.isArray(result.stationCoverage)?result.stationCoverage:[];
+     const missingStations=activeRows.some(row=>{
+       const i=src.pricedRows.indexOf(row);
+       return !stationRows[i]?.ready;
+     });
+     const invalidDiagnostics=activeRows.some(row=>{
+       const i=src.pricedRows.indexOf(row);
+       const d=[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(x=>x?.supported);
+       if(!d)return false;
+       const entries=Array.isArray(d.pairs)?d.pairs:d.matches;
+       return !Array.isArray(entries)||entries.some(e=>{
+         const n=Number(Array.isArray(d.pairs)?e.times:e.count);
+         return !Number.isSafeInteger(n)||n<0;
+       });
+     });
+     const unsupported=activeRows.some(row=>{
+       const i=src.pricedRows.indexOf(row);
+       return !(result.daDiagnostics?.[i]?.supported||result.specialDiagnostics?.[i]?.supported||result.matchDiagnostics?.[i]?.supported);
+     });
+     lines.push('','TÌNH TRẠNG PHIẾU: '+(!src?.pricedRows?.length?'CHƯA CÓ DỮ LIỆU CƯỢC':activeRows.length===0?'KHÔNG CÓ DÒNG CƯỢC ĐỂ DÒ':missingStations?'CHỜ KẾT QUẢ ĐÀI':invalidDiagnostics?'LỖI DỮ LIỆU ĐỐI CHIẾU':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
+     lines.push('CHƯA XÁC NHẬN TRÚNG/KHÔNG TRÚNG HAY TIỀN THƯỞNG. KHÔNG DÙNG ĐỂ THANH TOÁN.');
+     // Owner-only preview: diagnostics are provisional and cannot authorize redemption.
+     const rateSnapshot=src?.payoutRatesSnapshot;
+     const payoutRows=Array.isArray(src?.pricedRows)?src.pricedRows:[];
+     const payoutDiagnostics=payoutRows.map((row,i)=>
+       [result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]]
+         .find(d=>d?.supported)||null);
+     const preview=typeof window.calculateQrPayout==='function'&&rateSnapshot&&!missingStations&&!invalidDiagnostics&&!unsupported
+       ?window.calculateQrPayout(payoutRows,payoutDiagnostics,rateSnapshot):null;
+     if(preview?.ready){
+       lines.push('','ƯỚC TÍNH THEO DỮ LIỆU SƠ BỘ: '+Math.round(preview.total*1000).toLocaleString('vi-VN')+' đ');
+       lines.push('CHỈ THAM KHẢO — CHƯA ĐƯỢC XÁC NHẬN ĐỂ THANH TOÁN.');
+     }else if(preview){
+       lines.push('CHƯA THỂ ƯỚC TÍNH THƯỞNG: '+String(preview.reason||'thiếu dữ liệu'));
+     }else if(typeof window.calculateQrPayout!=='function'){
+       lines.push('CHƯA TẢI ĐƯỢC BỘ TÍNH THƯỞNG. Hãy tải lại trang để thử lại.');
+     }else if(!rateSnapshot){
+       lines.push('CHỜ BẢNG GIÁ GỐC: máy chủ chưa trả bảng giá tại thời điểm lập phiếu. Không tính thưởng theo giá hiện tại.');
+     }else if(missingStations||invalidDiagnostics||unsupported){
+       lines.push('CHƯA ĐỦ DỮ LIỆU AN TOÀN ĐỂ TÍNH THƯỞNG.');
+     }
+     const tableHost=document.getElementById('ownerTable');
+     tableHost.replaceChildren();
+     const rows=Array.isArray(src?.pricedRows)?src.pricedRows:[];
+     if(rows.length){
+       const table=document.createElement('table');
+       table.style.cssText='width:100%;min-width:760px;border-collapse:collapse;font-size:18px;line-height:1.55';
+       const head=document.createElement('thead');
+       const hr=document.createElement('tr');
+       ['STT','LOẠI','NỘI DUNG','ĐÀI','ĐỐI CHIẾU','THƯỞNG TẠM TÍNH'].forEach(label=>{
+         const th=document.createElement('th');th.textContent=label;
+         th.style.cssText='border:1px solid #999;padding:8px;text-align:left;font-weight:800';
+         hr.appendChild(th);
+       });
+       head.appendChild(hr);table.appendChild(head);
+       const body=document.createElement('tbody');
+       const fmtCount=(diagnostic)=>{
+         if(!diagnostic)return '';
+         if(Array.isArray(diagnostic.matches)){
+           if(diagnostic.matches.some(m=>typeof m.count!=='number'||!Number.isSafeInteger(m.count)||m.count<0))return 'DỮ LIỆU ĐỐI CHIẾU KHÔNG HỢP LỆ';
+           const hits=diagnostic.matches.filter(m=>Number(m.count)>0);
+           return hits.length?hits.map(m=>String(m.number)+' ×'+String(m.count)).join(', '):'Chưa thấy số khớp';
+         }
+         if(Array.isArray(diagnostic.pairs)){
+           if(diagnostic.pairs.some(p=>typeof p.times!=='number'||!Number.isSafeInteger(p.times)||p.times<0))return 'DỮ LIỆU CẶP KHÔNG HỢP LỆ';
+           return diagnostic.pairs.length?diagnostic.pairs.map(p=>String(p.a)+'-'+String(p.b)+' ×'+String(p.times)).join(', '):'Chưa thấy cặp khớp';
+         }
+         return '';
+       };
+       rows.forEach((row,i)=>{
+         const tr=document.createElement('tr');
+         const station=result.stationCoverage?.[i];
+         const diagnostic=[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported);
+         const state=row.hidden||row.nonWinning?'Dòng phụ':!station?.ready?'CHỜ KẾT QUẢ':!diagnostic?'CHƯA HỖ TRỢ':'Đối chiếu sơ bộ: '+fmtCount(diagnostic);
+         const payoutLine=preview?.ready?preview.lines?.find(line=>line.index===i):null;
+         const payoutText=payoutLine?(payoutLine.skipped?'Dòng phụ':Math.round(payoutLine.amount*1000).toLocaleString('vi-VN')+' đ'):'CHƯA XÁC ĐỊNH';
+         [String(i+1),String(row.type||''),(Array.isArray(row.numbers)?row.numbers.join('.'):''),String(row.scopeStation||row.station||''),state,payoutText].forEach(value=>{
+           const td=document.createElement('td');td.textContent=value;
+           td.style.cssText='border:1px solid #999;padding:10px;vertical-align:top;font-weight:700;overflow-wrap:anywhere';
+           tr.appendChild(td);
+         });body.appendChild(tr);
+       });
+       table.appendChild(body);tableHost.appendChild(table);tableHost.hidden=false;
+     }else tableHost.hidden=true;
      ownerMessage.textContent=lines.join('\n');
    } catch(e){ownerMessage.textContent=e.message;}
    finally{ownerCheck.disabled=false;}

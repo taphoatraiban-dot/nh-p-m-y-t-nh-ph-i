@@ -18,7 +18,8 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 .receipt-table .receipt-money{text-align:right;font-weight:800}
 .receipt-total{font-size:21px;font-weight:900;text-align:right}
 @media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
-</style></head><body><main>
+</style><script type="module">import {calculateQrPayout} from './qr-payout-preview.mjs'; window.calculateQrPayout=calculateQrPayout;</script>
+</head><body><main>
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
@@ -184,6 +185,20 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      });
      lines.push('','TÌNH TRẠNG PHIẾU: '+(!src?.pricedRows?.length?'CHƯA CÓ DỮ LIỆU CƯỢC':activeRows.length===0?'KHÔNG CÓ DÒNG CƯỢC ĐỂ DÒ':missingStations?'CHỜ KẾT QUẢ ĐÀI':invalidDiagnostics?'LỖI DỮ LIỆU ĐỐI CHIẾU':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
      lines.push('CHƯA XÁC NHẬN TRÚNG/KHÔNG TRÚNG HAY TIỀN THƯỞNG. KHÔNG DÙNG ĐỂ THANH TOÁN.');
+     // Owner-only preview: diagnostics are provisional and cannot authorize redemption.
+     const rateSnapshot=src?.payoutRatesSnapshot;
+     const payoutRows=Array.isArray(src?.pricedRows)?src.pricedRows:[];
+     const payoutDiagnostics=payoutRows.map((row,i)=>
+       [result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]]
+         .find(d=>d?.supported)||null);
+     const preview=window.calculateQrPayout&&rateSnapshot&&!missingStations&&!invalidDiagnostics&&!unsupported
+       ?window.calculateQrPayout(payoutRows,payoutDiagnostics,rateSnapshot):null;
+     if(preview?.ready){
+       lines.push('','ƯỚC TÍNH THEO DỮ LIỆU SƠ BỘ: '+Math.round(preview.total*1000).toLocaleString('vi-VN')+' đ');
+       lines.push('CHỈ THAM KHẢO — CHƯA ĐƯỢC XÁC NHẬN ĐỂ THANH TOÁN.');
+     }else if(preview){
+       lines.push('CHƯA THỂ ƯỚC TÍNH THƯỞNG: '+String(preview.reason||'thiếu dữ liệu'));
+     }
      const tableHost=document.getElementById('ownerTable');
      tableHost.replaceChildren();
      const rows=Array.isArray(src?.pricedRows)?src.pricedRows:[];

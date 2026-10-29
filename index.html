@@ -1381,7 +1381,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   <div id="tshPrintActionGrid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 12px;align-items:stretch">
     <button type="button" id="printPhoiBluetooth" style="width:100%;min-width:0;min-height:54px;margin:0;border:2px solid #2563eb;border-radius:12px;background:#eff6ff;color:#1d4ed8;padding:10px 7px;font-size:13px;line-height:1.3;font-weight:900;white-space:normal">🖨 IN PHƠI</button>
     <button type="button" id="printPhoiDirect" style="display:block;width:100%;min-width:0;min-height:54px;margin:0;border:2px solid #059669;border-radius:12px;background:#ecfdf5;color:#047857;padding:10px 7px;font-size:13px;line-height:1.3;font-weight:900;white-space:normal">🖨 IN TRỰC TIẾP</button>
-    <button type="button" id="savePhoiNoPrint" style="grid-column:1/-1;display:block;width:100%;min-height:50px;margin:0;background:#ecfdf5;color:#065f46;border:2px solid #059669;border-radius:12px;font-size:15px;font-weight:900">💾 LƯU PHƠI – KHÔNG IN (ZALO)</button>
+    <button type="button" id="savePhoiNoPrint" style="grid-column:1/-1;display:block;width:100%;min-height:50px;margin:0;background:#ecfdf5;color:#065f46;border:2px solid #059669;border-radius:12px;font-size:15px;font-weight:900">💾 LƯU PHƠI – KHÔNG IN</button>
     <button type="button" id="openBluetoothPrintManager" style="grid-column:1/-1;display:block;width:100%;min-height:48px;margin:0;background:#eef2ff;color:#3730a3;border:1px solid #818cf8;border-radius:12px;font-size:14px;font-weight:900">📚 QUẢN LÝ IN</button>
   </div>
 
@@ -7924,6 +7924,12 @@ window.showHistoryItem=showHistoryItem;
     const code=Math.random().toString(36).slice(2,6).toUpperCase();
     const date=document.getElementById('date')?.value||`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
     const customer=document.getElementById('customerSelect')?.value||'';
+    // Both printing and save-only always use the existing selected customer/price table.
+    // Never silently substitute a walk-in price for a named customer.
+    if(!customer || !Array.from(document.getElementById('customerSelect')?.options||[]).some(o=>o.value===customer)){
+      alert('Hãy chọn đúng bảng giá khách đã lưu trước khi '+(saveOnly?'lưu phơi':'in phơi')+'.');
+      return;
+    }
     const sm=currentSummary();
     if(!sm||!lastCalc){alert('Hãy bấm OK để TÍNH PHƠI trước khi in phiếu tính tiền.');return;}
     // Prevent a receipt from mixing the last calculation with a newly selected

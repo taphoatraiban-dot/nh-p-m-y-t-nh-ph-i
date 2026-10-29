@@ -7970,9 +7970,9 @@ window.showHistoryItem=showHistoryItem;
         // Freeze the exact customer price used by priceForRow above.
         // Persist only the actual payout rates for this selected customer.
         // Never substitute a default customer's prices if the selected table is missing.
-        payoutRatesSnapshot:(price&&typeof price==='object'&&
-          ['b2','b3','b4','xc','dd','da2','dathang','daMB'].every(k=>Number.isFinite(Number(price[k]))&&Number(price[k])>0))
-          ?Object.fromEntries(['b2','b3','b4','xc','dd','da2','dathang','daMB'].map(k=>[k,Number(price[k])])):null,
+        payoutRatesSnapshot:Object.fromEntries(
+          ['b2','b3','b4','xc','dd','da2','dathang','daMB'].map(k=>[k,Number(price[k])])
+        ),
         payoutRatesSnapshotVersion:2,
         drawDate:date
       },

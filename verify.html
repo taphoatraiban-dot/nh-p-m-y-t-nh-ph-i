@@ -44,10 +44,10 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  if(!/^[a-f0-9]{64}$/.test(token)){status.textContent='QR KHÔNG HỢP LỆ';status.className='bad';return;}
  const endpoint='https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/receipt-verify';
  const pubkey='sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni';
- async function call(action,jwt){
+ async function call(action,jwt,extra){
    const headers={'content-type':'application/json','apikey':pubkey};
    if(jwt)headers.authorization='Bearer '+jwt;
-   const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action,token}),cache:'no-store'});
+   const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({action,token,...(extra||{})}),cache:'no-store'});
    const data=await response.json();
    if(!response.ok)throw Error(data.error==='unauthorized'?'Bạn cần đăng nhập tài khoản chủ phiếu.':data.error==='not_active_or_not_owned'?'Phiếu đã sử dụng hoặc tài khoản này không phải chủ phiếu.':data.error||'Máy chủ không phản hồi.');
    return data;
@@ -402,7 +402,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    if(!confirm('Xác nhận ĐÃ TRẢ '+amount.toLocaleString('vi-VN')+' đ cho phiếu này? Phiếu sẽ bị khóa chống trả trùng và không thể hoàn tác.'))return;
    btn.disabled=true;btn.textContent='ĐANG XÁC NHẬN…';
    try{
-     await call('redeem',session.access_token);
+     await call('redeem',session.access_token,{paidAmountVnd:amount});
      show(await call('check'));
      note.textContent='Đã ghi nhận trả thưởng và khóa phiếu chống xác nhận trùng.';
    }catch(e){

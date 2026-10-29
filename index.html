@@ -7908,7 +7908,7 @@ window.showHistoryItem=showHistoryItem;
     const originalLines=rawText.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
     const headerLine=/^(?:[234]dmn|[23]dmt|hn|mb|mn|mt|hanoi)(?:\s|$)/i;
     const contentLines=originalLines.filter(x=>!headerLine.test(x));
-    const price=readCustomer();
+    const price=v3Customers[$('customerSelect')?.value]||customers[$('customerSelect')?.value]||readCustomer();
     const items=[];
     let computed=0;
     for(const row of pricedRows){
@@ -8108,7 +8108,7 @@ window.showHistoryItem=showHistoryItem;
 })();
 </script>
 
-<script src="src/ios-share-phoi.js?v=20261028-table80-verified-v5"></script>
+<script src="src/ios-share-phoi.js?v=20261029-four-column-v2"></script>
 <script src="src/ios-native-print-bridge.js?v=20261028-receipt-bold-v2"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){

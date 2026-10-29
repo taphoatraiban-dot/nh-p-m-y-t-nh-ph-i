@@ -138,6 +138,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        result.stationCoverage.forEach((station,i)=>{
          const row=src?.pricedRows?.[i]||{};
          lines.push((i+1)+'. '+String(row.type||station.type||'')+' '+(Array.isArray(row.numbers)?row.numbers.join('.'):''),station.ready?'   Đủ kết quả đài':'   Thiếu kết quả đài');
+         const da=result.daDiagnostics?.[i], sp=result.specialDiagnostics?.[i], bl=result.matchDiagnostics?.[i];
+         const diagnostic=da?.supported?da:sp?.supported?sp:bl?.supported?bl:null;
+         if(diagnostic&&station.ready){
+           if(Array.isArray(diagnostic.pairs))lines.push('   Cặp khớp: '+(diagnostic.pairs.length?diagnostic.pairs.map(p=>p.a+'-'+p.b+' ('+p.times+' lần)').join(', '):'Không có'));
+           if(Array.isArray(diagnostic.matches))lines.push('   Số khớp: '+(diagnostic.matches.filter(m=>Number(m.count)>0).map(m=>m.number+' ('+m.count+' lần)').join(', ')||'Không có'));
+         }
        });
      }
      lines.push('','Chưa xác nhận trúng hoặc số tiền thưởng. Không dùng để thanh toán.');

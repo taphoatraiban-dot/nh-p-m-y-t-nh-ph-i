@@ -135,15 +135,25 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      }
      if(Array.isArray(result.stationCoverage)){
        lines.push('','CHI TIẾT ĐỐI CHIẾU (CHƯA PHẢI KẾT QUẢ THANH TOÁN):');
+       const countRows=result.stationCoverage.length;
+       const completeRows=result.stationCoverage.filter(st=>st?.ready===true).length;
+       lines.push('Kết quả đài: '+completeRows+'/'+countRows+' dòng đủ dữ liệu');
        result.stationCoverage.forEach((station,i)=>{
          const row=src?.pricedRows?.[i]||{};
          lines.push((i+1)+'. '+String(row.type||station.type||'')+' '+(Array.isArray(row.numbers)?row.numbers.join('.'):''),station.ready?'   Đủ kết quả đài':'   Thiếu kết quả đài');
          const da=result.daDiagnostics?.[i], sp=result.specialDiagnostics?.[i], bl=result.matchDiagnostics?.[i];
          const diagnostic=da?.supported?da:sp?.supported?sp:bl?.supported?bl:null;
+         if(!diagnostic)lines.push('   Loại cược chưa được hỗ trợ đối chiếu đầy đủ');
          if(diagnostic&&station.ready){
            if(Array.isArray(diagnostic.pairs))lines.push('   Cặp khớp: '+(diagnostic.pairs.length?diagnostic.pairs.map(p=>p.a+'-'+p.b+' ('+p.times+' lần)').join(', '):'Không có'));
            if(Array.isArray(diagnostic.matches))lines.push('   Số khớp: '+(diagnostic.matches.filter(m=>Number(m.count)>0).map(m=>m.number+' ('+m.count+' lần)').join(', ')||'Không có'));
          }
+       });
+     }
+     if(Array.isArray(result.resultCoverage)){
+       lines.push('','TÌNH TRẠNG KẾT QUẢ XỔ SỐ:');
+       result.resultCoverage.forEach(c=>{
+         lines.push(String(c.region||'')+': '+(Array.isArray(c.stations)?c.stations.filter(st=>st.complete).length+'/'+c.stations.length+' đài đủ giải':'Chưa xác định'));
        });
      }
      lines.push('','Chưa xác nhận trúng hoặc số tiền thưởng. Không dùng để thanh toán.');

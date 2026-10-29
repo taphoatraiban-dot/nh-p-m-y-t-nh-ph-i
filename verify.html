@@ -10,7 +10,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực một lần</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="publicResultBox"><h2>DÒ KẾT QUẢ XỔ SỐ</h2><button id="publicResultBtn" type="button">KIỂM TRA KẾT QUẢ</button><p id="publicResultMessage" class="muted" aria-live="polite"></p></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -43,6 +43,17 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  }
  try{show(await call('check'));}
  catch(e){status.textContent='CHƯA XÁC THỰC ĐƯỢC';status.className='bad';details.textContent=e.message;return;}
+ document.getElementById('publicResultBtn').addEventListener('click',async()=>{
+   const button=document.getElementById('publicResultBtn');
+   const output=document.getElementById('publicResultMessage');
+   button.disabled=true;output.textContent='Đang kiểm tra kết quả...';
+   try{
+     const result=await call('public-result');
+     output.textContent='Ngày quay: '+String(result.drawDate||'Chưa xác định')+'\\n'+String(result.message||'')+
+       (Array.isArray(result.availableRegions)&&result.availableRegions.length?'\\nMiền có dữ liệu: '+result.availableRegions.join(', '):'');
+   }catch(e){output.textContent='Không tra cứu được: '+e.message;}
+   finally{button.disabled=false;}
+ });
  const ownerBox=document.getElementById('ownerBox');
  const ownerCheck=document.getElementById('ownerCheck');
  const ownerMessage=document.getElementById('ownerMessage');

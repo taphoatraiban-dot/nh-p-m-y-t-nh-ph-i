@@ -7908,7 +7908,15 @@ window.showHistoryItem=showHistoryItem;
     const originalLines=rawText.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
     const headerLine=/^(?:[234]dmn|[23]dmt|hn|mb|mn|mt|hanoi)(?:\s|$)/i;
     const contentLines=originalLines.filter(x=>!headerLine.test(x));
-    const price=v3Customers[$('customerSelect')?.value]||customers[$('customerSelect')?.value]||readCustomer();
+    // The receipt must bind to the selected customer's exact table.
+    // Never fall back to another customer's current/default table.
+    const price=v3Customers[customer]||customers[customer];
+    const requiredPayoutKeys=['b2','b3','b4','xc','dd','da2','dathang','daMB'];
+    if(!customer||!price||typeof price!=='object'||
+      !requiredPayoutKeys.every(k=>Number.isFinite(Number(price[k]))&&Number(price[k])>0)){
+      alert('Không tìm thấy bảng giá hợp lệ của khách đang chọn. Hãy chọn đúng khách, kiểm tra bảng giá rồi bấm OK lại trước khi in QR.');
+      return;
+    }
     const items=[];
     let computed=0;
     for(const row of pricedRows){

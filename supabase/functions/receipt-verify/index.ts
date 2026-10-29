@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
           checked.every((station: {complete:boolean}) => station.complete), stations: checked };
       });
       const normalizeStation = (name: unknown) => String(name || "").normalize("NFD")
-        .replace(/[\\u0300-\\u036f]/g, "").replace(/đ/g,"d").replace(/Đ/g,"D")
+        .replace(/[\u0300-\u036f]/g, "").replace(/đ/g,"d").replace(/Đ/g,"D")
         .toLowerCase().replace(/[^a-z0-9]/g,"");
       const aliases: Record<string,string> = {
         tpho:"hochiminh",hcm:"hochiminh",tphcm:"hochiminh",sg:"hochiminh",

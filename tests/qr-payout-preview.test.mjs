@@ -9,7 +9,7 @@ test('bao2 2 hits pays rate times points times hits',()=>{
  assert.equal(r.ready,true);assert.equal(r.total,300);
 });
 test('zero matches yields zero only with supported diagnostics',()=>{
- const r=calculateQrPayout([row('XC')],[matches(0)],rates);
+ const r=calculateQrPayout([row('XC',{numbers:['123']})],[matches(0)],rates);
  assert.equal(r.ready,true);assert.equal(r.total,0);
 });
 test('DA straight pays pair occurrences',()=>{

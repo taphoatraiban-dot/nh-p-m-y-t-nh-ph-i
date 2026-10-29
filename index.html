@@ -7922,16 +7922,8 @@ window.showHistoryItem=showHistoryItem;
     }else{
       // Expanded bets cannot be mapped 1:1 to input lines safely: keep the raw text intact,
       // show a single combined total rather than fabricating amounts per original line.
-      const classifyReceiptLine=(line)=>{
-        const t=String(line||'').toLowerCase();
-        if(/(?:^|[.\\s,])(?:xcdao|xdao|xc|xiu|xỉu|xcdau|xcduoi)(?=[0-9\\s.]|$)/i.test(t))return 'XỈU CHỦ (XC)';
-        if(/(?:^|[.\\s,])(?:da|đá)(?=[0-9\\s.]|$)/i.test(t))return 'ĐÁ';
-        if(/(?:^|[.\\s,])(?:dd|đđ|xdau|xduoi)(?=[0-9\\s.]|$)/i.test(t))return 'ĐẦU ĐUÔI';
-        if(/(?:^|[.\\s,])(?:b7lo|bdao|bao|b)(?=[0-9\\s.]|$)/i.test(t))return 'BAO';
-        return 'NỘI DUNG';
-      };
-      const grouped=originalLines.map(line=>({type:classifyReceiptLine(line),content:line}));
-      items.push({region:'',type:'',content:grouped.map(x=>'【'+x.type+'】 '+x.content).join('\\n'),amount:fmtAmount(balance)});
+      // Never add guessed labels to customer-authored text.
+      items.push({region:'',type:'',content:originalLines.join('\\n'),amount:fmtAmount(balance)});
     }
     // Direct, AirPrint, and queue share the same 80mm receipt payload.
     // QR verification is intentionally omitted until its backend is deployed.

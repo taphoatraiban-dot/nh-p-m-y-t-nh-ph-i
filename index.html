@@ -7894,6 +7894,12 @@ window.showHistoryItem=showHistoryItem;
     const customer=document.getElementById('customerSelect')?.value||'';
     const sm=currentSummary();
     if(!sm||!lastCalc){alert('Hãy bấm OK để TÍNH PHƠI trước khi in phiếu tính tiền.');return;}
+    // Prevent a receipt from mixing the last calculation with a newly selected
+    // customer or draw date. The QR snapshot must describe the actual calculation.
+    if(String(lastSummary?.name||'')!==customer || String(lastCalc?.date||'')!==String(date)){
+      alert('Khách hoặc ngày quay đã thay đổi sau lần tính phơi. Hãy bấm OK tính lại trước khi in QR.');
+      return;
+    }
     const money=n=>Math.round(Math.abs(Number(n)||0)).toLocaleString('vi-VN');
     const balance=Number(sm.finalTotal)||0;
     // Use the SAME parsed, priced rows as the calculation; do not guess line amounts.

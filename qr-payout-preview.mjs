@@ -3,6 +3,8 @@
 export function calculateQrPayout(rows, diagnostics, rates) {
   if (!Array.isArray(rows) || !rates || typeof rates !== 'object')
     return { ready:false, reason:'missing_rows_or_rates', lines:[] };
+  if(rows.length===0)return {ready:false,reason:'no_bet_rows',lines:[]};
+  if(rows.length>1000)return {ready:false,reason:'too_many_rows',lines:[]};
   const lines=[];
   for (let i=0;i<rows.length;i++) {
     const row=rows[i]||{};
@@ -27,9 +29,12 @@ export function calculateQrPayout(rows, diagnostics, rates) {
     const counts=entries.map(x=>Number(type==='DA'?x.times:x.count));
     if(counts.some(x=>!Number.isSafeInteger(x)||x<0))return {ready:false,reason:'invalid_match_count',index:i,lines};
     const units=counts.reduce((a,b)=>a+b,0);
+    if(!Number.isSafeInteger(units))return {ready:false,reason:'unsafe_match_units',index:i,lines};
     const amount=units*points*rate;
     if(!Number.isSafeInteger(Math.round(amount*1000)))return {ready:false,reason:'invalid_amount',index:i,lines};
     lines.push({index:i,type,units,points,rate,amount});
   }
-  return {ready:true,diagnosticOnly:true,lines,total:lines.reduce((a,b)=>a+b.amount,0)};
+  const total=lines.reduce((a,b)=>a+b.amount,0);
+  if(!Number.isSafeInteger(Math.round(total*1000)))return {ready:false,reason:'unsafe_total',lines};
+  return {ready:true,diagnosticOnly:true,lines,total};
 }

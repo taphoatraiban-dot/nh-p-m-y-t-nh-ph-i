@@ -84,10 +84,8 @@ async function showDetail(code){
       const data=await api('owner-code-result',0,{code});
       resultBox.replaceChildren();
       const p=document.createElement('p');p.textContent=data.message||('Ngày quay: '+safe(data.drawDate)+' · '+(data.ready?'Có dữ liệu đối chiếu':'Chưa đủ dữ liệu để kết luận'));resultBox.appendChild(p);
-      const rows=data.matchDiagnostics||[];
-      if(rows.length){
-       const pre=document.createElement('pre');pre.textContent=JSON.stringify(rows,null,2);resultBox.appendChild(pre);
-      }
+      const sources=Array.isArray(data.resultSources)?data.resultSources:[];
+      if(sources.length){const info=document.createElement('p');info.textContent='Nguồn kết quả: '+sources.map(x=>safe(x.region)+' '+safe(x.source)).join(' · ');resultBox.appendChild(info)}
       if(data.ready===false){const warn=document.createElement('p');warn.textContent='Chưa đủ điều kiện xác nhận tiền thưởng tự động. Hãy đối chiếu thủ công trước khi trả.';resultBox.appendChild(warn)}
     }catch(e){resultBox.textContent='Không dò được: '+e.message}
     finally{resultBtn.disabled=false}

@@ -8583,12 +8583,13 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
      let raw=null;
      if(detector){const found=await detector.detect(video);raw=found?.[0]?.rawValue||null}
      else if(video.readyState>=2)raw=readJsQr(video,video.videoWidth,video.videoHeight);
-     if(raw){showTicket(raw);return}
+     if(raw){if(verifiedReceiptUrl(raw)){showTicket(raw);return}status.textContent='QR không thuộc Cuncun. Hãy quét đúng mã trên phiếu.'}
    }catch(_){}
    finally{scanning=false}
    if(stream)raf=requestAnimationFrame(scanFrame);
  }
  async function start(){
+   if(panel.classList.contains('open'))return;
    panel.classList.add('open');panel.setAttribute('aria-hidden','false');
    if(!navigator.mediaDevices?.getUserMedia){status.textContent='Không có quyền camera. Dùng Camera iPhone hoặc dán liên kết QR.';return}
    try{

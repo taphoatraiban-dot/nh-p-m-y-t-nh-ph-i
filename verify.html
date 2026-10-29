@@ -211,7 +211,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        table.style.cssText='width:100%;border-collapse:collapse;font-size:17px;line-height:1.5';
        const head=document.createElement('thead');
        const hr=document.createElement('tr');
-       ['STT','LOẠI','NỘI DUNG','ĐÀI','ĐỐI CHIẾU'].forEach(label=>{
+       ['STT','LOẠI','NỘI DUNG','ĐÀI','ĐỐI CHIẾU','THƯỞNG TẠM TÍNH'].forEach(label=>{
          const th=document.createElement('th');th.textContent=label;
          th.style.cssText='border:1px solid #999;padding:8px;text-align:left;font-weight:800';
          hr.appendChild(th);
@@ -236,7 +236,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
          const station=result.stationCoverage?.[i];
          const diagnostic=[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported);
          const state=row.hidden||row.nonWinning?'Dòng phụ':!station?.ready?'CHỜ KẾT QUẢ':!diagnostic?'CHƯA HỖ TRỢ':'Đối chiếu sơ bộ: '+fmtCount(diagnostic);
-         [String(i+1),String(row.type||''),(Array.isArray(row.numbers)?row.numbers.join('.'):''),String(row.scopeStation||row.station||''),state].forEach(value=>{
+         const payoutLine=preview?.ready?preview.lines?.find(line=>line.index===i):null;
+         const payoutText=payoutLine?(payoutLine.skipped?'Dòng phụ':Math.round(payoutLine.amount*1000).toLocaleString('vi-VN')+' đ'):'CHƯA XÁC ĐỊNH';
+         [String(i+1),String(row.type||''),(Array.isArray(row.numbers)?row.numbers.join('.'):''),String(row.scopeStation||row.station||''),state,payoutText].forEach(value=>{
            const td=document.createElement('td');td.textContent=value;
            td.style.cssText='border:1px solid #999;padding:8px;vertical-align:top;font-weight:600';
            tr.appendChild(td);

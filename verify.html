@@ -66,7 +66,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    try{
      const result=await call('public-result');
      output.textContent='Ngày quay: '+String(result.drawDate||'Chưa xác định')+'\\n'+String(result.message||'')+
-       (Array.isArray(result.availableRegions)&&result.availableRegions.length?'\\nMiền có dữ liệu: '+result.availableRegions.join(', '):'');
+       (Array.isArray(result.resultStatus)&&result.resultStatus.length?'\\n'+result.resultStatus.map(x=>x.region+': '+(x.complete?'Đã đủ giải':'Chưa đủ giải')+' ('+x.stations+' đài)').join('\\n'):'');
    }catch(e){output.textContent='Không tra cứu được: '+e.message;}
    finally{button.disabled=false;}
  });

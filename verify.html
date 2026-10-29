@@ -168,11 +168,21 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        const i=src.pricedRows.indexOf(row);
        return !stationRows[i]?.ready;
      });
+     const invalidDiagnostics=activeRows.some(row=>{
+       const i=src.pricedRows.indexOf(row);
+       const d=[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(x=>x?.supported);
+       if(!d)return false;
+       const entries=Array.isArray(d.pairs)?d.pairs:d.matches;
+       return !Array.isArray(entries)||entries.some(e=>{
+         const n=Number(Array.isArray(d.pairs)?e.times:e.count);
+         return !Number.isSafeInteger(n)||n<0;
+       });
+     });
      const unsupported=activeRows.some(row=>{
        const i=src.pricedRows.indexOf(row);
        return !(result.daDiagnostics?.[i]?.supported||result.specialDiagnostics?.[i]?.supported||result.matchDiagnostics?.[i]?.supported);
      });
-     lines.push('','TÌNH TRẠNG PHIẾU: '+(!src?.pricedRows?.length?'CHƯA CÓ DỮ LIỆU CƯỢC':activeRows.length===0?'KHÔNG CÓ DÒNG CƯỢC ĐỂ DÒ':missingStations?'CHỜ KẾT QUẢ ĐÀI':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
+     lines.push('','TÌNH TRẠNG PHIẾU: '+(!src?.pricedRows?.length?'CHƯA CÓ DỮ LIỆU CƯỢC':activeRows.length===0?'KHÔNG CÓ DÒNG CƯỢC ĐỂ DÒ':missingStations?'CHỜ KẾT QUẢ ĐÀI':invalidDiagnostics?'LỖI DỮ LIỆU ĐỐI CHIẾU':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
      lines.push('CHƯA XÁC NHẬN TRÚNG/KHÔNG TRÚNG HAY TIỀN THƯỞNG. KHÔNG DÙNG ĐỂ THANH TOÁN.');
      const tableHost=document.getElementById('ownerTable');
      tableHost.replaceChildren();

@@ -33,7 +33,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    status.textContent=active?'PHIẾU CHƯA SỬ DỤNG':data.status==='redeemed'?'PHIẾU ĐÃ SỬ DỤNG':'PHIẾU ĐÃ HỦY';
    status.className=active?'ok':'bad';
    details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Đã sử dụng: '+new Date(data.redeemed_at).toLocaleString('vi-VN'):'');
-   box.hidden=!active;
+   box.hidden=true; // Only the verified issuing account may see redemption controls.
    const receipt=data.receipt_snapshot;
    snapshotBox.hidden=!receipt;
    if(receipt){const lines=['Ngày: '+String(receipt.date||''),'Khách: '+String(receipt.customer||''),''];
@@ -54,7 +54,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  }
  try {
    const jwt=await ownerJwt();
-   if(jwt){const access=await call('owner-access',jwt);ownerBox.hidden=!access.allowed;}
+   if(jwt){const access=await call('owner-access',jwt);ownerBox.hidden=!access.allowed;box.hidden=!(access.allowed&&status.textContent==='PHIẾU CHƯA SỬ DỤNG');}
  } catch(_) {ownerBox.hidden=true;}
  ownerCheck.addEventListener('click',async()=>{
    ownerCheck.disabled=true;

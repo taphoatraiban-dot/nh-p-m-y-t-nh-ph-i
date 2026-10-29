@@ -7953,7 +7953,8 @@ window.showHistoryItem=showHistoryItem;
         })),
         totalGross:Number(sm.totalGross)||0,
         finalTotal:balance,
-        payoutRatesSnapshot:(typeof selectedPrice==='object'&&selectedPrice)?JSON.parse(JSON.stringify(selectedPrice)):null,
+        // Freeze the exact customer price used by priceForRow above.
+        payoutRatesSnapshot:(price&&typeof price==='object')?JSON.parse(JSON.stringify(price)):null,
         payoutRatesSnapshotVersion:1,
         drawDate:date
       },

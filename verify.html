@@ -186,11 +186,22 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        });
        head.appendChild(hr);table.appendChild(head);
        const body=document.createElement('tbody');
+       const fmtCount=(diagnostic)=>{
+         if(!diagnostic)return '';
+         if(Array.isArray(diagnostic.matches)){
+           const hits=diagnostic.matches.filter(m=>Number(m.count)>0);
+           return hits.length?hits.map(m=>String(m.number)+' ×'+String(m.count)).join(', '):'Chưa thấy số khớp';
+         }
+         if(Array.isArray(diagnostic.pairs)){
+           return diagnostic.pairs.length?diagnostic.pairs.map(p=>String(p.a)+'-'+String(p.b)+' ×'+String(p.times)).join(', '):'Chưa thấy cặp khớp';
+         }
+         return '';
+       };
        rows.forEach((row,i)=>{
          const tr=document.createElement('tr');
          const station=result.stationCoverage?.[i];
          const diagnostic=[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported);
-         const state=row.hidden||row.nonWinning?'Dòng phụ':!station?.ready?'CHỜ KẾT QUẢ':!diagnostic?'CHƯA HỖ TRỢ':'Đã đối chiếu sơ bộ';
+         const state=row.hidden||row.nonWinning?'Dòng phụ':!station?.ready?'CHỜ KẾT QUẢ':!diagnostic?'CHƯA HỖ TRỢ':'Đối chiếu sơ bộ: '+fmtCount(diagnostic);
          [String(i+1),String(row.type||''),(Array.isArray(row.numbers)?row.numbers.join('.'):''),String(row.scopeStation||row.station||''),state].forEach(value=>{
            const td=document.createElement('td');td.textContent=value;
            td.style.cssText='border:1px solid #999;padding:8px;vertical-align:top;font-weight:600';

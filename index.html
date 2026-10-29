@@ -7908,27 +7908,28 @@ window.showHistoryItem=showHistoryItem;
     const originalLines=rawText.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
     const headerLine=/^(?:[234]dmn|[23]dmt|hn|mb|mn|mt|hanoi)(?:\s|$)/i;
     const contentLines=originalLines.filter(x=>!headerLine.test(x));
-    const netLines=pricedRows.map(row=>Number(row.gross)||0);
-    const detailed=contentLines.length===pricedRows.length;
+    const price=readCustomer();
     const items=[];
-    if(detailed){
-      let assigned=0;
-      contentLines.forEach((content,i)=>{
-        const value=i===contentLines.length-1?Math.round(balance)-assigned:Math.round(balance*(netLines[i]/grossRows));
-        assigned+=value;
-        const row=pricedRows[i];
-        items.push({region:row.region==='N'?'MN':row.region==='T'?'MT':'MB',type:String(row.type||''),content,amount:fmtAmount(value)});
-      });
-    }else{
-      // Expanded bets cannot be mapped 1:1 to input lines safely: keep the raw text intact,
-      // show a single combined total rather than fabricating amounts per original line.
-      // Never add guessed labels to customer-authored text.
-      items.push({region:'',type:'',content:originalLines.join('\\n'),amount:fmtAmount(balance)});
+    let computed=0;
+    for(const row of pricedRows){
+      const hits=row.nonWinning?[]:scanRow(row);
+      const rate=priceForRow(row,price)*Number(row.points||0);
+      let payout=0;
+      if(!row.nonWinning){
+        if(row.type==='DA')payout=rate*hits.reduce((n,h)=>n+(Number(h.pairCount)||0),0);
+        else if(row.type==='DAO XC')payout=rate*hits.reduce((n,h)=>n+(Number(h.matchCount)||0),0);
+        else payout=rate*hits.reduce((n,h)=>n+(Number(h.count)||1),0);
+      }
+      const value=Math.round(((Number(row.gross)||0)*Number(price.receive||0)-payout)*(Number(price.repay)||1));
+      computed+=value;
+      items.push({region:row.region==='N'?'MN':row.region==='T'?'MT':'MB',station:String(row.station||''),type:typeLabel(row.type),number:(row.numbers||[]).join('–'),points:displayPoints(row),content:(row.numbers||[]).join('–'),amount:fmtAmount(value)});
     }
+    const remainder=Math.round(balance-computed);
+    if(remainder)items.push({station:'SỐ DƯ CHUYỂN',number:'',type:'',points:'',content:'Số dư cũ',amount:fmtAmount(remainder)});
     // Direct, AirPrint, and queue share the same 80mm receipt payload.
     // QR verification is intentionally omitted until its backend is deployed.
     const receipt='[[TABLE80]]'+JSON.stringify({
-      title:'PHIẾU MUA HÀNG',
+      title:'PHIẾU MUA HÀNG',layout:'by-station-4col',
       date, time:pad(now.getHours())+':'+pad(now.getMinutes()),
       customer, items, total:fmtAmount(balance),
       // Preserve the source and the priced calculation as issued. These are

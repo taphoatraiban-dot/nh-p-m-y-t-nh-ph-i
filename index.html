@@ -8527,6 +8527,11 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
  <div id="qrScanStatus">Đưa QR mã phiếu vào khung camera</div>
  <div class="scan-actions">
   <label>🖼️ Chọn ảnh QR<input id="qrImageInput" type="file" accept="image/*" capture="environment" hidden></label>
+  <input id="qrPasteInput" type="text" placeholder="Dán liên kết QR của phiếu" aria-label="Liên kết QR phiếu" style="width:min(82vw,320px);padding:12px;border-radius:10px;font-size:16px" autocomplete="off">
+  <button id="qrPasteOpen" type="button">MỞ MÃ QR</button>
+  <button id="qrHistoryToggle" type="button">LỊCH SỬ QR</button>
+  <button id="qrHistoryClear" type="button">XÓA LỊCH SỬ</button>
+  <div id="qrHistoryList" style="width:100%;max-height:200px;overflow:auto;display:none;font-size:15px" aria-live="polite"></div>
   <button id="qrScanClose" type="button">ĐÓNG</button>
  </div>
 </div>
@@ -8535,78 +8540,141 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
  const btn=document.getElementById('qrScanBtn'), panel=document.getElementById('qrScanPanel'),
  video=document.getElementById('qrScanVideo'), status=document.getElementById('qrScanStatus'),
  close=document.getElementById('qrScanClose'), input=document.getElementById('qrImageInput');
- let stream=null, detector=null, raf=0;
-
- function ticketCode(raw){
-   raw=String(raw||'').trim();
-   try{
-     const u=new URL(raw,location.href);
-     return u.searchParams.get('ticket')||u.searchParams.get('phieu')||raw;
-   }catch(e){return raw}
+ let stream=null, detector=null, raf=0, scanning=false;
+ const scanCanvas=document.createElement('canvas');
+ const scanCtx=scanCanvas.getContext('2d',{willReadFrequently:true});
+ let jsQrLoading=null;
+ function loadJsQr(){
+   if(typeof window.jsQR==='function')return Promise.resolve();
+   if(jsQrLoading)return jsQrLoading;
+   jsQrLoading=new Promise((resolve,reject)=>{
+     const script=document.createElement('script');
+     script.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+     script.onload=()=>typeof window.jsQR==='function'?resolve():reject(new Error('QR decoder unavailable'));
+     script.onerror=()=>reject(new Error('QR decoder failed to load'));
+     document.head.appendChild(script);
+   }).catch(err=>{jsQrLoading=null;throw err});
+   return jsQrLoading;
  }
- function findTicket(code){
-   code=ticketCode(code);
-   // Search visible/local ticket records without calculating win/loss.
-   const keys=['printedTickets','printHistory','phoiDaIn','receiptHistory','ticketHistory'];
-   for(const k of keys){
-     try{
-       const a=JSON.parse(localStorage.getItem(k)||'[]');
-       if(Array.isArray(a)){
-         const x=a.find(v=>String(v?.code||v?.id||v?.ticketCode||v?.maPhieu||'')===code);
-         if(x)return x;
-       }
-     }catch(e){}
-   }
-   return null;
+ function readJsQr(source,width,height){
+   if(!scanCtx||typeof window.jsQR!=='function'||!width||!height)return null;
+   const scale=Math.min(1,720/Math.max(width,height));
+   scanCanvas.width=Math.max(1,Math.round(width*scale));
+   scanCanvas.height=Math.max(1,Math.round(height*scale));
+   scanCtx.drawImage(source,0,0,scanCanvas.width,scanCanvas.height);
+   const pixels=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
+   return window.jsQR(pixels.data,pixels.width,pixels.height,{inversionAttempts:'attemptBoth'})?.data||null;
+ }
+
+ function verifiedReceiptUrl(raw){
+   try {
+     const url=new URL(String(raw||'').trim(),location.origin);
+     if(url.origin!==location.origin || url.pathname!=='/verify.html')return null;
+     const token=url.searchParams.get('token')||'';
+     if(!/^[a-f0-9]{64}$/.test(token))return null;
+     return '/verify.html?token='+encodeURIComponent(token);
+   }catch(_){return null}
+ }
+ function rememberQrVisit(url){
+   try{
+     const key='cuncun_qr_recent_v1';
+     const old=JSON.parse(localStorage.getItem(key)||'[]');
+     const items=Array.isArray(old)?old.filter(x=>x&&typeof x.url==='string'&&x.url!==url):[];
+     items.unshift({url,at:new Date().toISOString()});
+     localStorage.setItem(key,JSON.stringify(items.slice(0,20)));
+   }catch(_){}
  }
  function showTicket(code){
-   const x=findTicket(code);
-   stop();
-   if(!x){ alert('Không tìm thấy phiếu: '+ticketCode(code)); return; }
-   window.__lastScannedTicket=x;
-   // Restore the ticket's date when available; existing result lookup can then show public draw results.
-   const d=x.date||x.draw_date||x.drawDate||x.ngay;
-   const de=document.getElementById('date');
-   if(d&&de){de.value=String(d).slice(0,10);de.dispatchEvent(new Event('change',{bubbles:true}))}
-   const raw=x.raw||x.phoi||x.text||x.content||x.bets;
-   const ta=document.getElementById('bets');
-   if(raw&&ta){ta.value=raw;ta.dispatchEvent(new Event('input',{bubbles:true}))}
-   alert('Đã mở đúng phiếu '+(x.code||x.id||x.ticketCode||x.maPhieu||code)+'. Có thể dùng chức năng tra kết quả hiện có để xem kết quả xổ số của ngày/đài trên phiếu.');
+   const verified=verifiedReceiptUrl(code);
+   if(verified){rememberQrVisit(verified);stop();location.assign(verified);return}
+   status.textContent='QR không phải mã xác thực Cuncun hợp lệ. Không mở phiếu từ dữ liệu cục bộ.';
+   return;
  }
  async function scanFrame(){
-   if(!detector||!video.srcObject)return;
+   if(!stream||!video.srcObject||scanning)return;
+   scanning=true;
    try{
-     const rs=await detector.detect(video);
-     if(rs&&rs[0]?.rawValue){showTicket(rs[0].rawValue);return}
-   }catch(e){}
-   raf=requestAnimationFrame(scanFrame);
+     let raw=null;
+     if(detector){const found=await detector.detect(video);raw=found?.[0]?.rawValue||null}
+     else if(video.readyState>=2)raw=readJsQr(video,video.videoWidth,video.videoHeight);
+     if(raw){if(verifiedReceiptUrl(raw)){showTicket(raw);return}status.textContent='QR không thuộc Cuncun. Hãy quét đúng mã trên phiếu.'}
+   }catch(_){}
+   finally{scanning=false}
+   if(stream)raf=requestAnimationFrame(scanFrame);
  }
  async function start(){
+   if(panel.classList.contains('open'))return;
    panel.classList.add('open');panel.setAttribute('aria-hidden','false');
-   if(!navigator.mediaDevices?.getUserMedia){status.textContent='Trình duyệt này không mở camera web. Hãy dùng Chọn ảnh QR.';return}
-   if(!('BarcodeDetector' in window)){status.textContent='Máy này chưa hỗ trợ quét QR trực tiếp. Hãy dùng Chọn ảnh QR.';return}
+   if(!navigator.mediaDevices?.getUserMedia){status.textContent='Không có quyền camera. Dùng Camera iPhone hoặc dán liên kết QR.';return}
    try{
-     detector=new BarcodeDetector({formats:['qr_code']});
+     if('BarcodeDetector' in window){
+       try{detector=new BarcodeDetector({formats:['qr_code']})}catch(_){detector=null}
+     }
+     if(!detector){status.textContent='Đang tải bộ đọc QR cho Safari…';await loadJsQr()}
      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
-     video.srcObject=stream;await video.play();status.textContent='Đưa QR mã phiếu vào khung camera';scanFrame();
-   }catch(e){status.textContent='Không mở được camera. Hãy cấp quyền camera hoặc dùng Chọn ảnh QR.'}
+     video.srcObject=stream;await video.play();
+     status.textContent='Đưa mã QR vào khung camera';
+     scanFrame();
+   }catch(_){status.textContent='Không mở được camera hoặc bộ đọc QR. Hãy dùng Camera iPhone hay dán liên kết.';stopCameraOnly()}
  }
- function stop(){
+ function stopCameraOnly(){
    cancelAnimationFrame(raf);
    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-   video.srcObject=null;panel.classList.remove('open');panel.setAttribute('aria-hidden','true');
+   video.srcObject=null;
+ }
+ function stop(){
+   stopCameraOnly();panel.classList.remove('open');panel.setAttribute('aria-hidden','true');
  }
  btn?.addEventListener('click',start);close?.addEventListener('click',stop);
+ const historyList=document.getElementById('qrHistoryList');
+ function renderQrHistory(){
+   if(!historyList)return;
+   historyList.replaceChildren();
+   let items=[];
+   try{items=JSON.parse(localStorage.getItem('cuncun_qr_recent_v1')||'[]')}catch(_){}
+   if(!Array.isArray(items)||!items.length){historyList.textContent='Chưa có lịch sử QR trên thiết bị này.';return}
+   for(const item of items.slice(0,20)){
+     const url=verifiedReceiptUrl(item?.url);
+     if(!url)continue;
+     const button=document.createElement('button');
+     button.type='button';
+     button.style.cssText='display:block;width:100%;padding:10px;margin:5px 0;text-align:left;font-size:15px';
+     const when=new Date(item.at);
+     button.textContent='Phiếu QR • '+(Number.isNaN(when.getTime())?'Không rõ thời gian':when.toLocaleString('vi-VN'));
+     button.addEventListener('click',()=>showTicket(url));
+     historyList.appendChild(button);
+   }
+ }
+ document.getElementById('qrHistoryToggle')?.addEventListener('click',()=>{
+   if(!historyList)return;
+   const open=historyList.style.display==='none';
+   historyList.style.display=open?'block':'none';
+   if(open)renderQrHistory();
+ });
+ document.getElementById('qrHistoryClear')?.addEventListener('click',()=>{
+   if(!confirm('Xóa lịch sử QR trên thiết bị này?'))return;
+   try{localStorage.removeItem('cuncun_qr_recent_v1')}catch(_){}
+   renderQrHistory();
+ });
+
+ const paste=document.getElementById('qrPasteInput'), pasteOpen=document.getElementById('qrPasteOpen');
+ pasteOpen?.addEventListener('click',()=>showTicket(paste?.value||''));
+ paste?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();showTicket(paste.value)}});
 
  input?.addEventListener('change',async function(){
-   const f=this.files?.[0];if(!f)return;
-   if(!('BarcodeDetector' in window)){alert('Trình duyệt này chưa hỗ trợ đọc QR từ ảnh. Hãy dùng camera hệ thống để quét mã phiếu.');return}
+   const file=this.files?.[0];if(!file)return;
    try{
-     const bm=await createImageBitmap(f);
-     const d=new BarcodeDetector({formats:['qr_code']});
-     const rs=await d.detect(bm);
-     if(rs[0]?.rawValue)showTicket(rs[0].rawValue); else alert('Không đọc được QR trong ảnh.');
-   }catch(e){alert('Không đọc được ảnh QR.')}
+     let raw=null;
+     const bitmap=await createImageBitmap(file);
+     try{
+       if('BarcodeDetector' in window){
+         try{const found=await new BarcodeDetector({formats:['qr_code']}).detect(bitmap);raw=found?.[0]?.rawValue||null}catch(_){}
+       }
+       if(!raw){await loadJsQr();raw=readJsQr(bitmap,bitmap.width,bitmap.height)}
+     }finally{bitmap.close?.()}
+     if(raw)showTicket(raw);else status.textContent='Không đọc được mã QR trong ảnh.';
+   }catch(_){status.textContent='Không đọc được ảnh QR. Hãy thử ảnh rõ nét hơn.'}
+   finally{this.value=''}
  });
 
  // Copy buttons in printed-ticket area: copy only the bet/raw data when discoverable.

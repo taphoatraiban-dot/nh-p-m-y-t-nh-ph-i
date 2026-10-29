@@ -6,7 +6,19 @@ main{max-width:440px;margin:30px auto;background:white;border:1px solid #d9dce2;
 h1{font-size:23px}.snapshot{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f6f8;border:1px solid #d9dce2;border-radius:10px;padding:14px;font-size:15px;line-height:1.7}.snapshot[hidden]{display:none}#status{font-weight:800;font-size:24px;margin:22px 0}
 .ok{color:#117a35}.bad{color:#b3261e}.muted{color:#59636e}
 button{padding:14px;border:0;border-radius:8px;background:#b3261e;color:white;font-weight:700;width:100%}
-button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap;overflow-wrap:anywhere}#redeemBox{margin-top:20px;padding-top:18px;border-top:1px solid #e3e5e9}#redeemNote{font-size:14px;line-height:1.5}#publicResultMessage{white-space:pre-wrap;line-height:1.6}.receipt-row{padding:12px 0;border-top:1px solid #d9dce2}.receipt-row:first-child{border-top:0}.receipt-meta{font-size:13px;color:#59636e;font-weight:700}.receipt-content{font-weight:750;font-size:17px;margin:5px 0}.receipt-amount{font-weight:700;text-align:right}.receipt-total{font-size:20px;font-weight:850;border-top:2px solid #17202a;padding-top:12px;margin-top:12px}a{color:#b3261e}</style></head><body><main>
+button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap;overflow-wrap:anywhere}#redeemBox{margin-top:20px;padding-top:18px;border-top:1px solid #e3e5e9}#redeemNote{font-size:14px;line-height:1.5}#publicResultMessage{white-space:pre-wrap;line-height:1.6}.receipt-row{padding:12px 0;border-top:1px solid #d9dce2}.receipt-row:first-child{border-top:0}.receipt-meta{font-size:13px;color:#59636e;font-weight:700}.receipt-content{font-weight:750;font-size:17px;margin:5px 0}.receipt-amount{font-weight:700;text-align:right}.receipt-total{font-size:20px;font-weight:850;border-top:2px solid #17202a;padding-top:12px;margin-top:12px}a{color:#b3261e}
+.snapshot{background:#fff;padding:12px;white-space:normal;font-size:16px;color:#111}
+.receipt-paper-title{text-align:center;font-size:21px;font-weight:900;letter-spacing:.3px;margin:5px 0 12px}
+.receipt-meta{font-size:15px;color:#111;line-height:1.65}
+.receipt-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;table-layout:fixed}
+.receipt-table th,.receipt-table td{border:1px solid #333;padding:9px 4px;overflow-wrap:anywhere;text-align:center;vertical-align:middle}
+.receipt-table th{font-weight:900;background:#f0f0f0}
+.receipt-table .receipt-station{font-size:17px;font-weight:900;background:#f4f4f4;padding:9px}
+.receipt-table .receipt-number{font-weight:800}
+.receipt-table .receipt-money{text-align:right;font-weight:800}
+.receipt-total{font-size:21px;font-weight:900;text-align:right}
+@media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
+</style></head><body><main>
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
@@ -43,17 +55,33 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const formatted=/^\\d{4}-\\d{2}-\\d{2}$/.test(date)?date.slice(8,10)+'/'+date.slice(5,7)+'/'+date.slice(0,4):date;
      add('receipt-meta','NGÀY: '+formatted+(receipt.time?' • '+String(receipt.time):''));
      add('receipt-meta','KHÁCH: '+String(receipt.customer||'Không ghi'));
+     const title=document.createElement('div');title.className='receipt-paper-title';title.textContent='PHIẾU MUA HÀNG';snapshotEl.insertBefore(title,snapshotEl.firstChild);
      const items=Array.isArray(receipt.items)?receipt.items:[];
-     items.forEach((item,i)=>{
-       const line=document.createElement('div');line.className='receipt-row';snapshotEl.appendChild(line);
-       const put=(cls,txt)=>{const e=document.createElement('div');e.className=cls;e.textContent=txt;line.appendChild(e);};
-       if(typeof item==='string'){put('receipt-meta','DÒNG '+(i+1));put('receipt-content',item);return;}
-       if(!item||typeof item!=='object')return;
-       put('receipt-meta','DÒNG '+(i+1)+' • '+[item.region,item.type].filter(Boolean).join(' • '));
-       put('receipt-content',String(item.content||''));
-       if(item.amount)put('receipt-amount','TIỀN THU: '+String(item.amount));
-     });
-     add('receipt-total','TỔNG TIỀN: '+String(receipt.total||''));
+     const table=document.createElement('table');table.className='receipt-table';
+     const colgroup=document.createElement('colgroup');
+     for(const width of ['25%','26%','18%','31%']){const col=document.createElement('col');col.style.width=width;colgroup.appendChild(col)}
+     table.appendChild(colgroup);
+     const head=document.createElement('thead'),headers=document.createElement('tr');
+     for(const label of ['SỐ','LOẠI','ĐIỂM','TIỀN THU']){const th=document.createElement('th');th.textContent=label;headers.appendChild(th)}
+     head.appendChild(headers);table.appendChild(head);
+     const body=document.createElement('tbody');table.appendChild(body);
+     let lastStation=null;
+     const cell=(row,text,cls)=>{const td=document.createElement('td');td.textContent=String(text??'');if(cls)td.className=cls;row.appendChild(td);return td};
+     for(const item of items){
+       if(!item||typeof item!=='object')continue;
+       const station=String(item.station||item.region||'KHÁC');
+       if(station!==lastStation){
+         const tr=document.createElement('tr'),td=cell(tr,station,'receipt-station');td.colSpan=4;body.appendChild(tr);lastStation=station;
+       }
+       const tr=document.createElement('tr');
+       cell(tr,item.number||item.content||'','receipt-number');
+       cell(tr,item.type||'');
+       cell(tr,item.points||'');
+       cell(tr,item.amount||'','receipt-money');
+       body.appendChild(tr);
+     }
+     snapshotEl.appendChild(table);
+     add('receipt-total',String(receipt.totalLabel||'TỔNG TIỀN')+': '+String(receipt.total??''));
 
    }
  }
@@ -80,7 +108,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      if(!jwt)throw Error('Cần đăng nhập tài khoản chủ phiếu.');
      const result=await call('owner-result',jwt);
      const src=result.source;
-     const lines=[result.message||'Chưa có kết quả xác thực.'];
+     const lines=[result.ready===false?'CHỜ KẾT QUẢ / CHƯA ĐỦ DỮ LIỆU ĐỐI SOÁT':(result.message||'Chưa có kết quả xác thực.')];
      if(src){
        lines.push('','NỘI DUNG CƯỢC GỐC:',String(src.rawText||''));
        lines.push('','TỔNG TIỀN XÁC: '+String(src.totalGross??''));

@@ -8537,28 +8537,6 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
  close=document.getElementById('qrScanClose'), input=document.getElementById('qrImageInput');
  let stream=null, detector=null, raf=0;
 
- function ticketCode(raw){
-   raw=String(raw||'').trim();
-   try{
-     const u=new URL(raw,location.href);
-     return u.searchParams.get('ticket')||u.searchParams.get('phieu')||raw;
-   }catch(e){return raw}
- }
- function findTicket(code){
-   code=ticketCode(code);
-   // Search visible/local ticket records without calculating win/loss.
-   const keys=['printedTickets','printHistory','phoiDaIn','receiptHistory','ticketHistory'];
-   for(const k of keys){
-     try{
-       const a=JSON.parse(localStorage.getItem(k)||'[]');
-       if(Array.isArray(a)){
-         const x=a.find(v=>String(v?.code||v?.id||v?.ticketCode||v?.maPhieu||'')===code);
-         if(x)return x;
-       }
-     }catch(e){}
-   }
-   return null;
- }
  function verifiedReceiptUrl(raw){
    try {
      const url=new URL(String(raw||'').trim(),location.origin);
@@ -8574,20 +8552,6 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
    status.textContent='QR không phải mã xác thực Cuncun hợp lệ. Không mở phiếu từ dữ liệu cục bộ.';
    return;
  }
- function legacyShowTicket(code){
-   const x=findTicket(code);
-   stop();
-   if(!x){ alert('Không tìm thấy phiếu: '+ticketCode(code)); return; }
-   window.__lastScannedTicket=x;
-   // Restore the ticket's date when available; existing result lookup can then show public draw results.
-   const d=x.date||x.draw_date||x.drawDate||x.ngay;
-   const de=document.getElementById('date');
-   if(d&&de){de.value=String(d).slice(0,10);de.dispatchEvent(new Event('change',{bubbles:true}))}
-   const raw=x.raw||x.phoi||x.text||x.content||x.bets;
-   const ta=document.getElementById('bets');
-   if(raw&&ta){ta.value=raw;ta.dispatchEvent(new Event('input',{bubbles:true}))}
-   alert('Đã mở đúng phiếu '+(x.code||x.id||x.ticketCode||x.maPhieu||code)+'. Có thể dùng chức năng tra kết quả hiện có để xem kết quả xổ số của ngày/đài trên phiếu.');
- }
  async function scanFrame(){
    if(!detector||!video.srcObject)return;
    try{
@@ -8599,7 +8563,7 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
  async function start(){
    panel.classList.add('open');panel.setAttribute('aria-hidden','false');
    if(!navigator.mediaDevices?.getUserMedia){status.textContent='Trình duyệt này không mở camera web. Hãy dùng Chọn ảnh QR.';return}
-   if(!('BarcodeDetector' in window)){status.textContent='Máy này chưa hỗ trợ quét QR trực tiếp. Hãy dùng Chọn ảnh QR.';return}
+   if(!('BarcodeDetector' in window)){status.textContent='Trình duyệt chưa hỗ trợ quét trực tiếp. Dùng Camera iPhone quét mã QR trên phiếu hoặc chọn ảnh QR.';return}
    try{
      detector=new BarcodeDetector({formats:['qr_code']});
      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});

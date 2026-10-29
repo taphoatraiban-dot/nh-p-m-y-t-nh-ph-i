@@ -50,6 +50,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    // Public QR lookup shows status only; receipt contents require owner authorization.
    const receipt=null;
    snapshotBox.hidden=true;
+   snapshotEl.replaceChildren();
    if(receipt){
      snapshotEl.replaceChildren();
      const add=(className,text)=>{const el=document.createElement('div');el.className=className;el.textContent=text;snapshotEl.appendChild(el);return el;};

@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const action = String(body?.action || "");
-    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "owner-detail", "owner-delete", "owner-delete-all", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "owner-detail", "owner-delete", "owner-delete-all", "owner-code-result", "owner-code-redeem", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
     if (action === "owner-detail" || action === "owner-delete" || action === "owner-delete-all") {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);
@@ -142,9 +142,25 @@ Deno.serve(async (req) => {
       if (error) return respond({ error: "issue_failed" }, 500);
       return respond({ receipt_code: code, token }); // Return once; never store raw token.
     }
+    if (action === "owner-code-redeem") {
+      const user = await actor(req);
+      if (!user) return respond({error:"unauthorized"},401);
+      const code=String(body?.code||"");
+      const amount=body?.paidAmountVnd;
+      if (!/^CQ-[A-Z0-9-]{6,40}$/.test(code)) return respond({error:"invalid_code"},400);
+      if (!Number.isSafeInteger(amount)||amount<0||amount>1000000000000) return respond({error:"invalid_paid_amount"},400);
+      if (body?.confirmation !== "DA TRA THUONG") return respond({error:"confirmation_required"},400);
+      const {data,error}=await db.from("receipt_verifications")
+        .update({status:"redeemed",redeemed_at:new Date().toISOString(),redeemed_by:user.id,paid_amount_vnd:amount})
+        .eq("owner_user_id",user.id).eq("receipt_code",code).eq("status","active")
+        .select("receipt_code,redeemed_at,paid_amount_vnd").maybeSingle();
+      if(error)return respond({error:"redeem_failed"},500);
+      if(!data)return respond({error:"not_active_or_not_owned"},409);
+      return respond({status:"redeemed",...data});
+    }
     const token = String(body.token || "");
-    if (!/^[a-f0-9]{64}$/.test(token)) return respond({ error: "invalid_token" }, 400);
-    const token_hash = await hash(token);
+    if (action !== "owner-code-result" && !/^[a-f0-9]{64}$/.test(token)) return respond({ error: "invalid_token" }, 400);
+    const token_hash = action === "owner-code-result" ? "" : await hash(token);
     if (action === "check") {
       const { data, error } = await db.from("receipt_verifications").select("receipt_code,status,issued_at,redeemed_at,receipt_snapshot").eq("token_hash", token_hash).maybeSingle();
       if (error) return respond({ error: "lookup_failed" }, 500);
@@ -164,9 +180,14 @@ Deno.serve(async (req) => {
     const publicResult = action === "public-result";
     const user = publicResult ? null : await actor(req);
     if (!publicResult && !user) return respond({ error: "unauthorized" }, 401);
-    if (action === "owner-access" || action === "owner-result" || publicResult) {
+    if (action === "owner-access" || action === "owner-result" || action === "owner-code-result" || publicResult) {
       let lookup = db.from("receipt_verifications")
-        .select("receipt_code,status,receipt_snapshot").eq("token_hash", token_hash);
+        .select("receipt_code,status,receipt_snapshot");
+      if(action==="owner-code-result"){
+        const code=String(body?.code||"");
+        if(!/^CQ-[A-Z0-9-]{6,40}$/.test(code))return respond({error:"invalid_code"},400);
+        lookup=lookup.eq("receipt_code",code);
+      }else lookup=lookup.eq("token_hash",token_hash);
       if (!publicResult) lookup = lookup.eq("owner_user_id", user!.id);
       const { data: owned, error: ownedError } = await lookup.maybeSingle();
       if (ownedError) return respond({ error: "lookup_failed" }, 500);

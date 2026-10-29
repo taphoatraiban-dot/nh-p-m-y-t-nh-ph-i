@@ -17,3 +17,12 @@ test('verification page includes owner history and payment controls', () => {
     assert.ok(html.includes('id="' + id + '"'), 'Missing ' + id);
   }
 });
+
+test('history paging and Vietnam-local date filtering keep expected safeguards', () => {
+  const html = readFileSync(new URL('../verify.html', import.meta.url), 'utf8');
+  assert.match(html, /historyAllRecords\.push\(/, 'Expected incremental history pagination');
+  assert.match(html, /historyTable\.replaceChildren\(\);\s*const allRecords=historyAllRecords/, 'History table must clear before rebuilding to prevent duplicated rows');
+  assert.match(html, /timeZone:'Asia\/Ho_Chi_Minh'/, 'History dates must use Vietnam time');
+  assert.match(html, /if\(fromInput&&toInput&&fromInput>toInput\)throw Error/, 'Date range must be validated before requesting page');
+  assert.match(html, /historyCsvBtn\.disabled=!records\.length/, 'CSV export must be disabled for empty results');
+});

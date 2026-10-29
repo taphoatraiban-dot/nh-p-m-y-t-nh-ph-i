@@ -33,3 +33,5 @@ test('overflowed payout rejected',()=>assert.equal(calculateQrPayout([row('B2',{
 test('unverified diagnostic cannot be used to pay',()=>assert.equal(calculateQrPayout([row('B2')],[{supported:true,matches:[{count:1}]}],rates).ready,false));
 
 test('missing bet numbers blocks payout',()=>assert.equal(calculateQrPayout([row('B2',{numbers:[]})],[matches(1)],rates).ready,false));
+
+test('DA requires two numbers',()=>assert.equal(calculateQrPayout([row('DA',{numbers:['12']})],[{supported:true,diagnosticOnly:true,pairs:[{times:1}]}],rates).ready,false));

@@ -34,7 +34,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>LỊCH SỬ TRẢ THƯỞNG</h2><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -210,6 +210,41 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  const ownerBox=document.getElementById('ownerBox');
  const ownerCheck=document.getElementById('ownerCheck');
  const ownerMessage=document.getElementById('ownerMessage');
+ const historyBtn=document.getElementById('ownerHistoryBtn');
+ const historyStatus=document.getElementById('ownerHistoryStatus');
+ const historyTable=document.getElementById('ownerHistoryTable');
+ async function loadOwnerHistory(){
+   historyBtn.disabled=true;
+   historyStatus.textContent='Đang tải lịch sử…';
+   historyTable.replaceChildren();
+   try{
+     const jwt=await ownerJwt();
+     if(!jwt)throw Error('Cần đăng nhập tài khoản chủ phiếu.');
+     const response=await call('owner-history',jwt);
+     const records=Array.isArray(response.receipts)?response.receipts:[];
+     historyStatus.textContent=records.length?'Hiển thị '+records.length+' phiếu đã xác nhận gần nhất. Phiếu cũ chưa lưu số tiền thực trả.':'Chưa có phiếu được xác nhận trả thưởng.';
+     if(!records.length)return;
+     const table=document.createElement('table');
+     table.style.cssText='border-collapse:collapse;width:100%;font-size:14px';
+     const head=document.createElement('thead'),hr=document.createElement('tr');
+     ['Mã phiếu','Khách','Ngày quay','Đã xác nhận','Tiền thực trả'].forEach(label=>{
+       const th=document.createElement('th');th.textContent=label;
+       th.style.cssText='border:1px solid #ccc;padding:9px;text-align:left';hr.appendChild(th);
+     });
+     head.appendChild(hr);table.appendChild(head);
+     const body=document.createElement('tbody');
+     records.forEach(rec=>{
+       const tr=document.createElement('tr');
+       const when=rec.redeemedAt?new Date(rec.redeemedAt):null;
+       const values=[rec.code||'',rec.customer||'Chưa lưu',rec.drawDate||'',when&&!Number.isNaN(when.getTime())?when.toLocaleString('vi-VN'):'',rec.payoutAmount==null?'Chưa lưu':Number(rec.payoutAmount).toLocaleString('vi-VN')+' đ'];
+       values.forEach(value=>{const td=document.createElement('td');td.textContent=String(value);td.style.cssText='border:1px solid #ddd;padding:9px';tr.appendChild(td)});
+       body.appendChild(tr);
+     });
+     table.appendChild(body);historyTable.appendChild(table);
+   }catch(e){historyStatus.textContent='Không tải được lịch sử: '+e.message;}
+   finally{historyBtn.disabled=false;}
+ }
+ historyBtn.addEventListener('click',loadOwnerHistory);
  async function ownerJwt(){
    if(!window.supabase?.createClient)return null;
    const client=window.supabase.createClient('https://zigpqddlhvjbjrwhfhaa.supabase.co',pubkey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});

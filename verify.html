@@ -164,12 +164,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      }
      const activeRows=Array.isArray(src?.pricedRows)?src.pricedRows.filter(r=>!r.hidden&&!r.nonWinning):[];
      const stationRows=Array.isArray(result.stationCoverage)?result.stationCoverage:[];
-     const missingStations=stationRows.some((st,i)=>!src?.pricedRows?.[i]?.hidden&&!src?.pricedRows?.[i]?.nonWinning&&!st?.ready);
+     const missingStations=stationRows.some((st,i)=>Boolean(src?.pricedRows?.[i])&&!src.pricedRows[i].hidden&&!src.pricedRows[i].nonWinning&&!st?.ready);
      const unsupported=activeRows.some(row=>{
        const i=src.pricedRows.indexOf(row);
        return !(result.daDiagnostics?.[i]?.supported||result.specialDiagnostics?.[i]?.supported||result.matchDiagnostics?.[i]?.supported);
      });
-     lines.push('','TÌNH TRẠNG PHIẾU: '+(missingStations?'CHỜ KẾT QUẢ ĐÀI':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
+     lines.push('','TÌNH TRẠNG PHIẾU: '+(!src?.pricedRows?.length?'CHƯA CÓ DỮ LIỆU CƯỢC':activeRows.length===0?'KHÔNG CÓ DÒNG CƯỢC ĐỂ DÒ':missingStations?'CHỜ KẾT QUẢ ĐÀI':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
      lines.push('CHƯA XÁC NHẬN TRÚNG/KHÔNG TRÚNG HAY TIỀN THƯỞNG. KHÔNG DÙNG ĐỂ THANH TOÁN.');
      ownerMessage.textContent=lines.join('\n');
    } catch(e){ownerMessage.textContent=e.message;}

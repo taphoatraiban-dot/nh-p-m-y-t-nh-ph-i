@@ -210,7 +210,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const rows=Array.isArray(src?.pricedRows)?src.pricedRows:[];
      if(rows.length){
        const table=document.createElement('table');
-       table.style.cssText='width:100%;border-collapse:collapse;font-size:17px;line-height:1.5';
+       table.style.cssText='width:100%;min-width:760px;border-collapse:collapse;font-size:18px;line-height:1.55';
        const head=document.createElement('thead');
        const hr=document.createElement('tr');
        ['STT','LOẠI','NỘI DUNG','ĐÀI','ĐỐI CHIẾU','THƯỞNG TẠM TÍNH'].forEach(label=>{
@@ -242,7 +242,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
          const payoutText=payoutLine?(payoutLine.skipped?'Dòng phụ':Math.round(payoutLine.amount*1000).toLocaleString('vi-VN')+' đ'):'CHƯA XÁC ĐỊNH';
          [String(i+1),String(row.type||''),(Array.isArray(row.numbers)?row.numbers.join('.'):''),String(row.scopeStation||row.station||''),state,payoutText].forEach(value=>{
            const td=document.createElement('td');td.textContent=value;
-           td.style.cssText='border:1px solid #999;padding:8px;vertical-align:top;font-weight:600';
+           td.style.cssText='border:1px solid #999;padding:10px;vertical-align:top;font-weight:700;overflow-wrap:anywhere';
            tr.appendChild(td);
          });body.appendChild(tr);
        });

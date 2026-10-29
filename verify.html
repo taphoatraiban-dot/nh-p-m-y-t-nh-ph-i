@@ -34,7 +34,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>LỊCH SỬ TRẢ THƯỞNG</h2><div style="display:grid;gap:8px;margin:10px 0"><label>Khách hàng <input id="historyCustomerFilter" type="search" placeholder="Tên khách (để trống: tất cả)" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Từ ngày xác nhận <input id="historyFromFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Đến ngày xác nhận <input id="historyToFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label></div><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><button id="historyCsvBtn" type="button" style="margin-top:8px;background:#44546a" disabled>XUẤT CSV DANH SÁCH ĐANG XEM</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><label for="paidAmountVnd" style="display:block;font-weight:750;margin-bottom:8px">SỐ TIỀN ĐÃ TRẢ THỰC TẾ (đ)</label><p id="paidAmountSuggestion" class="muted">Bấm DÒ KẾT QUẢ ở phần chủ phiếu để xem số tiền gợi ý. Bạn cần kiểm tra và xác nhận số thực trả.</p><button id="applySuggestedAmount" type="button" hidden style="margin-bottom:12px;background:#44546a">ĐIỀN TIỀN THƯỞNG GỢI Ý</button><input id="paidAmountVnd" type="number" min="0" max="1000000000000" step="1" inputmode="numeric" placeholder="Nhập số tiền thực trả, ví dụ 1480000" style="box-sizing:border-box;width:100%;padding:14px;font-size:19px;margin-bottom:12px;border:1px solid #aaa;border-radius:8px" /><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>LỊCH SỬ TRẢ THƯỞNG</h2><div style="display:grid;gap:8px;margin:10px 0"><label>Khách hàng <input id="historyCustomerFilter" type="search" placeholder="Tên khách (để trống: tất cả)" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Từ ngày xác nhận <input id="historyFromFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Đến ngày xác nhận <input id="historyToFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label></div><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><button id="historyCsvBtn" type="button" style="margin-top:8px;background:#44546a" disabled>XUẤT CSV DANH SÁCH ĐANG XEM</button><button id="historyNextBtn" type="button" style="margin-top:8px;background:#44546a" hidden>TẢI THÊM 100 PHIẾU</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><label for="paidAmountVnd" style="display:block;font-weight:750;margin-bottom:8px">SỐ TIỀN ĐÃ TRẢ THỰC TẾ (đ)</label><p id="paidAmountSuggestion" class="muted">Bấm DÒ KẾT QUẢ ở phần chủ phiếu để xem số tiền gợi ý. Bạn cần kiểm tra và xác nhận số thực trả.</p><button id="applySuggestedAmount" type="button" hidden style="margin-bottom:12px;background:#44546a">ĐIỀN TIỀN THƯỞNG GỢI Ý</button><input id="paidAmountVnd" type="number" min="0" max="1000000000000" step="1" inputmode="numeric" placeholder="Nhập số tiền thực trả, ví dụ 1480000" style="box-sizing:border-box;width:100%;padding:14px;font-size:19px;margin-bottom:12px;border:1px solid #aaa;border-radius:8px" /><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -224,6 +224,11 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  const historyStatus=document.getElementById('ownerHistoryStatus');
  const historyTable=document.getElementById('ownerHistoryTable');
  const historyCsvBtn=document.getElementById('historyCsvBtn');
+ const historyNextBtn=document.getElementById('historyNextBtn');
+ let historyAllRecords=[];
+ let historyNextPage=0;
+ let historyHasMore=false;
+ historyNextBtn.addEventListener('click',()=>loadOwnerHistory(true));
  let historyVisibleRecords=[];
  const normalizeHistoryName=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  historyCsvBtn.addEventListener('click',()=>{
@@ -237,15 +242,20 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    setTimeout(()=>URL.revokeObjectURL(url),1000);
  });
 
- async function loadOwnerHistory(){
+ async function loadOwnerHistory(append=false){
    historyBtn.disabled=true;
    historyStatus.textContent='Đang tải lịch sử…';
-   historyTable.replaceChildren();
+   if(!append){historyTable.replaceChildren();historyAllRecords=[];historyNextPage=0;historyHasMore=false;}
+   historyNextBtn.disabled=true;
    try{
      const jwt=await ownerJwt();
      if(!jwt)throw Error('Cần đăng nhập tài khoản chủ phiếu.');
-     const response=await call('owner-history',jwt);
-     const allRecords=Array.isArray(response.receipts)?response.receipts:[];
+     const response=await call('owner-history',jwt,{page:historyNextPage});
+     historyAllRecords.push(...(Array.isArray(response.receipts)?response.receipts:[]));
+     historyNextPage++;
+     historyHasMore=response.hasMore===true;
+     historyNextBtn.hidden=!historyHasMore;
+     const allRecords=historyAllRecords;
      const nameFilter=normalizeHistoryName(document.getElementById('historyCustomerFilter').value);
      const from=document.getElementById('historyFromFilter').value;
      const to=document.getElementById('historyToFilter').value;
@@ -256,7 +266,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      });
      historyVisibleRecords=records;
      historyCsvBtn.disabled=!records.length;
-     historyStatus.textContent=records.length?'Hiển thị '+records.length+'/'+allRecords.length+' phiếu trong 100 phiếu gần nhất. Phiếu cũ chưa lưu số tiền thực trả.':'Không có phiếu phù hợp bộ lọc trong 100 phiếu gần nhất.';
+     historyStatus.textContent=records.length?'Hiển thị '+records.length+'/'+allRecords.length+' phiếu trong các phiếu đã tải. Phiếu cũ chưa lưu số tiền thực trả.':'Không có phiếu phù hợp bộ lọc trong các phiếu đã tải.';
      if(!records.length)return;
      // Summary covers only the returned latest 100 redeemed receipts.
      // Missing historical amounts are excluded rather than treated as zero.
@@ -271,7 +281,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      summary.appendChild(intro);
      const warning=document.createElement('p');
      warning.className='muted';
-     warning.textContent='Chỉ tổng hợp '+records.length+' phiếu gần nhất'+(records.length===100?' (có thể còn phiếu cũ chưa tải)':'')+'. '+missing+' phiếu chưa lưu tiền thực trả, không cộng vào tổng.';
+     warning.textContent='Chỉ tổng hợp '+records.length+' phiếu đang xem'+(historyHasMore?' (còn phiếu chưa tải)':'')+'. '+missing+' phiếu chưa lưu tiền thực trả, không cộng vào tổng.';
      summary.appendChild(warning);
      const groups=new Map();
      valid.forEach(rec=>{
@@ -319,9 +329,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      });
      table.appendChild(body);historyTable.appendChild(table);
    }catch(e){historyStatus.textContent='Không tải được lịch sử: '+e.message;}
-   finally{historyBtn.disabled=false;}
+   finally{historyBtn.disabled=false;historyNextBtn.disabled=false;}
  }
- historyBtn.addEventListener('click',loadOwnerHistory);
+ historyBtn.addEventListener('click',()=>loadOwnerHistory(false));
  async function ownerJwt(){
    if(!window.supabase?.createClient)return null;
    const client=window.supabase.createClient('https://zigpqddlhvjbjrwhfhaa.supabase.co',pubkey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});

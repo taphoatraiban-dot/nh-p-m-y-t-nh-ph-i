@@ -1201,6 +1201,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
    <label style="display:block;font-size:12px;font-weight:900;margin-top:8px">Kiểu kết nối</label>
    <select id="printerMode">
     <option value="internet">☁️ In qua Internet (Supabase → Mac → WION)</option>
+    <option value="queue">📥 Hàng đợi in (Mac worker)</option>
     <option value="server">Máy chủ in HTTP nội bộ (Mac/Print Box)</option>
     <option value="websocket">WebSocket máy in / bridge</option>
     <option value="system">Hộp thoại in của iPhone/Safari</option>
@@ -3093,8 +3094,8 @@ function stationToken(t, dateValue){
  if(["nthu","ninhthuan","ninh-thuan","ninh thuan","nt","nthuan"].includes(t))return{region:"T",stations:1,label:"Ninh Thuận"};
  if(["btthuan","bthuan","binhthuan","binh-thuan","binh thuan","bth"].includes(t))return{region:"N",stations:1,label:"Bình Thuận"};
  if(["qbinh","quangbinh","quang-binh","quang binh","qb"].includes(t))return{region:"T",stations:1,label:"Quảng Bình"};
- if(t==="ctho")return{region:"N",stations:1,label:"Cần Thơ"};
- if(["st","sot","soc trang","soctrang"].includes(t))return{region:"N",stations:1,label:"Sóc Trăng"};
+ if(["ct","ctho","cantho","can-tho"].includes(t))return{region:"N",stations:1,label:"Cần Thơ"};
+ if(["st","sot","strang","soc trang","soctrang"].includes(t))return{region:"N",stations:1,label:"Sóc Trăng"};
  if(["dnang","danang","da-nang","da nang","dn","dng"].includes(t))return{region:"T",stations:1,label:"Đà Nẵng"};
  if(["kh","khanhhoa","khoa","khanh-hoa","khanh hoa","khoa"].includes(t))return{region:"T",stations:1,label:"Khánh Hòa"};
  if(["tg","tgiang","tiengiang"].includes(t))return{region:"N",stations:1,label:"Tiền Giang"};
@@ -3483,7 +3484,12 @@ function parseBets(){
    .replace(/[\u00A0\u202F\u2007]/g," ")
    .replace(/[\uFF0E\u2024]/g,".")
    .replace(/[\uFF0C]/g,",");
- const _raw2057=ttFixCompactBetSeparators(_telegramSafeInput);
+ // Normalize explicit station names attached to a wager, preserving the raw textarea.
+ // Do not infer a station when the source contains only an unlabelled number.
+ const _stationSafeInput=_telegramSafeInput
+   .replace(/(^|\n)[ \t]*(?:s[oó]c[ \t]*tr[aă]ng|soc[ \t]*trang|soctrang|strang)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1strang\n')
+   .replace(/(^|\n)[ \t]*(?:ctho|can[ \t]*tho|c[aầ]n[ \t]*th[oơ]|ct)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1ctho\n');
+ const _raw2057=ttFixCompactBetSeparators(_stationSafeInput);
  // Chặn cược sai độ dài số trên phơi gốc cho TẤT CẢ các đài MN/MT/MB.
  // DD đúng 2 chữ số; XC đúng 3 chữ số. Bất kỳ token sai đều khóa toàn phơi.
  const _strictLengthRe=/(?:^|[^0-9])([0-9]+)\s*(xc|dd)\s*([0-9]+(?:[,.][0-9]+)?)(?:n)?(?=\s*(?:\.|$|\n))/gim;
@@ -3546,6 +3552,22 @@ function parseBets(){
  let rows=[],errors=[],st={region:"N",stations:1,label:"Mặc định"};
  let hasExplicitStation=false;
  let text=normalizeLoosePhoiWithoutChangingFunctionCount(cleanTelegramPhoiText(ttSeparateJoinedBets(ttUnifiedNormalize(_fixed2057))));
+ // Preserve the already validated explicit station header across legacy normalizers.
+ // Some legacy layers split "Soc Trang.58dau30" into invalid "Soc" / "Trang".
+ // Restore ONLY the exact station+wager lines from the input copy.
+ const _explicitStationLines=_stationSafeInput.split('\n').map(x=>x.trim()).filter(Boolean);
+ if(_explicitStationLines.some(x=>/^(?:strang|ctho)$/i.test(x))){
+   const _originalNormalized=_stationSafeInput.trim();
+   const _hasAttachedStation=/(?:^|\n)\s*(?:strang|ctho)\s*\n\s*\d{2,4}\s*(?:dau|dd|duoi|b|xc|da)/i.test(_originalNormalized);
+   if(_hasAttachedStation) {
+     // Reuse the normalizer on every line, but keep station lines atomic.
+     const _segments=_originalNormalized.split(/\n/);
+     text=_segments.map(line=>/^(?:strang|ctho)$/i.test(line.trim())
+       ? line.trim()
+       : normalizeLoosePhoiWithoutChangingFunctionCount(cleanTelegramPhoiText(line))).join('\n');
+   }
+ }
+
  // Regression 28/10: Telegram VPS import may pass through extra normalizers.
  // For an exact station + mixed XC/XDUOI shorthand, use the original text
  // just as a direct manual entry would. Do not rewrite the visible textarea.
@@ -5717,7 +5739,7 @@ $('newCustomer').onclick=()=>{$('customerName').value='';$('customerName').focus
 $('saveCustomer').onclick=()=>{let n=$('customerName').value.trim()||$('customerSelect').value; if(!n)return alert('Nhập tên khách.'); const old=v3Customers[n]||{}; const c={...old,c:{...(old.c||{})}}; for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB'])c[k]=+$('p_'+k).value||0; c.receive=+$('p_receive').value||0;c.repay=+$('p_repay').value||0;for(const k of ['xc','dd','da2','dathang','b2','b3','b4','daMB'])c.c[k]=+$('c_'+k).value||0; c.c.receive=+$('c_receive').value||0; c.c.repay=+$('c_repay').value||0; readAdjust(c); v3Customers[n]=c;currentCustomer=n;v3Save();renderCustomers();$('customerSelect').value=n;fillCustomer();$('customerStatus').textContent='Đã lưu khách '+n;};
 $('deleteCustomer').onclick=()=>{const n=$('customerSelect').value;if(typeof confirmDeletePrice==='function')return confirmDeletePrice(n);if(Object.keys(v3Customers).length<=1)return alert('Phải giữ ít nhất 1 khách.');};
 $('multiPriceBtn').onclick=()=>alert('Chọn khách rồi sửa các ô “Cò nhận cho khách”, sau đó bấm LƯU KHÁCH.');
-function buildDays(){const bar=$('daybar');bar.innerHTML='';const base=new Date();for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()-i);const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const label=i===0?'Hôm nay':`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;const b=document.createElement('button');b.textContent=label;b.dataset.date=iso;b.onclick=()=>{ $('date').value=iso;$('date').dispatchEvent(new Event('change',{bubbles:true}));document.querySelectorAll('#daybar button').forEach(x=>x.classList.remove('active'));b.classList.add('active');};bar.appendChild(b);if(i===0){$('date').value=iso;b.classList.add('active');}}}
+function buildDays(){const bar=$('daybar');bar.innerHTML='';const base=new Date();for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()-i);const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const label=i===0?'Hôm nay':`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;const b=document.createElement('button');b.textContent=label;b.dataset.date=iso;b.onclick=()=>{ $('date').value=iso;$('date').dispatchEvent(new Event('change',{bubbles:true}));document.querySelectorAll('#daybar button').forEach(x=>x.classList.remove('active'));b.classList.add('active');};bar.appendChild(b);if($('date').value===iso){b.classList.add('active');}}}
 $('date').addEventListener('change',()=>{lotteryResults={N:[],T:[],B:[]};window.__lotteryPartialDraws=[];window.__lotteryResultPending=true;if(typeof liveSoiStop==='function'&&liveSoiRunning)liveSoiStop('Đã đổi ngày, bấm OK để dò ngày mới.');document.querySelectorAll('#daybar button').forEach(b=>b.classList.toggle('active',b.dataset.date===$('date').value));setStatus('Đã chọn ngày '+$('date').value+'; bấm OK để dò kết quả đúng ngày.');});
 function priceForRow(row,c){
   // QUY TẮC: phần thưởng dùng bảng GỐC ĐANG DÙNG (c), không dùng CÒ NHẬN CHO KHÁCH.
@@ -6644,7 +6666,14 @@ const STATION_WEEKDAYS={
   "Gia Lai":["T6"],"Ninh Thuận":["T6"],"Quảng Ngãi":["T7"],"Kon Tum":["CN"],
   "Hà Nội":["T2","T3","T4","T5","T6","T7","CN"]
 };
-function weekdayLabelFromDate(v){ if(!/^\d{4}-\d{2}-\d{2}$/.test(String(v||""))) return ""; const d=new Date(String(v)+"T12:00:00"); return ["CN","T2","T3","T4","T5","T6","T7"][d.getDay()]||""; }
+function weekdayLabelFromDate(v){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v||''));
+  if(!m)return '';
+  const y=Number(m[1]),mo=Number(m[2]),day=Number(m[3]);
+  const d=new Date(Date.UTC(y,mo-1,day,12));
+  if(d.getUTCFullYear()!==y||d.getUTCMonth()!==mo-1||d.getUTCDate()!==day)return '';
+  return ['CN','T2','T3','T4','T5','T6','T7'][d.getUTCDay()]||'';
+}
 function stationScheduleMessageForLine(line,dateValue){
   let s=String(line||"").trim(); if(!s)return null;
   s=s.replace(/^(cn|t2|t3|t4|t5|t6|t7)\b[ .:]*/i,"").trim();

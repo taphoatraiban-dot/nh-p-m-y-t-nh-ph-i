@@ -198,6 +198,10 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        lines.push('CHỈ THAM KHẢO — CHƯA ĐƯỢC XÁC NHẬN ĐỂ THANH TOÁN.');
      }else if(preview){
        lines.push('CHƯA THỂ ƯỚC TÍNH THƯỞNG: '+String(preview.reason||'thiếu dữ liệu'));
+     }else if(!rateSnapshot){
+       lines.push('CHỜ BẢNG GIÁ GỐC: máy chủ chưa trả bảng giá tại thời điểm lập phiếu. Không tính thưởng theo giá hiện tại.');
+     }else if(missingStations||invalidDiagnostics||unsupported){
+       lines.push('CHƯA ĐỦ DỮ LIỆU AN TOÀN ĐỂ TÍNH THƯỞNG.');
      }
      const tableHost=document.getElementById('ownerTable');
      tableHost.replaceChildren();

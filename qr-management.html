@@ -14,7 +14,27 @@ const day=v=>{if(!v)return '';const d=new Date(v);if(!Number.isFinite(d.getTime(
 const money=v=>Number(v).toLocaleString('vi-VN')+' đ';
 async function api(action,page){const res=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',apikey:pubkey,authorization:'Bearer '+jwt},body:JSON.stringify({action,page}),cache:'no-store'});const d=await res.json();if(!res.ok||d.error)throw Error(d.error||'HTTP '+res.status);return d}
 function table(target,headers,rows){target.replaceChildren();const t=document.createElement('table'),h=document.createElement('tr');headers.forEach(x=>{const th=document.createElement('th');th.textContent=x;h.appendChild(th)});t.appendChild(h);rows.forEach(row=>{const tr=document.createElement('tr');row.forEach(x=>{const td=document.createElement('td');td.textContent=safe(x);tr.appendChild(td)});t.appendChild(tr)});target.appendChild(t)}
-async function loadOpen(more=false){if(!more){openRows=[];openPage=0} $('openBtn').disabled=true;$('openMore').disabled=true;try{const d=await api('owner-open',openPage);openRows.push(...(d.receipts||[]));openPage++;$('openMore').hidden=!d.hasMore;$('openStatus').textContent='Đã tải '+openRows.length+' phiếu chưa xác nhận';table($('openTable'),['Mã phiếu','Khách','Ngày quay','Ngày phát hành'],openRows.map(r=>[r.code,r.customer,r.drawDate,r.issuedAt?new Date(r.issuedAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'']))}catch(e){$('openStatus').textContent='Lỗi: '+e.message}finally{$('openBtn').disabled=false;$('openMore').disabled=false}}
+function renderOpen(){
+ const q=$('openSearch').value.trim().toLowerCase();
+ const found=openRows.filter(r=>!q||safe(r.code).toLowerCase().includes(q)||safe(r.customer).toLowerCase().includes(q));
+ const shown=found.slice(0,openShown);
+ $('openShowMore').hidden=found.length<=openShown;
+ $('openStatus').textContent='Đã tải '+openRows.length+' phiếu; phù hợp '+found.length+'; đang hiển thị '+shown.length+'.';
+ table($('openTable'),['Mã phiếu','Khách','Ngày quay','Ngày phát hành'],shown.map(r=>[r.code,r.customer,r.drawDate,r.issuedAt?new Date(r.issuedAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'']));
+}
+async function loadOpen(more=false){
+ if(!more){openRows=[];openPage=0;openShown=10}
+ $('openBtn').disabled=true;$('openMore').disabled=true;
+ try{
+  const d=await api('owner-open',openPage);
+  openRows.push(...(d.receipts||[]));openPage++;
+  $('openMore').hidden=!d.hasMore;
+  renderOpen();
+ }catch(e){$('openStatus').textContent='Lỗi: '+e.message}
+ finally{$('openBtn').disabled=false;$('openMore').disabled=false}
+}
+$('openSearch').addEventListener('input',()=>{openShown=10;renderOpen()});
+$('openShowMore').onclick=()=>{openShown+=10;renderOpen()};
 function renderPaid(){const from=$('from').value,to=$('to').value;if(from&&to&&from>to){$('paidStatus').textContent='Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.';return}const name=$('customer').value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();visible=paidRows.filter(r=>(!name||safe(r.customer).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(name))&&(!from||day(r.redeemedAt)>=from)&&(!to||day(r.redeemedAt)<=to));const valid=visible.filter(r=>r.payoutAmount!=null&&Number.isSafeInteger(Number(r.payoutAmount))&&Number(r.payoutAmount)>=0);const total=valid.reduce((n,r)=>n+Number(r.payoutAmount),0);$('paidStatus').textContent='Đã tải '+paidRows.length+' phiếu; đang xem '+visible.length+' phiếu; tổng thực trả đã lưu: '+money(total)+' ('+valid.length+' phiếu có số tiền).';$('csvBtn').disabled=!visible.length;table($('paidTable'),['Mã phiếu','Khách','Ngày quay','Ngày trả','Tiền thực trả'],visible.map(r=>[r.code,r.customer,r.drawDate,day(r.redeemedAt),r.payoutAmount==null?'Chưa lưu':money(r.payoutAmount)]))}
 async function loadPaid(more=false){if(!more){paidRows=[];paidPage=0}$('paidBtn').disabled=true;$('paidMore').disabled=true;try{const d=await api('owner-history',paidPage);paidRows.push(...(d.receipts||[]));paidPage++;$('paidMore').hidden=!d.hasMore;renderPaid()}catch(e){$('paidStatus').textContent='Lỗi: '+e.message}finally{$('paidBtn').disabled=false;$('paidMore').disabled=false}}
 $('openBtn').onclick=()=>loadOpen(false);$('openMore').onclick=()=>loadOpen(true);$('paidBtn').onclick=()=>loadPaid(false);$('paidMore').onclick=()=>loadPaid(true);['customer','from','to'].forEach(id=>$(id).addEventListener('change',renderPaid));

@@ -6665,7 +6665,14 @@ const STATION_WEEKDAYS={
   "Gia Lai":["T6"],"Ninh Thuận":["T6"],"Quảng Ngãi":["T7"],"Kon Tum":["CN"],
   "Hà Nội":["T2","T3","T4","T5","T6","T7","CN"]
 };
-function weekdayLabelFromDate(v){ if(!/^\d{4}-\d{2}-\d{2}$/.test(String(v||""))) return ""; const d=new Date(String(v)+"T12:00:00"); return ["CN","T2","T3","T4","T5","T6","T7"][d.getDay()]||""; }
+function weekdayLabelFromDate(v){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v||''));
+  if(!m)return '';
+  const y=Number(m[1]),mo=Number(m[2]),day=Number(m[3]);
+  const d=new Date(Date.UTC(y,mo-1,day,12));
+  if(d.getUTCFullYear()!==y||d.getUTCMonth()!==mo-1||d.getUTCDate()!==day)return '';
+  return ['CN','T2','T3','T4','T5','T6','T7'][d.getUTCDay()]||'';
+}
 function stationScheduleMessageForLine(line,dateValue){
   let s=String(line||"").trim(); if(!s)return null;
   s=s.replace(/^(cn|t2|t3|t4|t5|t6|t7)\b[ .:]*/i,"").trim();

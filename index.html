@@ -10763,6 +10763,30 @@ document.addEventListener('DOMContentLoaded',()=>{repair();setTimeout(repair,600
  document.addEventListener('DOMContentLoaded',()=>{install();setTimeout(install,700);});
 })();
 </script>
+<script id="cuncun-clear-bets-fix-20261029">
+(function(){
+ function install(){
+  const btn=document.getElementById('clearBets');
+  const ta=document.getElementById('bets');
+  if(!btn||!ta||btn.dataset.clearFixed)return;
+  btn.dataset.clearFixed='1';
+  btn.addEventListener('click',function(ev){
+   ev.preventDefault();
+   ev.stopImmediatePropagation();
+   ta.value='';
+   ta.dispatchEvent(new Event('input',{bubbles:true}));
+   ta.dispatchEvent(new Event('change',{bubbles:true}));
+   const wrap=document.getElementById('betsHighlightWrap');
+   const layer=document.getElementById('betsHighlightLayer');
+   if(wrap)wrap.classList.remove('has-errors');
+   if(layer)layer.textContent='';
+   ta.focus();
+  },true);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);
+ else install();
+})();
+</script>
 </body>
 
 <style id="v81-style">

@@ -47,9 +47,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    status.className=active?'ok':'bad';
    details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Đã sử dụng: '+new Date(data.redeemed_at).toLocaleString('vi-VN'):'');
    box.hidden=true; // Only the verified issuing account may see redemption controls.
-   // Public QR lookup shows status only; receipt contents require owner authorization.
-   const receipt=null;
-   snapshotBox.hidden=true;
+   // QR token permits read-only viewing of sanitized receipt lines; redemption stays owner-only.
+   const receipt=data.receipt;
+   snapshotBox.hidden=!receipt;
    snapshotEl.replaceChildren();
    if(receipt){
      snapshotEl.replaceChildren();
@@ -57,7 +57,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const date=String(receipt.date||'');
      const formatted=/^\\d{4}-\\d{2}-\\d{2}$/.test(date)?date.slice(8,10)+'/'+date.slice(5,7)+'/'+date.slice(0,4):date;
      add('receipt-meta','NGÀY: '+formatted+(receipt.time?' • '+String(receipt.time):''));
-     add('receipt-meta','KHÁCH: '+String(receipt.customer||'Không ghi'));
+     // Customer identity is intentionally not returned to QR visitors.
      const title=document.createElement('div');title.className='receipt-paper-title';title.textContent='PHIẾU MUA HÀNG';snapshotEl.insertBefore(title,snapshotEl.firstChild);
      const items=Array.isArray(receipt.items)?receipt.items:[];
      const table=document.createElement('table');table.className='receipt-table';

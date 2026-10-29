@@ -1399,8 +1399,13 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  const modal=document.getElementById('cuncunQrManagerModal');
  const frame=document.getElementById('cuncunQrManagerFrame');
  if(!open||!close||!modal||!frame)return;
+ // Move overlay outside transformed/stacked app containers so sticky date/price controls cannot cover it.
+ document.body.appendChild(modal);
+ modal.style.setProperty('z-index','2147483647','important');
+ modal.style.setProperty('isolation','isolate');
+ modal.style.setProperty('overflow','hidden');
  open.addEventListener('click',function(){
-   frame.setAttribute('src','/qr-management.html?v=mobile-cards-20261029-1');
+   frame.setAttribute('src','/qr-management.html?v=detail-layout-20261029-2');
    modal.hidden=false;
    document.body.style.overflow='hidden';
  });

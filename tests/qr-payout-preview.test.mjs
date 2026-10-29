@@ -53,3 +53,28 @@ test('string count must not be interpreted as a verified number',()=>assert.equa
 test('diagnostic row mismatch is rejected',()=>assert.equal(calculateQrPayout([row('B2')],[{...matches(1),index:2}],rates).ready,false));
 test('diagnostic type mismatch is rejected',()=>assert.equal(calculateQrPayout([row('B2')],[{...matches(1),type:'XC'}],rates).ready,false));
 test('matching diagnostic identity is accepted',()=>assert.equal(calculateQrPayout([row('B2')],[{...matches(1),index:0,type:'B2'}],rates).total,150));
+
+const customerRates={
+ X74:{b2:74,b3:640,b4:5000,xc:640,dd:74,da2:540,dathang:700,daMB:640},
+ X79:{b2:75,b3:640,b4:5000,xc:640,dd:76,da2:540,dathang:700,daMB:640},
+ 'Tuấn':{b2:75,b3:650,b4:5500,xc:650,dd:75,da2:550,dathang:730,daMB:650},
+ 'Hạnh':{b2:75,b3:650,b4:5000,xc:650,dd:75,da2:550,dathang:730,daMB:650}
+};
+for(const [customer,table] of Object.entries(customerRates)){
+ test('QR selected '+customer+' rate pays independently',()=>{
+  const bets=[row('B2',{numbers:['65'],points:10}),row('B3',{numbers:['910'],points:2}),row('DD',{numbers:['65'],points:30})];
+  const verified=[matches(1),matches(1),matches(1)];
+  const result=calculateQrPayout(bets,verified,table);
+  assert.equal(result.ready,true);
+  assert.equal(result.total,10*table.b2+2*table.b3+30*table.dd);
+ });
+}
+test('missing customer snapshot must not borrow another customer rate',()=>{
+ const result=calculateQrPayout([row('B3',{numbers:['910']})],[matches(1)],null);
+ assert.equal(result.ready,false);
+});
+test('two-station bao counts every verified hit',()=>{
+ const result=calculateQrPayout([row('B3',{numbers:['910'],cross2:true,crossProvinces:['Tây Ninh','An Giang']})],
+ [{supported:true,diagnosticOnly:true,matches:[{station:'Tây Ninh',count:1},{station:'An Giang',count:2}]}],customerRates.X74);
+ assert.equal(result.ready,true);assert.equal(result.total,3840);
+});

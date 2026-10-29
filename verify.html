@@ -255,20 +255,21 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      historyNextPage++;
      historyHasMore=response.hasMore===true;
      historyNextBtn.hidden=!historyHasMore;
+     historyTable.replaceChildren();
      const allRecords=historyAllRecords;
      const nameFilter=normalizeHistoryName(document.getElementById('historyCustomerFilter').value);
      const from=document.getElementById('historyFromFilter').value;
      const to=document.getElementById('historyToFilter').value;
      if(from&&to&&from>to)throw Error('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
      const records=allRecords.filter(rec=>{
-       const date=String(rec.redeemedAt||'').slice(0,10);
+       const date=rec.redeemedAt?new Date(rec.redeemedAt).toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}):'';
        return (!nameFilter||normalizeHistoryName(rec.customer).includes(nameFilter))&&(!from||date>=from)&&(!to||date<=to);
      });
      historyVisibleRecords=records;
      historyCsvBtn.disabled=!records.length;
      historyStatus.textContent=records.length?'Hiển thị '+records.length+'/'+allRecords.length+' phiếu trong các phiếu đã tải. Phiếu cũ chưa lưu số tiền thực trả.':'Không có phiếu phù hợp bộ lọc trong các phiếu đã tải.';
      if(!records.length)return;
-     // Summary covers only the returned latest 100 redeemed receipts.
+     // Summary covers only the loaded, filtered redeemed receipts.
      // Missing historical amounts are excluded rather than treated as zero.
      const valid=records.filter(rec=>rec.payoutAmount!==null&&rec.payoutAmount!==undefined&&Number.isSafeInteger(Number(rec.payoutAmount))&&Number(rec.payoutAmount)>=0);
      const missing=records.length-valid.length;
@@ -286,7 +287,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const groups=new Map();
      valid.forEach(rec=>{
        const customer=String(rec.customer||'Chưa lưu').trim()||'Chưa lưu';
-       const date=String(rec.redeemedAt||'').slice(0,10)||'Không rõ ngày';
+       const date=rec.redeemedAt?new Date(rec.redeemedAt).toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}):'Không rõ ngày';
        for(const [kind,key] of [['Khách',customer],['Ngày xác nhận',date]]){
          const id=kind+'|'+key;
          const previous=groups.get(id)||{kind,key,count:0,total:0};

@@ -8562,8 +8562,8 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
  }
  async function start(){
    panel.classList.add('open');panel.setAttribute('aria-hidden','false');
-   if(!navigator.mediaDevices?.getUserMedia){status.textContent='Trình duyệt này không mở camera web. Hãy dùng Chọn ảnh QR.';return}
-   if(!('BarcodeDetector' in window)){status.textContent='Trình duyệt chưa hỗ trợ quét trực tiếp. Dùng Camera iPhone quét mã QR trên phiếu hoặc chọn ảnh QR.';return}
+   if(!navigator.mediaDevices?.getUserMedia){status.textContent='Không mở được camera web. Hãy dùng ứng dụng Camera iPhone quét QR hoặc dán liên kết phiếu bên dưới.';return}
+   if(!('BarcodeDetector' in window)){status.textContent='Safari chưa hỗ trợ đọc QR trực tiếp trong phần mềm. Mở Camera iPhone quét QR trên phiếu, hoặc dán liên kết QR bên dưới.';return}
    try{
      detector=new BarcodeDetector({formats:['qr_code']});
      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});

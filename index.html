@@ -1391,6 +1391,10 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 #syntaxGuideEntry .tt-license-compact,#syntaxGuideEntry .tt-release-badge{display:none!important}
 #cuncunQrManagerOpen{display:none!important}
 
+
+/* Center the three action buttons as one balanced row, overriding legacy absolute positioning. */
+body.app-unlocked #betsCard .phoi-input-wrap{position:relative!important}
+body.app-unlocked #betsCard #okAll{position:relative!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:calc(50% - 8px)!important;max-width:none!important;min-width:0!important;margin:8px 0!important;box-sizing:border-box!important}
 /* iPhone layout fix: existing legacy !important rules overridden */
 body.app-unlocked #betsCard #okAll{width:60%!important;max-width:60%!important;min-width:0!important;display:block!important;margin:8px auto!important;position:relative!important;left:auto!important;right:auto!important;transform:none!important}
 body.app-unlocked #betsCard #okAll{width:60%!important;max-width:60%!important;min-width:0!important;margin:8px auto!important;height:52px!important;display:block!important}

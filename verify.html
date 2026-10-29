@@ -125,7 +125,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const rows=Array.isArray(result.source?.pricedRows)?result.source.pricedRows:[];
    // Legacy receipt: current X74 rates explicitly confirmed by the owner.
    // Read-only estimate; the original receipt remains unchanged.
-   const isLegacyX74=details.textContent.includes('CQ-8162EB1B-9AA')&&result.source?.drawDate==='2026-10-29';
+   const isLegacyX74=['CQ-8162EB1B-9AA','CQ-5D3070A5-FBB'].some(code=>details.textContent.includes(code))&&result.source?.drawDate==='2026-10-29';
    const rates=result.source?.payoutRatesSnapshot||(isLegacyX74?{b2:74,b3:640,b4:5000,xc:640,dd:74,da2:540,dathang:700,daMB:640}:null);
    const diagnostics=rows.map((row,i)=>[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported)||null);
    // Fail closed when diagnostic station differs from the wager's own station.
@@ -134,12 +134,13 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const sameStation=(a,b)=>{const x=stationKey(a),y=stationKey(b);return !!x&&!!y&&(stationAlias[x]||x)===(stationAlias[y]||y)};
    const stationVerified=(row,i)=>{
      const coverage=result.stationCoverage?.[i];
-     if(!coverage?.ready||!Array.isArray(coverage.stations)||coverage.stations.length!==1)return false;
-     const expected=row?.scopeStation||row?.station;
-     const matched=coverage.stations[0]?.matched;
-     if(!sameStation(expected,matched))return false;
-     const entries=diagnostics[i]?.matches;
-     return Array.isArray(entries)&&entries.every(entry=>sameStation(entry.station,matched));
+     if(!coverage?.ready||!Array.isArray(coverage.stations)||!coverage.stations.length)return false;
+     const multi=row?.cross2===true&&!row?.scopeStation&&Array.isArray(row?.crossProvinces)&&row.crossProvinces.length>=2;
+     const expected=multi?row.crossProvinces:[row?.scopeStation||row?.station];
+     if(expected.length!==coverage.stations.length)return false;
+     if(!expected.every((name,j)=>sameStation(name,coverage.stations[j]?.matched)))return false;
+     const entries=Array.isArray(diagnostics[i]?.pairs)?diagnostics[i].pairs:diagnostics[i]?.matches;
+     return Array.isArray(entries)&&entries.every(entry=>!entry.station||expected.some(name=>sameStation(name,entry.station)));
    };
    // A mismatch is unknown, never zero and never a payable hit.
    for(let i=0;i<rows.length;i++)if(!rows[i]?.hidden&&!rows[i]?.nonWinning&&!stationVerified(rows[i],i))diagnostics[i]=null;

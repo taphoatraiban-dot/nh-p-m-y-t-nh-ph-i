@@ -3,7 +3,7 @@
 <style>body{font-family:system-ui,sans-serif;margin:0;background:#f5f6f8;color:#17202a}main{max-width:720px;margin:auto;padding:18px}section{background:white;padding:18px;border:1px solid #ddd;border-radius:14px;margin:14px 0}h1{font-size:23px}h2{font-size:19px}button{border:0;border-radius:10px;padding:13px 16px;background:#b91c1c;color:white;font-weight:800;font-size:15px;margin:4px 4px 4px 0}button:disabled{opacity:.5}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #ddd;padding:9px;text-align:left}input{padding:10px;font-size:16px;max-width:100%;box-sizing:border-box}label{display:block;margin:8px 0}.muted{color:#56616e}#status{white-space:pre-wrap}</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><main>
 <a href="/" style="color:#991b1b;font-weight:800">← VỀ PHẦN MỀM</a><h1>QUẢN LÝ TRẢ THƯỞNG QR</h1><p id="status">Đang kiểm tra tài khoản đăng nhập…</p>
-<section id="content" hidden><h2>Phiếu chưa xác nhận trả thưởng</h2><p class="muted">Phiếu chưa xác nhận không đồng nghĩa với công nợ. Không tự tính tiền phải trả.</p><button id="openBtn">XEM PHIẾU</button><button id="openMore" hidden>TẢI THÊM</button><p id="openStatus"></p><div style="overflow:auto" id="openTable"></div></section>
+<section id="loginPanel" hidden><h2>ĐĂNG NHẬP TÀI KHOẢN CHỦ</h2><p class="muted">Đăng nhập bằng tài khoản Cuncun của bạn. Mật khẩu được gửi trực tiếp tới Supabase Auth, không lưu trong báo cáo.</p><form id="loginForm"><label>Email <input id="loginEmail" type="email" autocomplete="username" required style="width:100%"></label><label>Mật khẩu <input id="loginPassword" type="password" autocomplete="current-password" required style="width:100%"></label><button id="loginBtn" type="submit">ĐĂNG NHẬP</button></form><p id="loginMessage" class="muted" aria-live="polite"></p></section><section id="content" hidden><h2>Phiếu chưa xác nhận trả thưởng</h2><p class="muted">Phiếu chưa xác nhận không đồng nghĩa với công nợ. Không tự tính tiền phải trả.</p><button id="openBtn">XEM PHIẾU</button><button id="openMore" hidden>TẢI THÊM</button><p id="openStatus"></p><div style="overflow:auto" id="openTable"></div></section>
 <section id="paid" hidden><h2>Lịch sử đã trả thưởng</h2><label>Tên khách <input id="customer" type="search" placeholder="Tất cả khách"></label><label>Từ ngày xác nhận <input id="from" type="date"></label><label>Đến ngày xác nhận <input id="to" type="date"></label><button id="paidBtn">XEM LỊCH SỬ</button><button id="paidMore" hidden>TẢI THÊM</button><button id="csvBtn" disabled>XUẤT CSV</button><p id="paidStatus"></p><div style="overflow:auto" id="paidTable"></div></section>
 </main><script>
 (async()=>{
@@ -19,6 +19,38 @@ function renderPaid(){const from=$('from').value,to=$('to').value;if(from&&to&&f
 async function loadPaid(more=false){if(!more){paidRows=[];paidPage=0}$('paidBtn').disabled=true;$('paidMore').disabled=true;try{const d=await api('owner-history',paidPage);paidRows.push(...(d.receipts||[]));paidPage++;$('paidMore').hidden=!d.hasMore;renderPaid()}catch(e){$('paidStatus').textContent='Lỗi: '+e.message}finally{$('paidBtn').disabled=false;$('paidMore').disabled=false}}
 $('openBtn').onclick=()=>loadOpen(false);$('openMore').onclick=()=>loadOpen(true);$('paidBtn').onclick=()=>loadPaid(false);$('paidMore').onclick=()=>loadPaid(true);['customer','from','to'].forEach(id=>$(id).addEventListener('change',renderPaid));
 $('csvBtn').onclick=()=>{if(!visible.length)return;const esc=v=>'"'+safe(v).replace(/^[=+@\-\t\r]/,m=>"'"+m).replace(/"/g,'""')+'"';const rows=[['Mã phiếu','Khách','Ngày quay','Ngày trả','Tiền thực trả'],...visible.map(r=>[r.code,r.customer,r.drawDate,r.redeemedAt,r.payoutAmount??''])];const blob=new Blob(['\uFEFF'+rows.map(row=>row.map(esc).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='cuncun-lich-su-tra-thuong.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-try{if(!window.supabase?.createClient)throw Error('Không tải được thư viện đăng nhập');const client=window.supabase.createClient('https://zigpqddlhvjbjrwhfhaa.supabase.co',pubkey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});const {data}=await client.auth.getSession();jwt=data?.session?.access_token||'';if(!jwt)throw Error('Chưa có phiên đăng nhập trong Safari. Hãy về phần mềm, đăng nhập và mở lại mục này.');$('status').textContent='Đã nhận phiên đăng nhập. Danh sách chỉ hiển thị phiếu thuộc tài khoản này.';$('content').hidden=false;$('paid').hidden=false;await Promise.all([loadOpen(),loadPaid()])}catch(e){$('status').textContent=e.message}
+let authClient=null;
+async function showDashboard(token){
+ jwt=token;
+ $('loginPanel').hidden=true;
+ $('status').textContent='Đã đăng nhập. Chỉ hiển thị phiếu thuộc tài khoản này.';
+ $('content').hidden=false;$('paid').hidden=false;
+ await Promise.all([loadOpen(),loadPaid()]);
+}
+$('loginForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(!authClient)return;
+ const btn=$('loginBtn');btn.disabled=true;
+ $('loginMessage').textContent='Đang đăng nhập…';
+ try{
+   const email=$('loginEmail').value.trim(),password=$('loginPassword').value;
+   const {data,error}=await authClient.auth.signInWithPassword({email,password});
+   $('loginPassword').value='';
+   if(error||!data?.session?.access_token)throw Error('Email hoặc mật khẩu không đúng, hoặc tài khoản chưa được phép đăng nhập.');
+   $('loginMessage').textContent='';
+   await showDashboard(data.session.access_token);
+ }catch(e){$('loginMessage').textContent=e.message}
+ finally{btn.disabled=false}
+});
+try{
+ if(!window.supabase?.createClient)throw Error('Không tải được thư viện đăng nhập');
+ authClient=window.supabase.createClient('https://zigpqddlhvjbjrwhfhaa.supabase.co',pubkey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+ const {data}=await authClient.auth.getSession();
+ if(data?.session?.access_token)await showDashboard(data.session.access_token);
+ else{
+   $('status').textContent='Hãy đăng nhập tài khoản Cuncun để xem quản lý trả thưởng.';
+   $('loginPanel').hidden=false;
+ }
+}catch(e){$('status').textContent='Không tải được đăng nhập: '+e.message;$('loginPanel').hidden=false}
 })();
 </script></body></html>

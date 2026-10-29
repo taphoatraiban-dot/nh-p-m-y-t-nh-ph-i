@@ -6,7 +6,7 @@ main{max-width:440px;margin:30px auto;background:white;border:1px solid #d9dce2;
 h1{font-size:23px}.snapshot{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f6f8;border:1px solid #d9dce2;border-radius:10px;padding:14px;font-size:14px;line-height:1.5}.snapshot[hidden]{display:none}#status{font-weight:800;font-size:24px;margin:22px 0}
 .ok{color:#117a35}.bad{color:#b3261e}.muted{color:#59636e}
 button{padding:14px;border:0;border-radius:8px;background:#b3261e;color:white;font-weight:700;width:100%}
-button:disabled{opacity:.5;cursor:not-allowed}#redeemBox{margin-top:20px;padding-top:18px;border-top:1px solid #e3e5e9}#redeemNote{font-size:14px;line-height:1.5}a{color:#b3261e}</style></head><body><main>
+button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap;overflow-wrap:anywhere}#redeemBox{margin-top:20px;padding-top:18px;border-top:1px solid #e3e5e9}#redeemNote{font-size:14px;line-height:1.5}a{color:#b3261e}</style></head><body><main>
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực một lần</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
@@ -63,7 +63,15 @@ button:disabled{opacity:.5;cursor:not-allowed}#redeemBox{margin-top:20px;padding
      const jwt=await ownerJwt();
      if(!jwt)throw Error('Cần đăng nhập tài khoản chủ phiếu.');
      const result=await call('owner-result',jwt);
-     ownerMessage.textContent=result.message||'Chưa có kết quả xác thực.';
+     const src=result.source;
+     const lines=[result.message||'Chưa có kết quả xác thực.'];
+     if(src){
+       lines.push('','NỘI DUNG CƯỢC GỐC:',String(src.rawText||''));
+       lines.push('','TỔNG TIỀN XÁC: '+String(src.totalGross??''));
+       lines.push('TIỀN THU: '+String(src.finalTotal??''));
+       lines.push('Số dòng đã tính: '+(Array.isArray(src.pricedRows)?src.pricedRows.length:0));
+     }
+     ownerMessage.textContent=lines.join('\n');
    } catch(e){ownerMessage.textContent=e.message;}
    finally{ownerCheck.disabled=false;}
  });

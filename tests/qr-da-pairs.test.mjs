@@ -41,3 +41,15 @@ test('three matching numbers create three distinct pairs', () => {
 test('no matching pair means no wins', () => {
   assert.deepEqual(countPairs(['47','74'], [['147'],[]]), []);
 });
+
+test('leading zero is preserved in a pair', () => {
+  assert.deepEqual(countPairs(['04','40'], [['104','240']]), [{a:'04',b:'40',times:1}]);
+});
+test('one matching number alone cannot create a pair', () => {
+  assert.deepEqual(countPairs(['04','40'], [['104','204']]), []);
+});
+test('different pairs have independent occurrence counts', () => {
+  assert.deepEqual(countPairs(['04','40','72'], [['104','204','340','472']]), [
+    {a:'04',b:'40',times:1},{a:'04',b:'72',times:1},{a:'40',b:'72',times:1}
+  ]);
+});

@@ -10699,6 +10699,38 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  document.addEventListener('DOMContentLoaded',()=>{restore();setTimeout(restore,500);});
 })();
 </script>
+<style id="cuncun-price-mobile-visible-fix">
+#appDrawer .calc-menu{display:block!important}
+#appDrawer .calc-menu>h3{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important}
+#appDrawer #addPriceDrawer{display:inline-flex!important;visibility:visible!important;opacity:1!important;position:static!important;width:auto!important;min-width:94px!important;pointer-events:auto!important}
+#appDrawer .calc-menu>.drawer-body{display:block!important;visibility:visible!important;height:auto!important;max-height:none!important;overflow:visible!important}
+#appDrawer #tshPriceManage{display:block!important;visibility:visible!important}
+#appDrawer #drawerPriceList{display:grid!important;visibility:visible!important;max-height:340px!important;overflow-y:auto!important}
+</style>
+<script id="cuncun-price-mobile-visible-script">
+(function(){
+function repair(){
+ const drawer=document.getElementById('appDrawer');
+ const section=drawer?.querySelector('.calc-menu');
+ const list=document.getElementById('drawerPriceList');
+ const add=document.getElementById('addPriceDrawer');
+ if(!section||!list||!add)return;
+ section.classList.remove('calc-collapsed');
+ const body=section.querySelector('.drawer-body');
+ const details=document.getElementById('tshPriceManage');
+ if(details){
+  if(details.parentElement!==body)body.appendChild(details);
+  details.open=true;
+  if(list.parentElement!==details)details.appendChild(list);
+ }else if(body&&list.parentElement!==body)body.appendChild(list);
+ const header=section.querySelector('h3');
+ if(header&&add.parentElement!==header)header.appendChild(add);
+ const overlay=document.getElementById('cuncunPriceOverlay');
+ if(overlay?.classList.contains('is-open'))overlay.classList.remove('is-open');
+}
+document.addEventListener('DOMContentLoaded',()=>{repair();setTimeout(repair,600);});
+})();
+</script>
 </body>
 
 <style id="v81-style">

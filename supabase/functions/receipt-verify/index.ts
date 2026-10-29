@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);
       const { data, error } = await db.from("receipt_verifications")
-        .select("receipt_code,status,issued_at,redeemed_at,receipt_snapshot")
+        .select("receipt_code,status,issued_at,redeemed_at,receipt_snapshot,paid_amount_vnd")
         .eq("owner_user_id", user.id).eq("status", "redeemed")
         .order("redeemed_at", { ascending: false }).limit(100);
       if (error) return respond({ error: "history_failed" }, 500);
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
         drawDate: String(row.receipt_snapshot?.date || "").slice(0,20),
         redeemedAt: row.redeemed_at,
         // Historical redemptions did not store a settled amount.
-        payoutAmount: null
+        payoutAmount: row.paid_amount_vnd == null ? null : Number(row.paid_amount_vnd)
       })) });
     }
     if (action === "issue") {
@@ -282,11 +282,16 @@ Deno.serve(async (req) => {
           ? "Đã tìm thấy dữ liệu kết quả theo ngày. Chưa đối chiếu đủ từng đài và loại cược để tính thưởng an toàn."
           : "Chưa có dữ liệu kết quả xổ số cho ngày quay của phiếu." });
     }
+    // The owner must explicitly confirm the amount actually paid, in VND.
+    // This is not inferred from a historical receipt or a mutable price table.
+    const amount = body?.paidAmountVnd;
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 1000000000000)
+      return respond({ error: "invalid_paid_amount" }, 400);
     // Atomic conditional update: only the first concurrent redemption can succeed.
     const { data, error } = await db.from("receipt_verifications")
-      .update({ status: "redeemed", redeemed_at: new Date().toISOString(), redeemed_by: user.id })
+      .update({ status: "redeemed", redeemed_at: new Date().toISOString(), redeemed_by: user.id, paid_amount_vnd: amount })
       .eq("token_hash", token_hash).eq("owner_user_id", user.id).eq("status", "active")
-      .select("receipt_code,redeemed_at").maybeSingle();
+      .select("receipt_code,redeemed_at,paid_amount_vnd").maybeSingle();
     if (error) return respond({ error: "redeem_failed" }, 500);
     if (!data) return respond({ error: "not_active_or_not_owned" }, 409);
     return respond({ status: "redeemed", ...data });

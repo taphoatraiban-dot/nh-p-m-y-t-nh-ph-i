@@ -1400,7 +1400,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  const frame=document.getElementById('cuncunQrManagerFrame');
  if(!open||!close||!modal||!frame)return;
  open.addEventListener('click',function(){
-   if(!frame.getAttribute('src'))frame.setAttribute('src','/qr-management.html');
+   frame.setAttribute('src','/qr-management.html?v=mobile-cards-20261029-1');
    modal.hidden=false;
    document.body.style.overflow='hidden';
  });

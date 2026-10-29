@@ -80,7 +80,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      if(!jwt)throw Error('Cần đăng nhập tài khoản chủ phiếu.');
      const result=await call('owner-result',jwt);
      const src=result.source;
-     const lines=[result.message||'Chưa có kết quả xác thực.'];
+     const lines=[result.ready===false?'CHỜ KẾT QUẢ / CHƯA ĐỦ DỮ LIỆU ĐỐI SOÁT':(result.message||'Chưa có kết quả xác thực.')];
      if(src){
        lines.push('','NỘI DUNG CƯỢC GỐC:',String(src.rawText||''));
        lines.push('','TỔNG TIỀN XÁC: '+String(src.totalGross??''));

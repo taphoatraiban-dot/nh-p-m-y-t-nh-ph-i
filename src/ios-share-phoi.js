@@ -22,7 +22,60 @@
     }
     return lines;
   }
+  function renderFourColumns(data,doc){
+    const items=Array.isArray(data.items)?data.items:[];
+    const W=WIDTH,L=PAD,R=WIDTH-PAD;
+    const col=[L,L+157,L+281,L+379,R];
+    const rowH=52,headerH=48,groupH=48;
+    const sections=[];
+    for(const item of items){
+      const name=String(item.station||item.region||'KHÁC');
+      let section=sections[sections.length-1];
+      if(!section||section.name!==name){section={name,rows:[],total:0};sections.push(section);}
+      section.rows.push(item);
+      const v=String(item.amount||'').replace(/[^0-9-]/g,'');
+      section.total+=Number(v)||0;
+    }
+    const height=205+sections.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+140+(data.qrMatrix?330:0);
+    if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
+    const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=height;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,W,height);ctx.fillStyle='#000';
+    ctx.textBaseline='middle';
+    const txt=(v,x,y,size=23,align='center')=>{ctx.font='bold '+size+'px sans-serif';ctx.textAlign=align;ctx.fillText(String(v??''),x,y);};
+    const ln=(x,y,xx,yy)=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(xx,yy);ctx.stroke();};
+    ctx.lineWidth=2.5;
+    txt(data.title||'PHIẾU MUA HÀNG',W/2,65,36);
+    txt('NGÀY: '+(data.date||'')+' '+(data.time||''),L,119,23,'left');
+    txt('KHÁCH: '+(data.customer||''),L,159,23,'left');
+    let y=205;
+    const cells=(values,h)=>{
+      ln(L,y,R,y);ln(L,y+h,R,y+h);
+      col.forEach(x=>ln(x,y,x,y+h));
+      values.forEach((v,i)=>txt(v,(col[i]+col[i+1])/2,y+h/2,i===3?22:23));
+      y+=h;
+    };
+    sections.forEach(g=>{
+      ctx.fillStyle='#eee';ctx.fillRect(L,y,R-L,groupH);ctx.fillStyle='#000';
+      ln(L,y,R,y);ln(L,y+groupH,R,y+groupH);ln(L,y,L,y+groupH);ln(R,y,R,y+groupH);
+      txt(g.name,W/2,y+groupH/2,26);y+=groupH;
+      cells(['SỐ','LOẠI','ĐIỂM','TIỀN THU'],headerH);
+      g.rows.forEach(item=>cells([item.number||item.content||'',item.type||'',item.points||'',item.amount||''],rowH));
+      cells(['TỔNG ĐÀI','','',Math.round(g.total).toLocaleString('vi-VN')+'k'],rowH);
+    });
+    txt(data.totalLabel||'TỔNG THU',L,y+40,29,'left');
+    txt(data.total||'',R,y+40,31,'right');y+=90;
+    txt('MÃ PHIẾU: '+(data.code||''),W/2,y+17,19);y+=45;
+    const qr=data.qrMatrix;
+    if(Array.isArray(qr)&&qr.length>=21&&qr.every(a=>Array.isArray(a)&&a.length===qr.length)){
+      const unit=Math.max(1,Math.floor(240/qr.length)),size=unit*qr.length,x=Math.floor((W-size)/2);
+      qr.forEach((row,ry)=>row.forEach((bit,rx)=>{if(bit)ctx.fillRect(x+rx*unit,y+ry*unit,unit,unit);}));
+      txt('QUÉT QR ĐỂ XÁC THỰC PHIẾU',W/2,y+size+30,18);
+    }
+    return canvas;
+  }
   function renderTable(data,doc){
+    if(data.layout==='by-station-4col')return renderFourColumns(data,doc);
     const canvas=doc.createElement('canvas');
     canvas.width=WIDTH;
     const columns=[PAD,PAD+46,PAD+106,PAD+166,WIDTH-PAD-112,WIDTH-PAD];

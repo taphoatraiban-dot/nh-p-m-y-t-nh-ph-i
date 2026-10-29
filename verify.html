@@ -22,7 +22,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -171,6 +171,34 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      });
      lines.push('','TÌNH TRẠNG PHIẾU: '+(!src?.pricedRows?.length?'CHƯA CÓ DỮ LIỆU CƯỢC':activeRows.length===0?'KHÔNG CÓ DÒNG CƯỢC ĐỂ DÒ':missingStations?'CHỜ KẾT QUẢ ĐÀI':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
      lines.push('CHƯA XÁC NHẬN TRÚNG/KHÔNG TRÚNG HAY TIỀN THƯỞNG. KHÔNG DÙNG ĐỂ THANH TOÁN.');
+     const tableHost=document.getElementById('ownerTable');
+     tableHost.replaceChildren();
+     const rows=Array.isArray(src?.pricedRows)?src.pricedRows:[];
+     if(rows.length){
+       const table=document.createElement('table');
+       table.style.cssText='width:100%;border-collapse:collapse;font-size:17px;line-height:1.5';
+       const head=document.createElement('thead');
+       const hr=document.createElement('tr');
+       ['STT','LOẠI','NỘI DUNG','ĐÀI','ĐỐI CHIẾU'].forEach(label=>{
+         const th=document.createElement('th');th.textContent=label;
+         th.style.cssText='border:1px solid #999;padding:8px;text-align:left;font-weight:800';
+         hr.appendChild(th);
+       });
+       head.appendChild(hr);table.appendChild(head);
+       const body=document.createElement('tbody');
+       rows.forEach((row,i)=>{
+         const tr=document.createElement('tr');
+         const station=result.stationCoverage?.[i];
+         const diagnostic=[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported);
+         const state=row.hidden||row.nonWinning?'Dòng phụ':!station?.ready?'CHỜ KẾT QUẢ':!diagnostic?'CHƯA HỖ TRỢ':'Đã đối chiếu sơ bộ';
+         [String(i+1),String(row.type||''),(Array.isArray(row.numbers)?row.numbers.join('.'):''),String(row.scopeStation||row.station||''),state].forEach(value=>{
+           const td=document.createElement('td');td.textContent=value;
+           td.style.cssText='border:1px solid #999;padding:8px;vertical-align:top;font-weight:600';
+           tr.appendChild(td);
+         });body.appendChild(tr);
+       });
+       table.appendChild(body);tableHost.appendChild(table);tableHost.hidden=false;
+     }else tableHost.hidden=true;
      ownerMessage.textContent=lines.join('\n');
    } catch(e){ownerMessage.textContent=e.message;}
    finally{ownerCheck.disabled=false;}

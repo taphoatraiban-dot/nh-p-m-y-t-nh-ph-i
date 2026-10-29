@@ -23,7 +23,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div></section><section id="redeemBox" hidden><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ SỬ DỤNG</button><p id="redeemNote" class="muted">Chỉ chủ phiếu đã đăng nhập mới có quyền xác nhận. Hành động này không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -108,6 +108,39 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  }
  try{show(await call('check'));}
  catch(e){status.textContent='CHƯA XÁC THỰC ĐƯỢC';status.className='bad';details.textContent=e.message;return;}
+ // Read-only public diagnostics. Never report zero winnings for incomplete/unsupported draws.
+ try {
+   const result=await call('public-result');
+   const rows=Array.isArray(result.source?.pricedRows)?result.source.pricedRows:[];
+   const rates=result.source?.payoutRatesSnapshot;
+   const diagnostics=rows.map((row,i)=>[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported)||null);
+   const complete=rows.length>0&&rows.every((row,i)=>row?.hidden||row?.nonWinning||result.stationCoverage?.[i]?.ready===true&&diagnostics[i]&&
+     (Array.isArray(diagnostics[i].pairs)?diagnostics[i].pairs:diagnostics[i].matches)?.every(e=>Number.isSafeInteger(e.count??e.times)&& (e.count??e.times)>=0));
+   const msg=document.getElementById('publicDrawStatus'),host=document.getElementById('publicDrawTable');
+   if(!complete||!rates||typeof window.calculateQrPayout!=='function'){
+     msg.textContent='CHỜ KẾT QUẢ / CHƯA ĐỦ DỮ LIỆU. Không kết luận trúng hoặc không trúng.';
+   } else {
+     const preview=window.calculateQrPayout(rows,diagnostics,rates);
+     if(!preview?.ready)msg.textContent='CHƯA XÁC ĐỊNH TIỀN THƯỞNG: '+String(preview?.reason||'cần đối chiếu');
+     else {
+       msg.textContent='KẾT QUẢ TẠM TÍNH — chưa xác nhận thanh toán.';
+       const table=document.createElement('table');table.className='receipt-table';
+       const header=document.createElement('tr');
+       for(const name of ['SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;header.append(th)}
+       table.append(header);
+       rows.forEach((row,i)=>{
+         const line=preview.lines?.[i];if(row?.hidden||row?.nonWinning)return;
+         const tr=document.createElement('tr');
+         const count=diagnostics[i]?.pairs?.reduce((n,x)=>n+x.times,0)??diagnostics[i]?.matches?.reduce((n,x)=>n+x.count,0);
+         const amount=line?.payout;
+         for(const value of [(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
+         table.append(tr);
+       });
+       host.append(table);
+       const total=document.createElement('p');total.className='receipt-total';total.textContent='TỔNG THƯỞNG TẠM TÍNH: '+Math.round(preview.total*1000).toLocaleString('vi-VN')+' đ';host.append(total);
+     }
+   }
+ }catch(_){document.getElementById('publicDrawStatus').textContent='Chưa lấy được dữ liệu dò. Vui lòng tải lại trang.';}
  const ownerBox=document.getElementById('ownerBox');
  const ownerCheck=document.getElementById('ownerCheck');
  const ownerMessage=document.getElementById('ownerMessage');

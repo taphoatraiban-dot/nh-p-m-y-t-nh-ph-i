@@ -8572,9 +8572,18 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
      return '/verify.html?token='+encodeURIComponent(token);
    }catch(_){return null}
  }
+ function rememberQrVisit(url){
+   try{
+     const key='cuncun_qr_recent_v1';
+     const old=JSON.parse(localStorage.getItem(key)||'[]');
+     const items=Array.isArray(old)?old.filter(x=>x&&typeof x.url==='string'&&x.url!==url):[];
+     items.unshift({url,at:new Date().toISOString()});
+     localStorage.setItem(key,JSON.stringify(items.slice(0,20)));
+   }catch(_){}
+ }
  function showTicket(code){
    const verified=verifiedReceiptUrl(code);
-   if(verified){stop();location.assign(verified);return}
+   if(verified){rememberQrVisit(verified);stop();location.assign(verified);return}
    status.textContent='QR không phải mã xác thực Cuncun hợp lệ. Không mở phiếu từ dữ liệu cục bộ.';
    return;
  }

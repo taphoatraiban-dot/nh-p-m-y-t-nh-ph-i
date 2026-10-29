@@ -7938,7 +7938,16 @@ window.showHistoryItem=showHistoryItem;
         pricedRows:pricedRows.map(row=>({
           region:String(row.region||''),
           type:String(row.type||''),
-          gross:Number(row.gross)||0
+          gross:Number(row.gross)||0,
+          points:Number(row.points)||0,
+          numbers:Array.isArray(row.numbers)?row.numbers.map(String):[],
+          station:String(row.station||''),
+          scopeStation:String(row.scopeStation||''),
+          cross2:!!row.cross2,
+          crossProvinces:Array.isArray(row.crossProvinces)?row.crossProvinces.map(String):[],
+          daMode:String(row.daMode||''),
+          hidden:!!row.hidden,
+          nonWinning:!!row.nonWinning
         })),
         totalGross:Number(sm.totalGross)||0,
         finalTotal:balance,

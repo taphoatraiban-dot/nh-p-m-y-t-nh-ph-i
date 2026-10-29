@@ -729,8 +729,9 @@ body.app-unlocked #publicCover,body.app-unlocked #publicAuthTab{display:none!imp
 /* Chỉ đổi cách trình bày; không xoá các chức năng. */
 #betsCard .phoi-input-wrap #bets{padding-bottom:12px!important}
 #betsCard .phoi-corner-btn{position:static!important;bottom:auto!important;left:auto!important;right:auto!important;min-width:0!important;width:100%!important;height:48px!important;margin:0!important;font-size:15px!important;box-shadow:none!important}
-#betsCard #ttMainActions{display:grid!important;grid-template-columns:1fr 1.4fr 1fr!important;gap:8px!important;align-items:stretch!important;margin:10px 0 3px!important}
+#betsCard #ttMainActions{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)!important;gap:8px!important;align-items:stretch!important;margin:10px 0 3px!important}
 #betsCard #ttMainActions #okAll{width:100%!important;min-width:0!important;margin:0!important;height:48px!important;padding:8px!important;border-radius:11px!important}
+#betsCard #ttMainActions #okAll{position:static!important;left:auto!important;right:auto!important;transform:none!important;max-width:none!important;box-sizing:border-box!important}
 #liveSoiBar,#finalThreeActions,.phoi-quick-actions,#qrScanBtn,#printPhoiPOS,#openPrintHistory,#tshRetryDraw{display:none!important}
 #betsCard .source-box{display:none!important}
 #out .tt-auto-result-note,#out .tt-retry-result{display:none!important}

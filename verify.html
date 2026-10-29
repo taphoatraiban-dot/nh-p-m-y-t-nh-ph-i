@@ -114,7 +114,22 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const rows=Array.isArray(result.source?.pricedRows)?result.source.pricedRows:[];
    const rates=result.source?.payoutRatesSnapshot;
    const diagnostics=rows.map((row,i)=>[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported)||null);
-   const complete=rows.length>0&&rows.every((row,i)=>row?.hidden||row?.nonWinning||result.stationCoverage?.[i]?.ready===true&&diagnostics[i]&&
+   // Fail closed when diagnostic station differs from the wager's own station.
+   const stationKey=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase().replace(/[^a-z0-9]/g,'');
+   const stationAlias={tn:'tayninh',ag:'angiang',bt:'binhthuan'};
+   const sameStation=(a,b)=>{const x=stationKey(a),y=stationKey(b);return !!x&&!!y&&(stationAlias[x]||x)===(stationAlias[y]||y)};
+   const stationVerified=(row,i)=>{
+     const coverage=result.stationCoverage?.[i];
+     if(!coverage?.ready||!Array.isArray(coverage.stations)||coverage.stations.length!==1)return false;
+     const expected=row?.scopeStation||row?.station;
+     const matched=coverage.stations[0]?.matched;
+     if(!sameStation(expected,matched))return false;
+     const entries=diagnostics[i]?.matches;
+     return Array.isArray(entries)&&entries.every(entry=>sameStation(entry.station,matched));
+   };
+   // A mismatch is unknown, never zero and never a payable hit.
+   for(let i=0;i<rows.length;i++)if(!rows[i]?.hidden&&!rows[i]?.nonWinning&&!stationVerified(rows[i],i))diagnostics[i]=null;
+   const complete=rows.length>0&&rows.every((row,i)=>row?.hidden||row?.nonWinning||stationVerified(row,i)&&diagnostics[i]&&
      (Array.isArray(diagnostics[i].pairs)?diagnostics[i].pairs:diagnostics[i].matches)?.every(e=>Number.isSafeInteger(e.count??e.times)&& (e.count??e.times)>=0));
    const msg=document.getElementById('publicDrawStatus'),host=document.getElementById('publicDrawTable');
    if(!complete){
@@ -137,7 +152,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        msg.textContent='KẾT QUẢ TẠM TÍNH — chưa xác nhận thanh toán.';
        const table=document.createElement('table');table.className='receipt-table';
        const header=document.createElement('tr');
-       for(const name of ['SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;header.append(th)}
+       for(const name of ['ĐÀI','SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;header.append(th)}
        table.append(header);
        rows.forEach((row,i)=>{
          const line=preview.lines?.find(x=>x.index===i);if(row?.hidden||row?.nonWinning)return;

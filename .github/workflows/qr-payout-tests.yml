@@ -1,0 +1,26 @@
+name: QR payout regression tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'qr-payout-preview.mjs'
+      - 'tests/qr-payout-preview.test.mjs'
+      - '.github/workflows/qr-payout-tests.yml'
+  pull_request:
+    paths:
+      - 'qr-payout-preview.mjs'
+      - 'tests/qr-payout-preview.test.mjs'
+      - '.github/workflows/qr-payout-tests.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: QR payout regression
+        run: node --test tests/qr-payout-preview.test.mjs

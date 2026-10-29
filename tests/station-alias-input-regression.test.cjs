@@ -16,3 +16,15 @@ test('bare number 77 must not become a paid wager',()=>{
   const result=parse('ct\n77\nstrang\n78b5.','2026-10-28');
   assert.ok(result.errors.length>0 || !result.rows.some(r=>(r.numbers||[]).includes('77')));
 });
+
+test('Wednesday 28 October 2026 is valid for Soc Trang, Thursday is not',()=>{
+  const wed=parse('st\n76dd10.','2026-10-28');
+  assert.deepEqual(wed.errors,[]);
+  const thu=parse('st\n76dd10.','2026-10-29');
+  assert.ok(thu.errors.some(e=>/lịch|T4|T5/i.test(String(e))));
+});
+test('attached Soc Trang and Can Tho headers keep wagers on Wednesday',()=>{
+  const r=parse('Soc Trang.58 dau30\n59 dau30\nCt20dd20','2026-10-28');
+  assert.deepEqual(r.errors,[]);
+  assert.ok(r.rows.length>=3);
+});

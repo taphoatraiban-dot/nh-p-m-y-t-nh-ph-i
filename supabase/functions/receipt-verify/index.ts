@@ -26,7 +26,24 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const action = String(body?.action || "");
-    if (!["issue", "check", "redeem", "owner-access", "owner-result", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    if (action === "owner-history") {
+      const user = await actor(req);
+      if (!user) return respond({ error: "unauthorized" }, 401);
+      const { data, error } = await db.from("receipt_verifications")
+        .select("receipt_code,status,issued_at,redeemed_at,receipt_snapshot")
+        .eq("owner_user_id", user.id).eq("status", "redeemed")
+        .order("redeemed_at", { ascending: false }).limit(100);
+      if (error) return respond({ error: "history_failed" }, 500);
+      return respond({ receipts: (data || []).map((row: any) => ({
+        code: row.receipt_code,
+        customer: String(row.receipt_snapshot?.customer || "").slice(0,100),
+        drawDate: String(row.receipt_snapshot?.date || "").slice(0,20),
+        redeemedAt: row.redeemed_at,
+        // Historical redemptions did not store a settled amount.
+        payoutAmount: null
+      })) });
+    }
     if (action === "issue") {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);

@@ -12686,7 +12686,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   var slot=document.getElementById('quickDateSlot'),src=document.getElementById('date');
   if(!slot||!src)return;
   if(!slot.querySelector('.cc-date-input')){
-   slot.replaceChildren();
+   // Preserve the canonical #date input; replacing children removed it and broke calculations.
+   Array.from(slot.children).forEach(function(el){if(el!==src)el.remove()});
+   if(src.parentElement!==slot)slot.appendChild(src);
    var label=document.createElement('span');label.className='cc-date-text';
    var picker=document.createElement('input');picker.type='date';picker.className='cc-date-input';picker.setAttribute('aria-label','Chọn ngày');
    slot.append(label,picker);

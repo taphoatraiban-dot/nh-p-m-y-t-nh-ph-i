@@ -7937,6 +7937,7 @@ window.showHistoryItem=showHistoryItem;
       verificationSource:{
         rawText,
         calculatedAt:now.toISOString(),
+        customerPriceKey:customer,
         pricedRows:pricedRows.map(row=>({
           region:String(row.region||''),
           type:String(row.type||''),

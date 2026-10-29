@@ -37,7 +37,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const receipt=data.receipt_snapshot;
    snapshotBox.hidden=!receipt;
    if(receipt){const lines=['Ngày: '+String(receipt.date||''),'Khách: '+String(receipt.customer||''),''];
-     (Array.isArray(receipt.items)?receipt.items:[]).forEach((item,i)=>{lines.push('Dòng '+(i+1)+': '+(typeof item==='string'?item:JSON.stringify(item)));});
+     (Array.isArray(receipt.items)?receipt.items:[]).forEach((item,i)=>{if(typeof item==='string'){lines.push('Dòng '+(i+1)+': '+item);return;}if(!item||typeof item!=='object')return;lines.push('Dòng '+(i+1)+': '+[item.region,item.type,item.content].filter(Boolean).join(' | ')+(item.amount?' — Tiền thu: '+item.amount:''));});
      lines.push('','Tổng tiền: '+String(receipt.total||''));snapshotEl.textContent=lines.join('\n');
    }
  }

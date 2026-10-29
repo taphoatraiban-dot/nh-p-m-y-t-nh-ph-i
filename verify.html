@@ -143,8 +143,14 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
          lines.push((i+1)+'. '+String(row.type||station.type||'')+' '+(Array.isArray(row.numbers)?row.numbers.join('.'):''),station.ready?'   Đủ kết quả đài':'   Thiếu kết quả đài');
          const da=result.daDiagnostics?.[i], sp=result.specialDiagnostics?.[i], bl=result.matchDiagnostics?.[i];
          const diagnostic=da?.supported?da:sp?.supported?sp:bl?.supported?bl:null;
-         if(!diagnostic)lines.push('   Loại cược chưa được hỗ trợ đối chiếu đầy đủ');
-         if(diagnostic&&station.ready){
+         if(row.hidden===true||row.nonWinning===true){
+           lines.push('   Dòng hiển thị/phụ trợ: không tính thưởng độc lập');
+         }else if(!station.ready){
+           lines.push('   Chưa thể kết luận: thiếu kết quả giải hoặc đài');
+         }else if(!diagnostic){
+           lines.push('   Chưa hỗ trợ đối chiếu đầy đủ: KHÔNG kết luận không trúng');
+         }
+         if(diagnostic&&station.ready&&!row.hidden&&!row.nonWinning){
            if(Array.isArray(diagnostic.pairs))lines.push('   Cặp khớp: '+(diagnostic.pairs.length?diagnostic.pairs.map(p=>p.a+'-'+p.b+' ('+p.times+' lần)').join(', '):'Không có'));
            if(Array.isArray(diagnostic.matches))lines.push('   Số khớp: '+(diagnostic.matches.filter(m=>Number(m.count)>0).map(m=>m.number+' ('+m.count+' lần)').join(', ')||'Không có'));
          }
@@ -156,7 +162,15 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
          lines.push(String(c.region||'')+': '+(Array.isArray(c.stations)?c.stations.filter(st=>st.complete).length+'/'+c.stations.length+' đài đủ giải':'Chưa xác định'));
        });
      }
-     lines.push('','Chưa xác nhận trúng hoặc số tiền thưởng. Không dùng để thanh toán.');
+     const activeRows=Array.isArray(src?.pricedRows)?src.pricedRows.filter(r=>!r.hidden&&!r.nonWinning):[];
+     const stationRows=Array.isArray(result.stationCoverage)?result.stationCoverage:[];
+     const missingStations=stationRows.some((st,i)=>!src?.pricedRows?.[i]?.hidden&&!src?.pricedRows?.[i]?.nonWinning&&!st?.ready);
+     const unsupported=activeRows.some(row=>{
+       const i=src.pricedRows.indexOf(row);
+       return !(result.daDiagnostics?.[i]?.supported||result.specialDiagnostics?.[i]?.supported||result.matchDiagnostics?.[i]?.supported);
+     });
+     lines.push('','TÌNH TRẠNG PHIẾU: '+(missingStations?'CHỜ KẾT QUẢ ĐÀI':unsupported?'CÓ LOẠI CƯỢC CHƯA HỖ TRỢ':'ĐÃ CÓ DỮ LIỆU ĐỐI CHIẾU SƠ BỘ'));
+     lines.push('CHƯA XÁC NHẬN TRÚNG/KHÔNG TRÚNG HAY TIỀN THƯỞNG. KHÔNG DÙNG ĐỂ THANH TOÁN.');
      ownerMessage.textContent=lines.join('\n');
    } catch(e){ownerMessage.textContent=e.message;}
    finally{ownerCheck.disabled=false;}

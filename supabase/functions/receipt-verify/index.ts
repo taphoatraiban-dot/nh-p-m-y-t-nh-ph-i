@@ -126,7 +126,10 @@ Deno.serve(async (req) => {
       };
       const stationCoverage = (Array.isArray(source.pricedRows) ? source.pricedRows : []).map((row: any) => {
         const region = row?.region === "N" ? "MN" : row?.region === "T" ? "MT" : "MB";
-        const names = Array.isArray(row?.crossProvinces) && row.crossProvinces.length
+        // Ordinary rows are scoped to their own station. Only cross-station DA may use both stations.
+        const isCrossDa = String(row?.type || "").toUpperCase() === "DA" &&
+          (row?.cross2 === true || row?.daMode === "cross");
+        const names = isCrossDa && Array.isArray(row?.crossProvinces) && row.crossProvinces.length === 2
           ? row.crossProvinces : [row?.scopeStation || row?.station];
         const matches = names.map((name: unknown) => {
           const normalized = normalizeStation(name);

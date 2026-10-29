@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const action = String(body?.action || "");
-    if (!["issue", "check", "redeem", "owner-access", "owner-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    if (!["issue", "check", "redeem", "owner-access", "owner-result", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
     if (action === "issue") {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);
@@ -65,12 +65,14 @@ Deno.serve(async (req) => {
         receipt: { date: safeText(original.date), time: safeText(original.time), items,
           total: safeText(original.total), totalLabel: safeText(original.totalLabel) } });
     }
-    const user = await actor(req);
-    if (!user) return respond({ error: "unauthorized" }, 401);
-    if (action === "owner-access" || action === "owner-result") {
-      const { data: owned, error: ownedError } = await db.from("receipt_verifications")
-        .select("receipt_code,status,receipt_snapshot")
-        .eq("token_hash", token_hash).eq("owner_user_id", user.id).maybeSingle();
+    const publicResult = action === "public-result";
+    const user = publicResult ? null : await actor(req);
+    if (!publicResult && !user) return respond({ error: "unauthorized" }, 401);
+    if (action === "owner-access" || action === "owner-result" || publicResult) {
+      let lookup = db.from("receipt_verifications")
+        .select("receipt_code,status,receipt_snapshot").eq("token_hash", token_hash);
+      if (!publicResult) lookup = lookup.eq("owner_user_id", user!.id);
+      const { data: owned, error: ownedError } = await lookup.maybeSingle();
       if (ownedError) return respond({ error: "lookup_failed" }, 500);
       if (!owned) return respond({ error: "forbidden" }, 403);
       if (action === "owner-access") return respond({ allowed: true });
@@ -234,8 +236,9 @@ Deno.serve(async (req) => {
         }
         return { index, supported: true, diagnosticOnly: true, cross, stations: perStation, pairs };
       });
-      return respond({ allowed: true, ready: false,
-        source: { rawText: source.rawText, totalGross: source.totalGross, finalTotal: source.finalTotal, pricedRows: source.pricedRows, drawDate: date, payoutRatesSnapshot: source.payoutRatesSnapshot, payoutRatesSnapshotVersion: source.payoutRatesSnapshotVersion },
+      return respond({ allowed: !publicResult, ready: false,
+        source: publicResult ? { pricedRows: source.pricedRows, drawDate: date, payoutRatesSnapshot: source.payoutRatesSnapshot } :
+          { rawText: source.rawText, totalGross: source.totalGross, finalTotal: source.finalTotal, pricedRows: source.pricedRows, drawDate: date, payoutRatesSnapshot: source.payoutRatesSnapshot, payoutRatesSnapshotVersion: source.payoutRatesSnapshotVersion },
         drawDate: date,
         resultSources: (draws || []).map(d => ({ region: d.region, source: d.source })),
         resultCoverage: coverage,

@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       const payoutKeys = ["b2", "b3", "b4", "xc", "dd", "da2", "dathang", "daMB"];
       if (!verification || !String(verification.customerPriceKey || "").trim()
           || !Array.isArray(verification.pricedRows) || !verification.pricedRows.length
-          || !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(verification.drawDate || ""))
+          || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(verification.drawDate || ""))
           || !verification.payoutRatesSnapshot
           || !payoutKeys.every(key => Number.isFinite(Number(verification.payoutRatesSnapshot[key]))
               && Number(verification.payoutRatesSnapshot[key]) > 0)) {

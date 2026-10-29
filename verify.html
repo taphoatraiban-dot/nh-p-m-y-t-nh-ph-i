@@ -132,6 +132,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const complete=rows.length>0&&rows.every((row,i)=>row?.hidden||row?.nonWinning||stationVerified(row,i)&&diagnostics[i]&&
      (Array.isArray(diagnostics[i].pairs)?diagnostics[i].pairs:diagnostics[i].matches)?.every(e=>Number.isSafeInteger(e.count??e.times)&& (e.count??e.times)>=0));
    const msg=document.getElementById('publicDrawStatus'),host=document.getElementById('publicDrawTable');
+   host.replaceChildren();
    if(!complete){
      msg.textContent='CHỜ KẾT QUẢ / CHƯA ĐỦ DỮ LIỆU. Không kết luận trúng hoặc không trúng.';
    } else if(!rates||typeof window.calculateQrPayout!=='function'){
@@ -141,9 +142,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      for(const name of ['ĐÀI','SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;head.append(th)}table.append(head);
      rows.forEach((row,i)=>{if(row?.hidden||row?.nonWinning)return;
        const d=diagnostics[i],entries=Array.isArray(d?.pairs)?d.pairs:d?.matches;
-       const count=entries.reduce((sum,x)=>sum+(x.count??x.times),0);
+       const count=Array.isArray(entries)?entries.reduce((sum,x)=>sum+(x.count??x.times),0):null;
        const tr=document.createElement('tr');
-       for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
+       for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count??'CHỜ KẾT QUẢ'),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
      });host.append(table);
    } else {
      const preview=window.calculateQrPayout(rows,diagnostics,rates);

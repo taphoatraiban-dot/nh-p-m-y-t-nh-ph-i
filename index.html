@@ -4512,7 +4512,7 @@ function renderCalc(){
    // MB/HN theo mẫu chuẩn: Tiền xác × Giá nhận, không nhân Hồi.
    // THU/BÙ chuẩn: trừ tiền trúng trước, sau đó mới áp dụng Hồi khi thu.
    const raw=(g*Number(c.receive||0)-w)*(Number(c.repay)||1);
-   thuBy[d.row.region]+=Math.round(raw);
+   thuBy[d.row.region]+=(raw>0?Math.ceil(raw-1e-9):Math.round(raw));
  }
  for(const [r,n] of [["N","🄽 MIỀN NAM"],["T","🅃 MIỀN TRUNG"],["B","🅱 MIỀN BẮC"]]){
    if(!grossBy[r]&&!winBy[r]) continue;
@@ -5937,7 +5937,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   }
   for(const r of ['N','T','B']){
     const raw=preRepay[r]>0 ? preRepay[r]*(repay||1) : preRepay[r];
-    thuBy[r]=Math.round(raw);
+    thuBy[r]=raw>0?Math.ceil(raw-1e-9):Math.round(raw);
   }
 
 

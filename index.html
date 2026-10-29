@@ -10673,6 +10673,32 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else init();
 })();
 </script>
+<script id="cuncun-price-menu-restore-20261029">
+(function(){
+ function restore(){
+  const drawer=document.getElementById('appDrawer');
+  const section=drawer?.querySelector('.drawer-section.calc-menu');
+  const list=document.getElementById('drawerPriceList');
+  const add=document.getElementById('addPriceDrawer');
+  if(!section||!list||!add)return;
+  const body=section.querySelector('.drawer-body');
+  if(body&&list.parentElement!==body)body.insertBefore(list,body.firstChild);
+  const details=document.getElementById('tshPriceManage');
+  if(details){details.open=true;details.appendChild(list);}
+  if(body)body.style.display='block';
+  section.classList.add('open','active');
+  add.style.display='inline-flex';
+  add.style.visibility='visible';
+  add.style.opacity='1';
+  add.style.pointerEvents='auto';
+  list.style.display='grid';
+  list.style.visibility='visible';
+  const header=section.querySelector('h3');
+  if(header)header.style.display='flex';
+ }
+ document.addEventListener('DOMContentLoaded',()=>{restore();setTimeout(restore,500);});
+})();
+</script>
 </body>
 
 <style id="v81-style">

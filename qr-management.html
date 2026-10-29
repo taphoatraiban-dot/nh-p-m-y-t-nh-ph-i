@@ -75,6 +75,46 @@ async function showDetail(code){
   }
   const total=document.createElement('h3');total.textContent='TỔNG BÙ: '+safe(snap.total||'—');content.appendChild(total);
   const note=document.createElement('p');note.className='muted';note.textContent='Đây là nội dung gốc đã lưu. Xem chi tiết không tự xác nhận trả thưởng.';content.appendChild(note);
+  const actions=document.createElement('div');actions.style.marginTop='16px';
+  const resultBtn=document.createElement('button');resultBtn.textContent='DÒ THỦ CÔNG';actions.appendChild(resultBtn);
+  const resultBox=document.createElement('div');actions.appendChild(resultBox);
+  resultBtn.onclick=async()=>{
+    resultBtn.disabled=true;resultBox.textContent='Đang kiểm tra kết quả theo ngày quay…';
+    try{
+      const data=await api('owner-code-result',0,{code});
+      resultBox.replaceChildren();
+      const p=document.createElement('p');p.textContent=data.message||('Ngày quay: '+safe(data.drawDate)+' · '+(data.ready?'Có dữ liệu đối chiếu':'Chưa đủ dữ liệu để kết luận'));resultBox.appendChild(p);
+      const rows=data.matchDiagnostics||[];
+      if(rows.length){
+       const pre=document.createElement('pre');pre.textContent=JSON.stringify(rows,null,2);resultBox.appendChild(pre);
+      }
+      if(data.ready===false){const warn=document.createElement('p');warn.textContent='Chưa đủ điều kiện xác nhận tiền thưởng tự động. Hãy đối chiếu thủ công trước khi trả.';resultBox.appendChild(warn)}
+    }catch(e){resultBox.textContent='Không dò được: '+e.message}
+    finally{resultBtn.disabled=false}
+  };
+  if(receipt.status==='active'){
+    const label=document.createElement('label');label.textContent='Số tiền thực tế đã trả (VNĐ)';label.style.display='block';actions.appendChild(label);
+    const amount=document.createElement('input');amount.type='number';amount.min='0';amount.max='1000000000000';amount.step='1';amount.placeholder='Nhập số tiền thực trả';amount.style.width='100%';actions.appendChild(amount);
+    const paid=document.createElement('button');paid.textContent='XÁC NHẬN ĐÃ TRẢ THƯỞNG';actions.appendChild(paid);
+    const paidStatus=document.createElement('p');actions.appendChild(paidStatus);
+    paid.onclick=async()=>{
+      const n=Number(amount.value);
+      if(!amount.value.trim()||!Number.isSafeInteger(n)||n<0||n>1000000000000){paidStatus.textContent='Nhập số tiền VNĐ hợp lệ trước khi xác nhận.';return}
+      if(!confirm('Xác nhận đã THỰC SỰ trả '+money(n)+' cho phiếu '+code+'? Không thể hoàn tác.'))return;
+      const typed=prompt('Nhập DA TRA THUONG để xác nhận thanh toán:');
+      if(typed!=='DA TRA THUONG')return;
+      paid.disabled=true;
+      try{
+       await api('owner-code-redeem',0,{code,paidAmountVnd:n,confirmation:typed});
+       paidStatus.textContent='ĐÃ TRẢ THƯỞNG: '+money(n)+' — Đã lưu và khóa xác nhận trùng.';
+       paid.remove();amount.disabled=true;
+       openRows=openRows.filter(r=>r.code!==code);selectedCodes.delete(code);renderOpen();
+      }catch(e){paidStatus.textContent='Không lưu được: '+e.message;paid.disabled=false}
+    };
+  }else{
+    const paid=document.createElement('p');paid.textContent='ĐÃ TRẢ THƯỞNG'+(receipt.paidAmount!=null?' · '+money(receipt.paidAmount):'');actions.appendChild(paid);
+  }
+  content.appendChild(actions);
  }catch(e){$('detailContent').textContent='Không mở được phiếu: '+e.message}
 }
 $('detailClose').onclick=()=>{$('detailPanel').hidden=true};

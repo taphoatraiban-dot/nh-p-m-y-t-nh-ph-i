@@ -230,6 +230,15 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  let historyHasMore=false;
  historyNextBtn.addEventListener('click',()=>loadOwnerHistory(true));
  let historyVisibleRecords=[];
+ const vietnamDate=timestamp=>{
+   if(!timestamp)return '';
+   const d=new Date(timestamp);
+   if(Number.isNaN(d.getTime()))return '';
+   const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{
+     timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'
+   }).formatToParts(d).map(part=>[part.type,part.value]));
+   return parts.year+'-'+parts.month+'-'+parts.day;
+ };
  const normalizeHistoryName=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  historyCsvBtn.addEventListener('click',()=>{
    if(!historyVisibleRecords.length)return;
@@ -253,6 +262,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    try{
      const jwt=await ownerJwt();
      if(!jwt)throw Error('Cần đăng nhập tài khoản chủ phiếu.');
+     const fromInput=document.getElementById('historyFromFilter').value;
+     const toInput=document.getElementById('historyToFilter').value;
+     if(fromInput&&toInput&&fromInput>toInput)throw Error('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
      const response=await call('owner-history',jwt,{page:historyNextPage});
      historyAllRecords.push(...(Array.isArray(response.receipts)?response.receipts:[]));
      historyNextPage++;
@@ -265,7 +277,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const to=document.getElementById('historyToFilter').value;
      if(from&&to&&from>to)throw Error('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
      const records=allRecords.filter(rec=>{
-       const date=rec.redeemedAt?new Date(rec.redeemedAt).toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}):'';
+       const date=vietnamDate(rec.redeemedAt);
        return (!nameFilter||normalizeHistoryName(rec.customer).includes(nameFilter))&&(!from||date>=from)&&(!to||date<=to);
      });
      historyVisibleRecords=records;
@@ -290,7 +302,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const groups=new Map();
      valid.forEach(rec=>{
        const customer=String(rec.customer||'Chưa lưu').trim()||'Chưa lưu';
-       const date=rec.redeemedAt?new Date(rec.redeemedAt).toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}):'Không rõ ngày';
+       const date=vietnamDate(rec.redeemedAt)||'Không rõ ngày';
        for(const [kind,key] of [['Khách',customer],['Ngày xác nhận',date]]){
          const id=kind+'|'+key;
          const previous=groups.get(id)||{kind,key,count:0,total:0};

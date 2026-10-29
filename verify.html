@@ -142,6 +142,20 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const entries=Array.isArray(diagnostics[i]?.pairs)?diagnostics[i].pairs:diagnostics[i]?.matches;
      return Array.isArray(entries)&&entries.every(entry=>!entry.station||expected.some(name=>sameStation(name,entry.station)));
    };
+   // Display the winning station only when the verified diagnostics identify it.
+   // Keep the original multi-station scope for zero hits and cross-station DA.
+   const displayStation=(row,i)=>{
+     const original=String(row.scopeStation||row.station||'—');
+     const d=diagnostics[i];
+     if(String(row.type||'').toUpperCase()==='DA')return original;
+     const matches=Array.isArray(d?.matches)?d.matches:[];
+     const winning=matches.filter(x=>Number(x.count)>0&&typeof x.station==='string'&&x.station);
+     const stations=[...new Set(winning.map(x=>x.station))];
+     if(!stations.length)return original;
+     const allowed=result.stationCoverage?.[i]?.stations||[];
+     if(!stations.every(name=>allowed.some(s=>sameStation(s.matched,name))))return original;
+     return stations.join(' + ');
+   };
    // A mismatch is unknown, never zero and never a payable hit.
    for(let i=0;i<rows.length;i++)if(!rows[i]?.hidden&&!rows[i]?.nonWinning&&!stationVerified(rows[i],i))diagnostics[i]=null;
    const complete=rows.length>0&&rows.every((row,i)=>row?.hidden||row?.nonWinning||stationVerified(row,i)&&diagnostics[i]&&
@@ -168,7 +182,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        const count=Array.isArray(entries)?entries.reduce((sum,x)=>sum+(x.count??x.times),0):null;
        const tr=document.createElement('tr');
        if(Number(count)>0)tr.classList.add('payout-hit');
-       for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(row.points??'—'),String(count??'CHỜ KẾT QUẢ'),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
+       for(const value of [displayStation(row,i),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(row.points??'—'),String(count??'CHỜ KẾT QUẢ'),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
      });host.append(table);
    } else {
      const preview=window.calculateQrPayout(rows,diagnostics,rates);
@@ -185,7 +199,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
          const count=diagnostics[i]?.pairs?.reduce((n,x)=>n+x.times,0)??diagnostics[i]?.matches?.reduce((n,x)=>n+x.count,0);
          const amount=line?.amount;
          if(Number(count)>0)tr.classList.add('payout-hit');
-         for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(row.points??'—'),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
+         for(const value of [displayStation(row,i),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(row.points??'—'),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
          table.append(tr);
        });
        host.append(table);

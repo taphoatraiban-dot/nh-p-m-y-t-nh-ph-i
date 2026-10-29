@@ -8559,7 +8559,22 @@ padding:12px 15px;font-weight:900;background:#0f172a;color:#fff;box-shadow:0 6px
    }
    return null;
  }
+ function verifiedReceiptUrl(raw){
+   try {
+     const url=new URL(String(raw||'').trim(),location.origin);
+     if(url.origin!==location.origin || url.pathname!=='/verify.html')return null;
+     const token=url.searchParams.get('token')||'';
+     if(!/^[a-f0-9]{64}$/.test(token))return null;
+     return '/verify.html?token='+encodeURIComponent(token);
+   }catch(_){return null}
+ }
  function showTicket(code){
+   const verified=verifiedReceiptUrl(code);
+   if(verified){stop();location.assign(verified);return}
+   status.textContent='QR không phải mã xác thực Cuncun hợp lệ. Không mở phiếu từ dữ liệu cục bộ.';
+   return;
+ }
+ function legacyShowTicket(code){
    const x=findTicket(code);
    stop();
    if(!x){ alert('Không tìm thấy phiếu: '+ticketCode(code)); return; }

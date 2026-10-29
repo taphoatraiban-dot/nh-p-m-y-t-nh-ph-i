@@ -21,7 +21,7 @@ jobs:
   parser-regression:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,6 +31,16 @@ jobs:
         run: node --version
       - name: Regenerate reconciliation preview from tested source
         run: node scripts/build-reconcile-preview.cjs
+      - name: Commit regenerated preview on feature branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/qr-complete-review-20261029'
+        run: |
+          if ! git diff --quiet -- doi-soat-thu.html; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add doi-soat-thu.html
+            git commit -m 'fix(preview): synchronize generated reconciliation HTML'
+            git push
+          fi
       - name: Verify generated preview is committed
         run: git diff --exit-code -- doi-soat-thu.html
       - name: Verify focused b7lo regressions

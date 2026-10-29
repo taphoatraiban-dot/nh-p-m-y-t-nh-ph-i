@@ -123,12 +123,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      msg.textContent='ĐÃ CÓ KẾT QUẢ DÒ SỐ. Thiếu bảng giá gốc nên chưa xác định tiền thưởng.';
      const table=document.createElement('table');table.className='receipt-table';
      const head=document.createElement('tr');
-     for(const name of ['SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;head.append(th)}table.append(head);
+     for(const name of ['ĐÀI','SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;head.append(th)}table.append(head);
      rows.forEach((row,i)=>{if(row?.hidden||row?.nonWinning)return;
        const d=diagnostics[i],entries=Array.isArray(d?.pairs)?d.pairs:d?.matches;
        const count=entries.reduce((sum,x)=>sum+(x.count??x.times),0);
        const tr=document.createElement('tr');
-       for(const value of [(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
+       for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count),'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}table.append(tr);
      });host.append(table);
    } else {
      const preview=window.calculateQrPayout(rows,diagnostics,rates);
@@ -144,7 +144,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
          const tr=document.createElement('tr');
          const count=diagnostics[i]?.pairs?.reduce((n,x)=>n+x.times,0)??diagnostics[i]?.matches?.reduce((n,x)=>n+x.count,0);
          const amount=line?.amount;
-         for(const value of [(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
+         for(const value of [String(row.scopeStation||row.station||'—'),(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
          table.append(tr);
        });
        host.append(table);

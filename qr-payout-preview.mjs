@@ -10,6 +10,7 @@ export function calculateQrPayout(rows, diagnostics, rates) {
     const row=rows[i]||{};
     if(row.hidden||row.nonWinning){lines.push({index:i,skipped:true,amount:0});continue;}
     const type=String(row.type||'').toUpperCase();
+    if(!Array.isArray(row.numbers)||row.numbers.length===0)return {ready:false,reason:'missing_numbers',index:i,lines};
     const points=Number(row.points);
     if(!Number.isFinite(points)||points<=0)return {ready:false,reason:'invalid_points',index:i,lines};
     let key;

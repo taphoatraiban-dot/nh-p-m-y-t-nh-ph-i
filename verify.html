@@ -129,10 +129,10 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        for(const name of ['SỐ / LOẠI','SỐ LẦN TRÚNG','TIỀN TRÚNG']){const th=document.createElement('th');th.textContent=name;header.append(th)}
        table.append(header);
        rows.forEach((row,i)=>{
-         const line=preview.lines?.[i];if(row?.hidden||row?.nonWinning)return;
+         const line=preview.lines?.find(x=>x.index===i);if(row?.hidden||row?.nonWinning)return;
          const tr=document.createElement('tr');
          const count=diagnostics[i]?.pairs?.reduce((n,x)=>n+x.times,0)??diagnostics[i]?.matches?.reduce((n,x)=>n+x.count,0);
-         const amount=line?.payout;
+         const amount=line?.amount;
          for(const value of [(Array.isArray(row.numbers)?row.numbers.join('.'):String(row.number||''))+' / '+String(row.type||''),String(count??'—'),Number.isFinite(amount)?Math.round(amount*1000).toLocaleString('vi-VN')+' đ':'CHƯA XÁC ĐỊNH']){const td=document.createElement('td');td.textContent=value;tr.append(td)}
          table.append(tr);
        });

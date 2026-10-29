@@ -34,7 +34,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>LỊCH SỬ TRẢ THƯỞNG</h2><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><label for="paidAmountVnd" style="display:block;font-weight:750;margin-bottom:8px">SỐ TIỀN ĐÃ TRẢ THỰC TẾ (đ)</label><input id="paidAmountVnd" type="number" min="0" max="1000000000000" step="1" inputmode="numeric" placeholder="Nhập số tiền thực trả, ví dụ 1480000" style="box-sizing:border-box;width:100%;padding:14px;font-size:19px;margin-bottom:12px;border:1px solid #aaa;border-radius:8px" /><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>LỊCH SỬ TRẢ THƯỞNG</h2><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><label for="paidAmountVnd" style="display:block;font-weight:750;margin-bottom:8px">SỐ TIỀN ĐÃ TRẢ THỰC TẾ (đ)</label><p id="paidAmountSuggestion" class="muted">Bấm DÒ KẾT QUẢ ở phần chủ phiếu để xem số tiền gợi ý. Bạn cần kiểm tra và xác nhận số thực trả.</p><button id="applySuggestedAmount" type="button" hidden style="margin-bottom:12px;background:#44546a">ĐIỀN TIỀN THƯỞNG GỢI Ý</button><input id="paidAmountVnd" type="number" min="0" max="1000000000000" step="1" inputmode="numeric" placeholder="Nhập số tiền thực trả, ví dụ 1480000" style="box-sizing:border-box;width:100%;padding:14px;font-size:19px;margin-bottom:12px;border:1px solid #aaa;border-radius:8px" /><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -210,6 +210,16 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  const ownerBox=document.getElementById('ownerBox');
  const ownerCheck=document.getElementById('ownerCheck');
  const ownerMessage=document.getElementById('ownerMessage');
+ const suggestedAmountLabel=document.getElementById('paidAmountSuggestion');
+ const suggestedAmountBtn=document.getElementById('applySuggestedAmount');
+ const paidAmountInput=document.getElementById('paidAmountVnd');
+ let suggestedAmountVnd=null;
+ suggestedAmountBtn.addEventListener('click',()=>{
+   if(!Number.isSafeInteger(suggestedAmountVnd))return;
+   paidAmountInput.value=String(suggestedAmountVnd);
+   paidAmountInput.focus();
+ });
+
  const historyBtn=document.getElementById('ownerHistoryBtn');
  const historyStatus=document.getElementById('ownerHistoryStatus');
  const historyTable=document.getElementById('ownerHistoryTable');
@@ -258,6 +268,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  ownerCheck.addEventListener('click',async()=>{
    ownerCheck.disabled=true;
    ownerMessage.textContent='Đang kiểm tra...';
+   suggestedAmountVnd=null;
+   suggestedAmountBtn.hidden=true;
+   suggestedAmountLabel.textContent='Chưa có số tiền gợi ý được đối chiếu. Bạn có thể nhập số thực trả.';
    try {
      const jwt=await ownerJwt();
      if(!jwt)throw Error('Cần đăng nhập tài khoản chủ phiếu.');
@@ -330,6 +343,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
      const preview=typeof window.calculateQrPayout==='function'&&rateSnapshot&&!missingStations&&!invalidDiagnostics&&!unsupported
        ?window.calculateQrPayout(payoutRows,payoutDiagnostics,rateSnapshot):null;
      if(preview?.ready){
+       const estimateVnd=Math.round(Number(preview.total)*1000);
+       if(Number.isSafeInteger(estimateVnd)&&estimateVnd>=0&&rateSnapshot&&activeRows.length>0){
+         suggestedAmountVnd=estimateVnd;
+         suggestedAmountBtn.hidden=false;
+         suggestedAmountLabel.textContent='Gợi ý theo bảng giá gốc và dữ liệu dò: '+estimateVnd.toLocaleString('vi-VN')+' đ. Chỉ là ước tính; hãy kiểm tra trước khi điền và xác nhận.';
+       }
        lines.push('','ƯỚC TÍNH THEO DỮ LIỆU SƠ BỘ: '+Math.round(preview.total*1000).toLocaleString('vi-VN')+' đ');
        lines.push('CHỈ THAM KHẢO — CHƯA ĐƯỢC XÁC NHẬN ĐỂ THANH TOÁN.');
      }else if(preview){

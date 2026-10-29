@@ -50,10 +50,20 @@ Deno.serve(async (req) => {
     if (!/^[a-f0-9]{64}$/.test(token)) return respond({ error: "invalid_token" }, 400);
     const token_hash = await hash(token);
     if (action === "check") {
-      const { data, error } = await db.from("receipt_verifications").select("receipt_code,status,issued_at,redeemed_at").eq("token_hash", token_hash).maybeSingle();
+      const { data, error } = await db.from("receipt_verifications").select("receipt_code,status,issued_at,redeemed_at,receipt_snapshot").eq("token_hash", token_hash).maybeSingle();
       if (error) return respond({ error: "lookup_failed" }, 500);
       if (!data) return respond({ error: "not_found" }, 404);
-      return respond({ receipt_code: data.receipt_code, status: data.status, issued_at: data.issued_at, redeemed_at: data.redeemed_at });
+      // QR token is a bearer capability: disclose only receipt display fields, never customer or verificationSource.
+      const original = data.receipt_snapshot && typeof data.receipt_snapshot === "object" ? data.receipt_snapshot : {};
+      const safeText = (value: unknown) => typeof value === "string" ? value.slice(0,180) : typeof value === "number" && Number.isFinite(value) ? String(value) : "";
+      const items = Array.isArray(original.items) ? original.items.slice(0,150).map((item: any) => ({
+        station: safeText(item?.station), region: safeText(item?.region),
+        number: safeText(item?.number), content: safeText(item?.content),
+        type: safeText(item?.type), points: safeText(item?.points), amount: safeText(item?.amount)
+      })) : [];
+      return respond({ receipt_code: data.receipt_code, status: data.status, issued_at: data.issued_at, redeemed_at: data.redeemed_at,
+        receipt: { date: safeText(original.date), time: safeText(original.time), items,
+          total: safeText(original.total), totalLabel: safeText(original.totalLabel) } });
     }
     const user = await actor(req);
     if (!user) return respond({ error: "unauthorized" }, 401);

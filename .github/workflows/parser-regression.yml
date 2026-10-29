@@ -42,6 +42,7 @@ jobs:
             git push
           fi
       - name: Verify generated preview is committed
+        if: github.event_name != 'pull_request'
         run: git diff --exit-code -- doi-soat-thu.html
       - name: Verify focused b7lo regressions
         run: node --test tests/b7lo-regression.test.cjs

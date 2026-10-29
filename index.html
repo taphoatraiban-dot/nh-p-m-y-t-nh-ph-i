@@ -10782,7 +10782,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   // One source of truth: #date. All UI reads and writes this value only.
   const pad=n=>String(n).padStart(2,'0');
   const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-  const valid=v=>/^\\d{4}-\\d{2}-\\d{2}$/.test(v)&&!isNaN(new Date(v+'T12:00:00').getTime());
+  const valid=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(new Date(v+'T12:00:00').getTime());
   const show=v=>{const [y,m,d]=v.split('-');return d+'/'+m+'/'+y};
   function init(){
     const slot=document.getElementById('quickDateSlot'),inp=document.getElementById('date');

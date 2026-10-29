@@ -33,8 +33,8 @@
       let section=sections[sections.length-1];
       if(!section||section.name!==name){section={name,rows:[],total:0};sections.push(section);}
       section.rows.push(item);
-      const v=String(item.amount||'').replace(/[^0-9-]/g,'');
-      section.total+=Number(v)||0;
+      const raw=String(item.amount||'').replace(/[^0-9,.-]/g,'').replace(/[.,](?=\d{3}(?:\D|$))/g,'').replace(',','.');
+      section.total+=Number(raw)||0;
     }
     const height=205+sections.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+140+(data.qrMatrix?330:0);
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
@@ -61,7 +61,10 @@
       txt(g.name,W/2,y+groupH/2,26);y+=groupH;
       cells(['SỐ','LOẠI','ĐIỂM','TIỀN THU'],headerH);
       g.rows.forEach(item=>cells([item.number||item.content||'',item.type||'',item.points||'',item.amount||''],rowH));
-      cells(['TỔNG ĐÀI','','',Math.round(g.total).toLocaleString('vi-VN')+'k'],rowH);
+      ln(L,y,R,y);ln(L,y+rowH,R,y+rowH);ln(L,y,L,y+rowH);ln(col[3],y,col[3],y+rowH);ln(R,y,R,y+rowH);
+      txt('TỔNG ĐÀI',(L+col[3])/2,y+rowH/2,25);
+      txt(Math.round(g.total).toLocaleString('vi-VN')+'k',(col[3]+R)/2,y+rowH/2,23);
+      y+=rowH;
     });
     txt(data.totalLabel||'TỔNG THU',L,y+40,29,'left');
     txt(data.total||'',R,y+40,31,'right');y+=90;

@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
         .replace(/[\u0300-\u036f]/g, "").replace(/đ/g,"d").replace(/Đ/g,"D")
         .toLowerCase().replace(/[^a-z0-9]/g,"");
       const aliases: Record<string,string> = {
-        tpho:"hochiminh",hcm:"hochiminh",tphcm:"hochiminh",sg:"hochiminh",
+        tpho:"hochiminh",hcm:"hochiminh",tphcm:"hochiminh",sg:"hochiminh",tphochiminh:"hochiminh",
         dt:"dongthap",cmau:"camau",btre:"bentre",vtau:"bariavungtau",
         dnai:"dongnai",ctho:"cantho",st:"soctrang",tn:"tayninh",
         ag:"angiang",bt:"binhthuan",vl:"vinhlong",bd:"binhduong",
@@ -253,7 +253,7 @@ Deno.serve(async (req) => {
           const canonical = aliases[normalized] || normalized;
           const found = coverage.find(c => c.region === region)?.stations.find(
             (station: {station:string;complete:boolean}) => {
-              const actual = normalizeStation(station.station);
+              const actual = aliases[normalizeStation(station.station)] || normalizeStation(station.station);
               return actual === canonical || (canonical === "thuathienhue" && actual === "hue");
             });
           return { requested: String(name || ""), matched: found?.station || null, complete: found?.complete === true };

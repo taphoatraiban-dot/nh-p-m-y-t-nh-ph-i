@@ -1953,7 +1953,7 @@ function boot(){
   return authBootPromise;
 }
 // ===== BẢO MẬT PHIÊN ĐĂNG NHẬP =====
-const IDLE_LIMIT_MS=5*60*1000;
+const IDLE_LIMIT_MS=60*1000;
 let idleTimer=null;
 let lastActivityAt=Date.now();
 let loginFailCount=Number(sessionStorage.getItem("ts_login_fail_count")||0);
@@ -1984,11 +1984,11 @@ function startIdleLogout(){
   stopIdleLogout();
   resetIdleClock();
   idleTimer=setInterval(()=>{
-    if(document.hidden) return;
+    if(document.hidden || $('appCard')?.classList.contains('hidden'))return;
     if(Date.now()-lastActivityAt>=IDLE_LIMIT_MS){
-      forceLogout("Tự động đăng xuất sau 5 phút không thao tác.");
+      forceLogout("Đã khóa sau 1 phút không thao tác.");
     }
-  },10000);
+  },1000);
 }
 // AN TOÀN DỮ LIỆU: sai mật khẩu không được xoá localStorage/sessionStorage.
 // Khóa tạm thời chỉ lưu thời điểm hết hạn, không tác động dữ liệu khách.

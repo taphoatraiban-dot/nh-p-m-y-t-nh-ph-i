@@ -128,8 +128,16 @@ test('reject order list longer than requested limit',async()=>{
 });
 
 test('reject malformed order identifiers and unknown status from RPC',async()=>{
- const valid={id:'22222222-2222-4222-8222-222222222222',customer_user_id:customerUserId,status:'pending'};
+ const valid={id:'22222222-2222-4222-8222-222222222222',customer_user_id:customerUserId,status:'pending',plan_code:'WEB',duration_months:1,amount_vnd:799000};
  for(const order of [{...valid,id:'bad'},{...valid,customer_user_id:'bad'},{...valid,status:'paid'},null,[]]) {
+  const client={rpc:async()=>({data:[order],error:null})};
+  await assert.rejects(listOrders(client,10),/Invalid commercial order/);
+ }
+});
+
+test('reject forged plan, duration and amount in commercial list',async()=>{
+ const valid={id:'22222222-2222-4222-8222-222222222222',customer_user_id:customerUserId,status:'pending',plan_code:'WEB',duration_months:1,amount_vnd:799000};
+ for(const order of [{...valid,plan_code:'WEB_PRINT'},{...valid,duration_months:2},{...valid,amount_vnd:1},{...valid,amount_vnd:'799000'}]) {
   const client={rpc:async()=>({data:[order],error:null})};
   await assert.rejects(listOrders(client,10),/Invalid commercial order/);
  }

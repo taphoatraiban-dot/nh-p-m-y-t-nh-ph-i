@@ -11,7 +11,7 @@ begin
  ) then raise exception 'Admin permission required' using errcode='42501'; end if;
  if p_customer_user_id is null or not exists (select 1 from auth.users where id=p_customer_user_id)
  then raise exception 'Unknown customer'; end if;
- if p_plan_code <> 'WEB' then raise exception 'Plan not available for sale'; end if;
+ if p_plan_code is distinct from 'WEB' then raise exception 'Plan not available for sale'; end if;
  v_amount := case p_duration_months
  when 1 then 799000 when 3 then 2290000 when 6 then 4390000 when 12 then 7990000
  else null end;

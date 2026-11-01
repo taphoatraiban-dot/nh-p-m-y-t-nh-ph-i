@@ -63,3 +63,10 @@ test('reject blank or oversized payment reference before RPC',async()=>{
  }
  assert.equal(calls,0);
 });
+
+test('reject oversized notes and invalid customer before RPC',async()=>{
+ let calls=0;const client={rpc:async()=>{calls++;return {data:null,error:null};}};
+ await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1,notes:'x'.repeat(1001)}),RangeError);
+ await assert.rejects(createPendingOrder(client,{customerUserId:'invalid',durationMonths:1}),TypeError);
+ assert.equal(calls,0);
+});

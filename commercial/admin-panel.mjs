@@ -71,16 +71,18 @@ export function mountCommercialAdmin({root,client}) {
   e.preventDefault();if(busy)return;
   if(!window.confirm('Tạo đơn hàng chờ thanh toán? Không cấp quyền cho khách.'))return;
   busy=true;const button=form.querySelector('[type=submit]');button.disabled=true;
+  let message='';
   try{
    const id=await createPendingOrder(client,{
     customerUserId:form.elements.customer.value.trim(),planCode:form.elements.plan.value,
     durationMonths:Number(form.elements.months.value),paymentReference:form.elements.reference.value.trim()||null
    });
-   status.textContent='Đã tạo đơn '+id+'. Chưa cấp quyền.';
-  }catch(error){status.textContent='Lỗi: '+error.message;}
+   message='Đã tạo đơn '+id+'. Chưa cấp quyền.';
+  }catch(error){message='Lỗi: '+error.message;}
   finally{busy=false;button.disabled=false;}
   await load(true);
+  status.textContent=message;
  });
- root.querySelector('#ott-refresh').addEventListener('click',load);
+ root.querySelector('#ott-refresh').addEventListener('click',()=>load(false));
  return {refresh:load};
 }

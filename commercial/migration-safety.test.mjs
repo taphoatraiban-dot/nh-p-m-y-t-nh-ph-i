@@ -46,3 +46,17 @@ test('server prices are fixed and print package is not for sale',()=>{
  for(const amount of ['799000','2290000','4390000','7990000']) assert.match(sql,new RegExp('\\b'+amount+'\\b'));
  assert.match(sql,/p_plan_code is distinct from 'WEB'/i);
 });
+
+test('commercial RPCs never grant execution to anonymous users',()=>{
+ for(const name of names.slice(1)){
+  const sql=migration(name);
+  assert.doesNotMatch(sql,/grant\s+execute\s+on\s+function\s+public\.[^;]+\s+to\s+(?:public|anon)\s*;/i);
+  assert.match(sql,/grant execute on function public\./i);
+  assert.match(sql,/to authenticated;/i);
+ }
+});
+test('commercial RPCs do not call legacy license or device mutators',()=>{
+ const sql=names.slice(1).map(migration).join('\n');
+ assert.doesNotMatch(sql,/\b(?:claim_device|admin_reset_device|admin_activate_license|admin_member_change)\s*\(/i);
+ assert.doesNotMatch(sql,/\b(?:update|delete\s+from|insert\s+into)\s+(?:public\.)?(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|profiles)\b/i);
+});

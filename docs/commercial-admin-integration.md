@@ -23,7 +23,7 @@ mountCommercialAdmin({
 ## Chặn phát hành
 1. Xác minh bản sao lưu và phục hồi Supabase.
 2. Chạy thử migration trong môi trường staging; xem lại quyền EXECUTE, RLS và truy cập schema.
-3. Chạy Node tests trong `commercial/*.test.mjs`; hiện chưa có kết quả thực thi xác nhận.
+3. GitHub Actions `Commercial unit tests` đã chạy thành công tại commit `92cfe6483ce9077517d64656508d6e109c1fa38e` (run `41329011388`). Phải chạy lại sau các thay đổi mới và kiểm thử SQL riêng; kết quả Node không chứng minh migration an toàn.
 4. Kiểm thử admin thật, người dùng thường, thanh toán trùng và xác nhận hai lần.
 5. Xác minh người dùng cũ vẫn đăng nhập, không mất quyền, Telegram, QR và in không đổi.
 6. Chưa tự động gia hạn theo tháng: `admin_activate_license` hiện dùng `p_days`, còn `admin_member_change` chỉ nhận `vip/pro` với 30 ngày. Cần quy định rõ nguồn quyền trước khi nối.

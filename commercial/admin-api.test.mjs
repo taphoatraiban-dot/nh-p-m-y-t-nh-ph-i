@@ -153,3 +153,9 @@ test('accept valid WEB orders for all supported terms and statuses',async()=>{
  const client={rpc:async()=>({data:rows,error:null})};
  assert.deepEqual(await listOrders(client,10),rows);
 });
+
+test('duplicate order IDs in one response are rejected',async()=>{
+ const row={id:'22222222-2222-4222-8222-222222222222',customer_user_id:customerUserId,status:'pending',plan_code:'WEB',duration_months:1,amount_vnd:799000};
+ const client={rpc:async()=>({data:[row,{...row}],error:null})};
+ await assert.rejects(listOrders(client,10),/Duplicate commercial order/);
+});

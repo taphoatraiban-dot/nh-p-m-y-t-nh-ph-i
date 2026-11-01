@@ -24,4 +24,4 @@ jobs:
         with:
           node-version: '22'
       - name: Test commercial modules without database credentials
-        run: node --test commercial/catalog.test.mjs commercial/admin-api.test.mjs
+        run: node --test commercial/*.test.mjs

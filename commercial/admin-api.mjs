@@ -38,6 +38,9 @@ export async function listOrders(client,limit=50) {
  const orders=resultOrThrow(await client.rpc('ott_admin_list_commercial_orders',{p_limit:limit}));
  if(!Array.isArray(orders)) throw new Error('Invalid order list returned by server');
  if(orders.length>limit) throw new Error('Order list exceeds requested limit');
+ for(const order of orders) {
+  if(!order || typeof order!=='object' || Array.isArray(order) || !UUID.test(order.id) || !UUID.test(order.customer_user_id) || !['pending','confirmed','cancelled'].includes(order.status)) throw new Error('Invalid commercial order returned by server');
+ }
  return orders;
 }
 

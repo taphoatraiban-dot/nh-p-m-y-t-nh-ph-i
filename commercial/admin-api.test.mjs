@@ -98,3 +98,13 @@ test('missing authenticated client is rejected before operations',async()=>{
  await assert.rejects(confirmOrderPayment(null,customerUserId),TypeError);
  await assert.rejects(cancelPendingOrder(null,customerUserId),TypeError);
 });
+
+test('failed create RPC cannot return a pending order ID',async()=>{
+ const client={rpc:async()=>({data:'22222222-2222-4222-8222-222222222222',error:{message:'Payment reference already used'}})};
+ await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1}),/Payment reference already used/);
+});
+test('failed confirmation and cancellation RPCs never report success',async()=>{
+ const client={rpc:async()=>({data:true,error:{message:'Admin permission required'}})};
+ await assert.rejects(confirmOrderPayment(client,customerUserId),/Admin permission required/);
+ await assert.rejects(cancelPendingOrder(client,customerUserId),/Admin permission required/);
+});

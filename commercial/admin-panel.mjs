@@ -2,9 +2,8 @@
  * The host MUST provide its authenticated Supabase client. Never creates a client or embeds keys.
  * Does not activate legacy licenses.
  */
-import {createPendingOrder,confirmOrderPayment,listOrders} from './admin-api.mjs';
+import {createPendingOrder,confirmOrderPayment,listOrders,cancelPendingOrder} from './admin-api.mjs';
 import {quote} from './catalog.mjs';
-const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('vi-VN').format(n)+' ₫';
 export function mountCommercialAdmin({root,client}) {
  if(!root || typeof root.replaceChildren!=='function') throw new TypeError('Root element required');
@@ -42,12 +41,24 @@ export function mountCommercialAdmin({root,client}) {
      button.addEventListener('click',async()=>{
       if(busy||!window.confirm('Xác nhận đã nhận tiền cho đơn này? Chức năng này KHÔNG gia hạn bản quyền.'))return;
       busy=true;button.disabled=true;
-      try{await confirmOrderPayment(client,order.id);status.textContent='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
-      catch(e){status.textContent='Lỗi: '+e.message;}
+      let message='';
+      try{await confirmOrderPayment(client,order.id);message='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
+      catch(e){message='Lỗi: '+e.message;}
       finally{busy=false;button.disabled=false;}
-      await load();
+      await load();status.textContent=message;
      });
      item.append(button);
+     const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Hủy đơn chưa thanh toán';
+     cancel.addEventListener('click',async()=>{
+      if(busy||!window.confirm('Hủy đơn đang chờ? Không thay đổi bản quyền.'))return;
+      busy=true;cancel.disabled=true;
+      let message='';
+      try{await cancelPendingOrder(client,order.id);message='Đã hủy đơn. Bản quyền không thay đổi.';}
+      catch(e){message='Lỗi: '+e.message;}
+      finally{busy=false;cancel.disabled=false;}
+      await load();status.textContent=message;
+     });
+     item.append(cancel);
     }
     orders.append(item);
    }

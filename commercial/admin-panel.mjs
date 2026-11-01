@@ -35,7 +35,7 @@ export function mountCommercialAdmin({root,client}) {
    for(const order of rows){
     if(!order || typeof order!=='object' || typeof order.id!=='string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id) || !['pending','confirmed','cancelled'].includes(order.status)) throw new Error('Đơn hàng trả về không hợp lệ');
    }
-   orders.replaceChildren();
+   const fragment=document.createDocumentFragment();
    for(const order of rows){
     const item=document.createElement('article');
     const label=document.createElement('p');
@@ -65,9 +65,10 @@ export function mountCommercialAdmin({root,client}) {
      });
      item.append(cancel);
     }
-    orders.append(item);
+    fragment.append(item);
    }
-   if(!rows.length)orders.textContent='Chưa có đơn hàng.';
+   if(!rows.length)fragment.append(document.createTextNode('Chưa có đơn hàng.'));
+   orders.replaceChildren(fragment);
    if(!quiet)status.textContent='Đã tải '+rows.length+' đơn.';
   }catch(e){status.textContent='Không thể tải đơn hàng: '+e.message;return false;}
   finally{busy=false;}

@@ -18,6 +18,8 @@ begin
  if v_amount is null then raise exception 'Invalid duration'; end if;
  if length(coalesce(p_payment_reference,''))>120 or length(coalesce(p_notes,''))>1000
  then raise exception 'Field too long'; end if;
+ if p_payment_reference is not null and btrim(p_payment_reference) = '' then
+   raise exception 'Empty payment reference'; end if;
  insert into public.ott_commercial_orders(
  customer_user_id,plan_code,duration_months,amount_vnd,
  payment_reference,notes,created_by,status

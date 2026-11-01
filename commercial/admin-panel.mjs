@@ -33,7 +33,7 @@ export function mountCommercialAdmin({root,client}) {
    const rows=await listOrders(client,50);
    if(!Array.isArray(rows))throw Error('Dữ liệu đơn hàng không hợp lệ');
    for(const order of rows){
-    if(!order || typeof order!=='object' || typeof order.id!=='string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id) || !['pending','confirmed','cancelled'].includes(order.status)) throw new Error('Đơn hàng trả về không hợp lệ');
+    if(!order || typeof order!=='object' || typeof order.id!=='string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id) || !['pending','confirmed','cancelled'].includes(order.status) || order.plan_code!=='WEB' || ![1,3,6,12].includes(order.duration_months) || !Number.isSafeInteger(order.amount_vnd) || order.amount_vnd!==quote('WEB',order.duration_months).amountVnd) throw new Error('Đơn hàng trả về không hợp lệ');
    }
    const fragment=document.createDocumentFragment();
    for(const order of rows){

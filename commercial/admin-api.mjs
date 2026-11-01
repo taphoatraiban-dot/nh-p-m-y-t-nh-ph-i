@@ -21,7 +21,9 @@ export async function createPendingOrder(client,{customerUserId,planCode='WEB',d
   p_customer_user_id:customerUserId,p_plan_code:planCode,
   p_duration_months:durationMonths,p_payment_reference:paymentReference,p_notes:notes
  });
- return resultOrThrow(result);
+ const orderId=resultOrThrow(result);
+ if(typeof orderId!=='string'||!UUID.test(orderId)) throw new Error('Invalid order ID returned by server');
+ return orderId;
 }
 export async function confirmOrderPayment(client,orderId) {
  ensureClient(client);
@@ -33,7 +35,9 @@ export async function confirmOrderPayment(client,orderId) {
 export async function listOrders(client,limit=50) {
  ensureClient(client);
  if(!Number.isInteger(limit)||limit<1||limit>100) throw new RangeError('Invalid limit');
- return resultOrThrow(await client.rpc('ott_admin_list_commercial_orders',{p_limit:limit}));
+ const orders=resultOrThrow(await client.rpc('ott_admin_list_commercial_orders',{p_limit:limit}));
+ if(!Array.isArray(orders)) throw new Error('Invalid order list returned by server');
+ return orders;
 }
 
 /** Cancel only an unpaid commercial order; never touches entitlements. */

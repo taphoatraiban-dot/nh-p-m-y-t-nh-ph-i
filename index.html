@@ -7644,6 +7644,7 @@ window.showHistoryItem=showHistoryItem;
    const groups={};all.sort((a,b)=>Number(b.savedAt)-Number(a.savedAt)).forEach(x=>{const n=String(x.customer||'Khách');(groups[n]||(groups[n]=[])).push(x)});
    box.innerHTML=Object.entries(groups).map(([name,items],idx)=>`<details class="customer-msg-item" ${idx===0?'open':''}><summary><span>${htmlEsc(name)}</span><span>${items.length} tin</span></summary>${items.map((x,i)=>{const stamp=new Date(Number(x.savedAt)).toLocaleString('vi-VN');const pv=String(x.message).replace(/\s+/g,' ').trim();return `<button type="button" class="customer-msg-entry" data-msg-c="${htmlEsc(name)}" data-msg-i="${i}"><b>${htmlEsc(pv.slice(0,80))}${pv.length>80?'…':''}</b><small>${stamp}</small></button>`}).join('')}</details>`).join('');
    box.onclick=e=>{const b=e.target.closest('.customer-msg-entry');if(!b)return;const arr=groups[b.dataset.msgC]||[];const item=arr[Number(b.dataset.msgI)];if(item)showHistoryItem(item)};
+   window.dispatchEvent(new Event('ts-customer-messages-rendered'));
  }
  window.addEventListener('ts-customer-messages-updated',()=>{customerMessagesDirty=true;if(customerMsgMenu?.classList.contains('msg-open')){renderCustomerMessages();customerMessagesDirty=false;}});
  // Menu mở bằng nút mờ, đóng bằng X.
@@ -8847,13 +8848,7 @@ window.addEventListener('DOMContentLoaded',function(){
      const sum=d.querySelector(':scope>summary');if(!sum||sum.querySelector('.tsh-customer-delete'))return;
      const name=sum.querySelector('span')?.textContent?.trim()||'';
      const b=document.createElement('button');b.type='button';b.className='tsh-customer-delete';b.textContent='🗑 XÓA';
-     b.onclick=e=>{
-       e.preventDefault();e.stopPropagation();
-       if(!confirm('Xóa toàn bộ tin nhắn 24h của '+name+'?'))return;
-       const key='ts_customer_messages_v1';
-       let a=[];try{a=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(a))a=[]}catch(_){}
-       a=a.filter(x=>String(x.customer||'Khách')!==name);localStorage.setItem(key,JSON.stringify(a));d.remove();
-     };
+     b.setAttribute("aria-label","Xóa tin của "+name);
      sum.appendChild(b);
    });
  }
@@ -8861,6 +8856,17 @@ window.addEventListener('DOMContentLoaded',function(){
  document.getElementById('customerSelect')?.addEventListener('change',()=>setTimeout(buildPricePicker,0));
  document.getElementById('addPriceDrawer')?.addEventListener('click',()=>setTimeout(buildPricePicker,500));
  document.querySelector('.customer-msg-menu')?.querySelector('h3')?.addEventListener('click',()=>setTimeout(enhanceCustomerMessages,50));
+ window.addEventListener('ts-customer-messages-rendered',enhanceCustomerMessages);
+ document.getElementById('customerMessageList')?.addEventListener('click',e=>{
+   const b=e.target.closest('.tsh-customer-delete');if(!b)return;
+   e.preventDefault();e.stopPropagation();
+   const d=b.closest('details.customer-msg-item');const name=d?.querySelector('summary span')?.textContent?.trim();
+   if(!name||!confirm('Xóa toàn bộ tin nhắn 24h của '+name+'?'))return;
+   const key='ts_customer_messages_v1';let a=[];
+   try{a=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(a))a=[]}catch(_){a=[]}
+   a=a.filter(x=>String(x.customer||'Khách')!==name);
+   try{localStorage.setItem(key,JSON.stringify(a));d.remove();window.dispatchEvent(new Event('ts-customer-messages-updated'));}catch(err){alert('Không xóa được tin khách: '+(err?.message||err))}
+ },true);
 })();
 </script>
 

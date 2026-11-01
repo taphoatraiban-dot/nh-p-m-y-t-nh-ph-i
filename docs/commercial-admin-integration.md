@@ -23,9 +23,21 @@ mountCommercialAdmin({
 ## Chặn phát hành
 1. Xác minh bản sao lưu và phục hồi Supabase.
 2. Chạy thử migration trong môi trường staging; xem lại quyền EXECUTE, RLS và truy cập schema.
-3. GitHub Actions `Commercial unit tests` đã chạy thành công tại commit `c127e7e11f05940bdf33aafc0f3840df8b77578e` (run `41329970386`), bao gồm kiểm thử JavaScript và kiểm tra tĩnh các migration SQL. Chưa có kiểm thử migration trực tiếp trên staging; kết quả CI không chứng minh migration an toàn khi áp dụng.
+3. GitHub Actions `Commercial unit tests` đã chạy thành công tại commit `af4ab03fad7707734bfbd4643dcd73b7f521292f` (run `41332028936`), bao gồm kiểm thử JavaScript và kiểm tra tĩnh các migration SQL. Chưa có kiểm thử migration trực tiếp trên staging; kết quả CI không chứng minh migration an toàn khi áp dụng.
 4. Kiểm thử admin thật, người dùng thường, thanh toán trùng và xác nhận hai lần.
 5. Xác minh người dùng cũ vẫn đăng nhập, không mất quyền, Telegram, QR và in không đổi.
 6. Chưa tự động gia hạn theo tháng: `admin_activate_license` hiện dùng `p_days`, còn `admin_member_change` chỉ nhận `vip/pro` với 30 ngày. Cần quy định rõ nguồn quyền trước khi nối.
 
 **PR #17 đang ở dạng draft; không merge và không chạy SQL production cho tới khi các điều kiện trên đạt.**
+
+## Kịch bản kiểm thử staging trước khi tích hợp
+
+1. Dùng **Supabase project staging riêng**, không trỏ URL hoặc khóa tới production.
+2. Sao lưu dữ liệu và thử khôi phục trước khi chạy migration; ghi lại kết quả.
+3. Áp dụng 4 migration theo thứ tự timestamp, xác minh RLS và quyền EXECUTE.
+4. Tài khoản thường và chưa đăng nhập: mọi RPC thương mại phải bị từ chối.
+5. Admin: tạo đơn WEB đủ 4 kỳ hạn; đối chiếu số tiền do server tính, không tin giá từ trình duyệt.
+6. Xác nhận một đơn pending, thử xác nhận lần hai (phải từ chối); hủy một đơn pending, thử hủy lần hai (phải từ chối); không hủy đơn confirmed.
+7. Thử dùng cùng mã thanh toán hai lần (phải bị chặn), WEB+IN phải bị từ chối.
+8. Đối chiếu quyền, thiết bị, thời hạn và số lượng admin trước/sau; tuyệt đối không tự gia hạn license sau khi xác nhận thanh toán.
+9. Chỉ gắn `mountCommercialAdmin` vào giao diện chính sau khi có biên bản kiểm thử và chủ sở hữu đồng ý.

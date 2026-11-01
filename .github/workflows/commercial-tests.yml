@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'commercial/**'
+      - 'supabase/migrations/2026110100*stage_*commercial*.sql'
       - '.github/workflows/commercial-tests.yml'
   push:
     branches:

@@ -121,3 +121,8 @@ test('RPC network failure does not trigger automatic retry',async()=>{
  await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1}),/network offline/);
  assert.equal(calls,1);
 });
+
+test('reject order list longer than requested limit',async()=>{
+ const client={rpc:async()=>({data:[{},{}],error:null})};
+ await assert.rejects(listOrders(client,1),/exceeds requested limit/);
+});

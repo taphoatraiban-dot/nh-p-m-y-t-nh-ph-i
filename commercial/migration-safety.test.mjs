@@ -20,6 +20,7 @@ test('ledger has RLS and direct client access revoked',()=>{
  const sql=migration(names[0]);
  assert.match(sql,/enable row level security/i);
  assert.match(sql,/revoke all on public\.ott_commercial_orders from anon,authenticated/i);
+ assert.match(sql,/check\s*\(\s*\(status='confirmed'/i);
 });
 test('each commercial RPC checks administrator membership',()=>{
  for(const name of names.slice(1)){

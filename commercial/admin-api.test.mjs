@@ -126,3 +126,11 @@ test('reject order list longer than requested limit',async()=>{
  const client={rpc:async()=>({data:[{},{}],error:null})};
  await assert.rejects(listOrders(client,1),/exceeds requested limit/);
 });
+
+test('reject malformed order identifiers and unknown status from RPC',async()=>{
+ const valid={id:'22222222-2222-4222-8222-222222222222',customer_user_id:customerUserId,status:'pending'};
+ for(const order of [{...valid,id:'bad'},{...valid,customer_user_id:'bad'},{...valid,status:'paid'},null,[]]) {
+  const client={rpc:async()=>({data:[order],error:null})};
+  await assert.rejects(listOrders(client,10),/Invalid commercial order/);
+ }
+});

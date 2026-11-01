@@ -60,3 +60,15 @@ test('commercial RPCs do not call legacy license or device mutators',()=>{
  assert.doesNotMatch(sql,/\b(?:claim_device|admin_reset_device|admin_activate_license|admin_member_change)\s*\(/i);
  assert.doesNotMatch(sql,/\b(?:update|delete\s+from|insert\s+into)\s+(?:public\.)?(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|profiles)\b/i);
 });
+
+test('staged migrations do not modify existing license, device, membership or admin tables',()=>{
+ const sql=names.map(migration).join('\n');
+ const legacy='(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|admin_users|profiles)';
+ assert.doesNotMatch(sql,new RegExp('\\b(?:alter|drop|truncate)\\s+table\\s+(?:if\\s+exists\\s+)?(?:public\\.)?'+legacy+'\\b','i'));
+ assert.doesNotMatch(sql,new RegExp('\\b(?:insert\\s+into|update|delete\\s+from)\\s+(?:public\\.)?'+legacy+'\\b','i'));
+});
+test('commercial migration creates only new commercial functions',()=>{
+ const sql=names.map(migration).join('\n');
+ const declared=[...sql.matchAll(/create\s+or\s+replace\s+function\s+public\.([a-z_]+)\s*\(/gi)].map(m=>m[1]);
+ assert.deepEqual(declared.sort(),['ott_admin_cancel_commercial_order','ott_admin_confirm_commercial_order','ott_admin_create_commercial_order','ott_admin_list_commercial_orders'].sort());
+});

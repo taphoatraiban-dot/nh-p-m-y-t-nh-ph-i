@@ -72,3 +72,15 @@ test('commercial migration creates only new commercial functions',()=>{
  const declared=[...sql.matchAll(/create\s+or\s+replace\s+function\s+public\.([a-z_]+)\s*\(/gi)].map(m=>m[1]);
  assert.deepEqual(declared.sort(),['ott_admin_cancel_commercial_order','ott_admin_confirm_commercial_order','ott_admin_create_commercial_order','ott_admin_list_commercial_orders'].sort());
 });
+
+test('server WEB prices match the shared commercial catalog',async()=>{
+ const {PRICES}=await import('./catalog.mjs');
+ const sql=migration(names[1]);
+ const cases=[...sql.matchAll(/when\s+(1|3|6|12)\s+then\s+(\d+)/gi)];
+ assert.equal(cases.length,4,'Exactly four WEB durations must be priced server-side');
+ assert.deepEqual(Object.fromEntries(cases.map(([,months,amount])=>[months,Number(amount)])),PRICES.WEB);
+});
+test('WEB_PRINT cannot be sold through commercial create RPC',()=>{
+ const sql=migration(names[1]);
+ assert.match(sql,/p_plan_code\s+is\s+distinct\s+from\s+'WEB'/i);
+});

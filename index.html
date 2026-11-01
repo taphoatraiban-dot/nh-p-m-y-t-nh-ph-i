@@ -8845,7 +8845,7 @@ window.addEventListener('DOMContentLoaded',function(){
  function enhanceCustomerMessages(){
    const box=document.getElementById('customerMessageList');if(!box)return;
    box.querySelectorAll('details.customer-msg-item').forEach(d=>{
-     const sum=d.querySelector(':scope>summary');if(!sum||sum.querySelector('.tsh-customer-delete'))return;
+     const sum=d.querySelector(':scope>summary');if(!sum||d.querySelector(':scope>.tsh-customer-delete'))return;
      const name=sum.querySelector('span')?.textContent?.trim()||'';
      const b=document.createElement('button');b.type='button';b.className='tsh-customer-delete';b.textContent='🗑 XÓA';
      b.setAttribute("aria-label","Xóa tin của "+name);

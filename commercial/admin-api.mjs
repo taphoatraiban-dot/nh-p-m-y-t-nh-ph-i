@@ -33,3 +33,12 @@ export async function listOrders(client,limit=50) {
  if(!Number.isInteger(limit)||limit<1||limit>100) throw new RangeError('Invalid limit');
  return resultOrThrow(await client.rpc('ott_admin_list_commercial_orders',{p_limit:limit}));
 }
+
+/** Cancel only an unpaid commercial order; never touches entitlements. */
+export async function cancelPendingOrder(client,orderId) {
+ ensureClient(client);
+ if(!UUID.test(orderId)) throw new TypeError('Invalid order UUID');
+ const cancelled=resultOrThrow(await client.rpc('ott_admin_cancel_commercial_order',{p_order_id:orderId}));
+ if(cancelled!==true) throw new Error('Order not pending or already processed');
+ return {cancelled:true,licenseChanged:false};
+}

@@ -25,7 +25,7 @@ export function mountCommercialAdmin({root,client}) {
  form.elements.months.addEventListener('change',showPrice);showPrice();
  let busy=false;
  async function load(quiet=false){
-  if(busy)return;
+  if(busy)return false;
   busy=true;if(!quiet)status.textContent='Đang tải...';
   try{
    const rows=await listOrders(client,50);
@@ -45,7 +45,7 @@ export function mountCommercialAdmin({root,client}) {
       try{await confirmOrderPayment(client,order.id);message='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
       catch(e){message='Lỗi: '+e.message;}
       finally{busy=false;button.disabled=false;}
-      const refreshed=await load(true);if(refreshed)status.textContent=message;
+      const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
      });
      item.append(button);
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Hủy đơn chưa thanh toán';
@@ -56,7 +56,7 @@ export function mountCommercialAdmin({root,client}) {
       try{await cancelPendingOrder(client,order.id);message='Đã hủy đơn. Bản quyền không thay đổi.';}
       catch(e){message='Lỗi: '+e.message;}
       finally{busy=false;cancel.disabled=false;}
-      const refreshed=await load(true);if(refreshed)status.textContent=message;
+      const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
      });
      item.append(cancel);
     }
@@ -82,7 +82,7 @@ export function mountCommercialAdmin({root,client}) {
   }catch(error){message='Lỗi: '+error.message;}
   finally{busy=false;button.disabled=false;}
   const refreshed=await load(true);
-  if(refreshed)status.textContent=message;
+  status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
  });
  root.querySelector('#ott-refresh').addEventListener('click',()=>load(false));
  return {refresh:load};

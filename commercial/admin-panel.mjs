@@ -21,6 +21,8 @@ export function mountCommercialAdmin({root,client}) {
  <div id="ott-orders"></div></section>`;
  const form=root.querySelector('#ott-order-form'),status=root.querySelector('#ott-status'),orders=root.querySelector('#ott-orders');
  const refreshButton=root.querySelector('#ott-refresh');
+ const submitButton=form.querySelector('[type=submit]');
+ const setBusy=value=>{busy=value;refreshButton.disabled=value;submitButton.disabled=value;};
  const price=root.querySelector('#ott-price');
  function showPrice(){price.textContent='Giá: '+money(quote(form.elements.plan.value,Number(form.elements.months.value)).amountVnd);}
  form.elements.months.addEventListener('change',showPrice);
@@ -29,7 +31,7 @@ export function mountCommercialAdmin({root,client}) {
  let busy=false;
  async function load(quiet=false){
   if(busy)return false;
-  busy=true;refreshButton.disabled=true;if(!quiet)status.textContent='Đang tải...';
+  setBusy(true);if(!quiet)status.textContent='Đang tải...';
   try{
    const rows=await listOrders(client,50);
    if(!Array.isArray(rows))throw Error('Dữ liệu đơn hàng không hợp lệ');
@@ -46,22 +48,22 @@ export function mountCommercialAdmin({root,client}) {
      const button=document.createElement('button');button.type='button';button.textContent='Xác nhận đã nhận tiền';
      button.addEventListener('click',async()=>{
       if(busy||!window.confirm('Xác nhận đã nhận tiền cho đơn này? Chức năng này KHÔNG gia hạn bản quyền.'))return;
-      busy=true;button.disabled=true;
+      setBusy(true);button.disabled=true;
       let message='';
       try{await confirmOrderPayment(client,order.id);message='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
       catch(e){message='Lỗi: '+e.message;}
-      finally{busy=false;button.disabled=false;}
+      finally{setBusy(false);button.disabled=false;}
       const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
      });
      item.append(button);
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Hủy đơn chưa thanh toán';
      cancel.addEventListener('click',async()=>{
       if(busy||!window.confirm('Hủy đơn đang chờ? Không thay đổi bản quyền.'))return;
-      busy=true;cancel.disabled=true;
+      setBusy(true);cancel.disabled=true;
       let message='';
       try{await cancelPendingOrder(client,order.id);message='Đã hủy đơn. Bản quyền không thay đổi.';}
       catch(e){message='Lỗi: '+e.message;}
-      finally{busy=false;cancel.disabled=false;}
+      finally{setBusy(false);cancel.disabled=false;}
       const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
      });
      item.append(cancel);
@@ -72,13 +74,13 @@ export function mountCommercialAdmin({root,client}) {
    orders.replaceChildren(fragment);
    if(!quiet)status.textContent='Đã tải '+rows.length+' đơn.';
   }catch(e){status.textContent='Không thể tải đơn hàng: '+e.message;return false;}
-  finally{busy=false;refreshButton.disabled=false;}
+  finally{setBusy(false);}
   return true;
  }
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(busy)return;
   if(!window.confirm('Tạo đơn hàng chờ thanh toán? Không cấp quyền cho khách.'))return;
-  busy=true;const button=form.querySelector('[type=submit]');button.disabled=true;
+  setBusy(true);
   let message='';
   try{
    const id=await createPendingOrder(client,{
@@ -87,7 +89,7 @@ export function mountCommercialAdmin({root,client}) {
    });
    message='Đã tạo đơn '+id+'. Chưa cấp quyền.';
   }catch(error){message='Lỗi: '+error.message;}
-  finally{busy=false;button.disabled=false;}
+  finally{setBusy(false);}
   const refreshed=await load(true);
   status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
  });

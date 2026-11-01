@@ -41,3 +41,6 @@ mountCommercialAdmin({
 7. Thử dùng cùng mã thanh toán hai lần (phải bị chặn), WEB+IN phải bị từ chối.
 8. Đối chiếu quyền, thiết bị, thời hạn và số lượng admin trước/sau; tuyệt đối không tự gia hạn license sau khi xác nhận thanh toán.
 9. Chỉ gắn `mountCommercialAdmin` vào giao diện chính sau khi có biên bản kiểm thử và chủ sở hữu đồng ý.
+
+## Kiểm tra quyền staging bằng SQL chỉ đọc
+Sau khi chạy migration trên **staging riêng**, chạy `commercial/read-only-postflight.sql` bằng SQL Editor của staging. Kết quả kỳ vọng: bảng tồn tại, RLS bật, `anon`/`authenticated` không được truy cập trực tiếp bảng; có đúng 4 RPC, `anon` không được EXECUTE và `authenticated` được EXECUTE (mỗi RPC tự kiểm tra `admin_users`). Nếu bất kỳ điều kiện nào sai, **dừng triển khai**. Không chạy migration trên production để thử.

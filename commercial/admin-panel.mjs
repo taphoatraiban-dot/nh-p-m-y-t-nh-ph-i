@@ -20,6 +20,7 @@ export function mountCommercialAdmin({root,client}) {
  <button type="button" id="ott-refresh">Tải danh sách</button>
  <div id="ott-orders"></div></section>`;
  const form=root.querySelector('#ott-order-form'),status=root.querySelector('#ott-status'),orders=root.querySelector('#ott-orders');
+ const refreshButton=root.querySelector('#ott-refresh');
  const price=root.querySelector('#ott-price');
  function showPrice(){price.textContent='Giá: '+money(quote(form.elements.plan.value,Number(form.elements.months.value)).amountVnd);}
  form.elements.months.addEventListener('change',showPrice);
@@ -28,7 +29,7 @@ export function mountCommercialAdmin({root,client}) {
  let busy=false;
  async function load(quiet=false){
   if(busy)return false;
-  busy=true;if(!quiet)status.textContent='Đang tải...';
+  busy=true;refreshButton.disabled=true;if(!quiet)status.textContent='Đang tải...';
   try{
    const rows=await listOrders(client,50);
    if(!Array.isArray(rows))throw Error('Dữ liệu đơn hàng không hợp lệ');
@@ -71,7 +72,7 @@ export function mountCommercialAdmin({root,client}) {
    orders.replaceChildren(fragment);
    if(!quiet)status.textContent='Đã tải '+rows.length+' đơn.';
   }catch(e){status.textContent='Không thể tải đơn hàng: '+e.message;return false;}
-  finally{busy=false;}
+  finally{busy=false;refreshButton.disabled=false;}
   return true;
  }
  form.addEventListener('submit',async e=>{
@@ -90,6 +91,6 @@ export function mountCommercialAdmin({root,client}) {
   const refreshed=await load(true);
   status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
  });
- root.querySelector('#ott-refresh').addEventListener('click',()=>load(false));
+ refreshButton.addEventListener('click',()=>load(false));
  return {refresh:load};
 }

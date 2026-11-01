@@ -8849,7 +8849,22 @@ window.addEventListener('DOMContentLoaded',function(){
      const name=sum.querySelector('span')?.textContent?.trim()||'';
      const b=document.createElement('button');b.type='button';b.className='tsh-customer-delete';b.textContent='🗑 XÓA';
      b.setAttribute("aria-label","Xóa tin của "+name);
-     sum.appendChild(b);
+     // iOS Safari: a button nested inside <summary> can toggle details instead of firing delete.
+     // Keep the delete button as a sibling of summary, with an explicit direct handler.
+     d.style.position='relative';
+     b.style.cssText='position:absolute;right:8px;top:7px;z-index:5;pointer-events:auto;touch-action:manipulation';
+     b.addEventListener('click',e=>{
+       e.preventDefault();e.stopPropagation();
+       const key='ts_customer_messages_v1';
+       if(!confirm('Xóa toàn bộ tin nhắn 24h của '+name+'?'))return;
+       try{
+         let a=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(a))a=[];
+         a=a.filter(x=>String(x.customer||'Khách')!==name);
+         localStorage.setItem(key,JSON.stringify(a));
+         d.remove();window.dispatchEvent(new Event('ts-customer-messages-updated'));
+       }catch(err){alert('Không xóa được tin khách: '+(err?.message||err))}
+     });
+     d.appendChild(b);
    });
  }
  window.addEventListener('DOMContentLoaded',()=>{buildPricePicker();setupCompact();enhanceCustomerMessages()});
@@ -8858,7 +8873,7 @@ window.addEventListener('DOMContentLoaded',function(){
  document.querySelector('.customer-msg-menu')?.querySelector('h3')?.addEventListener('click',()=>setTimeout(enhanceCustomerMessages,50));
  window.addEventListener('ts-customer-messages-rendered',enhanceCustomerMessages);
  document.getElementById('customerMessageList')?.addEventListener('click',e=>{
-   const b=e.target.closest('.tsh-customer-delete');if(!b)return;
+   const b=e.target.closest('.tsh-customer-delete');if(!b||b.parentElement?.matches('details.customer-msg-item'))return;
    e.preventDefault();e.stopPropagation();
    const d=b.closest('details.customer-msg-item');const name=d?.querySelector('summary span')?.textContent?.trim();
    if(!name||!confirm('Xóa toàn bộ tin nhắn 24h của '+name+'?'))return;

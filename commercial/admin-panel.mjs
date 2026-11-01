@@ -24,9 +24,9 @@ export function mountCommercialAdmin({root,client}) {
  function showPrice(){price.textContent='Giá: '+money(quote(form.elements.plan.value,Number(form.elements.months.value)).amountVnd);}
  form.elements.months.addEventListener('change',showPrice);showPrice();
  let busy=false;
- async function load(){
+ async function load(quiet=false){
   if(busy)return;
-  busy=true;status.textContent='Đang tải...';
+  busy=true;if(!quiet)status.textContent='Đang tải...';
   try{
    const rows=await listOrders(client,50);
    if(!Array.isArray(rows))throw Error('Dữ liệu đơn hàng không hợp lệ');
@@ -45,7 +45,7 @@ export function mountCommercialAdmin({root,client}) {
       try{await confirmOrderPayment(client,order.id);message='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
       catch(e){message='Lỗi: '+e.message;}
       finally{busy=false;button.disabled=false;}
-      await load();status.textContent=message;
+      await load(true);status.textContent=message;
      });
      item.append(button);
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Hủy đơn chưa thanh toán';
@@ -56,14 +56,14 @@ export function mountCommercialAdmin({root,client}) {
       try{await cancelPendingOrder(client,order.id);message='Đã hủy đơn. Bản quyền không thay đổi.';}
       catch(e){message='Lỗi: '+e.message;}
       finally{busy=false;cancel.disabled=false;}
-      await load();status.textContent=message;
+      await load(true);status.textContent=message;
      });
      item.append(cancel);
     }
     orders.append(item);
    }
    if(!rows.length)orders.textContent='Chưa có đơn hàng.';
-   status.textContent='Đã tải '+rows.length+' đơn.';
+   if(!quiet)status.textContent='Đã tải '+rows.length+' đơn.';
   }catch(e){status.textContent='Không thể tải đơn hàng: '+e.message;}
   finally{busy=false;}
  }
@@ -79,7 +79,7 @@ export function mountCommercialAdmin({root,client}) {
    status.textContent='Đã tạo đơn '+id+'. Chưa cấp quyền.';
   }catch(error){status.textContent='Lỗi: '+error.message;}
   finally{busy=false;button.disabled=false;}
-  await load();
+  await load(true);
  });
  root.querySelector('#ott-refresh').addEventListener('click',load);
  return {refresh:load};

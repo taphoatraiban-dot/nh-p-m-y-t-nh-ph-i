@@ -142,3 +142,14 @@ test('reject forged plan, duration and amount in commercial list',async()=>{
   await assert.rejects(listOrders(client,10),/Invalid commercial order/);
  }
 });
+
+test('accept valid WEB orders for all supported terms and statuses',async()=>{
+ const prices={1:799000,3:2290000,6:4390000,12:7990000};
+ const rows=[1,3,6,12].map((months,index)=>({
+  id:`22222222-2222-4222-8222-${String(index+1).padStart(12,'0')}`,
+  customer_user_id:customerUserId,status:['pending','confirmed','cancelled','pending'][index],
+  plan_code:'WEB',duration_months:months,amount_vnd:prices[months]
+ }));
+ const client={rpc:async()=>({data:rows,error:null})};
+ assert.deepEqual(await listOrders(client,10),rows);
+});

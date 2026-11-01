@@ -38,6 +38,8 @@ export function mountCommercialAdmin({root,client}) {
    for(const order of rows){
     if(!order || typeof order!=='object' || typeof order.customer_user_id!=='string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.customer_user_id) || typeof order.id!=='string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id) || !['pending','confirmed','cancelled'].includes(order.status) || order.plan_code!=='WEB' || ![1,3,6,12].includes(order.duration_months) || !Number.isSafeInteger(order.amount_vnd) || order.amount_vnd!==quote('WEB',order.duration_months).amountVnd) throw new Error('Đơn hàng trả về không hợp lệ');
    }
+   const ids=new Set();
+   for(const order of rows){if(ids.has(order.id))throw new Error('Danh sách chứa mã đơn trùng');ids.add(order.id);}
    const fragment=document.createDocumentFragment();
    for(const order of rows){
     const item=document.createElement('article');

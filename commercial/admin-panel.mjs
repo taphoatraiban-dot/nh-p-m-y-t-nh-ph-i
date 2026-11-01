@@ -32,9 +32,11 @@ export function mountCommercialAdmin({root,client}) {
   try{
    const rows=await listOrders(client,50);
    if(!Array.isArray(rows))throw Error('Dữ liệu đơn hàng không hợp lệ');
+   for(const order of rows){
+    if(!order || typeof order!=='object' || typeof order.id!=='string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id) || !['pending','confirmed','cancelled'].includes(order.status)) throw new Error('Đơn hàng trả về không hợp lệ');
+   }
    orders.replaceChildren();
    for(const order of rows){
-    if(!order || typeof order!=='object' || !order.id || !['pending','confirmed','cancelled'].includes(order.status)) throw new Error('Đơn hàng trả về không hợp lệ');
     const item=document.createElement('article');
     const label=document.createElement('p');
     label.textContent=`${order.customer_user_id} | ${order.plan_code} | ${order.duration_months} tháng | ${money(order.amount_vnd)} | ${order.status}`;

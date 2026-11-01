@@ -7,12 +7,12 @@ create table if not exists public.ott_commercial_orders (
  duration_months integer not null check(duration_months in (1,3,6,12)),
  amount_vnd bigint not null check(amount_vnd>0),
  status text not null default 'pending' check(status in ('pending','confirmed','cancelled')),
- payment_reference text,
+ payment_reference text check (payment_reference is null or (length(payment_reference)<=120 and length(btrim(payment_reference))>0)),
  created_by uuid not null references auth.users(id) on delete restrict,
  confirmed_by uuid references auth.users(id) on delete restrict,
  created_at timestamptz not null default now(),
  confirmed_at timestamptz,
- notes text,
+ notes text check (notes is null or length(notes)<=1000),
  check ((status='confirmed' and confirmed_by is not null and confirmed_at is not null)
      or (status<>'confirmed' and confirmed_by is null and confirmed_at is null))
 );

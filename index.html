@@ -7643,12 +7643,12 @@ window.showHistoryItem=showHistoryItem;
    if(!all.length){box.innerHTML='<div class="history-row"><span>Chưa có tin nhắn trong 24 giờ</span><small>—</small></div>';return;}
    const groups={};all.sort((a,b)=>Number(b.savedAt)-Number(a.savedAt)).forEach(x=>{const n=String(x.customer||'Khách');(groups[n]||(groups[n]=[])).push(x)});
    box.innerHTML=Object.entries(groups).map(([name,items],idx)=>`<details class="customer-msg-item" style="position:relative" ${idx===0?'open':''}><summary style="padding-right:110px"><span>${htmlEsc(name)}</span><span>${items.length} tin</span></summary><button type="button" class="tsh-customer-delete" data-delete-customer="${htmlEsc(name)}" style="position:absolute;right:8px;top:6px;z-index:20;touch-action:manipulation">🗑 XÓA</button>${items.map((x,i)=>{const stamp=new Date(Number(x.savedAt)).toLocaleString('vi-VN');const pv=String(x.message).replace(/\s+/g,' ').trim();return `<button type="button" class="customer-msg-entry" data-msg-c="${htmlEsc(name)}" data-msg-i="${i}"><b>${htmlEsc(pv.slice(0,80))}${pv.length>80?'…':''}</b><small>${stamp}</small></button>`}).join('')}</details>`).join('');
-   box.onclick=e=>{
+   box.onclick=async e=>{
      const del=e.target.closest('button[data-delete-customer]');
      if(del){
        e.preventDefault();e.stopPropagation();
        const name=del.dataset.deleteCustomer;
-       if(!confirm('Xóa toàn bộ tin nhắn 24h của '+name+'?'))return;
+       if(!await window.cuncunConfirmDelete('Xóa toàn bộ tin nhắn 24h của '+name+'?'))return;
        try{
          const key='ts_customer_messages_v1';let a=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(a))a=[];
          a=a.filter(x=>String(x.customer||'Khách')!==name);
@@ -12338,6 +12338,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+<script id="cuncun-inline-delete-confirm-v1">
+window.cuncunConfirmDelete=function(message){
+ return new Promise(resolve=>{
+  const shade=document.createElement('div');
+  shade.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:18px';
+  const card=document.createElement('div');
+  card.style.cssText='background:#fff;color:#111;width:min(100%,360px);padding:22px;border-radius:15px;box-shadow:0 15px 40px #0005;font:16px Arial,sans-serif';
+  const msg=document.createElement('p');msg.textContent=message;msg.style.cssText='font-weight:700;line-height:1.5;margin:0 0 20px';
+  const actions=document.createElement('div');actions.style.cssText='display:flex;gap:10px';
+  function finish(value){shade.remove();resolve(value)}
+  for(const [label,yes] of [['HỦY',false],['XÁC NHẬN XÓA',true]]){
+   const btn=document.createElement('button');btn.type='button';btn.textContent=label;
+   btn.style.cssText='flex:1;min-height:48px;border:1px solid #ccc;border-radius:10px;background:'+(yes?'#b91c1c':'#f3f4f6')+';color:'+(yes?'white':'#111')+';font-weight:800';
+   btn.onclick=()=>finish(yes);actions.append(btn);
+  }
+  card.append(msg,actions);shade.append(card);document.body.append(shade);
+ });
+};
+</script>
 <script id="telegram-member-inbox-v1">
 (function(){
 function init(){
@@ -12470,7 +12489,7 @@ function importMessages(items){
 }
 async function hideMessages(items){
  if(!items.length){status.textContent="Chưa có tin để xóa.";return;}
- if(!confirm("Ẩn "+items.length+" tin khỏi danh sách Telegram của tài khoản này? Tin trên Telegram và VPS không bị xóa."))return;
+ if(!await window.cuncunConfirmDelete("Ẩn "+items.length+" tin khỏi danh sách Telegram của tài khoản này? Tin trên Telegram và VPS không bị xóa."))return;
  try{
   const payload={ids:items.map(m=>({chat_id:m.chat_id,message_id:m.message_id}))};
   await call("hide",payload);

@@ -75,7 +75,7 @@ export function mountCommercialAdmin({root,client}) {
    if(!rows.length)fragment.append(document.createTextNode('Chưa có đơn hàng.'));
    orders.replaceChildren(fragment);
    if(!quiet)status.textContent='Đã tải '+rows.length+' đơn.';
-  }catch(e){status.textContent='Không thể tải đơn hàng: '+e.message;return false;}
+  }catch(e){if(!quiet)status.textContent='Không thể tải đơn hàng: '+e.message;return false;}
   finally{setBusy(false);}
   return true;
  }

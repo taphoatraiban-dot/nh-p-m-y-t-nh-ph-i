@@ -76,3 +76,13 @@ test('malformed RPC responses cannot appear as successful orders',async()=>{
  await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1}),/Invalid order ID/);
  await assert.rejects(listOrders(client),/Invalid order list/);
 });
+
+test('reject non-boolean confirmation and cancellation RPC responses',async()=>{
+ const client={rpc:async()=>({data:'true',error:null})};
+ await assert.rejects(confirmOrderPayment(client,customerUserId),/not pending/);
+ await assert.rejects(cancelPendingOrder(client,customerUserId),/not pending/);
+});
+test('reject malformed RPC list payload objects',async()=>{
+ const client={rpc:async()=>({data:{orders:[]},error:null})};
+ await assert.rejects(listOrders(client),/Invalid order list/);
+});

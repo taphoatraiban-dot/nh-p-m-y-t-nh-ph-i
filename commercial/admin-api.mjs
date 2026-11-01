@@ -1,6 +1,7 @@
 /** Admin RPC adapter. Uses an already-authenticated Supabase client provided by the host app.
  * Never uses service_role or modifies legacy licenses/devices.
  */
+import {quote} from './catalog.mjs';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function ensureClient(client) {
  if(!client || typeof client.rpc!=='function') throw new TypeError('Authenticated Supabase client required');
@@ -39,7 +40,7 @@ export async function listOrders(client,limit=50) {
  if(!Array.isArray(orders)) throw new Error('Invalid order list returned by server');
  if(orders.length>limit) throw new Error('Order list exceeds requested limit');
  for(const order of orders) {
-  if(!order || typeof order!=='object' || Array.isArray(order) || !UUID.test(order.id) || !UUID.test(order.customer_user_id) || !['pending','confirmed','cancelled'].includes(order.status)) throw new Error('Invalid commercial order returned by server');
+  if(!order || typeof order!=='object' || Array.isArray(order) || !UUID.test(order.id) || !UUID.test(order.customer_user_id) || !['pending','confirmed','cancelled'].includes(order.status) || order.plan_code!=='WEB' || ![1,3,6,12].includes(order.duration_months) || !Number.isSafeInteger(order.amount_vnd) || order.amount_vnd!==quote('WEB',order.duration_months).amountVnd) throw new Error('Invalid commercial order returned by server');
  }
  return orders;
 }

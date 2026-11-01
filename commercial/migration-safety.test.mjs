@@ -30,3 +30,19 @@ test('each commercial RPC checks administrator membership',()=>{
   assert.match(sql,/revoke all on function public\./i);
  }
 });
+
+test('payment confirmation only transitions pending orders',()=>{
+ const sql=migration(names[1]);
+ assert.match(sql,/where id=p_order_id and status='pending'/i);
+ assert.match(sql,/set status='confirmed',confirmed_by=auth\.uid\(\),confirmed_at=now\(\)/i);
+});
+test('cancellation only transitions pending orders',()=>{
+ const sql=migration(names[3]);
+ assert.match(sql,/set status='cancelled'/i);
+ assert.match(sql,/where id=p_order_id and status='pending'/i);
+});
+test('server prices are fixed and print package is not for sale',()=>{
+ const sql=migration(names[1]);
+ for(const amount of ['799000','2290000','4390000','7990000']) assert.match(sql,new RegExp('\\b'+amount+'\\b'));
+ assert.match(sql,/p_plan_code is distinct from 'WEB'/i);
+});

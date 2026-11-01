@@ -3,13 +3,14 @@ on:
   pull_request:
     paths:
       - 'commercial/**'
-      - 'supabase/migrations/2026110100*stage_*commercial*.sql'
+      - 'supabase/migrations/2026110100*_stage_*.sql'
       - '.github/workflows/commercial-tests.yml'
   push:
     branches:
       - feature/subscription-commercial-only-20261101
     paths:
       - 'commercial/**'
+      - 'supabase/migrations/2026110100*_stage_*.sql'
       - '.github/workflows/commercial-tests.yml'
 permissions:
   contents: read

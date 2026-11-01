@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createPendingOrder,confirmOrderPayment,listOrders} from './admin-api.mjs';
+import {createPendingOrder,confirmOrderPayment,listOrders,cancelPendingOrder} from './admin-api.mjs';
 const customerUserId='11111111-1111-4111-8111-111111111111';
 test('order calls only commercial RPC',async()=>{
  const calls=[]; const client={rpc:async(name,args)=>{calls.push({name,args});return {data:'22222222-2222-4222-8222-222222222222',error:null};}};
@@ -21,4 +21,14 @@ test('reject unsupported print and invalid durations before RPC',async()=>{
 test('list uses admin-only RPC',async()=>{
  const client={rpc:async(name,args)=>{assert.equal(name,'ott_admin_list_commercial_orders');assert.equal(args.p_limit,10);return {data:[],error:null};}};
  assert.deepEqual(await listOrders(client,10),[]);
+});
+
+test('cancel pending only uses commercial RPC',async()=>{
+ const calls=[];const client={rpc:async(name)=>{calls.push(name);return {data:true,error:null};}};
+ assert.deepEqual(await cancelPendingOrder(client,customerUserId),{cancelled:true,licenseChanged:false});
+ assert.deepEqual(calls,['ott_admin_cancel_commercial_order']);
+});
+test('cannot cancel a non-pending order',async()=>{
+ const client={rpc:async()=>({data:false,error:null})};
+ await assert.rejects(cancelPendingOrder(client,customerUserId),/not pending/);
 });

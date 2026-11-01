@@ -14,3 +14,10 @@ test('postflight remains read-only',()=>{
  assert.match(statements,/^with\s+commercial_functions\s+as\s*\(/i);
  assert.match(statements,/\bselect\b/i);
 });
+
+test('legacy count baseline covers every protected table without mutations',()=>{
+ const baseline=readFileSync(new URL('./read-only-legacy-counts.sql',import.meta.url),'utf8');
+ const statements=baseline.split('\n').filter(line=>!line.trim().startsWith('--')).join('\n');
+ for(const table of ['admin_users','devices','licenses','email_licenses','member_subscriptions','ott_memberships','profiles']) assert.match(statements,new RegExp('from\\s+public\\.'+table+'\\b','i'));
+ assert.doesNotMatch(statements,/\b(?:insert|update|delete|drop|alter|truncate|create|grant|revoke)\b/i);
+});

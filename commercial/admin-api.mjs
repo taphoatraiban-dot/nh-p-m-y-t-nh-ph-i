@@ -39,8 +39,11 @@ export async function listOrders(client,limit=50) {
  const orders=resultOrThrow(await client.rpc('ott_admin_list_commercial_orders',{p_limit:limit}));
  if(!Array.isArray(orders)) throw new Error('Invalid order list returned by server');
  if(orders.length>limit) throw new Error('Order list exceeds requested limit');
+ const seen=new Set();
  for(const order of orders) {
   if(!order || typeof order!=='object' || Array.isArray(order) || !UUID.test(order.id) || !UUID.test(order.customer_user_id) || !['pending','confirmed','cancelled'].includes(order.status) || order.plan_code!=='WEB' || ![1,3,6,12].includes(order.duration_months) || !Number.isSafeInteger(order.amount_vnd) || order.amount_vnd!==quote('WEB',order.duration_months).amountVnd) throw new Error('Invalid commercial order returned by server');
+  if(seen.has(order.id)) throw new Error('Duplicate commercial order returned by server');
+  seen.add(order.id);
  }
  return orders;
 }

@@ -15,6 +15,8 @@ export async function createPendingOrder(client,{customerUserId,planCode='WEB',d
  if(!UUID.test(customerUserId)) throw new TypeError('Invalid customer UUID');
  if(planCode!=='WEB') throw new RangeError('WEB_PRINT is not available');
  if(![1,3,6,12].includes(durationMonths)) throw new RangeError('Invalid duration');
+ if(paymentReference!==null && (typeof paymentReference!=='string'||!paymentReference.trim()||paymentReference.length>120)) throw new RangeError('Invalid payment reference');
+ if(notes!==null && (typeof notes!=='string'||notes.length>1000)) throw new RangeError('Invalid notes');
  const result=await client.rpc('ott_admin_create_commercial_order',{
   p_customer_user_id:customerUserId,p_plan_code:planCode,
   p_duration_months:durationMonths,p_payment_reference:paymentReference,p_notes:notes

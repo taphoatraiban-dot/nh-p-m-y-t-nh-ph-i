@@ -37,6 +37,7 @@ export async function listOrders(client,limit=50) {
  if(!Number.isInteger(limit)||limit<1||limit>100) throw new RangeError('Invalid limit');
  const orders=resultOrThrow(await client.rpc('ott_admin_list_commercial_orders',{p_limit:limit}));
  if(!Array.isArray(orders)) throw new Error('Invalid order list returned by server');
+ if(orders.length>limit) throw new Error('Order list exceeds requested limit');
  return orders;
 }
 

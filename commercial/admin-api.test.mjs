@@ -70,3 +70,9 @@ test('reject oversized notes and invalid customer before RPC',async()=>{
  await assert.rejects(createPendingOrder(client,{customerUserId:'invalid',durationMonths:1}),TypeError);
  assert.equal(calls,0);
 });
+
+test('malformed RPC responses cannot appear as successful orders',async()=>{
+ const client={rpc:async()=>({data:null,error:null})};
+ await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1}),/Invalid order ID/);
+ await assert.rejects(listOrders(client),/Invalid order list/);
+});

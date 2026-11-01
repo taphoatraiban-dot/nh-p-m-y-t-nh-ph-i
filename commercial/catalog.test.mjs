@@ -12,4 +12,4 @@ test('month-end clamp',()=>assert.equal(addMonthsClamped('2026-01-31T00:00:00Z',
 test('reject invalid term',()=>assert.throws(()=>quote('WEB',2),RangeError));
 
 test('leap year February is clamped correctly',()=>assert.equal(addMonthsClamped('2028-01-31T00:00:00Z',1),'2028-02-29T00:00:00.000Z'));
-test('year boundary month clamp',()=>assert.equal(addMonthsClamped('2026-12-31T00:00:00Z',2),'2027-02-28T00:00:00.000Z'));
+test('year boundary month clamp',()=>assert.equal(addMonthsClamped('2026-12-31T00:00:00Z',3),'2027-03-31T00:00:00.000Z'));

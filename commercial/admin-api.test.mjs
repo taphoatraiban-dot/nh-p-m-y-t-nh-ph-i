@@ -108,3 +108,16 @@ test('failed confirmation and cancellation RPCs never report success',async()=>{
  await assert.rejects(confirmOrderPayment(client,customerUserId),/Admin permission required/);
  await assert.rejects(cancelPendingOrder(client,customerUserId),/Admin permission required/);
 });
+
+test('create order sends fixed WEB plan and duration without licensing RPC',async()=>{
+ const calls=[];const client={rpc:async(name,args)=>{calls.push({name,args});return {data:'22222222-2222-4222-8222-222222222222',error:null};}};
+ for(const months of [1,3,6,12]) await createPendingOrder(client,{customerUserId,durationMonths:months,paymentReference:'REF-'+months});
+ assert.equal(calls.length,4);
+ assert.deepEqual(calls.map(c=>c.args.p_duration_months),[1,3,6,12]);
+ assert.ok(calls.every(c=>c.name==='ott_admin_create_commercial_order'&&c.args.p_plan_code==='WEB'&&c.args.p_customer_user_id===customerUserId));
+});
+test('RPC network failure does not trigger automatic retry',async()=>{
+ let calls=0;const client={rpc:async()=>{calls++;throw new Error('network offline');}};
+ await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1}),/network offline/);
+ assert.equal(calls,1);
+});

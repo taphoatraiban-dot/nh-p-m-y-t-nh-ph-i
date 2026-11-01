@@ -32,3 +32,26 @@ test('cannot cancel a non-pending order',async()=>{
  const client={rpc:async()=>({data:false,error:null})};
  await assert.rejects(cancelPendingOrder(client,customerUserId),/not pending/);
 });
+
+test('RPC permission error is surfaced without retrying or changing licenses',async()=>{
+ const calls=[];
+ const client={rpc:async(name)=>{calls.push(name);return {data:null,error:{message:'Admin permission required'}};}};
+ await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1}),/Admin permission required/);
+ assert.deepEqual(calls,['ott_admin_create_commercial_order']);
+});
+test('duplicate payment confirmation is rejected',async()=>{
+ const client={rpc:async()=>({data:false,error:null})};
+ await assert.rejects(confirmOrderPayment(client,customerUserId),/already confirmed/);
+});
+test('invalid order UUID cannot call RPC',async()=>{
+ let called=false;
+ const client={rpc:async()=>{called=true;return {data:true,error:null};}};
+ await assert.rejects(confirmOrderPayment(client,'invalid'),/Invalid order UUID/);
+ await assert.rejects(cancelPendingOrder(client,'invalid'),/Invalid order UUID/);
+ assert.equal(called,false);
+});
+test('list limit must be within safe range',async()=>{
+ const client={rpc:async()=>{throw Error('must not call')}};
+ await assert.rejects(listOrders(client,101),RangeError);
+ await assert.rejects(listOrders(client,0),RangeError);
+});

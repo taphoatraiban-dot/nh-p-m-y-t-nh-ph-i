@@ -14,7 +14,7 @@ test('all four commercial migrations remain staged and isolated',()=>{
  const sql=names.map(migration).join('\n');
  assert.match(sql,/ott_commercial_orders/);
  assert.doesNotMatch(sql,/\b(?:drop|truncate)\s+table\s+public\./i);
- assert.doesNotMatch(sql,/\b(?:update|delete\s+from|insert\s+into)\s+public\.(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|profiles)\b/i);
+ assert.doesNotMatch(sql,/\b(?:update|delete\s+from|insert\s+into)\s+public\.(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|admin_users|profiles)\b/i);
 });
 test('ledger has RLS and direct client access revoked',()=>{
  const sql=migration(names[0]);

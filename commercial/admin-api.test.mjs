@@ -55,3 +55,11 @@ test('list limit must be within safe range',async()=>{
  await assert.rejects(listOrders(client,101),RangeError);
  await assert.rejects(listOrders(client,0),RangeError);
 });
+
+test('reject blank or oversized payment reference before RPC',async()=>{
+ let calls=0;const client={rpc:async()=>{calls++;return {data:null,error:null};}};
+ for(const paymentReference of ['   ','x'.repeat(121)]) {
+  await assert.rejects(createPendingOrder(client,{customerUserId,durationMonths:1,paymentReference}),RangeError);
+ }
+ assert.equal(calls,0);
+});

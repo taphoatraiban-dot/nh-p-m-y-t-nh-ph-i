@@ -22,7 +22,9 @@ export function mountCommercialAdmin({root,client}) {
  const form=root.querySelector('#ott-order-form'),status=root.querySelector('#ott-status'),orders=root.querySelector('#ott-orders');
  const price=root.querySelector('#ott-price');
  function showPrice(){price.textContent='Giá: '+money(quote(form.elements.plan.value,Number(form.elements.months.value)).amountVnd);}
- form.elements.months.addEventListener('change',showPrice);showPrice();
+ form.elements.months.addEventListener('change',showPrice);
+ form.elements.plan.addEventListener('change',showPrice);
+ showPrice();
  let busy=false;
  async function load(quiet=false){
   if(busy)return false;

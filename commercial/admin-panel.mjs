@@ -34,6 +34,7 @@ export function mountCommercialAdmin({root,client}) {
    if(!Array.isArray(rows))throw Error('Dữ liệu đơn hàng không hợp lệ');
    orders.replaceChildren();
    for(const order of rows){
+    if(!order || typeof order!=='object' || !order.id || !['pending','confirmed','cancelled'].includes(order.status)) throw new Error('Đơn hàng trả về không hợp lệ');
     const item=document.createElement('article');
     const label=document.createElement('p');
     label.textContent=`${order.customer_user_id} | ${order.plan_code} | ${order.duration_months} tháng | ${money(order.amount_vnd)} | ${order.status}`;

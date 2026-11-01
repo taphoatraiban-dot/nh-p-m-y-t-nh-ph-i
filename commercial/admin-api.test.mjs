@@ -86,3 +86,15 @@ test('reject malformed RPC list payload objects',async()=>{
  const client={rpc:async()=>({data:{orders:[]},error:null})};
  await assert.rejects(listOrders(client),/Invalid order list/);
 });
+
+test('invalid list limits never reach Supabase RPC',async()=>{
+ let calls=0;const client={rpc:async()=>{calls++;return {data:[],error:null};}};
+ for(const limit of [null,NaN,Infinity,1.5,-1,'50']) await assert.rejects(listOrders(client,limit),RangeError);
+ assert.equal(calls,0);
+});
+test('missing authenticated client is rejected before operations',async()=>{
+ await assert.rejects(createPendingOrder(null,{customerUserId,durationMonths:1}),TypeError);
+ await assert.rejects(listOrders(null),TypeError);
+ await assert.rejects(confirmOrderPayment(null,customerUserId),TypeError);
+ await assert.rejects(cancelPendingOrder(null,customerUserId),TypeError);
+});

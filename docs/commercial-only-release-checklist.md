@@ -21,3 +21,13 @@ Không sửa `claim_device`, `admin_reset_device`, `check_license`, `check_email
 - Tích hợp admin bằng RPC riêng, bảo đảm idempotent; **không cấp quyền khi chỉ tạo đơn**.
 - Khi admin xác nhận thanh toán, dùng đúng luồng cấp quyền hiện hữu đã kiểm thử, không viết lại logic cấp quyền.
 - Không merge trước khi kiểm thử hồi quy máy đã cấp quyền, Telegram, QR và in.
+
+## Cổng chặn phát hành (bắt buộc)
+1. CI trên commit cuối cùng phải `success` (run #40 đã đạt cho `3e2ed8a`; commit sau phải chạy lại).
+2. Có môi trường staging tách biệt; chạy 4 migration ở staging và xác minh RPC: non-admin bị từ chối, admin tạo/xem/hủy/xác nhận đơn, thao tác lặp không đổi trạng thái.
+3. Sao lưu cơ sở dữ liệu sản xuất và thực hiện khôi phục thử trên môi trường riêng; ghi lại thời gian, bản sao và kết quả.
+4. Chụp trạng thái trước/sau của 2 admin và dữ liệu quyền cũ bằng truy vấn chỉ đọc; không sửa hoặc chuyển đổi các bảng cấp phép hiện hữu.
+5. Kiểm tra đăng nhập, Telegram, QR, dò kết quả, in POS trên môi trường thử nghiệm.
+6. Chỉ sau khi đủ bằng chứng và được chủ sở hữu duyệt mới cân nhắc merge/deploy; xác nhận thanh toán **không** tự gia hạn hay kích hoạt license.
+
+**Tình trạng hiện tại:** chỉ hoàn tất CI mã nguồn; staging, thử khôi phục, kiểm thử tích hợp và duyệt triển khai vẫn chưa hoàn tất.

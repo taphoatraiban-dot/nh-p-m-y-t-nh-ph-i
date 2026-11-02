@@ -25,6 +25,10 @@ test('phone login requires server-controlled identity marker', () => {
   assert.match(edge, /data\.user\.app_metadata\?\.auth_method!=="phone_alias"/);
 });
 
+test('phone login matches the deterministic alias for the submitted number', () => {
+  assert.match(edge, /data\.user\.email!==email/);
+});
+
 test('deny and revoke both deactivate licenses', () => {
   assert.match(edge, /body\.action==="revoke"\|\|body\.action==="deny"/);
   assert.match(edge, /update\(\{active:false/);

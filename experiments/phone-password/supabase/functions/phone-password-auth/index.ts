@@ -86,7 +86,8 @@ Deno.serve(async(req)=>{
    const {data:old,error:oldLicenseError}=await adminDb.from("licenses").select("expires_at,active").eq("user_id",userId).maybeSingle();if(oldLicenseError)throw new Error("LICENSE_READ_FAILED");
    if(term==="permanent"||(old?.active===true&&old.expires_at===null))expires=null;else{const previousExpiry=old?.expires_at?Date.parse(old.expires_at):null;if(previousExpiry!==null&&!Number.isFinite(previousExpiry))throw new Error("INVALID_EXISTING_LICENSE_EXPIRY");const base=old?.active===true&&previousExpiry!==null&&previousExpiry>Date.now()?new Date(previousExpiry):new Date();expires=addMonthsClamped(base,months[term]).toISOString();}
    const {error:le}=await adminDb.from("licenses").upsert({user_id:userId,phone:account.phone_e164,activated_at:new Date().toISOString(),expires_at:expires,active:true,note:"Phone account approved by admin",updated_at:new Date().toISOString()},{onConflict:"user_id"});if(le)throw new Error("LICENSE_WRITE_FAILED");
-  }else if(body.action==="revoke"){
+  }else if(body.action==="revoke"||body.action==="deny"){
+   // Denial must deactivate any prior grant as well as blocking new sign-ins.
    const {error:le}=await adminDb.from("licenses").update({active:false,updated_at:new Date().toISOString()}).eq("user_id",userId);if(le)throw new Error("LICENSE_REVOKE_FAILED");
   }
   const status=body.action==="approve"?"approved":body.action==="deny"?"denied":"revoked";

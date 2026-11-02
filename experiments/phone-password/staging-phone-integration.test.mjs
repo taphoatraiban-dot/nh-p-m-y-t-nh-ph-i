@@ -22,7 +22,7 @@ test('register then login verifies license without SMS',async()=>{
  const permission=await gate({accessToken:logged.session.access_token,expectedUserId:registered.userId});
  assert.equal(permission.allowed,true);
  assert.equal(calls[0][1].email,calls[1][1].email);
- assert.equal(calls[2][1],'check_email_license');
+ assert.equal(calls[3][1],'check_email_license');
  assert.equal(calls[0][1].phone,undefined);
 });
 test('registration never automatically grants a license',async()=>{
@@ -51,4 +51,12 @@ test('unverified or failed identity check denies access',async()=>{
  const result=await gate({accessToken:logged.session.access_token,expectedUserId:logged.userId});
  assert.equal(result.allowed,false);
  assert.equal(calls.some(x=>x[0]==='rpc'),false);
+});
+
+test('signup without a real password session cannot report registration success',async()=>{
+ const alias=createPhoneAliasAuth({supabase:{auth:{
+  signUp:async()=>({data:{user:{id}},error:null}),
+  signInWithPassword:async()=>({data:{user:{id},session:null},error:null})
+ }},aliasSecret:secret,allowStaging:true});
+ await assert.rejects(alias.register(phone,'secure-password-2026'),/REGISTRATION_NOT_VERIFIED/);
 });

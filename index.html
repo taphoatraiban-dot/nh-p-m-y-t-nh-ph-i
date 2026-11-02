@@ -7644,6 +7644,7 @@ function mainDrawsForCross2(row){
            ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 Đổi máy</button>`:''}
            <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ Tạm ngưng':'▶️ Mở lại'}</button>
            <div style="font-size:13px;color:#475569;padding:7px 3px;line-height:1.7">🔒 Mật khẩu đăng nhập: ••••••••<br>🔢 PIN 4 số: •••• <span style="font-size:11px">(lưu trên thiết bị/đồng bộ)</span></div>
+           <button type="button" class="soft license-extend-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-expires="${safe(termsByUser[uid]?.expires_at||'')}">➕ Cộng hạn bản quyền</button>
            <button type="button" class="soft password-reset-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔑 Quản lý mật khẩu</button>
           `:''}
          </div>
@@ -7730,6 +7731,35 @@ function mainDrawsForCross2(row){
          try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;alert('Đã yêu cầu gửi liên kết. Khách kiểm tra hộp thư.');}
          catch(e){alert('Gửi thất bại: '+(e?.message||e));}
          finally{emailBtn.disabled=false;}
+       };
+     }));
+     box.querySelectorAll('.license-extend-btn').forEach(btn=>btn.addEventListener('click',()=>{
+       document.getElementById('extendLicenseModal')?.remove();
+       const uid=btn.dataset.userId,email=btn.dataset.email,expiry=btn.dataset.expires;
+       const modal=document.createElement('div');modal.id='extendLicenseModal';modal.style.cssText='position:fixed;inset:0;background:#0f172ab3;z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px';
+       const panel=document.createElement('div');panel.style.cssText='background:#fff;color:#172033;border-radius:18px;padding:20px;width:min(100%,420px);max-height:90vh;overflow:auto';
+       const h=document.createElement('h3');h.textContent='➕ Cộng hạn bản quyền';
+       const acct=document.createElement('p');acct.textContent=email;acct.style.overflowWrap='anywhere';
+       const old=document.createElement('p');old.textContent='Hạn hiện tại: '+(expiry?new Date(expiry).toLocaleDateString('vi-VN'):'Vĩnh viễn / chưa rõ');
+       const sel=document.createElement('select');sel.style.cssText='width:100%;padding:12px;border-radius:10px;font-size:16px;margin-bottom:10px';
+       [['1','1 tháng'],['3','3 tháng'],['12','12 tháng'],['days','Số ngày tùy chỉnh']].forEach(([v,label])=>{const o=document.createElement('option');o.value=v;o.textContent=label;sel.append(o);});
+       const days=document.createElement('input');days.type='number';days.min='1';days.max='3650';days.placeholder='Nhập số ngày';days.style.cssText='display:none;width:100%;box-sizing:border-box;padding:12px;margin-bottom:10px;font-size:16px';
+       sel.onchange=()=>days.style.display=sel.value==='days'?'block':'none';
+       const preview=document.createElement('p');preview.style.color='#334155';
+       const compute=()=>{if(!expiry)return null;const date=new Date(expiry);if(!Number.isFinite(date.getTime()))return null;const base=new Date(Math.max(date.getTime(),Date.now()));if(sel.value==='days'){const n=Number(days.value);if(!Number.isInteger(n)||n<1||n>3650)return null;base.setUTCDate(base.getUTCDate()+n);}else{base.setUTCMonth(base.getUTCMonth()+Number(sel.value));}return base;};
+       const refresh=()=>{const d=compute();preview.textContent=d?'Hạn mới dự kiến: '+d.toLocaleDateString('vi-VN'):'Không thể tính hạn mới';};
+       sel.onchange=()=>{days.style.display=sel.value==='days'?'block':'none';refresh();};days.oninput=refresh;refresh();
+       const submit=document.createElement('button');submit.textContent='Xác nhận cộng hạn';submit.style.cssText='width:100%;padding:13px;background:#e2e8f0;border-radius:12px;font-weight:700';
+       const cancel=document.createElement('button');cancel.textContent='Đóng';cancel.style.cssText='width:100%;padding:12px;margin-top:8px;background:white;border:1px solid #cbd5e1;border-radius:12px';
+       panel.append(h,acct,old,sel,days,preview,submit,cancel);modal.append(panel);document.body.append(modal);
+       cancel.onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove();};
+       submit.onclick=async()=>{
+         const d=compute();if(!d){alert('Không thể gia hạn gói vĩnh viễn hoặc chưa có ngày hết hạn.');return;}
+         const months=sel.value==='days'?0:Number(sel.value),extraDays=sel.value==='days'?Number(days.value):0;
+         if(!confirm('Cộng '+(months?months+' tháng':extraDays+' ngày')+' cho '+email+'?\\nHạn mới dự kiến: '+d.toLocaleDateString('vi-VN')))return;
+         submit.disabled=true;
+         try{const {data,error}=await sb.rpc('admin_extend_customer_license',{p_user_id:uid,p_months:months,p_days:extraDays});if(error)throw error;if(!data?.ok)throw Error(data?.message||'Gia hạn thất bại');modal.remove();await loadDeviceList();alert('Đã cộng hạn thành công. Hạn mới: '+new Date(data.new_expires_at).toLocaleDateString('vi-VN'));}
+         catch(e){alert('Không cộng được hạn: '+(e?.message||e));submit.disabled=false;}
        };
      }));
      box.querySelectorAll('.license-pause-btn').forEach(btn=>btn.addEventListener('click',async()=>{

@@ -1,0 +1,16 @@
+{
+  "name": "cuncun-phone-password-staging",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test ./*.test.mjs",
+    "start": "node staging-server.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.49.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

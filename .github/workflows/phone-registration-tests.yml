@@ -1,0 +1,32 @@
+name: Phone registration isolated tests
+on:
+  push:
+    branches:
+      - feature/phone-password-registration-isolated-20261102
+    paths:
+      - 'phone-registration/**'
+      - 'experiments/phone-password/**'
+      - '.github/workflows/phone-registration-tests.yml'
+  pull_request:
+    paths:
+      - 'phone-registration/**'
+      - 'experiments/phone-password/**'
+      - '.github/workflows/phone-registration-tests.yml'
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test isolated phone registration
+        run: node --test phone-registration/*.test.mjs
+      - name: Test Edge Function security guardrails
+        run: node --test experiments/phone-password/edge-security-regression.test.mjs
+      - name: Test staging admin/customer session isolation
+        run: node --test experiments/phone-password/phone-staging-preview.test.mjs
+      - name: Verify subscription prices and release restrictions
+        run: node --experimental-strip-types experiments/phone-password/subscription-plans.test.ts

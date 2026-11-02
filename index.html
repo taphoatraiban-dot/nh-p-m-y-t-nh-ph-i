@@ -1071,7 +1071,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <input id="regEmail" type="text" autocomplete="username" placeholder="email@example.com">
 </label>
 <label>Mật khẩu mới
-<input id="regPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự">
+<input id="regPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự">
 </label>
 <label>Nhập lại mật khẩu
 <input id="regPassword2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu">
@@ -1699,7 +1699,7 @@ async function registerCustomer(){
   $("registerStatus").className="status";
   $("registerStatus").textContent="Đang tạo tài khoản...";
   if(isPhoneLogin(email)){
-    if(password.length<12||password!==confirm){$("registerStatus").className="status err";$("registerStatus").textContent="Mật khẩu SĐT tối thiểu 12 ký tự và phải nhập giống nhau.";return;}
+    if(password.length<8||password!==confirm){$("registerStatus").className="status err";$("registerStatus").textContent="Mật khẩu SĐT tối thiểu 8 ký tự và phải nhập giống nhau.";return;}
     try{const result=await phoneAuthCall("register",email,password);$("registerStatus").className="status ok";$("registerStatus").textContent=result.message||"Đăng ký thành công, chờ Admin cấp quyền.";}
     catch(e){$("registerStatus").className="status err";$("registerStatus").textContent=e.message;}return;
   }
@@ -1708,9 +1708,9 @@ async function registerCustomer(){
     $("registerStatus").textContent="Email không hợp lệ.";
     return;
   }
-  if(password.length<6){
+  if(password.length<8){
     $("registerStatus").className="status err";
-    $("registerStatus").textContent="Mật khẩu tối thiểu 6 ký tự.";
+    $("registerStatus").textContent="Mật khẩu tối thiểu 8 ký tự.";
     return;
   }
   if(password!==confirm){

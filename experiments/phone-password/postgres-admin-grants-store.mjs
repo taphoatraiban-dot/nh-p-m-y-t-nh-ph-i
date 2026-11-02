@@ -33,6 +33,10 @@ export function createPostgresAdminGrantsStore(pool) {
       approved_by=excluded.approved_by,updated_at=excluded.updated_at
       returning account_id,status,expires_at,revoked_at,updated_at`,
       [grant.account_id,grant.status,grant.expires_at,grant.revoked_at,grant.approved_by,grant.updated_at]);
+    await client.query(
+      'insert into phone_auth_private.grant_audit (account_id,actor_id,action,term,previous_status,new_status) values ($1,$2,$3,$4,$5,$6)',
+      [accountId,admin.id,action,term??null,previous?.status??'pending',result.rows[0].status]
+    );
     await client.query('commit');
     return result.rows[0];
    } catch(e) {await client.query('rollback');throw e}

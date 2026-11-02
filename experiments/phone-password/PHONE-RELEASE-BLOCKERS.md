@@ -1,5 +1,12 @@
 # Phone/password release gate — not production ready
 
+## Verified progress (2026-11-02)
+- Local test suite: 103/103 passed, 0 failed, 0 skipped, including real local PostgreSQL registration/login/logout persistence and pending -> approve -> revoke with audit assertions.
+- GitHub Actions workflow `Phone registration isolated tests`: completed successfully for the latest preview update.
+- Admin authorization in the staging Edge Function now checks the existing `public.admin_users` membership table, not `profiles.role`; the experimental `check_email_license()` migration also preserves existing admin membership access.
+- These checks are local/CI evidence only. No staging Supabase migration or Edge Function has been deployed.
+
+
 Completed in isolated branch: phone credential hashing/session prototype; private PostgreSQL account/grant/audit stores; localhost HTTP API; admin verification adapters; admin HTTP preview; local phone grant access gate.
 
 Must finish before production release:

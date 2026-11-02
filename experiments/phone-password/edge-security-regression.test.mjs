@@ -15,7 +15,9 @@ test('unknown origins are not reflected in CORS responses', () => {
 });
 
 test('missing phone account never falls back to Gmail access', () => {
-  assert.match(edge, /!account&&identity\.user\.user_metadata\?\.auth_method==="phone_alias"/);
+  assert.match(edge, /!account&&identity\.user\.app_metadata\?\.auth_method==="phone_alias"/);
+  assert.match(edge, /app_metadata:\{auth_method:"phone_alias"\}/);
+  assert.doesNotMatch(edge, /user_metadata\?\.auth_method/);
 });
 
 test('deny and revoke both deactivate licenses', () => {

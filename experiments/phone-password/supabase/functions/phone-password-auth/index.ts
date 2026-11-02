@@ -28,7 +28,7 @@ Deno.serve(async(req)=>{
     const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{auth_method:"phone_alias",phone_verified:false}});
     if(error||!data.user)return json(409,{error:"REGISTRATION_FAILED"},origin);
     const {error:insertError}=await adminDb.from("phone_auth_accounts").insert({user_id:data.user.id,phone_e164:phone,status:"pending"});
-    if(insertError){await adminDb.auth.admin.deleteUser(data.user.id);return json(500,{error:"REGISTRATION_FAILED"},origin);}
+    if(insertError){const {error:cleanupError}=await adminDb.auth.admin.deleteUser(data.user.id);if(cleanupError){console.error("PHONE_REGISTRATION_ORPHAN",data.user.id,cleanupError.message);return json(503,{error:"REGISTRATION_REQUIRES_ADMIN_REVIEW"},origin);}return json(500,{error:"REGISTRATION_FAILED"},origin);}
     return json(200,{success:true,status:"pending",message:"Đăng ký thành công. Chờ Admin duyệt bản quyền."},origin);
    }
    const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.auth.signInWithPassword({email,password});if(error||!data.session)return json(401,{error:"INVALID_CREDENTIALS"},origin);

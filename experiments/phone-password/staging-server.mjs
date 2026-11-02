@@ -25,6 +25,8 @@ const server=http.createServer(async(req,res)=>{
  try{
   const origin=req.headers.origin;
   if(origin&&origin!=='http://127.0.0.1:'+port&&origin!=='http://localhost:'+port)return json(res,403,{message:'Nguồn yêu cầu không hợp lệ'});
+  if(req.method==='POST'&&!origin)return json(res,403,{message:'Thiếu Origin của trình duyệt'});
+  if(req.method==='POST'&&req.headers['content-type']?.split(';')[0].trim().toLowerCase()!=='application/json')return json(res,415,{message:'Chỉ chấp nhận JSON'});
   if(req.method==='GET'&&req.url==='/'){const html=await readFile(new URL('./staging-login.html',import.meta.url));res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});return res.end(html);}
   if(req.method!=='POST'||!/^\/api\/staging-auth\/(phone|email)\/(register|login)$/.test(req.url||''))return json(res,404,{message:'Không tìm thấy chức năng'});
   const [,mode,action]=req.url.match(/^\/api\/staging-auth\/(phone|email)\/(register|login)$/);

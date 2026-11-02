@@ -37,6 +37,7 @@ test('resuming staging rechecks phone approval and closes invalid sessions', () 
 
 test('restored phone session is checked immediately after staging connection', () => {
   assert.match(html, /Đang kiểm tra phiên đã lưu/);
-  assert.match(html, /await recheckPhoneOnResume\(\)/);
+  assert.match(html, /await recheckPhoneOnResume\(true\)/);
+  assert.match(html, /\(!force&&document\.visibilityState==='hidden'\)/);
   assert.match(html, /Phiên SĐT đã được kiểm tra nếu có/);
 });

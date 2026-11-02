@@ -62,3 +62,18 @@ test('release UI cannot call undeployed API', () => {
   assert.match(ui,/const api='';/);
   assert.match(admin,/const API_URL='';/);
 });
+
+test('admin approval is atomic and never callable by authenticated clients', () => {
+  const sql=readFileSync(new URL('./supabase/migrations/202611020002_phone_admin_transaction.sql',import.meta.url),'utf8');
+  assert.match(sql,/security definer set search_path = ''/);
+  assert.match(sql,/revoke all on function public\.phone_auth_admin_change\(uuid,uuid,text,text\) from public, anon, authenticated/);
+  assert.match(sql,/grant execute on function public\.phone_auth_admin_change\(uuid,uuid,text,text\) to service_role/);
+  assert.match(sql,/for update/);
+  assert.match(sql,/insert into public\.phone_auth_audit/);
+  assert.match(edge,/adminDb\.rpc\("phone_auth_admin_change"/);
+});
+test('expired license renewal does not extend from stale expiry', () => {
+  const sql=readFileSync(new URL('./supabase/migrations/202611020002_phone_admin_transaction.sql',import.meta.url),'utf8');
+  assert.match(sql,/v_old_active and v_old_expiry>now\(\)/);
+  assert.match(sql,/least\(extract\(day from v_base\)/);
+});

@@ -35,7 +35,7 @@ Deno.serve(async(req)=>{
    // A valid password alone must never grant application access.
    // A password sign-in issues a session before the license is checked. Revoke
    // that session when authorization fails instead of leaving it usable.
-   const rejectLogin=async(reason:string)=>{try{await client.auth.signOut();}catch(e){console.error("PHONE_SESSION_CLEANUP_FAILED",e);}return json(403,{error:reason},origin);};
+   const rejectLogin=async(reason:string)=>{try{const {error:signOutError}=await client.auth.signOut();if(signOutError)console.error("PHONE_SESSION_CLEANUP_FAILED",signOutError.message);}catch(e){console.error("PHONE_SESSION_CLEANUP_FAILED",e);}return json(403,{error:reason},origin);};
    if(data.user.app_metadata?.auth_method!=="phone_alias"||data.user.email!==email)return await rejectLogin("PHONE_IDENTITY_INVALID");
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",data.user.id).maybeSingle();
    if(accountError||!account||account.status!=="approved")return await rejectLogin("LICENSE_NOT_APPROVED");

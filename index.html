@@ -1320,7 +1320,15 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
     <label>Ghi chú<input id="adminNote" placeholder="Ví dụ: Khách A"></label>
    </div>
    <div class="buttons"><button class="green" id="createCustomerBtn">＋ CẤP EMAIL + LICENSE</button></div>
-   <div id="adminStatus" class="status">Admin cấp trước Email. Khách sẽ tự đặt mật khẩu ở lần đăng ký đầu tiên.</div>
+   <div id="phoneAdminSection" style="margin-top:14px;border-top:1px solid #cbd5e1;padding-top:12px">
+ <h3>📱 CẤP QUYỀN SỐ ĐIỆN THOẠI</h3>
+ <p class="muted">Khách phải đăng ký SĐT trước. Admin có thể tìm tài khoản, duyệt và gia hạn.</p>
+ <label>Tìm SĐT đã đăng ký<input id="phoneAdminSearch" type="tel" placeholder="09xxxxxxxx"></label>
+ <label>Thời hạn<select id="phoneAdminTerm"><option value="1m">1 tháng</option><option value="3m">3 tháng</option><option value="6m">6 tháng</option><option value="12m">12 tháng</option></select></label>
+ <div class="buttons"><button type="button" id="phoneAdminRefresh" class="soft">TẢI DANH SÁCH SĐT</button><button type="button" id="phoneAdminFind" class="green">TÌM / CẤP QUYỀN</button></div>
+ <div id="phoneAdminStatus" class="status"></div><div id="phoneAdminList"></div>
+ </div>
+ <div id="adminStatus" class="status">Admin cấp trước Email. Khách sẽ tự đặt mật khẩu ở lần đăng ký đầu tiên.</div>
   </div>
 <div class="card hidden" id="webPmInbox" style="margin-top:12px"><h3>📩 YÊU CẦU TỪ WEBSITE CUN CUN</h3><p>Đăng nhập tài khoản WEB PM của Admin để duyệt yêu cầu. Hệ thống bản quyền website độc lập với chức năng cấp quyền thiết bị hiện tại.</p><label>Email Admin WEB PM<input id="webPmEmail" type="email" value="taphoatraiban@gmail.com"></label><label>Mật khẩu WEB PM<input id="webPmPassword" type="password" autocomplete="current-password"></label><div class="buttons"><button type="button" id="webPmLogin">Đăng nhập WEB PM</button><button type="button" id="webPmReload">Tải yêu cầu</button></div><div id="webPmMessage" class="status"></div><div id="webPmRequests"></div></div>
  </div>
@@ -1687,6 +1695,42 @@ async function reserveCustomer(){
 }
 $("createCustomerBtn").onclick=reserveCustomer;
 
+// Admin phone authorization: all actions are verified server-side against admin_users.
+let phoneAdminAccounts=[];
+async function phoneAdminRequest(action,fields={}){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session?.access_token)throw Error("Cần đăng nhập Admin.");
+ const response=await fetch(SUPABASE_URL+"/functions/v1/phone-password-auth",{method:"POST",headers:{"content-type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY,"authorization":"Bearer "+session.access_token},body:JSON.stringify({action,...fields})});
+ const result=await response.json();if(!response.ok)throw Error(result.error||"Không thực hiện được.");return result;
+}
+function phoneAdminMessage(message,error=false){const el=$("phoneAdminStatus");if(el){el.className="status "+(error?"err":"ok");el.textContent=message;}}
+function phoneAdminRender(accounts){
+ const host=$("phoneAdminList");if(!host)return;host.replaceChildren();
+ if(!accounts.length){host.textContent="Không tìm thấy tài khoản SĐT phù hợp.";return;}
+ accounts.forEach(account=>{
+  const line=document.createElement("div");line.style.cssText="padding:10px 0;border-bottom:1px solid #ddd";
+  const info=document.createElement("div");info.textContent=account.phone_e164+" • "+account.status;line.appendChild(info);
+  const actions=document.createElement("div");actions.className="buttons";
+  const approve=document.createElement("button");approve.type="button";approve.className="green";approve.textContent=account.status==="approved"?"GIA HẠN":"DUYỆT / CẤP QUYỀN";
+  approve.onclick=()=>phoneAdminChange(account,"approve");
+  const revoke=document.createElement("button");revoke.type="button";revoke.className="soft";revoke.textContent="KHÓA";
+  revoke.onclick=()=>phoneAdminChange(account,"revoke");
+  actions.append(approve,revoke);line.appendChild(actions);host.appendChild(line);
+ });
+}
+async function phoneAdminLoad(onlyPending=false){
+ phoneAdminMessage("Đang tải danh sách...");
+ try{const result=await phoneAdminRequest(onlyPending?"list_pending":"list_accounts");phoneAdminAccounts=result.accounts||[];const query=$("phoneAdminSearch").value.replace(/[^0-9]/g,"");phoneAdminRender(query?phoneAdminAccounts.filter(a=>a.phone_e164.replace(/[^0-9]/g,"").includes(query)):phoneAdminAccounts);phoneAdminMessage("Đã tải "+phoneAdminAccounts.length+" tài khoản.");}
+ catch(e){phoneAdminMessage(e.message,true);}
+}
+async function phoneAdminChange(account,action){
+ const term=$("phoneAdminTerm").value;
+ if(!confirm((action==="approve"?(account.status==="approved"?"Gia hạn ":"Cấp quyền "):"Khóa ")+account.phone_e164+(action==="approve"?" • "+term:"")+"?"))return;
+ try{await phoneAdminRequest(action,{user_id:account.user_id,term});phoneAdminMessage("Đã cập nhật "+account.phone_e164);await phoneAdminLoad();}
+ catch(e){phoneAdminMessage(e.message,true);}
+}
+$("phoneAdminRefresh").onclick=()=>phoneAdminLoad();
+$("phoneAdminFind").onclick=()=>phoneAdminLoad();
 function isPhoneLogin(v){return /^(0[35789][0-9]{8}|\\+84[35789][0-9]{8})$/.test(String(v).replace(/[\\s().-]/g,""));}
 async function phoneAuthCall(action,phone,password){
  const response=await fetch(SUPABASE_URL+"/functions/v1/phone-password-auth",{method:"POST",headers:{"content-type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({action,phone,password})});

@@ -3,10 +3,11 @@
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {createClient} from '@supabase/supabase-js';
-import {createSmsFreePhoneFlow} from './sms-free-phone-flow.mjs';
+import {createPhoneAliasAuth} from './supabase-phone-alias-auth.mjs';
+import {createProductionLicenseRpcGate} from './production-license-rpc-gate.mjs';
 import {createLocalPhoneRateLimiter} from './local-phone-rate-limit.mjs';
 
-const required=['SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','SUPABASE_SERVICE_ROLE_KEY','PHONE_ALIAS_SECRET'];
+const required=['SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','PHONE_ALIAS_SECRET'];
 for(const name of required)if(!process.env[name])throw new Error('MISSING_'+name);
 if(process.env.STAGING_ONLY!=='true')throw new Error('STAGING_ONLY');
 const url=new URL(process.env.SUPABASE_URL);
@@ -14,8 +15,8 @@ if(!['localhost','127.0.0.1'].includes(url.hostname))throw new Error('LOCAL_SUPA
 const port=Number(process.env.PORT||8787);
 if(!Number.isSafeInteger(port)||port<1024||port>65535)throw new Error('INVALID_PORT');
 const anon=createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
-const admin=createClient(url.href,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
-const flow=createSmsFreePhoneFlow({supabase:anon,serverAuthClient:admin,serverDb:admin,aliasSecret:process.env.PHONE_ALIAS_SECRET,allowStaging:true});
+const phoneAuth=createPhoneAliasAuth({supabase:anon,aliasSecret:process.env.PHONE_ALIAS_SECRET,allowStaging:true});
+const licenseGate=createProductionLicenseRpcGate({userClientFactory:async token=>createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false,autoRefreshToken:false}})});
 const limit=createLocalPhoneRateLimiter({maxAttempts:5});
 function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
 function clientKey(req){return req.socket.remoteAddress||'unknown';}
@@ -32,11 +33,12 @@ const server=http.createServer(async(req,res)=>{
   const body=JSON.parse(raw);if(typeof body.identity!=='string'||typeof body.password!=='string')return json(res,400,{message:'Dữ liệu không hợp lệ'});
   const throttle=limit(clientKey(req)+':'+mode+':'+action);if(!throttle.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
   if(mode==='phone'){
-   if(action==='register'){await flow.register(body.identity,body.password);return json(res,200,{message:'Đã gửi yêu cầu đăng ký. Chờ quản trị viên duyệt.'});}
-   const result=await flow.login(body.identity,body.password);
-   if(!result.allowed)return json(res,403,{message:'Tài khoản chưa được duyệt hoặc chưa có giấy phép hợp lệ.'});
+   if(action==='register'){await phoneAuth.register(body.identity,body.password);return json(res,200,{message:'Đã gửi yêu cầu đăng ký. Chờ quản trị viên duyệt.'});}
+   const result=await phoneAuth.login(body.identity,body.password);
+   const access=await licenseGate({accessToken:result.session.access_token,expectedUserId:result.userId});
+   if(!access.allowed)return json(res,403,{message:'Tài khoản chưa được duyệt hoặc chưa có giấy phép hợp lệ.'});
    // Do not return tokens or set cookies until server-side session design is reviewed.
-   return json(res,200,{message:'Xác thực SĐT thử nghiệm thành công. Chưa cấp quyền sử dụng: cần đối chiếu check_email_license.'});
+   return json(res,200,{message:'Xác thực SĐT và bản quyền thành công (chỉ thử nghiệm, chưa tạo phiên ứng dụng).'});
   }
   const {data,error}=await anon.auth.signInWithPassword({email:body.identity,password:body.password});
   if(error||!data?.user?.id||!data?.session?.access_token)return json(res,401,{message:'Email hoặc mật khẩu không đúng'});

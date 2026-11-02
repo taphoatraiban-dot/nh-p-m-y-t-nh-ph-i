@@ -7644,7 +7644,7 @@ function mainDrawsForCross2(row){
           ${uid && status!=="admin"? `
            ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 Đổi máy</button>`:''}
            <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ Tạm ngưng':'▶️ Mở lại'}</button>
-           <button type="button" class="soft password-reset-btn" data-email="${safe(email)}">🔑 Đặt lại mật khẩu</button>
+           <button type="button" class="soft password-reset-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔑 Quản lý mật khẩu</button>
           `:''}
          </div>
        </div>`;
@@ -7676,18 +7676,37 @@ function mainDrawsForCross2(row){
      }));
      box.querySelectorAll('.password-reset-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const email=String(btn.dataset.email||'').trim().toLowerCase();
-       if(!email)return;
-       if(!confirm(`Gửi email đặt lại mật khẩu cho ${email}?`))return;
-       btn.disabled=true; btn.textContent='⏳ ĐANG GỬI...';
-       try{
-         const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
-         if(error)throw error;
-         st.className='status ok'; st.textContent=`✅ Đã gửi liên kết đặt lại mật khẩu đến ${email}.`;
-         btn.textContent='✅ ĐÃ GỬI ĐẶT LẠI MẬT KHẨU';
-       }catch(e){
-         btn.disabled=false; btn.textContent='🔑 GỬI ĐẶT LẠI MẬT KHẨU';
-         st.className='status err'; st.textContent='Gửi đặt lại mật khẩu thất bại: '+(e?.message||e);
+       const uid=String(btn.dataset.userId||'');
+       const isPhone=email.startsWith('+')||email.startsWith('phone-');
+       const choice=prompt('QUẢN LÝ MẬT KHẨU\\n'+email+'\\n\\n1 = Gửi email khôi phục (Gmail)\\n2 = Admin đặt mật khẩu mới trực tiếp\\n\\nNhập 1 hoặc 2:',isPhone?'2':'1');
+       if(choice===null)return;
+       if(choice!=='1'&&choice!=='2'){alert('Chỉ nhập 1 hoặc 2.');return;}
+       if(choice==='1'&&isPhone){alert('Tài khoản SĐT không có email nhận liên kết. Hãy chọn cách 2.');return;}
+       if(choice==='1'){
+         if(!confirm('Gửi email khôi phục cho '+email+'?'))return;
+         btn.disabled=true;
+         try{
+           const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+           if(error)throw error;
+           st.className='status ok';st.textContent='Đã yêu cầu gửi liên kết đến '+email+' (cần kiểm tra hộp thư).';
+         }catch(e){st.className='status err';st.textContent='Gửi liên kết thất bại: '+(e?.message||e);}
+         finally{btn.disabled=false;}return;
        }
+       const password=prompt('Nhập mật khẩu mới cho '+email+' (ít nhất 8 ký tự):');
+       if(password===null)return;
+       if(password.length<8||password.length>128){alert('Mật khẩu phải có từ 8 đến 128 ký tự.');return;}
+       const again=prompt('Nhập lại mật khẩu mới để xác nhận:');
+       if(again===null)return;
+       if(password!==again){alert('Hai mật khẩu không trùng nhau.');return;}
+       if(!confirm('Xác nhận thay đổi mật khẩu cho '+email+'?\\nKhông thay đổi máy hoặc bản quyền.'))return;
+       btn.disabled=true;
+       try{
+         const {data,error}=await sb.functions.invoke('admin-reset-customer-password',{body:{user_id:uid,password}});
+         if(error)throw error;
+         if(!data?.ok)throw new Error(data?.error||'Đổi mật khẩu thất bại');
+         st.className='status ok';st.textContent='Đã đổi mật khẩu cho '+email+'.';
+       }catch(e){st.className='status err';st.textContent='Đổi mật khẩu thất bại: '+(e?.message||e);}
+       finally{btn.disabled=false;}
      }));
      box.querySelectorAll('.license-pause-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const uid=btn.dataset.userId, email=btn.dataset.email||'tài khoản này';

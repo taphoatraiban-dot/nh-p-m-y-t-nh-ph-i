@@ -6,6 +6,7 @@ const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const ALIAS_SECRET = Deno.env.get("PHONE_ALIAS_SECRET")!;
 if (new TextEncoder().encode(ALIAS_SECRET).length < 32) throw new Error("PHONE_ALIAS_SECRET must contain at least 32 bytes");
+import { resolveAvailablePlan } from "../../../subscription-plans.ts";
 const ALLOWED = new Set(["https://cuncun.icu","https://www.cuncun.icu","http://localhost:8787","http://127.0.0.1:8787"]);
 const adminDb = createClient(URL,SERVICE,{auth:{persistSession:false,autoRefreshToken:false}});
 const json=(status:number,body:unknown,origin:string|null)=>new Response(JSON.stringify(body),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":origin&&ALLOWED.has(origin)?origin:"null","vary":"Origin","access-control-allow-headers":"authorization, apikey, content-type","access-control-allow-methods":"POST, OPTIONS"}});
@@ -21,11 +22,11 @@ Deno.serve(async(req)=>{
  try{
   const body=await req.json();if(!body||typeof body!=="object"||Array.isArray(body))return json(400,{error:"INVALID_INPUT"},origin);
   if(body.action==="register"||body.action==="login"){
-   const phone=normalize(body.phone),password=String(body.password??"");if(password.length<12||password.length>128)return json(400,{error:"INVALID_PASSWORD"},origin);
+   const phone=normalize(body.phone),password=String(body.password??"");if(password.length<12||password.length>128)return json(400,{error:"INVALID_PASSWORD"},origin);if(body.action==="register"){try{resolveAvailablePlan(body.plan_id);}catch(e){return json(400,{error:e instanceof Error?e.message:"INVALID_PLAN"},origin);}}
    await rateLimit(body.action,phone);
    const email=await alias(phone);
    if(body.action==="register"){
-    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{phone_verified:false},app_metadata:{auth_method:"phone_alias"}});
+    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{phone_verified:false,requested_plan_id:String(body.plan_id)},app_metadata:{auth_method:"phone_alias"}});
     if(error||!data.user)return json(409,{error:"REGISTRATION_FAILED"},origin);
     const {error:insertError}=await adminDb.from("phone_auth_accounts").insert({user_id:data.user.id,phone_e164:phone,status:"pending"});
     if(insertError){await adminDb.auth.admin.deleteUser(data.user.id);return json(500,{error:"REGISTRATION_FAILED"},origin);}

@@ -988,6 +988,41 @@ body.app-unlocked .tt-customer-name[hidden]{display:none!important}
 #date{position:absolute!important;width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;max-width:1px!important;max-height:1px!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;overflow:hidden!important;clip-path:inset(50%)!important;margin:0!important;padding:0!important;border:0!important}
 #betsCard .grid:has(>label>#date){display:none!important}
 </style>
+<link rel="stylesheet" href="assets/cuncun-ui-motion.css?v=20261103">
+<script>
+/* UI-only motion; delegated events preserve existing application handlers. */
+(function(){
+ const interactive='button, [role="button"], select, input[type="button"], input[type="submit"]';
+ const sheetSelector='[role="dialog"], .modal, .popup, .dropdown-menu';
+ function motion(el,cls){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);el.addEventListener('animationend',()=>el.classList.remove(cls),{once:true});}
+ document.addEventListener('pointerdown',function(e){
+  const el=e.target.closest&&e.target.closest(interactive);
+  if(!el||el.disabled)return;
+  el.classList.add('cc-motion-tap','cc-motion-ripple');
+  const r=el.getBoundingClientRect();
+  el.style.setProperty('--cc-tap-x',((e.clientX-r.left)/Math.max(r.width,1)*100)+'%');
+  el.style.setProperty('--cc-tap-y',((e.clientY-r.top)/Math.max(r.height,1)*100)+'%');
+ },{passive:true});
+ document.addEventListener('change',function(e){
+  const el=e.target;
+  if(el.matches&&el.matches('select'))motion(el,'cc-motion-success');
+  if(el.matches&&el.matches('input[type="date"]'))motion(el,'cc-motion-calendar');
+ });
+ document.addEventListener('click',function(e){
+  const el=e.target.closest&&e.target.closest(interactive);
+  if(!el)return;
+  const id=(el.id||'').toLowerCase(),txt=(el.textContent||'').trim().toLowerCase();
+  if(/date|calendar|ngày|tháng/.test(id+' '+txt))motion(el,'cc-motion-calendar');
+  if(/save|lưu phơi/.test(id+' '+txt))motion(el,'cc-motion-success');
+  if(/dò sai|checkerror/.test(id+' '+txt)){
+   const status=document.getElementById('status');
+   if(status&&/lỗi|sai|không hợp lệ/i.test(status.textContent||''))motion(status,'cc-motion-error');
+  }
+  const popup=el.closest(sheetSelector);
+  if(popup&&popup.getAttribute('aria-hidden')!=='true')motion(popup,'cc-motion-sheet');
+ },{passive:true});
+})();
+</script>
 </head>
 <body>
 <button id="cuncunTopReload" type="button" aria-label="Tải lại trang Cuncun" title="Tải lại trang" style="position:fixed;right:12px;top:calc(env(safe-area-inset-top, 0px) + 8px);z-index:290000;background:#2563eb;color:#fff;border:2px solid #fff;border-radius:24px;padding:9px 13px;font-size:14px;font-weight:800;box-shadow:0 2px 9px #0005;min-height:40px">↻ TẢI LẠI</button>

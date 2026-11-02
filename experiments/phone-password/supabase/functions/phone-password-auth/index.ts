@@ -26,7 +26,7 @@ Deno.serve(async(req)=>{
    await rateLimit(body.action,phone);
    const email=await alias(phone);
    if(body.action==="register"){
-    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{phone_verified:false,requested_plan_id:String(body.plan_id)},app_metadata:{auth_method:"phone_alias"}});
+    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{phone_verified:false},app_metadata:{auth_method:"phone_alias",requested_plan_id:String(body.plan_id)},app_metadata:{auth_method:"phone_alias"}});
     if(error||!data.user)return json(409,{error:"REGISTRATION_FAILED"},origin);
     const {error:insertError}=await adminDb.from("phone_auth_accounts").insert({user_id:data.user.id,phone_e164:phone,status:"pending"});
     if(insertError){await adminDb.auth.admin.deleteUser(data.user.id);return json(500,{error:"REGISTRATION_FAILED"},origin);}

@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSupabaseAdminVerifier} from './supabase-admin-verifier.mjs';
+const id='123e4567-e89b-42d3-a456-426614174000';
+const req={headers:{authorization:'Bearer '+ 'a'.repeat(32)}};
+test('fails closed without trusted dependencies',()=>assert.throws(()=>createSupabaseAdminVerifier(),/TRUSTED_SUPABASE_DEPENDENCIES_REQUIRED/));
+test('rejects missing and malformed tokens',async()=>{let called=false;const verify=createSupabaseAdminVerifier({getUser:async()=>{called=true},isAdmin:async()=>true});assert.equal(await verify({headers:{}}),null);assert.equal(await verify({headers:{authorization:'Bearer short'}}),null);assert.equal(called,false)});
+test('rejects ordinary authenticated Supabase users',async()=>{const verify=createSupabaseAdminVerifier({getUser:async()=>({id}),isAdmin:async()=>false});assert.equal(await verify(req),null)});
+test('accepts only server-confirmed admin membership',async()=>{const verify=createSupabaseAdminVerifier({getUser:async()=>({id,user_metadata:{role:'admin'}}),isAdmin:async()=>true});assert.deepEqual(await verify(req),{id,role:'admin',authenticated:true,source:'supabase-auth-server'})});
+test('rejects verification errors',async()=>{const verify=createSupabaseAdminVerifier({getUser:async()=>{throw Error('offline')},isAdmin:async()=>true});assert.equal(await verify(req),null)});

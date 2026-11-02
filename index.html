@@ -7589,6 +7589,10 @@ function mainDrawsForCross2(row){
        box.innerHTML='<div class="muted">Chưa có tài khoản nào đang gắn máy.</div>';
        st.className='device-list-status'; st.textContent='Hiển thị 0 tài khoản'; return;
      }
+     const {data:termRows,error:termErr}=await sb.rpc('admin_list_device_license_terms');
+     if(termErr)throw termErr;
+     const termsByUser={};
+     (termRows||[]).forEach(t=>{if(t.user_id)termsByUser[String(t.user_id)]=t;});
      const {data:adminRows,error:adminErr}=await sb.rpc('admin_list_admin_device_user_ids');
      if(adminErr)throw adminErr;
      const adminUserIds=new Set((adminRows||[]).map(a=>String(a.user_id)));
@@ -7612,6 +7616,18 @@ function mainDrawsForCross2(row){
        const uid=String(x.user_id||'');
        const licenseActive=(uid && Object.prototype.hasOwnProperty.call(licenseStateByUser,uid)) ? licenseStateByUser[uid] : true;
        const safe=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+       const term=termsByUser[uid];
+       const fmtDate=v=>v?new Date(v).toLocaleDateString('vi-VN'):'';
+       const termLabel=statusLabel=>{if(statusLabel==='Quản trị viên')return 'Gói: Admin';
+         if(!term||(!term.activated_at&&!term.expires_at))return 'Gói: Chưa có thông tin';
+         if(!term.expires_at)return 'Gói: Vĩnh viễn';
+         const start=term.activated_at?new Date(term.activated_at):null;
+         const end=new Date(term.expires_at);
+         if(!Number.isFinite(end.getTime()))return 'Gói: Chưa xác định';
+         const days=start&&Number.isFinite(start.getTime())?Math.round((end-start)/86400000):null;
+         const duration=days!==null?(days>=350&&days<=380?'12 tháng':days>=85&&days<=100?'3 tháng':days>=27&&days<=33?'1 tháng':days===2?'Dùng thử 2 ngày':days+' ngày'):'Theo thời hạn';
+         return 'Gói: '+duration+' · Hết hạn '+fmtDate(term.expires_at);
+       };
        const status=deviceStatusOf(x);
        const statusLabel=status==="admin"?"Quản trị viên":status==="active"?"Hoạt động":status==="paused"?"Tạm ngưng":"Hoạt động";
        return `<div class="device-account-card">
@@ -7620,6 +7636,7 @@ function mainDrawsForCross2(row){
           <div class="device-account-info">
            <div class="device-account-name">${safe(email)}</div>
            <div class="device-account-meta">${safe(dev)} · ${statusLabel} · ${safe(last)}</div>
+           <div class="device-account-meta">${safe(termLabel(statusLabel))}</div>
           </div>
           ${status==="admin"?'<span class="device-admin-label">ADMIN</span>':'<button type="button" class="device-actions-toggle" aria-expanded="false">••• Thao tác</button>'}
          </div>

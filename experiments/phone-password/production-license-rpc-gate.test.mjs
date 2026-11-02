@@ -30,3 +30,9 @@ test('blocks inactive, malformed and failed license RPC',async()=>{
 test('blocks unauthenticated requests',async()=>{
  const g=gate();assert.equal((await g.check({accessToken:'',expectedUserId:id})).allowed,false);assert.equal(g.calls(),0);
 });
+
+test('admin license is denied by the gate itself',async()=>{
+ const g=gate({license:{success:true,active:true,is_admin:true}});
+ const result=await g.check({accessToken:'test-token',expectedUserId:id});
+ assert.deepEqual(result,{allowed:false,reason:'ADMIN_PHONE_LOGIN_DISABLED'});
+});

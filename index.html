@@ -1041,8 +1041,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <section id="loginCard" class="card">
 <h1>🔐 ĐĂNG NHẬP</h1>
 <div class="grid">
-<label>Email
-<input id="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="email@example.com">
+<label>Email hoặc số điện thoại
+<input id="email" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="email@example.com">
 </label>
 <label>Mật khẩu
 <input id="password" type="password" autocomplete="current-password" placeholder="Mật khẩu">
@@ -1054,7 +1054,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <button class="soft" id="showRegisterBtn">ĐĂNG KÝ LẦN ĐẦU</button>
 <button class="soft" id="forgotPasswordBtn" type="button">🔑 QUÊN MẬT KHẨU</button>
 </div>
-<div id="loginStatus" class="status">Đăng nhập bằng Email + mật khẩu.</div>
+<div id="loginStatus" class="status">Đăng nhập bằng Email hoặc SĐT + mật khẩu. SĐT mới cần Admin duyệt.</div>
 <div style="margin-top:10px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;color:#1e293b">
 <strong>🔗 KIỂM TRA TÀI KHOẢN CUN CUN SHOP</strong>
 <p style="font-size:12px;margin:6px 0">Dùng email và mật khẩu ở trên để kiểm tra tài khoản WEB PM và thời hạn bản quyền. Chưa thay thế đăng nhập/cấp quyền cũ.</p>
@@ -1067,8 +1067,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <section id="registerCard" class="card hidden">
 <h1>🆕 ĐĂNG KÝ LẦN ĐẦU</h1>
 <div class="grid">
-<label>Email
-<input id="regEmail" type="email" autocomplete="username" placeholder="email@example.com">
+<label>Email hoặc số điện thoại
+<input id="regEmail" type="text" autocomplete="username" placeholder="email@example.com">
 </label>
 <label>Mật khẩu mới
 <input id="regPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự">
@@ -1081,7 +1081,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <button class="green" id="registerBtn">TẠO TÀI KHOẢN</button>
 <button class="soft" id="backLoginBtn">QUAY LẠI ĐĂNG NHẬP</button>
 </div>
-<div id="registerStatus" class="status">Đăng ký Email hiện hoạt động với tài khoản được Admin cấp quyền. Đăng ký bằng số điện thoại đang được hoàn thiện và chưa mở trên bản chính.</div><div class="support-box">💬 HỖ TRỢ: <a href="https://t.me/MRkbiss" target="_blank" rel="noopener">Telegram @MRkbiss</a></div>
+<div id="registerStatus" class="status">Email dùng tài khoản được cấp quyền; SĐT đăng ký không cần SMS và chờ Admin duyệt.</div><div class="support-box">💬 HỖ TRỢ: <a href="https://t.me/MRkbiss" target="_blank" rel="noopener">Telegram @MRkbiss</a></div>
 </section>
 
 <section id="pinCard" class="card hidden">
@@ -1687,12 +1687,22 @@ async function reserveCustomer(){
 }
 $("createCustomerBtn").onclick=reserveCustomer;
 
+function isPhoneLogin(v){return /^(0[35789][0-9]{8}|\\+84[35789][0-9]{8})$/.test(String(v).replace(/[\\s().-]/g,""));}
+async function phoneAuthCall(action,phone,password){
+ const response=await fetch(SUPABASE_URL+"/functions/v1/phone-password-auth",{method:"POST",headers:{"content-type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({action,phone,password})});
+ const result=await response.json();if(!response.ok)throw Error(result.error||"Lỗi xác thực số điện thoại.");return result;
+}
 async function registerCustomer(){
   const email=$("regEmail").value.trim().toLowerCase();
   const password=$("regPassword").value;
   const confirm=$("regPassword2").value;
   $("registerStatus").className="status";
   $("registerStatus").textContent="Đang tạo tài khoản...";
+  if(isPhoneLogin(email)){
+    if(password.length<12||password!==confirm){$("registerStatus").className="status err";$("registerStatus").textContent="Mật khẩu SĐT tối thiểu 12 ký tự và phải nhập giống nhau.";return;}
+    try{const result=await phoneAuthCall("register",email,password);$("registerStatus").className="status ok";$("registerStatus").textContent=result.message||"Đăng ký thành công, chờ Admin cấp quyền.";}
+    catch(e){$("registerStatus").className="status err";$("registerStatus").textContent=e.message;}return;
+  }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
     $("registerStatus").className="status err";
     $("registerStatus").textContent="Email không hợp lệ.";
@@ -2047,6 +2057,12 @@ async function performLogin(){
   const email=$("email").value.trim().toLowerCase();
   const password=$("password").value;
   if(!email||!password){loginStatus("Nhập Email và mật khẩu.","err");return;}
+  if(isPhoneLogin(email)){
+    authBootEpoch++;loginStatus("Đang đăng nhập số điện thoại...");
+    try{const result=await phoneAuthCall("login",email,password);if(!result.session)throw Error("Máy chủ chưa trả phiên đăng nhập.");const {error}=await sb.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});if(error)throw error;
+      await checkLicense();await claimDevice();await cloudRestoreSettings();showApp();await setupPinIfNeeded(email);cloudSaveSettingsSoon();loginStatus("");
+    }catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}return;
+  }
   authBootEpoch++; // Ignore a slower startup result after manual login begins.
   loginStatus("Đang đăng nhập...");
   let authResult;

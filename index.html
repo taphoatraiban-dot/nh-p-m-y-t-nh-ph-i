@@ -11072,19 +11072,17 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   ];
   for(const panel of panels){
     if(!panel)continue;
-    if(panel.parentElement!==body)body.appendChild(panel);
-    panel.open=false;
+    // Do not relocate an existing panel: the compact Telegram settings owns it.
+    // Moving a live <details> node or resetting open closes the phone/OTP form.
+    if(!panel.isConnected)body.appendChild(panel);
   }
  }
  function boot(){
   // Let existing Telegram scripts finish creating their panels before moving them.
   requestAnimationFrame(()=>requestAnimationFrame(mount));
   const observer=new MutationObserver(()=>{
-    if(!document.getElementById("tgDrawerSections20261022")||
-       ["tgTenantPanel","tgCustomerVpsSetup","tgForwardInbox"].some(id=>{
-         const el=document.getElementById(id);
-         return el&&el.parentElement?.id!=="tgDrawerThreeBody20261022";
-       }))mount();
+    // Only recreate a missing container; never move active input forms.
+    if(!document.getElementById("tgDrawerSections20261022"))mount();
   });
   observer.observe(document.body,{childList:true,subtree:true});
  }

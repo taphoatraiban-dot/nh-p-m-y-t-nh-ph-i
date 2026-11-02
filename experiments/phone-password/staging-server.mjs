@@ -46,6 +46,7 @@ const server=http.createServer(async(req,res)=>{
    const result=await phoneAuth.login(body.identity,body.password);
    const access=await licenseGate({accessToken:result.session.access_token,expectedUserId:result.userId});
    if(!access.allowed)return json(res,403,{message:'Tài khoản chưa được cấp bản quyền hợp lệ trên hệ thống thử nghiệm.'});
+   if(access.isAdmin)return json(res,403,{message:'Đăng nhập SĐT thử nghiệm không hỗ trợ quyền quản trị.'});
    // Do not return tokens or set cookies until server-side session design is reviewed.
    return json(res,200,{message:'Xác thực SĐT và bản quyền thành công (chỉ thử nghiệm, chưa tạo phiên ứng dụng).'});
   }

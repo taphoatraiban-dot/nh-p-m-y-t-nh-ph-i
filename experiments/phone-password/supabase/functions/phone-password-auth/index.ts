@@ -25,7 +25,7 @@ Deno.serve(async(req)=>{
    await rateLimit(body.action,phone);
    const email=await alias(phone);
    if(body.action==="register"){
-    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{auth_method:"phone_alias",phone_verified:false}});
+    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{auth_method:"phone_alias",phone_verified:false},app_metadata:{cuncun_auth_type:"phone_password"}});
     if(error||!data.user)return json(409,{error:"REGISTRATION_FAILED"},origin);
     const {error:insertError}=await adminDb.from("phone_auth_accounts").insert({user_id:data.user.id,phone_e164:phone,status:"pending"});
     if(insertError){const {error:cleanupError}=await adminDb.auth.admin.deleteUser(data.user.id);if(cleanupError){console.error("PHONE_REGISTRATION_ORPHAN",data.user.id,cleanupError.message);return json(503,{error:"REGISTRATION_REQUIRES_ADMIN_REVIEW"},origin);}return json(500,{error:"REGISTRATION_FAILED"},origin);}
@@ -33,7 +33,7 @@ Deno.serve(async(req)=>{
    }
    const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.auth.signInWithPassword({email,password});if(error||!data.session)return json(401,{error:"INVALID_CREDENTIALS"},origin);
    // A valid password alone must never grant application access.
-   if(data.user.user_metadata?.auth_method!=="phone_alias"||!/^phone-[0-9a-f]{64}@accounts\.invalid$/i.test(data.user.email??""))return json(403,{error:"PHONE_IDENTITY_INVALID"},origin);
+   if(data.user.app_metadata?.cuncun_auth_type!=="phone_password"||data.user.user_metadata?.auth_method!=="phone_alias"||!/^phone-[0-9a-f]{64}@accounts\.invalid$/i.test(data.user.email??""))return json(403,{error:"PHONE_IDENTITY_INVALID"},origin);
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",data.user.id).maybeSingle();
    if(accountError||!account||account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
    const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",data.user.id).maybeSingle();
@@ -60,7 +60,7 @@ Deno.serve(async(req)=>{
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",identity.user.id).maybeSingle();
    if(accountError)return json(503,{error:"LICENSE_CHECK_FAILED"},origin);
    // Phone identities must never fall back to the legacy Gmail authorization path.
-   if(!account&&(identity.user.user_metadata?.auth_method==="phone_alias"||/^phone-[0-9a-f]{64}@accounts\.invalid$/i.test(identity.user.email??"")))return json(403,{error:"PHONE_ACCOUNT_NOT_FOUND"},origin);
+   if(!account&&(identity.user.app_metadata?.cuncun_auth_type==="phone_password"||identity.user.user_metadata?.auth_method==="phone_alias"||/^phone-[0-9a-f]{64}@accounts\.invalid$/i.test(identity.user.email??"")))return json(403,{error:"PHONE_ACCOUNT_NOT_FOUND"},origin);
    if(account){
     if(account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
     const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",identity.user.id).maybeSingle();

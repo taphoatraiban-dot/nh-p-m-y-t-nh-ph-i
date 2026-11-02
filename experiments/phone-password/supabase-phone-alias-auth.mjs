@@ -22,6 +22,10 @@ export function createPhoneAliasAuth({supabase,aliasSecret,allowStaging=false}={
    const {data,error}=await supabase.auth.signUp({email,password});
    if(error)throw new Error('REGISTRATION_FAILED');
    if(!data?.user?.id)throw new Error('REGISTRATION_FAILED');
+   // Supabase may return an obfuscated user for an already-registered email.
+   // Require password authentication to prove this account was really created.
+   const {data:verified,error:verificationError}=await supabase.auth.signInWithPassword({email,password});
+   if(verificationError||!verified?.session?.access_token||verified?.user?.id!==data.user.id)throw new Error('REGISTRATION_NOT_VERIFIED');
    return {userId:data.user.id,approvalRequired:true};
   },
   async login(phone,password){

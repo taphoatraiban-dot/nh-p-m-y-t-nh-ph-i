@@ -1,0 +1,24 @@
+name: Phone registration isolated tests
+on:
+  push:
+    branches:
+      - feature/phone-password-registration-isolated-20261102
+    paths:
+      - 'phone-registration/**'
+      - '.github/workflows/phone-registration-tests.yml'
+  pull_request:
+    paths:
+      - 'phone-registration/**'
+      - '.github/workflows/phone-registration-tests.yml'
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test isolated phone registration
+        run: node --test phone-registration/*.test.mjs

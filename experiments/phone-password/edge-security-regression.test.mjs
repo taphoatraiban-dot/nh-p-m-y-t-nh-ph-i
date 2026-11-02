@@ -84,3 +84,14 @@ test('trusted Auth app metadata tags phone accounts across email changes', () =>
  assert.match(migration,/raw_app_meta_data->>'cuncun_auth_type'/);
  assert.match(rls,/raw_app_meta_data->>'cuncun_auth_type'/);
 });
+
+test('legacy Gmail admin rule remains unchanged', () => {
+  assert.match(migration, /and v_role = 'admin' then/);
+  assert.doesNotMatch(migration, /v_role = 'admin' or exists/);
+});
+
+test('phone alias secret is mandatory and never hardcoded', () => {
+  assert.match(edge, /Deno\.env\.get\("PHONE_ALIAS_SECRET"\)/);
+  assert.match(edge, /ALIAS_SECRET\)\.length < 32/);
+  assert.match(edge, /HMAC/);
+});

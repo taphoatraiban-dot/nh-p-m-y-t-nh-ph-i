@@ -1936,14 +1936,13 @@ async function unlockByPin(){
   $("pinStatus").className="status";$("pinStatus").textContent="Đang mở khóa…";
   try{
     const localPin=getSavedPin(email);
-    let pinOk=localPin ? (pin===localPin) : false;
-    if(!pinOk && !localPin){
-      const h=await cloudPinHash();
-      if(epoch!==authBootEpoch) return;
-      if(h) pinOk=((await tsSha256(pin))===h);
-      if(epoch!==authBootEpoch) return;
-      if(pinOk) localStorage.setItem(pinKey(email),pin);
-    }
+    const h=await cloudPinHash();
+    if(epoch!==authBootEpoch)return;
+    // Cloud PIN takes precedence so an admin reset invalidates a previously cached PIN.
+    let pinOk=h ? ((await tsSha256(pin))===h) : (localPin && pin===localPin);
+    if(epoch!==authBootEpoch)return;
+    if(h && localPin && (await tsSha256(localPin))!==h)localStorage.removeItem(pinKey(email));
+    if(pinOk && h)localStorage.setItem(pinKey(email),pin);
     if(!pinOk){
       $("pinStatus").className="status err";$("pinStatus").textContent="PIN không đúng.";
       $("pinInput").value="";refreshPinDots();return;
@@ -7676,37 +7675,33 @@ function mainDrawsForCross2(row){
        }
      }));
      box.querySelectorAll('.password-reset-btn').forEach(btn=>btn.addEventListener('click',async()=>{
-       const email=String(btn.dataset.email||'').trim().toLowerCase();
-       const uid=String(btn.dataset.userId||'');
-       const isPhone=email.startsWith('+')||email.startsWith('phone-');
-       const choice=prompt('QUẢN LÝ MẬT KHẨU\\n'+email+'\\n\\n1 = Gửi email khôi phục (Gmail)\\n2 = Admin đặt mật khẩu mới trực tiếp\\n\\nNhập 1 hoặc 2:',isPhone?'2':'1');
-       if(choice===null)return;
-       if(choice!=='1'&&choice!=='2'){alert('Chỉ nhập 1 hoặc 2.');return;}
-       if(choice==='1'&&isPhone){alert('Tài khoản SĐT không có email nhận liên kết. Hãy chọn cách 2.');return;}
-       if(choice==='1'){
-         if(!confirm('Gửi email khôi phục cho '+email+'?'))return;
+       const email=String(btn.dataset.email||'').trim().toLowerCase(),uid=String(btn.dataset.userId||'');
+       const action=prompt('QUẢN LÝ MẬT KHẨU - '+email+'\n\n1. Admin đặt lại mật khẩu đăng nhập\n2. Admin đặt lại PIN 4 số\n3. Gửi email khôi phục\n\nChọn 1, 2 hoặc 3:','1');
+       if(action===null)return;
+       if(!['1','2','3'].includes(action)){alert('Vui lòng chọn 1, 2 hoặc 3.');return;}
+       if(action==='3'){
+         if(email.startsWith('+')||email.startsWith('phone-')){alert('Tài khoản SĐT không nhận email. Chọn 1 để đặt lại trực tiếp.');return;}
+         if(!confirm('Gửi email khôi phục đến '+email+'?'))return;
          btn.disabled=true;
-         try{
-           const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
-           if(error)throw error;
-           st.className='status ok';st.textContent='Đã yêu cầu gửi liên kết đến '+email+' (cần kiểm tra hộp thư).';
-         }catch(e){st.className='status err';st.textContent='Gửi liên kết thất bại: '+(e?.message||e);}
+         try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;alert('Đã yêu cầu gửi liên kết. Khách cần kiểm tra email.');}
+         catch(e){alert('Gửi email thất bại: '+(e?.message||e));}
          finally{btn.disabled=false;}return;
        }
-       const password=prompt('Nhập mật khẩu mới cho '+email+' (ít nhất 8 ký tự):');
-       if(password===null)return;
-       if(password.length<8||password.length>128){alert('Mật khẩu phải có từ 8 đến 128 ký tự.');return;}
-       const again=prompt('Nhập lại mật khẩu mới để xác nhận:');
-       if(again===null)return;
-       if(password!==again){alert('Hai mật khẩu không trùng nhau.');return;}
-       if(!confirm('Xác nhận thay đổi mật khẩu cho '+email+'?\\nKhông thay đổi máy hoặc bản quyền.'))return;
+       const isPin=action==='2';
+       const value=prompt(isPin?'Nhập PIN MỚI đúng 4 chữ số cho '+email+':':'Nhập mật khẩu đăng nhập MỚI (từ 8 ký tự) cho '+email+':');
+       if(value===null)return;
+       if(isPin?!/^\d{4}$/.test(value):(value.length<8||value.length>128)){alert(isPin?'PIN phải gồm đúng 4 số.':'Mật khẩu cần từ 8 đến 128 ký tự.');return;}
+       const repeated=prompt('Nhập lại để xác nhận:');
+       if(repeated===null)return;
+       if(value!==repeated){alert('Hai lần nhập không trùng nhau.');return;}
+       if(!confirm('Xác nhận đặt lại '+(isPin?'PIN 4 số':'mật khẩu đăng nhập')+' cho '+email+'?\nMã cũ sẽ không còn được chấp nhận sau khi đồng bộ.'))return;
        btn.disabled=true;
        try{
-         const {data,error}=await sb.functions.invoke('admin-reset-customer-password',{body:{user_id:uid,password}});
+         const {data,error}=await sb.functions.invoke(isPin?'admin-reset-customer-pin':'admin-reset-customer-password',{body:isPin?{user_id:uid,pin:value}:{user_id:uid,password:value}});
          if(error)throw error;
-         if(!data?.ok)throw new Error(data?.error||'Đổi mật khẩu thất bại');
-         st.className='status ok';st.textContent='Đã đổi mật khẩu cho '+email+'.';
-       }catch(e){st.className='status err';st.textContent='Đổi mật khẩu thất bại: '+(e?.message||e);}
+         if(!data?.ok)throw new Error(data?.error||'Không thành công');
+         alert('Đã đặt lại '+(isPin?'PIN 4 số':'mật khẩu đăng nhập')+' cho '+email+'.');
+       }catch(e){alert('Đặt lại thất bại: '+(e?.message||e));}
        finally{btn.disabled=false;}
      }));
      box.querySelectorAll('.license-pause-btn').forEach(btn=>btn.addEventListener('click',async()=>{

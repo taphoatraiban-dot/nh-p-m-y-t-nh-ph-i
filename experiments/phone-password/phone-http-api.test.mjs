@@ -35,5 +35,5 @@ test('preview route accepts harmless query parameters', async t => {
  const url='http://127.0.0.1:'+server.address().port+'/phone-auth-preview.html?utm_source=test';
  const response=await fetch(url);
  assert.equal(response.status,200);
- assert.match(response.headers.get('content-type'),/text\\/html/);
+ assert.ok(response.headers.get('content-type').includes('text/html'));
 });

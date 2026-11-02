@@ -31,8 +31,16 @@ async def require_licensed_user(authorization: str = Header(default="")) -> str:
         uid = response.json().get("id", "")
         if not UUID_RE.fullmatch(uid):
             raise HTTPException(401, "Invalid identity")
+        # Admins are authorized independently of customer license expiry.
+        admin_result = await client.get(
+            BASE + "/rest/v1/admin_users",
+            params={"select": "user_id", "user_id": "eq." + uid, "limit": "1"},
+            headers={"apikey": SECRET, "Authorization": "Bearer " + SECRET},
+        )
+        if admin_result.status_code != 200:
+            raise HTTPException(503, "Admin verification unavailable")
         now = datetime.now(timezone.utc)
-        licensed = False
+        licensed = bool(admin_result.json())
         for table in ("email_licenses", "licenses"):
             result = await client.get(
                 BASE + "/rest/v1/" + table,

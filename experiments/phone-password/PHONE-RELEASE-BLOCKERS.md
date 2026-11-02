@@ -24,6 +24,8 @@
 
 > The historical sections below describe earlier snapshots and should not be interpreted as current production inventory where they conflict with this update.
 
+- Production Auth identity inventory: read-only SQL found zero phone alias Auth users and zero old/new phone metadata markers on 2026-11-02. No account backfill is currently indicated; end-to-end tests remain mandatory.
+
 ## Verified progress (2026-11-02)
 - Local test suite: 103/103 passed, 0 failed, 0 skipped, including real local PostgreSQL registration/login/logout persistence and pending -> approve -> revoke with audit assertions.
 - GitHub Actions workflow `Phone registration isolated tests`: completed successfully for the latest preview update.

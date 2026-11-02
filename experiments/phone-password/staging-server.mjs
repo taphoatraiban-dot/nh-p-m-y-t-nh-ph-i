@@ -13,9 +13,10 @@ for(const name of required)if(!process.env[name])throw new Error('MISSING_'+name
 if(process.env.STAGING_ONLY!=='true')throw new Error('STAGING_ONLY');
 const url=new URL(process.env.SUPABASE_URL);
 if(!['localhost','127.0.0.1'].includes(url.hostname))throw new Error('LOCAL_SUPABASE_ONLY');
+if(typeof process.env.PHONE_ALIAS_SECRET!=='string'||Buffer.byteLength(process.env.PHONE_ALIAS_SECRET,'utf8')<32)throw new Error('STRONG_ALIAS_SECRET_REQUIRED');
 const port=Number(process.env.PORT||8787);
 if(!Number.isSafeInteger(port)||port<1024||port>65535)throw new Error('INVALID_PORT');
-const newAuthClient=()=>createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+const newAuthClient=()=>createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const licenseGate=createProductionLicenseRpcGate({userClientFactory:async token=>createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false,autoRefreshToken:false}})});
 const limit=createLocalPhoneRateLimiter({maxAttempts:5});
 function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}

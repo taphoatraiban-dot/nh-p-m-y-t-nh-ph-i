@@ -81,19 +81,11 @@ Deno.serve(async(req)=>{
   const userId=String(body.user_id??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);
   if(!["approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const {data:account,error:ae}=await adminDb.from("phone_auth_accounts").select("phone_e164,status").eq("user_id",userId).maybeSingle();if(ae)return json(503,{error:"ACCOUNT_CHECK_FAILED"},origin);if(!account)return json(404,{error:"ACCOUNT_NOT_FOUND"},origin);
-  let term=String(body.term??"1m"),expires:string|null=null;
-  if(body.action==="approve"){
-   const months:Record<string,number>={"1m":1,"3m":3,"12m":12};if(!["1m","3m","12m","permanent"].includes(term))return json(400,{error:"INVALID_TERM"},origin);
-   const {data:old,error:oldLicenseError}=await adminDb.from("licenses").select("expires_at,active").eq("user_id",userId).maybeSingle();if(oldLicenseError)throw new Error("LICENSE_READ_FAILED");
-   if(term==="permanent"||(old?.active===true&&old.expires_at===null))expires=null;else{const previousExpiry=old?.expires_at?Date.parse(old.expires_at):null;if(previousExpiry!==null&&!Number.isFinite(previousExpiry))throw new Error("INVALID_EXISTING_LICENSE_EXPIRY");const base=old?.active===true&&previousExpiry!==null&&previousExpiry>Date.now()?new Date(previousExpiry):new Date();expires=addMonthsClamped(base,months[term]).toISOString();}
-   const {error:le}=await adminDb.from("licenses").upsert({user_id:userId,phone:account.phone_e164,activated_at:new Date().toISOString(),expires_at:expires,active:true,note:"Phone account approved by admin",updated_at:new Date().toISOString()},{onConflict:"user_id"});if(le)throw new Error("LICENSE_WRITE_FAILED");
-  }else if(body.action==="revoke"||body.action==="deny"){
-   // Denial must deactivate any prior grant as well as blocking new sign-ins.
-   const {error:le}=await adminDb.from("licenses").update({active:false,updated_at:new Date().toISOString()}).eq("user_id",userId);if(le)throw new Error("LICENSE_REVOKE_FAILED");
-  }
-  const status=body.action==="approve"?"approved":body.action==="deny"?"denied":"revoked";
-  const {error:ue}=await adminDb.from("phone_auth_accounts").update({status,approved_by:body.action==="approve"?adminId:null,approved_at:body.action==="approve"?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq("user_id",userId);if(ue)throw new Error("STATUS_UPDATE_FAILED");
-  const {error:logError}=await adminDb.from("phone_auth_audit").insert({user_id:userId,phone_e164:account.phone_e164,actor_id:adminId,action:body.action,term:body.action==="approve"?term:null});if(logError)throw new Error("AUDIT_WRITE_FAILED");
-  return json(200,{success:true,status,expires_at:expires},origin);
+  const term=String(body.term??"1m");
+  const {data:result,error:changeError}=await adminDb.rpc("phone_auth_admin_change",{
+    p_admin_id:adminId,p_user_id:userId,p_action:body.action,p_term:body.action==="approve"?term:null
+  });
+  if(changeError){console.error("PHONE_ADMIN_CHANGE_FAILED",changeError.code);return json(503,{error:"ADMIN_CHANGE_FAILED"},origin);}
+  return json(200,result,origin);
  }catch(e){const msg=e instanceof Error?e.message:"INTERNAL_ERROR";return json(msg==="ADMIN_REQUIRED"?403:msg==="RATE_LIMITED"?429:400,{error:msg},origin);}
 });

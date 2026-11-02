@@ -38,7 +38,8 @@ Deno.serve(async(req)=>{
    const rejectLogin=async(reason:string)=>{try{const {error:signOutError}=await client.auth.signOut({scope:"global"});if(signOutError)console.error("PHONE_SESSION_CLEANUP_FAILED",signOutError.message);}catch(e){console.error("PHONE_SESSION_CLEANUP_FAILED",e);}return json(403,{error:reason},origin);};
    if(data.user.app_metadata?.auth_method!=="phone_alias"||data.user.email!==email)return await rejectLogin("PHONE_IDENTITY_INVALID");
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",data.user.id).maybeSingle();
-   if(accountError||!account||account.status!=="approved")return await rejectLogin("LICENSE_NOT_APPROVED");
+   if(accountError)return await rejectLogin("LICENSE_CHECK_FAILED");
+   if(!account||account.status!=="approved")return await rejectLogin("LICENSE_NOT_APPROVED");
    const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",data.user.id).maybeSingle();
    if(licenseError||!license||license.active!==true||(license.expires_at!==null&&(!Number.isFinite(Date.parse(license.expires_at))||Date.parse(license.expires_at)<=Date.now())))return await rejectLogin("LICENSE_INACTIVE");
    return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; bản quyền đang hoạt động."},origin);

@@ -38,10 +38,10 @@ export function createPhoneHttpServer(auth) {
       });
       res.end(JSON.stringify(body));
     };
-    if (req.method === 'GET' && (pathname === '/' || pathname === '/phone-auth-preview.html')) {
+    if (req.method === 'GET' && (pathname === '/' || pathname === '/phone-auth-preview.html' || pathname === '/phone-auth-staging-preview.html')) {
       if (!req.headers.host || !/^127\.0\.0\.1:\d+$/.test(req.headers.host)) return send(403,{error:'LOCAL_ONLY'});
       try {
-        const html = await readFile(fileURLToPath(new URL('./phone-auth-preview.html', import.meta.url)));
+        const html = await readFile(fileURLToPath(new URL(pathname === '/phone-auth-staging-preview.html' ? './phone-auth-staging-preview.html' : './phone-auth-preview.html', import.meta.url)));
         res.writeHead(200,{
           'Content-Type':'text/html; charset=utf-8',
           'Cache-Control':'no-store',

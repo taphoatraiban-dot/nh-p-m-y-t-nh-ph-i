@@ -20,8 +20,12 @@ begin
      v_expiry:=null;
    else
      v_months:=case p_term when '1m' then 1 when '3m' then 3 when '12m' then 12 end;
-     v_base:=greatest(coalesce(v_old_expiry,now()),now());
-     v_expiry:=v_base + make_interval(months=>v_months);
+     v_base:=case when v_old_exists and v_old_active and v_old_expiry>now() then v_old_expiry else now() end;
+     -- Clamp to the last day of the target month (e.g. Jan 31 + 1m -> Feb 28/29).
+     v_expiry:= (date_trunc('month',v_base) + make_interval(months=>v_months))
+       + (least(extract(day from v_base)::integer,
+           extract(day from (date_trunc('month',v_base) + make_interval(months=>v_months+1) - interval '1 day'))::integer)-1) * interval '1 day'
+       + (v_base-date_trunc('day',v_base));
    end if;
    insert into public.licenses(user_id,phone,activated_at,expires_at,active,note,updated_at)
    values(p_user_id,v_phone,now(),v_expiry,true,'Phone account approved by admin',now())

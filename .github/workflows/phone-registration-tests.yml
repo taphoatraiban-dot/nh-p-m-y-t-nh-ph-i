@@ -5,10 +5,12 @@ on:
       - feature/phone-password-registration-isolated-20261102
     paths:
       - 'phone-registration/**'
+      - 'experiments/phone-password/**'
       - '.github/workflows/phone-registration-tests.yml'
   pull_request:
     paths:
       - 'phone-registration/**'
+      - 'experiments/phone-password/**'
       - '.github/workflows/phone-registration-tests.yml'
 permissions:
   contents: read
@@ -22,3 +24,5 @@ jobs:
           node-version: '22'
       - name: Test isolated phone registration
         run: node --test phone-registration/*.test.mjs
+      - name: Test Edge Function security guardrails
+        run: node --test experiments/phone-password/edge-security-regression.test.mjs

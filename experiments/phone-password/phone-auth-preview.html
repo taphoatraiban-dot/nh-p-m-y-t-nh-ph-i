@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuncun — Thử nghiệm đăng ký SĐT</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#17212b;background:#f2f4f7}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:18px}
+main{width:min(100%,420px);background:white;border-radius:20px;padding:26px;box-shadow:0 10px 35px #0001}
+h1{font-size:24px;margin:0 0 6px}p{color:#64748b;line-height:1.5;font-size:14px}
+label{display:block;font-weight:650;margin:16px 0 6px}input{width:100%;padding:14px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;font-size:16px}
+nav{display:flex;gap:8px;margin:24px 0 10px}button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:13px}
+nav button{flex:1;background:#e9edf2}nav button[aria-selected=true]{background:#202b39;color:white}
+.primary{width:100%;margin-top:20px;background:#c92d30;color:white;font-weight:750}
+#status{min-height:28px;margin-top:16px;font-size:14px;white-space:pre-wrap}
+.notice{background:#f8fafc;padding:12px;border-radius:10px;font-size:13px;color:#475569}
+[hidden]{display:none!important}
+</style></head><body><main>
+<h1>CUNCUN</h1><p>Đăng ký hoặc đăng nhập bằng số điện thoại và mật khẩu</p>
+<div class="notice">BẢN THỬ NGHIỆM LOCAL — chưa cấp quyền sử dụng phần mềm và chưa xác minh số điện thoại. Không dùng thông tin tài khoản thật.</div>
+<nav><button id="tabLogin" aria-selected="true" type="button">Đăng nhập</button><button id="tabRegister" aria-selected="false" type="button">Đăng ký</button></nav>
+<form id="authForm">
+<label for="phone">Số điện thoại</label><input id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="09xxxxxxxx" required maxlength="20">
+<label for="password">Mật khẩu</label><input id="password" name="password" type="password" autocomplete="current-password" minlength="12" required placeholder="Tối thiểu 12 ký tự">
+<p id="registerHint" hidden>Số điện thoại chưa được xác minh. Không thể dùng tài khoản này để truy cập dữ liệu Cuncun hiện có.</p>
+<button class="primary" id="submitBtn" type="submit">ĐĂNG NHẬP</button>
+</form>
+<div id="status" role="status" aria-live="polite"></div>
+<section id="signedIn" hidden><p>Đã đăng nhập phiên thử nghiệm LOCAL. Chưa có quyền sử dụng Cuncun.</p><button id="logout" type="button">Đăng xuất</button></section>
+<p>Đăng nhập Gmail hiện tại vẫn nằm trong phần mềm chính thức, không thay đổi tại đây.</p>
+</main><script>
+'use strict';
+const $ = id => document.getElementById(id);
+let mode = 'login';
+function setMode(next) {
+ mode=next;
+ $('tabLogin').setAttribute('aria-selected',String(next==='login'));
+ $('tabRegister').setAttribute('aria-selected',String(next==='register'));
+ $('submitBtn').textContent=next==='login'?'ĐĂNG NHẬP':'ĐĂNG KÝ';
+ $('registerHint').hidden=next!=='register';
+ $('password').autocomplete=next==='login'?'current-password':'new-password';
+ $('status').textContent='';
+}
+$('tabLogin').addEventListener('click',()=>setMode('login'));
+$('tabRegister').addEventListener('click',()=>setMode('register'));
+async function api(path,data) {
+ const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(data||{})});
+ return {ok:r.ok,status:r.status,data:await r.json()};
+}
+$('authForm').addEventListener('submit',async e=>{
+ e.preventDefault();$('submitBtn').disabled=true;$('status').textContent='Đang xử lý...';
+ try {
+  const result=await api('/'+mode,{phone:$('phone').value,password:$('password').value});
+  if(!result.ok){$('status').textContent=result.data.error==='RATE_LIMITED'?'Thử quá nhiều lần, vui lòng chờ.':result.data.error==='REGISTRATION_UNAVAILABLE'?'Số điện thoại không thể đăng ký.':result.data.error==='INVALID_INPUT'?'Kiểm tra SĐT và mật khẩu (tối thiểu 12 ký tự).':'Thông tin không hợp lệ.';return;}
+  if(mode==='register'){$('status').textContent='Đã tạo tài khoản thử nghiệm. Hãy đăng nhập.';setMode('login');$('status').textContent='Đăng ký thành công. Hãy đăng nhập.';}
+  else {$('status').textContent='Đăng nhập thử nghiệm thành công.';$('signedIn').hidden=false;$('authForm').hidden=true;}
+ } catch {$('status').textContent='Không kết nối được API LOCAL.';}
+ finally {$('submitBtn').disabled=false;}
+});
+$('logout').addEventListener('click',async()=>{await api('/logout');$('signedIn').hidden=true;$('authForm').hidden=false;$('status').textContent='Đã đăng xuất.';});
+</script></body></html>

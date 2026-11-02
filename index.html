@@ -7674,35 +7674,63 @@ function mainDrawsForCross2(row){
          st.className='status err'; st.textContent='Đổi máy thất bại: '+(e?.message||e);
        }
      }));
-     box.querySelectorAll('.password-reset-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+     box.querySelectorAll('.password-reset-btn').forEach(btn=>btn.addEventListener('click',()=>{
+       document.getElementById('customerPasswordModal')?.remove();
        const email=String(btn.dataset.email||'').trim().toLowerCase(),uid=String(btn.dataset.userId||'');
-       const action=prompt('QUẢN LÝ MẬT KHẨU - '+email+'\n\n1. Admin đặt lại mật khẩu đăng nhập\n2. Admin đặt lại PIN 4 số\n3. Gửi email khôi phục\n\nChọn 1, 2 hoặc 3:','1');
-       if(action===null)return;
-       if(!['1','2','3'].includes(action)){alert('Vui lòng chọn 1, 2 hoặc 3.');return;}
-       if(action==='3'){
-         if(email.startsWith('+')||email.startsWith('phone-')){alert('Tài khoản SĐT không nhận email. Chọn 1 để đặt lại trực tiếp.');return;}
-         if(!confirm('Gửi email khôi phục đến '+email+'?'))return;
-         btn.disabled=true;
-         try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;alert('Đã yêu cầu gửi liên kết. Khách cần kiểm tra email.');}
-         catch(e){alert('Gửi email thất bại: '+(e?.message||e));}
-         finally{btn.disabled=false;}return;
-       }
-       const isPin=action==='2';
-       const value=prompt(isPin?'Nhập PIN MỚI đúng 4 chữ số cho '+email+':':'Nhập mật khẩu đăng nhập MỚI (từ 8 ký tự) cho '+email+':');
-       if(value===null)return;
-       if(isPin?!/^\d{4}$/.test(value):(value.length<8||value.length>128)){alert(isPin?'PIN phải gồm đúng 4 số.':'Mật khẩu cần từ 8 đến 128 ký tự.');return;}
-       const repeated=prompt('Nhập lại để xác nhận:');
-       if(repeated===null)return;
-       if(value!==repeated){alert('Hai lần nhập không trùng nhau.');return;}
-       if(!confirm('Xác nhận đặt lại '+(isPin?'PIN 4 số':'mật khẩu đăng nhập')+' cho '+email+'?\nMã cũ sẽ không còn được chấp nhận sau khi đồng bộ.'))return;
-       btn.disabled=true;
-       try{
-         const {data,error}=await sb.functions.invoke(isPin?'admin-reset-customer-pin':'admin-reset-customer-password',{body:isPin?{user_id:uid,pin:value}:{user_id:uid,password:value}});
-         if(error)throw error;
-         if(!data?.ok)throw new Error(data?.error||'Không thành công');
-         alert('Đã đặt lại '+(isPin?'PIN 4 số':'mật khẩu đăng nhập')+' cho '+email+'.');
-       }catch(e){alert('Đặt lại thất bại: '+(e?.message||e));}
-       finally{btn.disabled=false;}
+       const overlay=document.createElement('div');
+       overlay.id='customerPasswordModal';
+       overlay.style.cssText='position:fixed;inset:0;z-index:999999;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:center;padding:16px';
+       const panel=document.createElement('div');
+       panel.style.cssText='background:white;color:#172033;border-radius:18px;padding:20px;width:min(100%,420px);max-height:90vh;overflow:auto;box-shadow:0 20px 60px #0004;font-size:15px';
+       const title=document.createElement('h3');title.textContent='🔑 Quản lý mật khẩu';title.style.margin='0 0 8px';
+       const account=document.createElement('p');account.textContent=email;account.style.cssText='overflow-wrap:anywhere;color:#475569;margin:0 0 16px';
+       const menu=document.createElement('div');menu.style.cssText='display:grid;gap:10px';
+       const makeButton=(label)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='display:block;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:12px;background:#eef2f7;color:#172033;font-size:15px;font-weight:700';return b;};
+       const passBtn=makeButton('🔑 Đặt lại mật khẩu đăng nhập');
+       const pinBtn=makeButton('🔢 Đặt lại PIN 4 số');
+       const emailBtn=makeButton('✉️ Gửi email khôi phục');
+       const closeBtn=makeButton('Đóng');closeBtn.style.background='white';
+       menu.append(passBtn,pinBtn,emailBtn,closeBtn);
+       panel.append(title,account,menu);overlay.append(panel);document.body.append(overlay);
+       const close=()=>overlay.remove();closeBtn.onclick=close;
+       overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
+       const showReset=isPin=>{
+         menu.replaceChildren();
+         const info=document.createElement('p');info.textContent=isPin?'Nhập PIN mới đúng 4 chữ số.':'Nhập mật khẩu mới từ 8 đến 128 ký tự.';
+         const first=document.createElement('input'),again=document.createElement('input');
+         for(const el of [first,again]){el.type='password';el.autocomplete='new-password';el.style.cssText='box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px';}
+         first.placeholder=isPin?'PIN mới (4 số)':'Mật khẩu mới';
+         again.placeholder='Nhập lại để xác nhận';
+         if(isPin){first.inputMode='numeric';again.inputMode='numeric';first.maxLength=4;again.maxLength=4;}
+         const status=document.createElement('p');status.style.cssText='font-size:13px;color:#b91c1c;margin:0';
+         const submit=makeButton('Xác nhận đặt lại');const back=makeButton('Quay lại');
+         menu.append(info,first,again,status,submit,back);
+         back.onclick=()=>menu.replaceChildren(passBtn,pinBtn,emailBtn,closeBtn);
+         submit.onclick=async()=>{
+           const value=first.value;
+           if(isPin?!/^\\d{4}$/.test(value):(value.length<8||value.length>128)){status.textContent=isPin?'PIN phải đúng 4 chữ số.':'Mật khẩu phải có từ 8–128 ký tự.';return;}
+           if(value!==again.value){status.textContent='Hai lần nhập không khớp.';return;}
+           if(!confirm('Đặt lại '+(isPin?'PIN':'mật khẩu')+' cho '+email+'?'))return;
+           submit.disabled=true;status.textContent='Đang xử lý...';
+           try{
+             const {data,error}=await sb.functions.invoke(isPin?'admin-reset-customer-pin':'admin-reset-customer-password',{body:isPin?{user_id:uid,pin:value}:{user_id:uid,password:value}});
+             if(error)throw error;
+             if(!data?.ok)throw new Error(data?.error||'Không thành công');
+             first.value='';again.value='';status.style.color='#166534';status.textContent='Đã đặt lại thành công.';submit.textContent='Đã hoàn tất';
+           }catch(e){status.textContent='Lỗi: '+(e?.message||e);submit.disabled=false;}
+         };
+         first.focus();
+       };
+       passBtn.onclick=()=>showReset(false);
+       pinBtn.onclick=()=>showReset(true);
+       emailBtn.onclick=async()=>{
+         if(email.startsWith('+')||email.startsWith('phone-')||!email.includes('@')){alert('Tài khoản SĐT không có email khôi phục.');return;}
+         if(!confirm('Gửi liên kết khôi phục đến '+email+'?'))return;
+         emailBtn.disabled=true;
+         try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;alert('Đã yêu cầu gửi liên kết. Khách kiểm tra hộp thư.');}
+         catch(e){alert('Gửi thất bại: '+(e?.message||e));}
+         finally{emailBtn.disabled=false;}
+       };
      }));
      box.querySelectorAll('.license-pause-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const uid=btn.dataset.userId, email=btn.dataset.email||'tài khoản này';

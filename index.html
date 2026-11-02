@@ -13102,7 +13102,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   start.style.cssText="width:100%;margin-top:8px";
   box.querySelector("#tgCustomerVpsCheck").after(start);
   const availability=document.createElement("div");availability.style.cssText="font-size:12px;color:#64748b;margin-top:5px";
-  availability.textContent="Đang kiểm tra kết nối xác thực Telegram VPS...";
+  availability.textContent="Đang kiểm tra dịch vụ xác thực Telegram VPS...";
   start.after(availability);
   async function checkSelfService(){
    start.disabled=true;start.textContent="Tự kết nối Telegram (đang kiểm tra dịch vụ)";loginArea.hidden=true;
@@ -13112,7 +13112,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-self-service?action=capabilities",{
       headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY}
     });
-    if(!res.ok)throw Error("not ready");
+    if(!res.ok)throw Error("Dịch vụ chưa sẵn sàng.");
     const obj=await res.json();
     if(obj.success===true){
       availability.textContent=obj.licensed?"Đã xác minh giấy phép. Đang kiểm tra khả năng đăng nhập VPS.":"Tài khoản chưa có giấy phép còn hạn. Vui lòng gia hạn để dùng kết nối VPS.";
@@ -13121,7 +13121,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       start.disabled=false;start.textContent="Tự kết nối Telegram";
       availability.textContent="Dịch vụ xác thực đã sẵn sàng.";
     }
-   }catch(_){}
+   }catch(_){availability.textContent="Chưa kết nối được dịch vụ xác thực VPS. Vui lòng kiểm tra lại sau.";}
   }
   const loginArea=document.createElement("div");
   loginArea.hidden=true;loginArea.style.cssText="padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;background:#fff";
@@ -13665,7 +13665,7 @@ body.app-unlocked #liveSoiBar{display:block!important}
 #tgDrawerSections20261022 #tgTenantPanel,
 #tgDrawerSections20261022 #tgForwardInbox,
 #tgDrawerSections20261022 #tgLegacyMenu,
-#tgDrawerSections20261022 #tgCustomerVpsSetup{display:none!important}
+#tgDrawerSections20261022 #tgCustomerVpsSetup{display:block!important;visibility:visible!important}
 #tgDrawerSections20261022 .cc-tg-settings{margin-top:8px!important}
 #tgDrawerSections20261022 .cc-tg-settings #tgVpsKeyMenu{margin:4px 0!important}
 #appDrawer .logout-menu{margin-top:auto!important}

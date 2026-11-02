@@ -2,11 +2,15 @@
 -- Add a RESTRICTIVE policy to each private table; unlike a permissive policy,
 -- this is AND-ed with the existing owner policies, preserving Gmail behavior.
 -- Check role grants and test service-role integrations before deployment.
+-- A phone account is identified by its alias OR auth metadata; this reduces
+-- reliance on phone_auth_accounts mapping for identifying phone identities.
+-- NOTE: user metadata is not a trusted source of authorization; only used here
+-- to make the restriction more conservative. The license helper must still pass.
 create or replace function public.phone_auth_session_allowed()
 returns boolean language sql stable security definer set search_path = ''
 as $sql$
   select (select auth.uid()) is not null and (
-    not exists (select 1 from auth.users u where u.id = (select auth.uid()) and u.email like 'phone-%@accounts.invalid')
+    not exists (select 1 from auth.users u where u.id = (select auth.uid()) and (u.email like 'phone-%@accounts.invalid' or u.raw_user_meta_data->>'auth_method' = 'phone_alias'))
     or public.phone_auth_has_active_license((select auth.uid()))
   );
 $sql$;

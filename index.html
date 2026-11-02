@@ -1153,16 +1153,19 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   <div class="drawer-body"><button type="button" id="openWebPmInbox" class="green" style="width:100%">📩 XEM YÊU CẦU TỪ CUN CUN SHOP</button></div>
  </div>
  <div id="deviceListSection" class="drawer-section device-list-section" hidden>
-  <div class="device-manager">
-   <div class="device-manager-head"><h3>📱 Quản lý thiết bị</h3><button type="button" id="refreshDeviceListBtn" class="device-refresh" aria-label="Tải lại danh sách">↻</button></div>
-   <input id="deviceListSearch" class="device-search" type="search" placeholder="Tìm Gmail hoặc SĐT..." autocomplete="off">
-   <div id="deviceStatusTabs" class="device-status-grid">
-    <button type="button" class="device-status-card is-selected" data-device-filter="active" aria-pressed="true"><span class="device-status-icon active">✓</span><span>Hoạt động</span><strong data-device-count="active">0</strong></button>
-    <button type="button" class="device-status-card" data-device-filter="paused" aria-pressed="false"><span class="device-status-icon paused">Ⅱ</span><span>Tạm ngưng</span><strong data-device-count="paused">0</strong></button>
-    <button type="button" class="device-status-card" data-device-filter="locked" aria-pressed="false"><span class="device-status-icon locked">▣</span><span>Đã khóa</span><strong data-device-count="locked">0</strong></button>
+  <h3>📱 Quản lý thiết bị</h3>
+  <div class="drawer-body">
+   <div class="device-manager">
+    <div class="device-manager-tools"><span>Thiết bị đã đăng ký</span><button type="button" id="refreshDeviceListBtn" class="device-refresh" aria-label="Tải lại danh sách">↻</button></div>
+    <input id="deviceListSearch" class="device-search" type="search" placeholder="Tìm Gmail hoặc SĐT..." autocomplete="off">
+    <div id="deviceStatusTabs" class="device-status-grid">
+     <button type="button" class="device-status-card is-selected" data-device-filter="active" aria-pressed="true"><span class="device-status-icon active">✓</span><span>Hoạt động</span><strong data-device-count="active">0</strong></button>
+     <button type="button" class="device-status-card" data-device-filter="paused" aria-pressed="false"><span class="device-status-icon paused">Ⅱ</span><span>Tạm ngưng</span><strong data-device-count="paused">0</strong></button>
+     <button type="button" class="device-status-card" data-device-filter="locked" aria-pressed="false"><span class="device-status-icon locked">▣</span><span>Đã khóa</span><strong data-device-count="locked">0</strong></button>
+    </div>
+    <div id="deviceListStatus" class="device-list-status">Chưa tải danh sách.</div>
+    <div id="deviceListBox" class="device-list-box"></div>
    </div>
-   <div id="deviceListStatus" class="device-list-status">Chưa tải danh sách.</div>
-   <div id="deviceListBox" class="device-list-box"></div>
   </div>
  </div>
  <div id="maintenanceAdminSection" class="drawer-section maintenance-admin" hidden>
@@ -13662,9 +13665,8 @@ body.app-unlocked #liveSoiBar{display:block!important}
 #appDrawer .cuncun-group-title{text-align:center!important}
 
 /* CUNCUN compact device manager — UI only; existing admin RPC/actions retained */
-.device-manager{border:1px solid #e1e1e1;border-radius:22px;background:#fff;padding:14px;box-sizing:border-box;color:#171717}
-.device-manager-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
-.device-manager-head h3{margin:0;font-size:19px;font-weight:800;color:#202020}
+.device-manager{border:0;border-radius:0;background:transparent;padding:0;box-sizing:border-box;color:#171717}
+.device-manager-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 1px 10px;font-size:14px;font-weight:750;color:#333}
 .device-refresh{width:34px;height:34px;border:1px solid #dedede;border-radius:50%;background:#f7f7f7;color:#333;font-size:22px;line-height:1}
 .device-search{display:block;width:100%;height:46px;box-sizing:border-box;border:1px solid #d8d8d8;border-radius:25px;padding:0 16px;font-size:15px;background:#fff;color:#171717;margin:0 0 12px}
 .device-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}

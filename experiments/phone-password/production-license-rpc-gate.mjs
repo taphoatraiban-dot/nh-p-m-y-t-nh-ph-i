@@ -13,6 +13,7 @@ export function createProductionLicenseRpcGate({userClientFactory}={}){
    if(identityError||identity?.user?.id!==expectedUserId)return {allowed:false,reason:'IDENTITY_MISMATCH'};
    const {data,error}=await client.rpc('check_email_license');
    if(error||data?.success!==true||data?.active!==true)return {allowed:false,reason:'LICENSE_NOT_APPROVED'};
+   if(data.is_admin===true)return {allowed:false,reason:'ADMIN_PHONE_LOGIN_DISABLED'};
    return {allowed:true,reason:'APPROVED',isAdmin:data.is_admin===true};
   }catch{return {allowed:false,reason:'UNAVAILABLE'};}
  };

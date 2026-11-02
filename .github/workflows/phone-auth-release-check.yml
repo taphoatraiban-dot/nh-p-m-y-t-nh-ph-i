@@ -24,4 +24,4 @@ jobs:
         run: node --test experiments/phone-password/edge-security-regression.test.mjs
       - name: Verify login preview remains isolated from production
         run: |
-          node --input-type=module -e "import{readFileSync}from'node:fs';import assert from'node:assert/strict';const h=readFileSync('index.html','utf8');const p=readFileSync('experiments/phone-password/phone-auth.html','utf8');assert.match(h,/id=\"phoneAuthPreviewBtn\"/);assert.match(h,/id=\"loginBtn\"/);assert.match(p,/const api='';/);console.log('Phone preview isolated; Gmail login preserved')"
+          node --input-type=module -e "import{readFileSync}from'node:fs';import assert from'node:assert/strict';const h=readFileSync('index.html','utf8');const p=readFileSync('experiments/phone-password/phone-auth.html','utf8');assert.match(h,/id=\"phoneAuthPreviewBtn\"/);assert.match(h,/id=\"loginBtn\"/);assert.match(p,/const api='https:\/\/zigpqddlhvjbjrwhfhaa\.supabase\.co\/functions\/v1\/phone-password-auth';/);assert.match(p,/location\.assign\('\/\?phone_session=1'\)/);console.log('Phone preview wired on isolated release branch; Gmail login preserved')"

@@ -33,11 +33,14 @@ Deno.serve(async(req)=>{
    }
    const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.auth.signInWithPassword({email,password});if(error||!data.session)return json(401,{error:"INVALID_CREDENTIALS"},origin);
    // A valid password alone must never grant application access.
-   if(data.user.app_metadata?.auth_method!=="phone_alias"||data.user.email!==email)return json(403,{error:"PHONE_IDENTITY_INVALID"},origin);
+   // A password sign-in issues a session before the license is checked. Revoke
+   // that session when authorization fails instead of leaving it usable.
+   const rejectLogin=async(reason:string)=>{await client.auth.signOut();return json(403,{error:reason},origin);};
+   if(data.user.app_metadata?.auth_method!=="phone_alias"||data.user.email!==email)return await rejectLogin("PHONE_IDENTITY_INVALID");
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",data.user.id).maybeSingle();
-   if(accountError||!account||account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
+   if(accountError||!account||account.status!=="approved")return await rejectLogin("LICENSE_NOT_APPROVED");
    const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",data.user.id).maybeSingle();
-   if(licenseError||!license||license.active!==true||(license.expires_at!==null&&(!Number.isFinite(Date.parse(license.expires_at))||Date.parse(license.expires_at)<=Date.now())))return json(403,{error:"LICENSE_INACTIVE"},origin);
+   if(licenseError||!license||license.active!==true||(license.expires_at!==null&&(!Number.isFinite(Date.parse(license.expires_at))||Date.parse(license.expires_at)<=Date.now())))return await rejectLogin("LICENSE_INACTIVE");
    return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; bản quyền đang hoạt động."},origin);
   }
   if(body.action==="admin_login"){

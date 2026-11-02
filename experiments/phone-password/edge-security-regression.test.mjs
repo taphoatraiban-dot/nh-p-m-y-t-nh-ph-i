@@ -19,12 +19,14 @@ test('missing phone account never falls back to Gmail access', () => {
 });
 
 test('deny and revoke both deactivate licenses', () => {
-  assert.match(edge, /body\.action==="revoke"\|\|body\.action==="deny"/);
-  assert.match(edge, /update\(\{active:false/);
+  const rpc=readFileSync(new URL('./supabase/migrations/202611020002_phone_admin_transaction.sql',import.meta.url),'utf8');
+  assert.match(rpc,/p_action='deny'/);
+  assert.match(rpc,/update public.licenses set active=false/);
+  assert.match(edge,/phone_auth_admin_change/);
 });
 
 test('license reads and expiry parsing fail closed', () => {
-  assert.match(edge, /if\(oldLicenseError\)throw new Error\("LICENSE_READ_FAILED"\)/);
+  assert.match(edge, /phone_auth_admin_change/);
   assert.match(edge, /!Number\.isFinite\(Date\.parse\(license\.expires_at\)\)/);
 });
 

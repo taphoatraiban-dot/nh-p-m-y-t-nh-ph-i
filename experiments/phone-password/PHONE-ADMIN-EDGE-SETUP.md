@@ -23,6 +23,6 @@ This folder contains a proposed Supabase Edge Function and SQL migration. They a
 
 - No SMS is sent and phone ownership is **not verified**. This is phone-as-username/password, not phone-number verification. Do not describe the number as verified.
 - Registration does not grant a license.
-- The Edge Function source and migration are not deployed by this commit.
+- The Edge Function source and migration are not deployed by this commit. The staging preview is only a client UI; it does not deploy backend resources.
 - The existing production `customer-register` function is a different legacy flow; do not modify or reuse it for this experiment.
 - Before production, add persistent rate limiting, operational monitoring, account recovery, abuse controls, and a reviewed UI integration. Confirm that the app's current session/bootstrap path accepts the returned Supabase session and that the updated license RPC is compatible with all existing users.

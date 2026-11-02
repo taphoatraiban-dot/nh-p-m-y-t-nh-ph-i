@@ -13610,8 +13610,8 @@ body.app-unlocked #liveSoiBar{display:block!important}
    var summary=document.createElement('summary');summary.textContent='⚙️ Quản lý nhóm / cá nhân';
    advanced.append(summary);manage.parentNode.insertBefore(advanced,manage);advanced.append(manage);
   }
-  var vps=document.getElementById('tgCustomerVpsSetup');
-  if(vps&&vps.open)vps.open=false;
+  // Never close VPS login on DOM mutations: iOS keyboard/focus triggers these.
+  // Users close the panel explicitly via its summary.
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',organize);else organize();
  var root=document.getElementById('tgForwardInbox');

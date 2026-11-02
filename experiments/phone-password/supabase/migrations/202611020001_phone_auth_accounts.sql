@@ -39,7 +39,7 @@ begin
   select email into v_email from auth.users where id = auth.uid();
   select role into v_role from public.profiles where id = auth.uid();
 
-  if v_role = 'admin' then
+  if v_role = 'admin' or exists (select 1 from public.admin_users au where au.user_id = auth.uid()) then
     return json_build_object('success',true,'active',true,'is_admin',true,
       'email',v_email,'expires_at',null,'message','Admin');
   end if;

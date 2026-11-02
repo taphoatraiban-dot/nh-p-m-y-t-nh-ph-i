@@ -1,3 +1,11 @@
+## Current release verification (2026-11-02)
+
+- Latest verified GitHub CI: commit `388ac166`, SUCCESS. This checks static/local tests, **not** a hosted staging E2E.
+- Production read-only inventory: 2 Admin memberships, 0 phone accounts, 0 phone alias identities; Gmail and Admin login regression has **not** been run with real credentials.
+- This execution environment has Node.js but no Supabase CLI, Docker, psql or local Postgres binaries. A complete free local Supabase E2E cannot be run here without provisioning a suitable runtime. Do not represent the local/static suite as a full E2E sign-off.
+- A separate follow-up migration `202611020002_atomic_admin_transition.sql` was added to avoid relying on editing an already-applied migration.
+- **Release decision: BLOCKED** pending staging E2E (pending -> approve -> login -> revoke -> denied), SQL rollback/authorization checks, and Gmail/Admin regression. Do not deploy or merge the divergent branch wholesale.
+
 # Phone/password release gate — not production ready
 
 ## Production phone-account inventory (read-only, 2026-11-02)

@@ -1138,6 +1138,15 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
    <button type="button" class="green" id="grantOtherDeviceBtn" style="width:100%;margin-top:8px">🔐 CẤP QUYỀN CHO GMAIL NÀY</button>
    <div id="grantDeviceStatus" class="status" style="margin-top:7px">Chưa cấp quyền nào.</div>
    <div class="muted" style="margin-top:7px;font-size:11px">Sau khi Admin cấp, máy khách dùng đúng Gmail này để đăng ký/đăng nhập. Khi đăng nhập, PM tự khóa tài khoản vào thiết bị đó.</div>
+   <div id="phoneAdminSection" style="margin-top:14px;border-top:1px solid #cbd5e1;padding-top:12px">
+ <h3>📱 CẤP QUYỀN SỐ ĐIỆN THOẠI</h3>
+ <p class="muted">Khách phải đăng ký SĐT trước. Admin có thể tìm tài khoản, duyệt và gia hạn.</p>
+ <label>Tìm SĐT đã đăng ký<input id="phoneAdminSearch" type="tel" placeholder="09xxxxxxxx"></label>
+ <label>Thời hạn<select id="phoneAdminTerm"><option value="1m">1 tháng</option><option value="3m">3 tháng</option><option value="6m">6 tháng</option><option value="12m">12 tháng</option></select></label>
+ <div class="buttons"><button type="button" id="phoneAdminRefresh" class="soft">TẢI DANH SÁCH SĐT</button><button type="button" id="phoneAdminFind" class="green">TÌM / CẤP QUYỀN</button></div>
+ <div id="phoneAdminStatus" class="status"></div><div id="phoneAdminList"></div>
+ </div>
+
  </div></div>
  <div id="webPmDrawerSection" class="drawer-section" hidden>
   <h3>📩 CHỜ DUYỆT BẢN QUYỀN</h3>
@@ -1320,14 +1329,6 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
     <label>Ghi chú<input id="adminNote" placeholder="Ví dụ: Khách A"></label>
    </div>
    <div class="buttons"><button class="green" id="createCustomerBtn">＋ CẤP EMAIL + LICENSE</button></div>
-   <div id="phoneAdminSection" style="margin-top:14px;border-top:1px solid #cbd5e1;padding-top:12px">
- <h3>📱 CẤP QUYỀN SỐ ĐIỆN THOẠI</h3>
- <p class="muted">Khách phải đăng ký SĐT trước. Admin có thể tìm tài khoản, duyệt và gia hạn.</p>
- <label>Tìm SĐT đã đăng ký<input id="phoneAdminSearch" type="tel" placeholder="09xxxxxxxx"></label>
- <label>Thời hạn<select id="phoneAdminTerm"><option value="1m">1 tháng</option><option value="3m">3 tháng</option><option value="6m">6 tháng</option><option value="12m">12 tháng</option></select></label>
- <div class="buttons"><button type="button" id="phoneAdminRefresh" class="soft">TẢI DANH SÁCH SĐT</button><button type="button" id="phoneAdminFind" class="green">TÌM / CẤP QUYỀN</button></div>
- <div id="phoneAdminStatus" class="status"></div><div id="phoneAdminList"></div>
- </div>
  <div id="adminStatus" class="status">Admin cấp trước Email. Khách sẽ tự đặt mật khẩu ở lần đăng ký đầu tiên.</div>
   </div>
 <div class="card hidden" id="webPmInbox" style="margin-top:12px"><h3>📩 YÊU CẦU TỪ WEBSITE CUN CUN</h3><p>Đăng nhập tài khoản WEB PM của Admin để duyệt yêu cầu. Hệ thống bản quyền website độc lập với chức năng cấp quyền thiết bị hiện tại.</p><label>Email Admin WEB PM<input id="webPmEmail" type="email" value="taphoatraiban@gmail.com"></label><label>Mật khẩu WEB PM<input id="webPmPassword" type="password" autocomplete="current-password"></label><div class="buttons"><button type="button" id="webPmLogin">Đăng nhập WEB PM</button><button type="button" id="webPmReload">Tải yêu cầu</button></div><div id="webPmMessage" class="status"></div><div id="webPmRequests"></div></div>

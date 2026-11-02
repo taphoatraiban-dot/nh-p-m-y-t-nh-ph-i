@@ -21,4 +21,5 @@ test('phone login does not retain a session after denied license', () => {
 test('staging page explicitly prohibits production credentials', () => {
   assert.match(html, /Không nhập mật khẩu\/tài khoản thật/);
   assert.match(html, /Không dùng URL hoặc key của Supabase production/);
+  assert.match(html, /projectUrl==='https:\\/\\/zigpqddlhvjbjrwhfhaa\\.supabase\\.co'/);
 });

@@ -33,6 +33,7 @@ test('denied phone login signs out the issued auth session', () => {
   assert.match(edge, /const rejectLogin=async\(reason:string\)=>\{try\{const \{error:signOutError\}=await client\.auth\.signOut\(\{scope:"global"\}\)/);
   assert.match(edge, /if\(signOutError\)console\.error\("PHONE_SESSION_CLEANUP_FAILED"/);
   assert.match(edge, /return await rejectLogin\("PHONE_IDENTITY_INVALID"\)/);
+  assert.match(edge, /if\(accountError\)return await rejectLogin\("LICENSE_CHECK_FAILED"\)/);
   assert.match(edge, /return await rejectLogin\("LICENSE_NOT_APPROVED"\)/);
   assert.match(edge, /return await rejectLogin\("LICENSE_INACTIVE"\)/);
 });

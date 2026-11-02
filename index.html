@@ -7644,6 +7644,7 @@ function mainDrawsForCross2(row){
           ${uid && status!=="admin"? `
            ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 Đổi máy</button>`:''}
            <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ Tạm ngưng':'▶️ Mở lại'}</button>
+           <div style="font-size:13px;color:#475569;padding:7px 3px;line-height:1.7">🔒 Mật khẩu đăng nhập: ••••••••<br>🔢 PIN 4 số: •••• <span style="font-size:11px">(lưu trên thiết bị/đồng bộ)</span></div>
            <button type="button" class="soft password-reset-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔑 Quản lý mật khẩu</button>
           `:''}
          </div>

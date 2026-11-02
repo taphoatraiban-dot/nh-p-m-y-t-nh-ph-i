@@ -9,12 +9,12 @@ function setup(verifyAdmin=async()=>admin,verifyCsrf=async()=>true){
 }
 test('rejects phone users without administrator session',async()=>{
  const {handle,calls}=setup(async()=>({id:'phone',role:'user',authenticated:true}));
- const r=await handle({method:'POST',url:'/admin/phone/grants',body:{action:'approve',accountId:'id',term:'1m'}});
+ const r=await handle({method:'POST',url:'/admin/phone/grants',body:{action:'approve',accountId:'123e4567-e89b-42d3-a456-426614174000',term:'1m'}});
  assert.equal(r.status,403);assert.equal(calls.length,0);
 });
 test('rejects missing CSRF verification on writes',async()=>{
  const {handle,calls}=setup(undefined,async()=>false);
- const r=await handle({method:'POST',url:'/admin/phone/grants',body:{action:'approve',accountId:'id',term:'1m'}});
+ const r=await handle({method:'POST',url:'/admin/phone/grants',body:{action:'approve',accountId:'123e4567-e89b-42d3-a456-426614174000',term:'1m'}});
  assert.equal(r.status,403);assert.equal(calls.length,0);
 });
 test('authenticated admin can list pending accounts',async()=>{
@@ -23,11 +23,20 @@ test('authenticated admin can list pending accounts',async()=>{
 });
 test('admin action is forwarded only after validation',async()=>{
  const {handle,calls}=setup();
- assert.equal((await handle({method:'POST',url:'/admin/phone/grants',body:{accountId:'id',action:'approve',term:'1m'}})).status,200);
+ assert.equal((await handle({method:'POST',url:'/admin/phone/grants',body:{accountId:'123e4567-e89b-42d3-a456-426614174000',action:'approve',term:'1m'}})).status,200);
  assert.equal(calls[0].admin.id,'owner-test');
- assert.equal((await handle({method:'POST',url:'/admin/phone/grants',body:{accountId:'id',action:'approve',term:'bad'}})).status,400);
+ assert.equal((await handle({method:'POST',url:'/admin/phone/grants',body:{accountId:'123e4567-e89b-42d3-a456-426614174000',action:'approve',term:'bad'}})).status,400);
  assert.equal(calls.length,1);
 });
 test('fails closed when security dependencies are missing',()=>{
  assert.throws(()=>createAdminApiHandler({store:{}}),/SECURITY_DEPENDENCIES_REQUIRED/);
+});
+
+test('rejects malformed account IDs and oversized bodies',async()=>{
+ const {handle,calls}=setup();
+ const malformed=await handle({method:'POST',url:'/admin/phone/grants',body:{accountId:'not-uuid',action:'approve',term:'1m'}});
+ assert.equal(malformed.status,400);
+ const oversized=await handle({method:'POST',url:'/admin/phone/grants',body:{accountId:'123e4567-e89b-42d3-a456-426614174000',action:'approve',term:'1m',padding:'x'.repeat(5000)}});
+ assert.equal(oversized.status,413);
+ assert.equal(calls.length,0);
 });

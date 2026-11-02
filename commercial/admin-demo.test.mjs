@@ -18,3 +18,11 @@ test('demo offers WEB prices only and explicitly forbids print sales',()=>{
  for(const price of ['799000','2290000','4390000','7990000']) assert.ok(demo.includes(price),price);
  assert.match(demo,/p_plan_code!=='WEB'/);
 });
+
+test('admin UI keeps processed order actions disabled if refresh fails',()=>{
+ const panel=readFileSync(new URL('./admin-panel.mjs',import.meta.url),'utf8');
+ assert.match(panel,/button\.disabled=completed;cancel\.disabled=completed/);
+ assert.match(panel,/cancel\.disabled=completed;button\.disabled=completed/);
+ assert.match(panel,/completed=true;message='Đã ghi nhận thanh toán/);
+ assert.match(panel,/completed=true;message='Đã hủy đơn/);
+});

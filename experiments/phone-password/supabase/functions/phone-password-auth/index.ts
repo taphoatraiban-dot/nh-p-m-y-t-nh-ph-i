@@ -82,7 +82,7 @@ Deno.serve(async(req)=>{
   if(body.action==="approve"){
    const months:Record<string,number>={"1m":1,"3m":3,"12m":12};if(!["1m","3m","12m","permanent"].includes(term))return json(400,{error:"INVALID_TERM"},origin);
    const {data:old}=await adminDb.from("licenses").select("expires_at,active").eq("user_id",userId).maybeSingle();
-   if(term==="permanent"||(old?.active&&old.expires_at===null))expires=null;else{const base=old?.active&&old.expires_at&&new Date(old.expires_at)>new Date()?new Date(old.expires_at):new Date();expires=addMonthsClamped(base,months[term]).toISOString();}
+   if(term==="permanent"||(old?.active===true&&old.expires_at===null))expires=null;else{const previousExpiry=old?.expires_at?Date.parse(old.expires_at):null;if(previousExpiry!==null&&!Number.isFinite(previousExpiry))throw new Error("INVALID_EXISTING_LICENSE_EXPIRY");const base=old?.active===true&&previousExpiry!==null&&previousExpiry>Date.now()?new Date(previousExpiry):new Date();expires=addMonthsClamped(base,months[term]).toISOString();}
    const {error:le}=await adminDb.from("licenses").upsert({user_id:userId,phone:account.phone_e164,activated_at:new Date().toISOString(),expires_at:expires,active:true,note:"Phone account approved by admin",updated_at:new Date().toISOString()},{onConflict:"user_id"});if(le)throw new Error("LICENSE_WRITE_FAILED");
   }else if(body.action==="revoke"){
    const {error:le}=await adminDb.from("licenses").update({active:false,updated_at:new Date().toISOString()}).eq("user_id",userId);if(le)throw new Error("LICENSE_REVOKE_FAILED");

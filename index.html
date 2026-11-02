@@ -460,6 +460,22 @@ body{background:#fff7ee}
   overflow-y:auto!important;
 }
 
+
+/* CUNCUN PIN micro-interactions */
+#pinCard .pin-key{position:relative;overflow:hidden;transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .18s,background-color .18s!important;will-change:transform}
+#pinCard .pin-key:active,#pinCard .pin-key.pin-tapped{transform:scale(.89)!important;background:#dbeafe!important;box-shadow:0 0 0 5px rgba(59,130,246,.12)!important}
+#pinCard .pin-key::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle,rgba(59,130,246,.25),transparent 65%);opacity:0;transform:scale(.45);pointer-events:none}
+#pinCard .pin-key.pin-tapped::after{animation:cuncunPinRipple .32s ease-out}
+#pinCard .pin-dot{transition:background-color .18s,border-color .18s,transform .18s,box-shadow .18s}
+#pinCard .pin-dot.filled{background:#2563eb;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+#pinCard .pin-dot.pin-pop{animation:cuncunPinPop .22s ease-out}
+#pinCard.pin-error #pinDots{animation:cuncunPinShake .32s ease-in-out}
+#pinCard.pin-success #pinDots{animation:cuncunPinSuccess .35s ease-out}
+@keyframes cuncunPinRipple{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes cuncunPinPop{0%{transform:scale(.75)}60%{transform:scale(1.32)}100%{transform:scale(1)}}
+@keyframes cuncunPinShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes cuncunPinSuccess{50%{transform:scale(1.12);opacity:.7}100%{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){#pinCard .pin-key,#pinCard .pin-dot{transition:none!important}#pinCard .pin-key::after,#pinCard .pin-dot.pin-pop,#pinCard.pin-error #pinDots,#pinCard.pin-success #pinDots{animation:none!important}}
 </style>
 
 <style>
@@ -1985,12 +2001,13 @@ async function unlockByPin(){
     if(h && localPin && (await tsSha256(localPin))!==h)localStorage.removeItem(pinKey(email));
     if(pinOk && h)localStorage.setItem(pinKey(email),pin);
     if(!pinOk){
-      $("pinStatus").className="status err";$("pinStatus").textContent="PIN không đúng.";
+      $("pinStatus").className="status err";$("pinStatus").textContent="PIN không đúng.";pinMotion("error");
       $("pinInput").value="";refreshPinDots();return;
     }
     // Both server checks must finish successfully before showing private data.
     await Promise.all([checkLicense(),claimDevice()]);
     if(epoch!==authBootEpoch) return;
+    pinMotion("success");
     showApp();
   }catch(e){
     if(epoch!==authBootEpoch) return;
@@ -2004,13 +2021,16 @@ $("pinInput")?.addEventListener("keydown",e=>{if(e.key==="Enter")unlockByPin();}
 $("pinFullLoginBtn")?.addEventListener("click",async()=>{await sb.auth.signOut();showFullLogin();});
 
 
+function pinMotion(kind){const card=document.getElementById('pinCard');if(!card)return;card.classList.remove('pin-error','pin-success');void card.offsetWidth;card.classList.add(kind==='error'?'pin-error':'pin-success');setTimeout(()=>card.classList.remove('pin-error','pin-success'),420);if(kind==='error'&&navigator.vibrate)try{navigator.vibrate([35,35,35])}catch(_){}}
 function refreshPinDots(){
  const v=(document.getElementById('pinInput')?.value||'');
- document.querySelectorAll('#pinDots .pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<v.length));
+ document.querySelectorAll('#pinDots .pin-dot').forEach((d,i)=>{const was=d.classList.contains('filled');d.classList.toggle('filled',i<v.length);if(!was&&i<v.length){d.classList.remove('pin-pop');void d.offsetWidth;d.classList.add('pin-pop');setTimeout(()=>d.classList.remove('pin-pop'),250);}});
 }
 document.getElementById('pinKeypad')?.addEventListener('pointerdown',e=>{
  const b=e.target.closest('button'); if(!b)return;
  e.preventDefault();
+ b.classList.remove('pin-tapped');void b.offsetWidth;b.classList.add('pin-tapped');setTimeout(()=>b.classList.remove('pin-tapped'),180);
+ if(navigator.vibrate)try{navigator.vibrate(8)}catch(_){}
  const inp=document.getElementById('pinInput'); if(!inp)return;
  if(b.dataset.pinDelete){inp.value=inp.value.slice(0,-1);refreshPinDots();return;}
  if(b.dataset.pin!==undefined && inp.value.length<4){

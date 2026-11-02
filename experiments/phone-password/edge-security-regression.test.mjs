@@ -114,3 +114,12 @@ test('phone registration remains approval-only and never claims SMS verification
   assert.match(edge,/status:"pending"/);
   assert.doesNotMatch(edge,/sendOtp\(/);
 });
+
+
+test('admin UI rejects expired sessions before mutating accounts', () => {
+  const admin=readFileSync(new URL('./admin-phone.html',import.meta.url),'utf8');
+  assert.match(admin,/Date\.now\(\)>=adminSessionExpiresAt/);
+  assert.match(admin,/Phiên Admin đã hết hạn/);
+  assert.match(admin,/adminSessionExpiresAt=0/);
+  assert.match(admin,/for\(const b of card\.querySelectorAll\('button'\)\)b\.disabled=true/);
+});

@@ -1,0 +1,14 @@
+-- REVIEW/STAGING ONLY: DO NOT APPLY UNTIL phone_auth_has_active_license() EXISTS.
+-- Protect phone sessions, including old sessions after license revocation.
+-- Preserve existing Gmail access logic by applying the extra check only to phone identities.
+-- This is a sample for print_queue; audit ALL other user-data policies before release.
+-- Requires phone_auth_accounts, licenses and public.phone_auth_has_active_license(uuid).
+
+-- For each original policy, preserve its original user_id/status conditions and append:
+-- and (
+--   not exists (select 1 from public.phone_auth_accounts a where a.user_id = (select auth.uid()))
+--   or (select public.phone_auth_has_active_license(auth.uid()))
+-- )
+-- Do not deploy this example as-is: existing policies must be enumerated and
+-- each command-specific USING/WITH CHECK expression verified independently.
+-- In particular, print_queue has separate INSERT, SELECT and UPDATE policies.

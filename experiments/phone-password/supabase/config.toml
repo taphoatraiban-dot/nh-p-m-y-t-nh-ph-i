@@ -1,0 +1,7 @@
+# Isolated phone-auth preview configuration.
+# Registration and password login are public endpoints; the function validates
+# origins, credentials, rate limits, and admin bearer tokens itself.
+# Supabase JWT gateway verification must be disabled for this function ONLY.
+# Never copy this setting to unrelated Edge Functions.
+[functions.phone-password-auth]
+verify_jwt = false

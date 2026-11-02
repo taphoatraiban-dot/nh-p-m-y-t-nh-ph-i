@@ -1,0 +1,55 @@
+name: Phone auth release guardrails
+on:
+  push:
+    branches:
+      - release/phone-password-safe-20261102
+    paths:
+      - 'experiments/phone-password/**'
+      - '.github/workflows/phone-auth-release-check.yml'
+  pull_request:
+    paths:
+      - 'experiments/phone-password/**'
+      - '.github/workflows/phone-auth-release-check.yml'
+permissions:
+  contents: read
+jobs:
+  security-guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check phone auth security invariants
+        run: node --test experiments/phone-password/edge-security-regression.test.mjs
+      - name: Smoke test deployed Edge Function without creating accounts
+        shell: bash
+        run: |
+          set -euo pipefail
+          API="https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/phone-password-auth"
+          body=$(mktemp)
+          code=$(curl --fail-with-body --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"invalid_test_action"}' || true)
+          test "$code" = "400" || { echo "Unexpected HTTP status: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='INVALID_ACTION')process.exit(1)" "$body"
+          code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://untrusted.invalid' -H 'Content-Type: application/json' --data '{"action":"invalid_test_action"}')
+          test "$code" = "403" || { echo "Origin check failed: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='ORIGIN_NOT_ALLOWED')process.exit(1)" "$body"
+          # Reject invalid phone and weak passwords before any account is created.
+          code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"register","phone":"invalid","password":"not-a-real-password"}')
+          test "$code" = "400" || { echo "Invalid phone validation failed: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='INVALID_PHONE')process.exit(1)" "$body"
+          code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"register","phone":"0900000000","password":"short"}')
+          test "$code" = "400" || { echo "Password validation failed: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='INVALID_PASSWORD')process.exit(1)" "$body"
+          # A missing admin bearer must be rejected without accessing accounts.
+          code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"list_accounts"}')
+          test "$code" = "403" || { echo "Admin authentication gate failed: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='ADMIN_REQUIRED')process.exit(1)" "$body"
+          # Missing user token must never grant license access.
+          code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"check_access"}')
+          test "$code" = "401" || { echo "Session authorization gate failed: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='AUTH_REQUIRED')process.exit(1)" "$body"
+          rm -f "$body"
+      - name: Verify login preview remains isolated from production
+        run: |
+          node --input-type=module -e "import{readFileSync}from'node:fs';import assert from'node:assert/strict';const h=readFileSync('index.html','utf8');const p=readFileSync('experiments/phone-password/phone-auth.html','utf8');assert.match(h,/id=\"phoneAuthPreviewBtn\"/);assert.match(h,/id=\"loginBtn\"/);assert.match(p,/const api='https:\/\/zigpqddlhvjbjrwhfhaa\.supabase\.co\/functions\/v1\/phone-password-auth';/);assert.match(p,/location\.assign\('\/\?phone_session=1'\)/);console.log('Phone preview wired on isolated release branch; Gmail login preserved')"

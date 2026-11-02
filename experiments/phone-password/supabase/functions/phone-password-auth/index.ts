@@ -33,8 +33,9 @@ Deno.serve(async(req)=>{
    return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; quyền sử dụng cần được Admin duyệt."},origin);
   }
   const {id:adminId}=await verifyAdmin(req);
-  if(body.action==="list_pending"){
-   const {data,error}=await adminDb.from("phone_auth_accounts").select("user_id,phone_e164,status,created_at").eq("status","pending").order("created_at",{ascending:true}).limit(100);
+  if(body.action==="list_pending"||body.action==="list_accounts"){
+   const query=adminDb.from("phone_auth_accounts").select("user_id,phone_e164,status,created_at").order("created_at",{ascending:false}).limit(100);
+   const {data,error}=body.action==="list_pending"?await query.eq("status","pending"):await query;
    if(error)throw new Error("QUERY_FAILED");return json(200,{accounts:data??[]},origin);
   }
   const userId=String(body.user_id??"");if(!/^[0-9a-f-]{36}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);

@@ -6,6 +6,7 @@ import {createClient} from '@supabase/supabase-js';
 import {createPhoneAliasAuth} from './supabase-phone-alias-auth.mjs';
 import {createProductionLicenseRpcGate} from './production-license-rpc-gate.mjs';
 import {createLocalPhoneRateLimiter} from './local-phone-rate-limit.mjs';
+import {normalizeVietnamesePhone} from './phone-password-core.mjs';
 
 const required=['SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','PHONE_ALIAS_SECRET'];
 for(const name of required)if(!process.env[name])throw new Error('MISSING_'+name);
@@ -31,7 +32,13 @@ const server=http.createServer(async(req,res)=>{
   if(!['127.0.0.1','::1','::ffff:127.0.0.1'].includes(clientKey(req)))return json(res,403,{message:'Chỉ cho phép truy cập trên máy thử nghiệm'});
   let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>4096)return json(res,413,{message:'Yêu cầu quá lớn'});}
   const body=JSON.parse(raw);if(typeof body.identity!=='string'||typeof body.password!=='string')return json(res,400,{message:'Dữ liệu không hợp lệ'});
-  const throttle=limit(clientKey(req)+':'+mode+':'+action);if(!throttle.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
+  const ipLimit=limit('ip:'+clientKey(req));
+  if(!ipLimit.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
+  if(mode==='phone'){
+   const normalized=normalizeVietnamesePhone(body.identity);
+   const phoneLimit=limit('phone:'+normalized);
+   if(!phoneLimit.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
+  }
   if(mode==='phone'){
    if(action==='register'){await phoneAuth.register(body.identity,body.password);return json(res,200,{message:'Đã gửi yêu cầu đăng ký. Chờ quản trị viên duyệt.'});}
    const result=await phoneAuth.login(body.identity,body.password);

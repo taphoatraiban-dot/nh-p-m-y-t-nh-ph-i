@@ -22,3 +22,6 @@ jobs:
           node-version: '22'
       - name: Check phone auth security invariants
         run: node --test experiments/phone-password/edge-security-regression.test.mjs
+      - name: Verify login preview remains isolated from production
+        run: |
+          node --input-type=module -e "import{readFileSync}from'node:fs';import assert from'node:assert/strict';const h=readFileSync('index.html','utf8');const p=readFileSync('experiments/phone-password/phone-auth.html','utf8');assert.match(h,/id=\"phoneAuthPreviewBtn\"/);assert.match(h,/id=\"loginBtn\"/);assert.match(p,/const api='';/);console.log('Phone preview isolated; Gmail login preserved')"

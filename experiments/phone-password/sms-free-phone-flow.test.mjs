@@ -51,3 +51,26 @@ test('Missing or inactive license denies login and drops session from result',as
  assert.equal(result.allowed,false);
  assert.equal(result.session,null);
 });
+
+test('Missing profile denies login',async()=>{
+ const {supabase}=mockAuth();
+ const flow=createSmsFreePhoneFlow({supabase,serverAuthClient:{auth:{getUser:async()=>({data:{user:{id:uuid}},error:null})}},serverDb:db({profile:false}),aliasSecret:secret,allowStaging:true});
+ const result=await flow.login('0912345678','secure-password-2026');
+ assert.equal(result.allowed,false);
+ assert.equal(result.reason,'PROFILE_REQUIRED');
+ assert.equal(result.session,null);
+});
+test('Expired license denies login',async()=>{
+ const {supabase}=mockAuth();
+ const flow=createSmsFreePhoneFlow({supabase,serverAuthClient:{auth:{getUser:async()=>({data:{user:{id:uuid}},error:null})}},serverDb:db({expires_at:'2020-01-01T00:00:00Z'}),clock:()=>new Date('2026-11-02T00:00:00Z'),aliasSecret:secret,allowStaging:true});
+ const result=await flow.login('0912345678','secure-password-2026');
+ assert.equal(result.allowed,false);
+ assert.equal(result.session,null);
+});
+test('Token identity mismatch is rejected',async()=>{
+ const {supabase}=mockAuth();
+ const flow=createSmsFreePhoneFlow({supabase,serverAuthClient:{auth:{getUser:async()=>({data:{user:{id:'22222222-2222-4222-8222-222222222222'}},error:null})}},serverDb:db(),aliasSecret:secret,allowStaging:true});
+ const result=await flow.login('0912345678','secure-password-2026');
+ assert.equal(result.allowed,false);
+ assert.equal(result.session,null);
+});

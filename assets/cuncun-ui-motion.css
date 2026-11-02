@@ -1,0 +1,19 @@
+/* CUNCUN mobile motion layer — opt-in. No business logic changes. */
+:root{--cc-motion-fast:160ms;--cc-motion-normal:230ms;--cc-motion-ease:cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:no-preference){
+.cc-motion-tap{transition:transform var(--cc-motion-fast) var(--cc-motion-ease),filter var(--cc-motion-fast) ease;touch-action:manipulation}
+.cc-motion-tap:active{transform:scale(.965);filter:brightness(.96)}
+.cc-motion-ripple{position:relative;overflow:hidden;isolation:isolate}
+.cc-motion-ripple::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at var(--cc-tap-x,50%) var(--cc-tap-y,50%),rgba(255,255,255,.32),transparent 55%);opacity:0;pointer-events:none}
+.cc-motion-ripple:active::after{opacity:1;animation:cc-ripple .35s ease-out both}
+.cc-motion-sheet{animation:cc-sheet-in var(--cc-motion-normal) var(--cc-motion-ease) both}
+.cc-motion-calendar{animation:cc-calendar-in var(--cc-motion-normal) var(--cc-motion-ease) both}
+.cc-motion-success{animation:cc-success .38s var(--cc-motion-ease) both}
+.cc-motion-error{animation:cc-error .32s ease-in-out both}
+@keyframes cc-ripple{from{transform:scale(.5);opacity:.85}to{transform:scale(1.4);opacity:0}}
+@keyframes cc-sheet-in{from{transform:translateY(18px);opacity:.6}to{transform:translateY(0);opacity:1}}
+@keyframes cc-calendar-in{from{transform:translateX(12px);opacity:.65}to{transform:translateX(0);opacity:1}}
+@keyframes cc-success{0%{transform:scale(.88);opacity:.2}65%{transform:scale(1.07);opacity:1}100%{transform:scale(1)}}
+@keyframes cc-error{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+}
+@media (prefers-reduced-motion:reduce){.cc-motion-tap,.cc-motion-ripple,.cc-motion-sheet,.cc-motion-calendar,.cc-motion-success,.cc-motion-error{animation:none!important;transition:none!important}}

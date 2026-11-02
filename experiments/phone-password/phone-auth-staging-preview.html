@@ -10,6 +10,11 @@
 <label for="url">Project URL staging</label><input id="url" placeholder="http://127.0.0.1:56321 hoặc https://xxxx.supabase.co">
 <label for="key">Publishable / anon key staging</label><input id="key" autocomplete="off" placeholder="sb_publishable_...">
 <button id="connect">KẾT NỐI STAGING</button><div id="connection" class="status" role="status"></div></section>
+<section><h2>Gói đăng ký dự kiến</h2><p class="muted">Bảng giá đã chốt. Mục này chỉ hiển thị thông tin, chưa thu tiền hoặc tự cấp bản quyền. Phiên bản IN chưa mở bán.</p>
+<label for="edition">Phiên bản</label><select id="edition"><option value="web">WEB tiêu chuẩn</option><option value="print" disabled>WEB + IN cao cấp (chưa mở bán)</option></select>
+<label for="term">Thời hạn</label><select id="term"><option value="1m">1 tháng — 799.000đ</option><option value="3m">3 tháng — 2.290.000đ</option><option value="6m">6 tháng — 4.390.000đ</option><option value="12m">12 tháng — 7.990.000đ</option></select>
+<div id="planNote" class="status">Chọn gói để xem giá. Chưa kích hoạt thanh toán hay cấp quyền tự động.</div>
+<details><summary>Xem bảng giá WEB + IN (chưa mở bán)</summary><p class="muted">1 tháng: 1.299.000đ · 3 tháng: 3.690.000đ · 6 tháng: 6.990.000đ · 12 tháng: 12.990.000đ</p></details></section>
 <section id="phoneSection" hidden><h2>2. Khách đăng ký / đăng nhập</h2>
 <label for="phone">Số điện thoại</label><input id="phone" inputmode="tel" autocomplete="off" placeholder="09xxxxxxxx">
 <label for="password">Mật khẩu (tối thiểu 12 ký tự)</label><input id="password" type="password" autocomplete="new-password" minlength="12">
@@ -22,7 +27,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
-const $=id=>document.getElementById(id);let client=null,adminClient=null,projectUrl='',anonKey='';
+const $=id=>document.getElementById(id);$('term').addEventListener('change',()=>{$('planNote').textContent='Gói WEB tiêu chuẩn: '+$('term').selectedOptions[0].textContent+'. Chưa cấp quyền tự động trong bản thử nghiệm.';});let client=null,adminClient=null,projectUrl='',anonKey='';
 function show(id,on){$(id).hidden=!on}
 async function edge(body,asAdmin=false){const authClient=asAdmin?adminClient:client;if(!authClient)throw Error('Chưa kết nối tài khoản.');const {data:{session}}=await authClient.auth.getSession();const res=await fetch(projectUrl+'/functions/v1/phone-password-auth',{method:'POST',headers:{'content-type':'application/json','apikey':anonKey,...(session?{authorization:'Bearer '+session.access_token}:{})},body:JSON.stringify(body)});const out=await res.json();if(!res.ok)throw Error(out.error||'REQUEST_FAILED');return out}
 $('connect').onclick=async()=>{try{projectUrl=$('url').value.trim().replace(/\/$/,'');anonKey=$('key').value.trim();if(!(/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(projectUrl)||projectUrl==='http://127.0.0.1:56321')||anonKey.length<20)throw Error('Chỉ cho phép project staging hoặc Supabase cục bộ 127.0.0.1:56321.');if(projectUrl==='https://zigpqddlhvjbjrwhfhaa.supabase.co')throw Error('Không được kết nối project production trong trang thử nghiệm.');client=window.supabase.createClient(projectUrl,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'cuncun-phone-staging-auth'}});const {error}=await client.auth.getSession();if(error)throw error;adminClient=window.supabase.createClient(projectUrl,anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'cuncun-phone-staging-admin-auth'}});show('phoneSection',true);show('adminSection',true);$('connection').textContent='Đã kết nối Supabase staging. Đang kiểm tra phiên đã lưu...';await recheckPhoneOnResume(true);$('connection').textContent='Đã kết nối Supabase staging. Kiểm tra phiên đã lưu hoàn tất.';}catch(e){$('connection').textContent='Lỗi: '+e.message}};

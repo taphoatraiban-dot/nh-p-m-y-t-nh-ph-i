@@ -24,6 +24,9 @@ export function createMemoryLimiter({ max = 5, windowMs = 60_000 } = {}) {
 }
 export function createPhoneHttpServer(auth) {
   return http.createServer(async (req,res) => {
+    let pathname;
+    try { pathname = new URL(req.url, 'http://127.0.0.1').pathname; }
+    catch { return res.writeHead(400).end(); }
     const send = (status, body, cookie) => {
       res.writeHead(status, {
         'Content-Type':'application/json; charset=utf-8',
@@ -35,7 +38,7 @@ export function createPhoneHttpServer(auth) {
       });
       res.end(JSON.stringify(body));
     };
-    if (req.method === 'GET' && (req.url === '/' || req.url === '/phone-auth-preview.html')) {
+    if (req.method === 'GET' && (pathname === '/' || pathname === '/phone-auth-preview.html')) {
       if (!req.headers.host || !/^127\.0\.0\.1:\d+$/.test(req.headers.host)) return send(403,{error:'LOCAL_ONLY'});
       try {
         const html = await readFile(fileURLToPath(new URL('./phone-auth-preview.html', import.meta.url)));
@@ -49,7 +52,7 @@ export function createPhoneHttpServer(auth) {
         return res.end(html);
       } catch { return send(500,{error:'PREVIEW_UNAVAILABLE'}); }
     }
-    if (req.method !== 'POST' || !['/register','/login','/logout','/me'].includes(req.url)) return send(404,{error:'NOT_FOUND'});
+    if (req.method !== 'POST' || !['/register','/login','/logout','/me'].includes(pathname)) return send(404,{error:'NOT_FOUND'});
     const host = req.headers.host;
     const origin = req.headers.origin;
     // Reject cross-origin browser requests; no CORS headers are emitted.
@@ -58,7 +61,7 @@ export function createPhoneHttpServer(auth) {
     const clientKey = req.socket.remoteAddress ?? 'unknown';
     try {
       let data = {};
-      if (req.url === '/register' || req.url === '/login') {
+      if (pathname === '/register' || pathname === '/login') {
         let raw = '';
         for await (const chunk of req) {
           raw += chunk.toString('utf8');
@@ -69,16 +72,16 @@ export function createPhoneHttpServer(auth) {
       }
       const cookie = (req.headers.cookie ?? '').split(';').map(s=>s.trim()).find(s=>s.startsWith('phone_session='));
       const token = cookie?.slice('phone_session='.length);
-      if (req.url === '/register') {
+      if (pathname === '/register') {
         const result = await auth.register({phone:data.phone,password:data.password,clientKey});
         return send(201,result);
       }
-      if (req.url === '/login') {
+      if (pathname === '/login') {
         const result = await auth.login({phone:data.phone,password:data.password,clientKey});
         return send(200,{expiresAt:result.expiresAt,phoneVerified:false},
           'phone_session='+result.token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400');
       }
-      if (req.url === '/logout') {
+      if (pathname === '/logout') {
         if (token) await auth.logout(token);
         return send(200,{ok:true},'phone_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
       }

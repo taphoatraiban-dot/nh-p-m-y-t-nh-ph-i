@@ -51,24 +51,24 @@ export function mountCommercialAdmin({root,client}) {
      button.addEventListener('click',async()=>{
       if(busy||!window.confirm('Xác nhận đã nhận tiền cho đơn này? Chức năng này KHÔNG gia hạn bản quyền.'))return;
       setBusy(true);button.disabled=true;cancel.disabled=true;
-      let message='';
-      try{await confirmOrderPayment(client,order.id);message='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
+      let message='',completed=false;
+      try{await confirmOrderPayment(client,order.id);completed=true;message='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
       catch(e){message='Lỗi: '+e.message;}
       finally{setBusy(false);}
       const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
-      button.disabled=false;cancel.disabled=false;
+      button.disabled=completed;cancel.disabled=completed;
      });
      item.append(button);
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Hủy đơn chưa thanh toán';
      cancel.addEventListener('click',async()=>{
       if(busy||!window.confirm('Hủy đơn đang chờ? Không thay đổi bản quyền.'))return;
       setBusy(true);cancel.disabled=true;button.disabled=true;
-      let message='';
-      try{await cancelPendingOrder(client,order.id);message='Đã hủy đơn. Bản quyền không thay đổi.';}
+      let message='',completed=false;
+      try{await cancelPendingOrder(client,order.id);completed=true;message='Đã hủy đơn. Bản quyền không thay đổi.';}
       catch(e){message='Lỗi: '+e.message;}
       finally{setBusy(false);}
       const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
-      cancel.disabled=false;button.disabled=false;
+      cancel.disabled=completed;button.disabled=completed;
      });
      item.append(cancel);
     }

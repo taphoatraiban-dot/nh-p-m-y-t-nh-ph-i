@@ -5,13 +5,19 @@ import {normalizeVietnameseMobile,validateRegistrationPassword} from './validati
  * Requires phone signups enabled and phone confirmation DISABLED in that instance.
  * Never call against the production project. A phone is NOT ownership-verified.
  */
-function requireSafeTestEnvironment(config) {
-  if (config?.environment !== 'local-test' || config?.phoneConfirmationDisabled !== true) {
+function requireSafeTestEnvironment(config,client) {
+  // A caller-supplied environment label alone cannot prevent production access.
+  // Require a local Auth URL and explicitly reject the known production project.
+  const authUrl=client?.auth?.url ?? client?.authUrl ?? '';
+  let host='';
+  try { host=new URL(authUrl).hostname; } catch { /* invalid or missing */ }
+  const localHost=host==='localhost'||host==='127.0.0.1'||host==='::1';
+  if (!localHost || config?.environment !== 'local-test' || config?.phoneConfirmationDisabled !== true) {
     throw new Error('Chỉ chạy trong môi trường thử nghiệm đã tắt xác minh SMS');
   }
 }
 export async function registerPhonePassword(client, {phone,password,confirmPassword}, config) {
-  requireSafeTestEnvironment(config);
+  requireSafeTestEnvironment(config,client);
   if (typeof client?.auth?.signUp !== 'function') throw new TypeError('Thiếu Supabase Auth');
   const normalizedPhone=normalizeVietnameseMobile(phone);
   validateRegistrationPassword(password);
@@ -21,7 +27,7 @@ export async function registerPhonePassword(client, {phone,password,confirmPassw
   return {registrationRequestAccepted:true,phoneVerified:false,licenseGranted:false};
 }
 export async function loginPhonePassword(client,{phone,password},config) {
-  requireSafeTestEnvironment(config);
+  requireSafeTestEnvironment(config,client);
   if(typeof client?.auth?.signInWithPassword!=='function') throw new TypeError('Thiếu Supabase Auth');
   const normalizedPhone=normalizeVietnameseMobile(phone);
   if(typeof password!=='string'||!password) throw new RangeError('Thiếu mật khẩu');

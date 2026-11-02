@@ -52,8 +52,10 @@ Deno.serve(async(req)=>{
    const {data,error}=await client.auth.signInWithPassword({email,password});
    if(error||!data.session||!data.user)return json(401,{error:"INVALID_CREDENTIALS"},origin);
    const {data:member,error:membershipError}=await adminDb.from("admin_users").select("user_id").eq("user_id",data.user.id).maybeSingle();
-   if(membershipError)return json(503,{error:"ADMIN_CHECK_FAILED"},origin);
-   if(!member)return json(403,{error:"ADMIN_REQUIRED"},origin);
+   if(membershipError||!member){
+    try{const {error:cleanupError}=await client.auth.signOut({scope:"global"});if(cleanupError)console.error("ADMIN_SESSION_CLEANUP_FAILED",cleanupError.message);}catch(e){console.error("ADMIN_SESSION_CLEANUP_FAILED",e);}
+    return json(membershipError?503:403,{error:membershipError?"ADMIN_CHECK_FAILED":"ADMIN_REQUIRED"},origin);
+   }
    return json(200,{session:data.session,user:{id:data.user.id}},origin);
   }
   if(body.action==="check_access"){

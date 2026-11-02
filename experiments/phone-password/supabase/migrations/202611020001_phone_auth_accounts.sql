@@ -70,3 +70,50 @@ begin
     'email',v_email,'expires_at',null,'message','Tài khoản chưa có bản quyền.');
 end;
 $function$;
+
+-- Persistent per-phone throttling. Only the service role may consume limits.
+create table if not exists public.phone_auth_rate_limits (
+  key_hash text primary key,
+  window_started_at timestamptz not null,
+  attempt_count integer not null default 0 check (attempt_count >= 0),
+  updated_at timestamptz not null default now()
+);
+alter table public.phone_auth_rate_limits enable row level security;
+revoke all on public.phone_auth_rate_limits from anon, authenticated;
+grant all on public.phone_auth_rate_limits to service_role;
+
+create or replace function public.phone_auth_consume_rate_limit(
+  p_key_hash text,
+  p_max_attempts integer default 5,
+  p_window_seconds integer default 900
+) returns boolean
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_count integer;
+begin
+  if auth.role() <> 'service_role'
+     or p_key_hash is null
+     or length(p_key_hash) <> 64
+     or p_max_attempts < 1 or p_max_attempts > 20
+     or p_window_seconds < 60 or p_window_seconds > 3600 then
+    return false;
+  end if;
+  insert into public.phone_auth_rate_limits(key_hash,window_started_at,attempt_count,updated_at)
+  values(p_key_hash,now(),1,now())
+  on conflict(key_hash) do update set
+    window_started_at = case
+      when public.phone_auth_rate_limits.window_started_at <= now() - make_interval(secs => p_window_seconds) then now()
+      else public.phone_auth_rate_limits.window_started_at end,
+    attempt_count = case
+      when public.phone_auth_rate_limits.window_started_at <= now() - make_interval(secs => p_window_seconds) then 1
+      else public.phone_auth_rate_limits.attempt_count + 1 end,
+    updated_at = now()
+  returning attempt_count into v_count;
+  return v_count <= p_max_attempts;
+end;
+$function$;
+revoke all on function public.phone_auth_consume_rate_limit(text,integer,integer) from public, anon, authenticated;
+grant execute on function public.phone_auth_consume_rate_limit(text,integer,integer) to service_role;

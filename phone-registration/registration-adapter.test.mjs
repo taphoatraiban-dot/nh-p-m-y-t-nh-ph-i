@@ -10,7 +10,7 @@ test('registers using existing email flow without granting a license',async()=>{
  assert.equal(args.email,'example@gmail.com');
  assert.equal(args.options.data.phone_contact_unverified,'+84912345678');
  assert.equal(args.password,valid.password);
- assert.deepEqual(result,{emailConfirmationRequired:true,phoneVerified:false,licenseGranted:false,accountCreatedUnconfirmed:true});
+ assert.deepEqual(result,{emailConfirmationRequired:true,phoneVerified:false,licenseGranted:false,registrationRequestAccepted:true});
 });
 test('rejects invalid input before calling remote auth',async()=>{
  let calls=0;
@@ -23,4 +23,16 @@ test('rejects invalid input before calling remote auth',async()=>{
 test('propagates authentication errors without creating permissions',async()=>{
  const client={auth:{signUp:async()=>({data:null,error:{message:'Registration disabled'}})}};
  await assert.rejects(registerWithVerifiedEmailAndPhone(client,valid),/Registration disabled/);
+});
+
+test('same public result for new or obfuscated existing email',async()=>{
+ const outcomes=[{data:{user:{id:'new'},session:{access_token:'test'}},error:null},{data:{user:{id:'obfuscated'},session:null},error:null}];
+ const results=[];
+ for(const response of outcomes){
+  const client={auth:{signUp:async()=>response}};
+  results.push(await registerWithVerifiedEmailAndPhone(client,valid));
+ }
+ assert.deepEqual(results[0],results[1]);
+ assert.equal(results[0].registrationRequestAccepted,true);
+ assert.equal(results[0].phoneVerified,false);
 });

@@ -9,7 +9,7 @@
 <p id="message" role="status" aria-live="polite"></p><small>Trang thử nghiệm độc lập. Tài khoản mới cần quản trị viên duyệt. Không gửi SMS. Không xác minh quyền sở hữu SĐT.</small></main>
 <script type="module">
 const $=id=>document.getElementById(id);let mode='phone';const form=$('form'),message=$('message');
-function switchMode(next){mode=next;$('phoneTab').setAttribute('aria-selected',String(next==='phone'));$('emailTab').setAttribute('aria-selected',String(next==='email'));$('identityLabel').textContent=next==='phone'?'Số điện thoại':'Gmail / Email';$('identity').placeholder=next==='phone'?'09xxxxxxxx':'email@example.com';$('identity').type=next==='phone'?'tel':'email';$('identity').inputMode=next==='phone'?'tel':'email';$('register').hidden=next!=='phone';message.textContent='';}
+function switchMode(next){mode=next;$('phoneTab').setAttribute('aria-selected',String(next==='phone'));$('emailTab').setAttribute('aria-selected',String(next==='email'));$('identityLabel').textContent=next==='phone'?'Số điện thoại':'Gmail / Email';$('identity').placeholder=next==='phone'?'09xxxxxxxx':'email@example.com';$('identity').type=next==='phone'?'tel':'email';$('identity').inputMode=next==='phone'?'tel':'email';$('register').hidden=next!=='phone';$('password').minLength=next==='phone'?12:1;message.textContent='';}
 $('phoneTab').onclick=()=>switchMode('phone');$('emailTab').onclick=()=>switchMode('email');
 async function submit(action){
  message.textContent='Đang xử lý…';const buttons=[$('login'),$('register')];buttons.forEach(b=>b.disabled=true);

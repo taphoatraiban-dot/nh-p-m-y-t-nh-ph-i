@@ -38,3 +38,25 @@ test('phone account tables require RLS', () => {
   assert.ok(migration.includes('alter table public.phone_auth_accounts enable row level security'));
   assert.ok(migration.includes('alter table public.phone_auth_audit enable row level security'));
 });
+
+const rls = readFileSync(new URL('./supabase/staging_restrictive_rls.sql', import.meta.url), 'utf8');
+test('critical tables have restrictive phone license policies', () => {
+  for (const table of ['print_queue','printed_phoi','telegram_messages','customer_message_archive']) {
+    assert.match(rls, new RegExp('create policy phone_license_guard on public\\.'+table+' as restrictive'));
+  }
+  assert.match(rls, /phone_auth_has_active_license/);
+});
+test('phone identities are denied if phone mapping is missing', () => {
+  assert.match(rls, /u\.email like 'phone-%@accounts\.invalid'/);
+  assert.match(rls, /raw_user_meta_data->>'auth_method'/);
+});
+test('phone login checks alias and Auth metadata before returning a session', () => {
+  assert.match(edge, /PHONE_IDENTITY_INVALID/);
+  assert.match(edge, /auth_method!=="phone_alias"/);
+});
+test('release UI cannot call undeployed API', () => {
+  const ui=readFileSync(new URL('./phone-auth.html', import.meta.url),'utf8');
+  const admin=readFileSync(new URL('./admin-phone.html', import.meta.url),'utf8');
+  assert.match(ui,/const api='';/);
+  assert.match(admin,/const API_URL='';/);
+});

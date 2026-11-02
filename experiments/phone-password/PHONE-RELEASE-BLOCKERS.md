@@ -1,3 +1,14 @@
+## Local E2E execution plan (free, no production writes)
+
+1. On Mac mini, verify `docker --version` and `supabase --version`; install missing free tooling only after checking official docs and local disk capacity.
+2. Clone the feature branch into a **separate folder**; never run `supabase link` against the production project and never use production keys or credentials.
+3. Start local Supabase using `supabase start` (check CLI `--help` first). Prepare local equivalents of `profiles`, `admin_users`, `licenses`, `email_licenses` before applying experimental phone migrations. Use local test identities only.
+4. Set a unique local `PHONE_ALIAS_SECRET` (32+ bytes) and deploy/serve `phone-password-auth` **locally**, without copying production secrets. Configure local origin for the preview and inspect CORS carefully.
+5. Exercise: register -> pending -> blocked login -> Admin approve 1m -> successful login -> `check_access` -> revoke -> denied access; verify SQL rollback on a deliberate audit failure and ensure unauthorized Admin action is denied.
+6. Verify legacy Gmail login, license, both Admin paths and protected data RLS with test identities. Record actual pass/fail output. Only then prepare a narrowly scoped production change with rollback.
+
+**This is a plan, not an E2E execution report.** The latest static CI is successful for commit `a3fd4e65`.
+
 ## Current release verification (2026-11-02)
 
 - Latest verified GitHub CI: commit `388ac166`, SUCCESS. This checks static/local tests, **not** a hosted staging E2E.

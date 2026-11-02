@@ -41,7 +41,7 @@ Deno.serve(async(req)=>{
   }
   if(body.action==="admin_login"){
    const email=String(body.email??"").trim(),password=String(body.password??"");
-   if(email.length>254||!/^\\S+@\\S+\\.\\S+$/.test(email)||password.length<1||password.length>128)return json(400,{error:"INVALID_CREDENTIALS"},origin);
+   if(email.length>254||!/^\S+@\S+\.\S+$/.test(email)||password.length<1||password.length>128)return json(400,{error:"INVALID_CREDENTIALS"},origin);
    await rateLimit("admin_login",email.toLowerCase());
    const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});
    const {data,error}=await client.auth.signInWithPassword({email,password});

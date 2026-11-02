@@ -4,7 +4,7 @@ create or replace function public.phone_auth_admin_change(
  p_admin_id uuid, p_user_id uuid, p_action text, p_term text default null
 ) returns jsonb language plpgsql security definer set search_path = ''
 as $$
-declare v_phone text; v_status text; v_expiry timestamptz; v_old record; v_months integer; v_base timestamptz;
+declare v_phone text; v_status text; v_expiry timestamptz; v_old_active boolean := false; v_old_expiry timestamptz := null; v_old_exists boolean := false; v_months integer; v_base timestamptz;
 begin
  if not exists (select 1 from public.admin_users where user_id=p_admin_id) then
    raise exception 'ADMIN_REQUIRED';
@@ -14,12 +14,13 @@ begin
  if not found then raise exception 'ACCOUNT_NOT_FOUND'; end if;
  if p_action='approve' then
    if p_term not in ('1m','3m','12m','permanent') or p_term is null then raise exception 'INVALID_TERM'; end if;
-   select active,expires_at into v_old from public.licenses where user_id=p_user_id for update;
-   if p_term='permanent' or (found and v_old.active and v_old.expires_at is null) then
+   select active,expires_at into v_old_active,v_old_expiry from public.licenses where user_id=p_user_id for update;
+   v_old_exists := found;
+   if p_term='permanent' or (v_old_exists and v_old_active and v_old_expiry is null) then
      v_expiry:=null;
    else
      v_months:=case p_term when '1m' then 1 when '3m' then 3 when '12m' then 12 end;
-     v_base:=greatest(coalesce(v_old.expires_at,now()),now());
+     v_base:=greatest(coalesce(v_old_expiry,now()),now());
      v_expiry:=v_base + make_interval(months=>v_months);
    end if;
    insert into public.licenses(user_id,phone,activated_at,expires_at,active,note,updated_at)

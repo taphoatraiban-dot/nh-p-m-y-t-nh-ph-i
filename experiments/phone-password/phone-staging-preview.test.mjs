@@ -26,3 +26,11 @@ test('staging page explicitly prohibits production credentials', () => {
   assert.match(html, /Không dùng URL hoặc key của Supabase production/);
   assert.ok(html.includes("projectUrl==='https://zigpqddlhvjbjrwhfhaa.supabase.co'"));
 });
+
+test('resuming staging rechecks phone approval and closes invalid sessions', () => {
+  assert.match(html, /async function recheckPhoneOnResume\(\)/);
+  assert.match(html, /document\.addEventListener\('visibilitychange'/);
+  assert.match(html, /window\.addEventListener\('focus'/);
+  assert.match(html, /const access=await edge\(\{action:'check_access'\}\)/);
+  assert.match(html, /await client\.auth\.signOut\(\)/);
+});

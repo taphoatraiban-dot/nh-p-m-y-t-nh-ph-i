@@ -7745,21 +7745,36 @@ function mainDrawsForCross2(row){
        [['1','1 tháng'],['3','3 tháng'],['12','12 tháng'],['days','Số ngày tùy chỉnh']].forEach(([v,label])=>{const o=document.createElement('option');o.value=v;o.textContent=label;sel.append(o);});
        const days=document.createElement('input');days.type='number';days.min='1';days.max='3650';days.placeholder='Nhập số ngày';days.style.cssText='display:none;width:100%;box-sizing:border-box;padding:12px;margin-bottom:10px;font-size:16px';
        sel.onchange=()=>days.style.display=sel.value==='days'?'block':'none';
+       const amount=document.createElement('input');amount.type='number';amount.min='0';amount.max='1000000000';amount.placeholder='Tiền thu (VNĐ, nhập 0 nếu miễn phí)';amount.style.cssText='box-sizing:border-box;width:100%;padding:12px;margin-bottom:10px;font-size:16px';
+       const note=document.createElement('textarea');note.placeholder='Ghi chú gia hạn (không bắt buộc)';note.maxLength=500;note.style.cssText='box-sizing:border-box;width:100%;padding:12px;margin-bottom:10px;font-size:15px';
+       const history=document.createElement('div');history.style.cssText='font-size:13px;border-top:1px solid #e2e8f0;margin-top:14px;padding-top:10px;max-height:160px;overflow:auto';
+       history.textContent='Đang tải lịch sử gia hạn...';
+       sb.rpc('admin_customer_license_history',{p_user_id:uid}).then(({data,error})=>{
+         if(!modal.isConnected)return;
+         if(error){history.textContent='Không tải được lịch sử: '+error.message;return;}
+         history.replaceChildren();
+         const heading=document.createElement('b');heading.textContent='Lịch sử gia hạn';history.append(heading);
+         if(!data?.length){const p=document.createElement('p');p.textContent='Chưa có lịch sử gia hạn mới.';history.append(p);}
+         (data||[]).forEach(item=>{const p=document.createElement('p');p.style.cssText='margin:7px 0;padding-bottom:7px;border-bottom:1px solid #e2e8f0';p.textContent=new Date(item.created_at).toLocaleDateString('vi-VN')+' · +'+(item.months_added?item.months_added+' tháng':item.days_added+' ngày')+' · '+Number(item.amount_vnd||0).toLocaleString('vi-VN')+'đ · Hạn mới '+new Date(item.new_expires_at).toLocaleDateString('vi-VN')+(item.note?' · '+item.note:'');history.append(p);});
+       });
        const preview=document.createElement('p');preview.style.color='#334155';
        const compute=()=>{if(!expiry)return null;const date=new Date(expiry);if(!Number.isFinite(date.getTime()))return null;const base=new Date(Math.max(date.getTime(),Date.now()));if(sel.value==='days'){const n=Number(days.value);if(!Number.isInteger(n)||n<1||n>3650)return null;base.setUTCDate(base.getUTCDate()+n);}else{base.setUTCMonth(base.getUTCMonth()+Number(sel.value));}return base;};
        const refresh=()=>{const d=compute();preview.textContent=d?'Hạn mới dự kiến: '+d.toLocaleDateString('vi-VN'):'Không thể tính hạn mới';};
        sel.onchange=()=>{days.style.display=sel.value==='days'?'block':'none';refresh();};days.oninput=refresh;refresh();
        const submit=document.createElement('button');submit.textContent='Xác nhận cộng hạn';submit.style.cssText='width:100%;padding:13px;background:#e2e8f0;border-radius:12px;font-weight:700';
        const cancel=document.createElement('button');cancel.textContent='Đóng';cancel.style.cssText='width:100%;padding:12px;margin-top:8px;background:white;border:1px solid #cbd5e1;border-radius:12px';
-       panel.append(h,acct,old,sel,days,preview,submit,cancel);modal.append(panel);document.body.append(modal);
+       panel.append(h,acct,old,sel,days,preview,amount,note,submit,cancel,history);modal.append(panel);document.body.append(modal);
        cancel.onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove();};
        submit.onclick=async()=>{
          const d=compute();if(!d){alert('Không thể gia hạn gói vĩnh viễn hoặc chưa có ngày hết hạn.');return;}
          const months=sel.value==='days'?0:Number(sel.value),extraDays=sel.value==='days'?Number(days.value):0;
-         if(!confirm('Cộng '+(months?months+' tháng':extraDays+' ngày')+' cho '+email+'?\\nHạn mới dự kiến: '+d.toLocaleDateString('vi-VN')))return;
-         submit.disabled=true;
-         try{const {data,error}=await sb.rpc('admin_extend_customer_license',{p_user_id:uid,p_months:months,p_days:extraDays});if(error)throw error;if(!data?.ok)throw Error(data?.message||'Gia hạn thất bại');modal.remove();await loadDeviceList();alert('Đã cộng hạn thành công. Hạn mới: '+new Date(data.new_expires_at).toLocaleDateString('vi-VN'));}
-         catch(e){alert('Không cộng được hạn: '+(e?.message||e));submit.disabled=false;}
+         const paid=Number(amount.value||0);
+         if(!Number.isSafeInteger(paid)||paid<0||paid>1000000000){alert('Tiền thu không hợp lệ.');return;}
+         if(!confirm('Cộng '+(months?months+' tháng':extraDays+' ngày')+' cho '+email+'?\\nHạn mới dự kiến: '+d.toLocaleDateString('vi-VN')+'\\nTiền thu: '+paid.toLocaleString('vi-VN')+'đ'))return;
+         submit.disabled=true;submit.textContent='Đang cộng hạn...';
+         const requestId=crypto.randomUUID();
+         try{const {data,error}=await sb.rpc('admin_extend_customer_license',{p_user_id:uid,p_months:months,p_days:extraDays,p_request_id:requestId,p_amount_vnd:paid,p_note:note.value.trim()});if(error)throw error;if(!data?.ok)throw Error(data?.message||'Gia hạn thất bại');modal.remove();await loadDeviceList();alert('Đã cộng hạn thành công. Hạn mới: '+new Date(data.new_expires_at).toLocaleDateString('vi-VN'));}
+         catch(e){alert('Chưa xác nhận được giao dịch: '+(e?.message||e)+'. Hãy tải lại lịch sử trước khi thử lại để tránh cộng trùng.');submit.disabled=true;submit.textContent='Kiểm tra lịch sử trước khi thử lại';}
        };
      }));
      box.querySelectorAll('.license-pause-btn').forEach(btn=>btn.addEventListener('click',async()=>{

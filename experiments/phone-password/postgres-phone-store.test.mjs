@@ -18,7 +18,7 @@ test('parameterized queries and expected row mapping', async () => {
   assert.equal((await store.findSessionByTokenHash(Buffer.alloc(32))).account_id,'test-id');
   await store.revokeSessionByTokenHash(Buffer.alloc(32),new Date());
   assert.equal(calls.length,5);
-  for(const c of calls) assert.match(c.sql,/\\$1/);
+  for(const c of calls) assert.ok(c.sql.includes('$1'), 'SQL must use the $1 positional parameter');
   assert.equal(calls[0].params[0],'+84901234567');
   assert.ok(calls[3].sql.includes('a.disabled_at is null'));
 });

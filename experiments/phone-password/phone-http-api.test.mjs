@@ -37,3 +37,20 @@ test('preview route accepts harmless query parameters', async t => {
  assert.equal(response.status,200);
  assert.ok(response.headers.get('content-type').includes('text/html'));
 });
+
+test('staging preview is served locally with restricted Supabase-only CSP', async t => {
+ const server=createPhoneHttpServer({});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const url='http://127.0.0.1:'+server.address().port+'/phone-auth-staging-preview.html';
+ const response=await fetch(url);
+ assert.equal(response.status,200);
+ assert.ok(response.headers.get('content-type').includes('text/html'));
+ const csp=response.headers.get('content-security-policy')||'';
+ assert.match(csp,/https:\/\/\*\.supabase\.co/);
+ assert.match(csp,/https:\/\/cdn\.jsdelivr\.net/);
+ const html=await response.text();
+ assert.match(html,/phone-password-auth/);
+ assert.match(html,/ĐĂNG KÝ/);
+ assert.match(html,/TẢI TÀI KHOẢN CHỜ/);
+});

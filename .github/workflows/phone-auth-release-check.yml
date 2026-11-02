@@ -41,6 +41,14 @@ jobs:
           code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"register","phone":"0900000000","password":"short"}')
           test "$code" = "400" || { echo "Password validation failed: $code"; exit 1; }
           node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='INVALID_PASSWORD')process.exit(1)" "$body"
+          # A missing admin bearer must be rejected without accessing accounts.
+          code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"list_accounts"}')
+          test "$code" = "403" || { echo "Admin authentication gate failed: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='ADMIN_REQUIRED')process.exit(1)" "$body"
+          # Missing user token must never grant license access.
+          code=$(curl --silent --show-error --max-time 20 -o "$body" -w '%{http_code}' -X POST "$API" -H 'Origin: https://cuncun.icu' -H 'Content-Type: application/json' --data '{"action":"check_access"}')
+          test "$code" = "401" || { echo "Session authorization gate failed: $code"; exit 1; }
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(b.error!=='AUTH_REQUIRED')process.exit(1)" "$body"
           rm -f "$body"
       - name: Verify login preview remains isolated from production
         run: |

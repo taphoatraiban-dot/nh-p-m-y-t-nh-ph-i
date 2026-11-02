@@ -1,1 +1,50 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cuncun — Quản lý tài khoản SĐT (demo)</title><style>body{font-family:system-ui;background:#f4f5f7;color:#1f2937;padding:18px;margin:0}main{max-width:780px;margin:auto;background:#fff;border-radius:18px;padding:24px}h1{font-size:24px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:12px;border-bottom:1px solid #ddd;text-align:left}select,button{padding:10px;border-radius:8px;border:1px solid #aaa}button{background:#222;color:#fff}p{line-height:1.5}.note{background:#fff4d6;padding:12px;border-radius:8px}small{color:#667085}</style></head><body><main><h1>Quản lý tài khoản SĐT</h1><p class="note"><strong>GIAO DIỆN MẪU — KHÔNG CÓ QUYỀN THỰC THI.</strong> Chưa kết nối quản trị viên hoặc dữ liệu thật. Các nút bên dưới đang khóa để tránh cấp quyền giả.</p><table><thead><tr><th>Số điện thoại</th><th>Trạng thái</th><th>Thời hạn</th><th>Thao tác</th></tr></thead><tbody><tr><td>09••••••67</td><td>Chờ duyệt</td><td><select disabled aria-label="Thời hạn"><option>1 tháng</option><option>3 tháng</option><option>12 tháng</option><option>Vĩnh viễn</option></select></td><td><button disabled>Duyệt</button> <button disabled>Từ chối</button> <button disabled>Khóa</button></td></tr></tbody></table><p><small>Chỉ triển khai nút thật sau khi xác thực admin phía máy chủ, kiểm toán hành động và nối bảng quyền an toàn.</small></p></main></body></html>
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuncun — Quản lý tài khoản SĐT (thử nghiệm)</title>
+<style>body{font:16px system-ui;background:#f4f5f7;color:#202632;margin:0;padding:16px}main{max-width:960px;margin:auto;background:white;border-radius:16px;padding:22px}h1{font-size:23px}.warning{padding:12px;background:#fff4d6;border-radius:8px}table{width:100%;border-collapse:collapse}th,td{padding:10px;text-align:left;border-bottom:1px solid #ddd}button,select{font:inherit;padding:8px;border:1px solid #888;border-radius:8px}button{background:#222;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.actions{display:flex;gap:6px;flex-wrap:wrap}#message{min-height:1.5em}small{color:#666}@media(max-width:650px){table{font-size:13px}th,td{padding:6px}.actions{flex-direction:column}}</style>
+</head><body><main><h1>Quản lý tài khoản SĐT</h1>
+<p class="warning"><strong>BẢN THỬ NGHIỆM.</strong> Chỉ hoạt động khi được phục vụ cùng miền với API quản trị đã xác thực bằng phiên admin thật. Không dùng phiên đăng nhập SĐT để cấp quyền. Không có dữ liệu mẫu giả.</p>
+<p><button id="reload" type="button">Tải danh sách chờ duyệt</button></p>
+<p id="message" role="status" aria-live="polite">Chưa kết nối API quản trị.</p>
+<table><thead><tr><th>Số điện thoại</th><th>Trạng thái</th><th>Thời hạn</th><th>Thao tác</th></tr></thead><tbody id="accounts"><tr><td colspan="4">Chưa có dữ liệu được xác thực.</td></tr></tbody></table>
+<p><small>Quyền chỉ được thay đổi khi máy chủ kiểm tra phiên quản trị, CSRF và ghi lịch sử thành công.</small></p>
+</main><script type="module">
+const tbody=document.querySelector('#accounts'),message=document.querySelector('#message'),reload=document.querySelector('#reload');
+const terms=[['1m','1 tháng'],['3m','3 tháng'],['12m','12 tháng'],['permanent','Vĩnh viễn']];
+const csrf=document.querySelector('meta[name="csrf-token"]')?.content;
+const setMessage=t=>message.textContent=t;
+function cell(row,value){const td=document.createElement('td');td.textContent=String(value??'');row.append(td);return td;}
+async function load(){
+ reload.disabled=true;setMessage('Đang kiểm tra quyền quản trị…');
+ try{
+  const res=await fetch('/admin/phone/pending',{credentials:'same-origin',headers:{Accept:'application/json'},cache:'no-store'});
+  if(!res.ok)throw new Error(res.status===403?'Không có quyền quản trị.':'Không tải được danh sách ('+res.status+').');
+  const data=await res.json();
+  if(!Array.isArray(data.accounts))throw new Error('Phản hồi API không hợp lệ.');
+  tbody.replaceChildren();
+  if(!data.accounts.length){const tr=document.createElement('tr');cell(tr,'Không có tài khoản chờ duyệt.').colSpan=4;tbody.append(tr);}
+  for(const a of data.accounts){
+   const tr=document.createElement('tr');cell(tr,a.phone_e164??a.phone??'');cell(tr,'Chờ duyệt');
+   const td=document.createElement('td'),sel=document.createElement('select');
+   for(const [value,label] of terms){const option=document.createElement('option');option.value=value;option.textContent=label;sel.append(option);}td.append(sel);tr.append(td);
+   const actions=document.createElement('td'),wrap=document.createElement('div');wrap.className='actions';
+   for(const [action,label] of [['approve','Duyệt'],['deny','Từ chối']]){
+    const btn=document.createElement('button');btn.textContent=label;btn.type='button';
+    btn.disabled=!csrf;
+    btn.addEventListener('click',async()=>{
+     if(!confirm(label+' tài khoản '+(a.phone_e164??a.phone??'')+'?'))return;
+     btn.disabled=true;
+     try{
+      const res=await fetch('/admin/phone/grants',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({accountId:a.id,action,...(action==='approve'?{term:sel.value}:{})})});
+      if(!res.ok)throw new Error('Máy chủ từ chối thao tác ('+res.status+').');
+      setMessage('Đã ghi nhận thao tác. Đang tải lại…');await load();
+     }catch(e){setMessage(e.message);btn.disabled=false;}
+    });wrap.append(btn);
+   }actions.append(wrap);tr.append(actions);tbody.append(tr);
+  }
+  setMessage(!csrf?'Chế độ chỉ xem: chưa có CSRF token từ máy chủ.':'Danh sách đã tải từ API quản trị.');
+ }catch(e){tbody.replaceChildren();const tr=document.createElement('tr');cell(tr,'Không thể hiển thị dữ liệu.').colSpan=4;tbody.append(tr);setMessage(e.message);}
+ finally{reload.disabled=false;}
+}
+reload.addEventListener('click',load);
+</script></body></html>

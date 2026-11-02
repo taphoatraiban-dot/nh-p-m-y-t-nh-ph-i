@@ -24,10 +24,17 @@ test('real PostgreSQL: pending -> approve -> revoke (LOCAL only)',{skip:!url?'PH
   assert.equal(approved.status,'approved');
   const grant=(await pool.query('select * from phone_auth_private.access_grants where account_id=$1',[id])).rows[0];
   assert.equal(evaluatePhoneAccess({identity:{accountId:id,scope:'phone-auth-experiment-only'},grant}).allowed,true);
+  const firstAudit=(await pool.query('select actor_id,action,term,previous_status,new_status from phone_auth_private.grant_audit where account_id=$1 order by id',[id])).rows;
+  assert.equal(firstAudit.length,1);
+  assert.deepEqual(firstAudit[0],{actor_id:'local-test-admin',action:'approve',term:'1m',previous_status:'pending',new_status:'approved'});
   const revoked=await store.applyAction({admin,accountId:id,action:'revoke'});
   assert.equal(revoked.status,'denied');
   const after=(await pool.query('select * from phone_auth_private.access_grants where account_id=$1',[id])).rows[0];
   assert.equal(evaluatePhoneAccess({identity:{accountId:id,scope:'phone-auth-experiment-only'},grant:after}).allowed,false);
+  const audit=(await pool.query('select action,previous_status,new_status from phone_auth_private.grant_audit where account_id=$1 order by id',[id])).rows;
+  assert.deepEqual(audit.map(x=>x.action),['approve','revoke']);
+  assert.equal(audit[1].previous_status,'approved');
+  assert.equal(audit[1].new_status,'denied');
  }finally{
   await pool.query('delete from phone_auth_private.accounts where id=$1',[id]);
   await pool.end();

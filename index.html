@@ -1481,6 +1481,19 @@ const SUPABASE_URL="https://zigpqddlhvjbjrwhfhaa.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 
+// Phone-auth session handoff (only runs after the phone feature is activated).
+// Consume once; never persist credentials in URL, and clear temporary storage.
+(async()=>{if(new URLSearchParams(location.search).get('phone_session')!=='1')return;
+  const raw=sessionStorage.getItem('cuncun_phone_pending_session');sessionStorage.removeItem('cuncun_phone_pending_session');
+  history.replaceState(null,'',location.pathname+location.hash);
+  if(!raw)return;
+  try{const data=JSON.parse(raw);if(Date.now()-data.created_at>120000)throw Error('expired');
+    if(typeof data.access_token!=='string'||typeof data.refresh_token!=='string')throw Error('invalid');
+    const {error}=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
+    if(error)throw error;
+  }catch(err){console.warn('Phone session handoff failed:',err?.message||'unknown');}
+})();
+
 /* ===== FIX 02-10: ĐỒNG BỘ CÀI ĐẶT + PIN THEO TÀI KHOẢN =====
    - Không đồng bộ device_lock_id / Face ID / mật khẩu / API key.
    - Bảng giá/cài đặt khách được lưu trong Supabase Auth user_metadata.

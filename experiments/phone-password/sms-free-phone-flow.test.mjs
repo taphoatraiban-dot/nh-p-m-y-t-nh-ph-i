@@ -19,8 +19,9 @@ test('SMS-free adapter accepts VN phone, does not call native phone auth',async(
  const login=await auth.login('+84912345678','secure-password-2026');
  assert.equal(reg.approvalRequired,true);
  assert.equal(login.userId,uuid);
- assert.equal(calls.length,2);
+ assert.equal(calls.length,3);
  assert.equal(calls[0][1].email,calls[1][1].email);
+ assert.equal(calls[1][1].email,calls[2][1].email);
  assert.match(calls[0][1].email,/^phone-[0-9a-f]{64}@accounts\.invalid$/);
  assert.equal(calls[0][1].phone,undefined);
 });

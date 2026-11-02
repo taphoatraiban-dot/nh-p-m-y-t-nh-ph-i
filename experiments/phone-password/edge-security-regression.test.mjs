@@ -18,6 +18,7 @@ test('missing phone account never falls back to Gmail access', () => {
   assert.match(edge, /!account&&identity\.user\.app_metadata\?\.auth_method==="phone_alias"/);
   assert.match(edge, /app_metadata:\{auth_method:"phone_alias"\}/);
   assert.doesNotMatch(edge, /user_metadata\?\.auth_method/);
+  assert.match(edge, /account&&identity\.user\.app_metadata\?\.auth_method!=="phone_alias"/);
 });
 
 test('deny and revoke both deactivate licenses', () => {

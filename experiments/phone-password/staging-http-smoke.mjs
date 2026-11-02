@@ -18,6 +18,7 @@ const tests=[
  ['array JSON',()=>probe(path,'[]',valid),400],
  ['invalid JSON',()=>probe(path,'{',valid),400],
  ['missing fields',()=>probe(path,'{}',valid),400],
+ ['invalid phone',()=>probe(path,JSON.stringify({identity:'1234',password:'secure-password-2026'}),valid),400],
  ['unknown endpoint',()=>probe('/api/staging-auth/nope','{}',valid),404],
 ];
 for(const [name,run,expected] of tests){

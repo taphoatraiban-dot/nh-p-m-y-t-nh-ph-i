@@ -1,5 +1,16 @@
 # Phone/password release gate — not production ready
 
+## Updated evidence and release decision (2026-11-02)
+
+- **CI verified:** GitHub Actions `Phone registration isolated tests` succeeded for commit `0da847a8` (run `41466631126`). These are automated/static and local tests, not a production E2E sign-off.
+- **Production read-only observation supersedes older claims below:** the production Supabase project was observed to contain `public.phone_auth_accounts` (0 rows), `public.phone_auth_audit` (0 rows), `public.admin_users` (2 rows), and an ACTIVE `phone-password-auth` Edge Function (version 1). Thus the earlier assertion that no phone-auth schema/function exists in production is **outdated**. No claim is made that the live function matches this branch or that its RLS is correct.
+- **Still not released as a user-facing feature:** no verified integration into the existing `cuncun.icu` login screen. Do not infer user-facing readiness from production infrastructure existing.
+- **New guards on isolated branch:** phone alias is marked in server-controlled `app_metadata`; the Edge Function rejects phone/Gmail identity mismatch; the staging preview checks both `check_access` and `check_email_license` on login, on page resume, and on restored-session connection.
+- **Blocking release checks:** compare live Edge Function and SQL definitions to reviewed branch; verify existing Gmail/admin paths and RLS; run real pending → admin approve → login → revoke → denied access; confirm server-side enforcement for every protected data operation. A browser focus check is supplementary and cannot replace server authorization.
+- **Cost/safety:** do not create paid staging branches, apply migrations, deploy functions, or merge the highly divergent feature branch into `main` without explicit release authorization and rollback preparation.
+
+> The historical sections below describe earlier snapshots and should not be interpreted as current production inventory where they conflict with this update.
+
 ## Verified progress (2026-11-02)
 - Local test suite: 103/103 passed, 0 failed, 0 skipped, including real local PostgreSQL registration/login/logout persistence and pending -> approve -> revoke with audit assertions.
 - GitHub Actions workflow `Phone registration isolated tests`: completed successfully for the latest preview update.

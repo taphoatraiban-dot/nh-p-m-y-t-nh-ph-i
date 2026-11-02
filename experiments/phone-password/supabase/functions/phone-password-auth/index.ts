@@ -90,7 +90,7 @@ Deno.serve(async(req)=>{
   const userId=String(body.user_id??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);
   if(!["approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const term=String(body.term??"1m");
-  if(body.action==="approve"&&!["1m","3m","12m","permanent"].includes(term))return json(400,{error:"INVALID_TERM"},origin);
+  if(body.action==="approve"&&!["1m","3m","6m","12m"].includes(term))return json(400,{error:"INVALID_TERM"},origin);
   // One database statement: license, status and audit either all commit or all roll back.
   const {data:result,error:transitionError}=await adminDb.rpc("phone_auth_admin_transition",{
    p_admin_id:adminId,p_user_id:userId,p_action:body.action,p_term:body.action==="approve"?term:null

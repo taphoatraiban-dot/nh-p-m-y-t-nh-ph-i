@@ -21,6 +21,7 @@ Deno.serve(async(req)=>{
   const body=await req.json();if(!body||typeof body!=="object"||Array.isArray(body))return json(400,{error:"INVALID_INPUT"},origin);
   if(body.action==="register"||body.action==="login"){
    const phone=normalize(body.phone),password=String(body.password??"");if(password.length<12||password.length>128)return json(400,{error:"INVALID_PASSWORD"},origin);
+   await rateLimit(body.action,phone);
    const email=await alias(phone);
    if(body.action==="register"){
     const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{auth_method:"phone_alias"}});

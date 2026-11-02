@@ -1,5 +1,12 @@
 # Phone/password release gate — not production ready
 
+## Live compatibility finding (2026-11-02)
+
+- GitHub Actions passed for isolated branch commit `fa0806c4` (run `41467217688`).
+- Read-only comparison confirmed that the deployed `phone-password-auth` v1 and isolated branch differ. Live v1 creates phone users with `app_metadata.cuncun_auth_type = phone_password` and a mutable `user_metadata.auth_method`; the branch requires `app_metadata.auth_method = phone_alias` at login and access checks.
+- **Compatibility gate:** do not replace the live function without first inventorying legacy phone identities. For any existing phone account, migrate the trusted server-side marker using its authoritative `phone_auth_accounts.user_id` record, not user-editable metadata. Test login and revocation on both old and new accounts in a safe environment.
+- No production migration or deployment is authorized by this documentation change.
+
 ## Updated evidence and release decision (2026-11-02)
 
 - **CI verified:** GitHub Actions `Phone registration isolated tests` succeeded for commit `0da847a8` (run `41466631126`). These are automated/static and local tests, not a production E2E sign-off.

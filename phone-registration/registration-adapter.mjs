@@ -11,7 +11,7 @@ export async function registerWithVerifiedEmailAndPhone(client,{email,phone,pass
   validateRegistrationPassword(password);
   if (password !== confirmPassword) throw new RangeError('Hai mật khẩu không khớp');
   // Phone is an unverified contact attribute, never a login identifier or entitlement.
-  const {data,error} = await client.auth.signUp({
+  const {error} = await client.auth.signUp({
     email:email.trim().toLowerCase(),
     password,
     options:{data:{phone_contact_unverified:normalizedPhone}}
@@ -19,5 +19,5 @@ export async function registerWithVerifiedEmailAndPhone(client,{email,phone,pass
   if(error) throw new Error(error.message || 'Đăng ký thất bại');
   // Supabase may intentionally return an obfuscated user for an existing email.
   // Never claim a new account was created or that phone ownership was established.
-  return {emailConfirmationRequired:true,phoneVerified:false,licenseGranted:false,accountCreatedUnconfirmed:true};
+  return {emailConfirmationRequired:true,phoneVerified:false,licenseGranted:false,registrationRequestAccepted:true};
 }

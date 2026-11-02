@@ -27,3 +27,14 @@ test('license reads and expiry parsing fail closed', () => {
   assert.match(edge, /if\(oldLicenseError\)throw new Error\("LICENSE_READ_FAILED"\)/);
   assert.match(edge, /!Number\.isFinite\(Date\.parse\(license\.expires_at\)\)/);
 });
+
+const migration = readFileSync(new URL('./supabase/migrations/202611020001_phone_auth_accounts.sql', import.meta.url), 'utf8');
+test('phone account license check precedes email license', () => {
+  const phone = migration.indexOf('Phone identities must use phone approval');
+  const email = migration.indexOf('select el.expires_at into v_license');
+  assert.ok(phone >= 0 && email > phone);
+});
+test('phone account tables require RLS', () => {
+  assert.ok(migration.includes('alter table public.phone_auth_accounts enable row level security'));
+  assert.ok(migration.includes('alter table public.phone_auth_audit enable row level security'));
+});

@@ -39,6 +39,18 @@ Deno.serve(async(req)=>{
    if(licenseError||!license||license.active!==true||(license.expires_at!==null&&new Date(license.expires_at).getTime()<=Date.now()))return json(403,{error:"LICENSE_INACTIVE"},origin);
    return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; bản quyền đang hoạt động."},origin);
   }
+  if(body.action==="admin_login"){
+   const email=String(body.email??"").trim(),password=String(body.password??"");
+   if(email.length>254||!/^\\S+@\\S+\\.\\S+$/.test(email)||password.length<1||password.length>128)return json(400,{error:"INVALID_CREDENTIALS"},origin);
+   await rateLimit("admin_login",email.toLowerCase());
+   const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});
+   const {data,error}=await client.auth.signInWithPassword({email,password});
+   if(error||!data.session||!data.user)return json(401,{error:"INVALID_CREDENTIALS"},origin);
+   const {data:member,error:membershipError}=await adminDb.from("admin_users").select("user_id").eq("user_id",data.user.id).maybeSingle();
+   if(membershipError)return json(503,{error:"ADMIN_CHECK_FAILED"},origin);
+   if(!member)return json(403,{error:"ADMIN_REQUIRED"},origin);
+   return json(200,{session:data.session,user:{id:data.user.id}},origin);
+  }
   if(body.action==="check_access"){
    const token=(req.headers.get("authorization")??"").replace(/^Bearer /,"");
    if(token.length<20||token.length>8192)return json(401,{error:"AUTH_REQUIRED"},origin);

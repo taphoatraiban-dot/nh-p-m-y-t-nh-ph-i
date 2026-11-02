@@ -39,6 +39,23 @@ Deno.serve(async(req)=>{
    if(licenseError||!license||license.active!==true||(license.expires_at!==null&&new Date(license.expires_at).getTime()<=Date.now()))return json(403,{error:"LICENSE_INACTIVE"},origin);
    return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; bản quyền đang hoạt động."},origin);
   }
+  if(body.action==="check_access"){
+   const token=(req.headers.get("authorization")??"").replace(/^Bearer /,"");
+   if(token.length<20||token.length>8192)return json(401,{error:"AUTH_REQUIRED"},origin);
+   const {data:identity,error:identityError}=await adminDb.auth.getUser(token);
+   if(identityError||!identity.user)return json(401,{error:"AUTH_REQUIRED"},origin);
+   const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",identity.user.id).maybeSingle();
+   if(accountError)return json(503,{error:"LICENSE_CHECK_FAILED"},origin);
+   if(account){
+    if(account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
+    const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",identity.user.id).maybeSingle();
+    if(licenseError)return json(503,{error:"LICENSE_CHECK_FAILED"},origin);
+    if(!license||license.active!==true||(license.expires_at!==null&&(!Number.isFinite(Date.parse(license.expires_at))||Date.parse(license.expires_at)<=Date.now())))return json(403,{error:"LICENSE_INACTIVE"},origin);
+    return json(200,{active:true,expires_at:license.expires_at},origin);
+   }
+   // Do not modify legacy Gmail authorization behavior: it remains on check_email_license().
+   return json(400,{error:"USE_LEGACY_LICENSE_CHECK"},origin);
+  }
   if(!["list_pending","list_accounts","approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const {id:adminId}=await verifyAdmin(req);
   if(body.action==="list_pending"||body.action==="list_accounts"){

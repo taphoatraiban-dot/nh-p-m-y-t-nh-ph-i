@@ -1162,6 +1162,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
      <button type="button" class="device-status-card is-selected" data-device-filter="active" aria-pressed="true"><span class="device-status-icon active">✓</span><span>Hoạt động</span><strong data-device-count="active">0</strong></button>
      <button type="button" class="device-status-card" data-device-filter="paused" aria-pressed="false"><span class="device-status-icon paused">Ⅱ</span><span>Tạm ngưng</span><strong data-device-count="paused">0</strong></button>
      <button type="button" class="device-status-card" data-device-filter="locked" aria-pressed="false"><span class="device-status-icon locked">▣</span><span>Đã khóa</span><strong data-device-count="locked">0</strong></button>
+     <button type="button" class="device-status-card" data-device-filter="admin" aria-pressed="false"><span class="device-status-icon active">♛</span><span>Admin</span><strong data-device-count="admin">0</strong></button>
     </div>
     <div id="deviceListStatus" class="device-list-status">Chưa tải danh sách.</div>
     <div id="deviceListBox" class="device-list-box"></div>
@@ -7589,6 +7590,9 @@ function mainDrawsForCross2(row){
        box.innerHTML='<div class="muted">Chưa có tài khoản nào đang gắn máy.</div>';
        st.className='device-list-status'; st.textContent='Hiển thị 0 tài khoản'; return;
      }
+     const {data:adminRows,error:adminErr}=await sb.rpc('admin_list_admin_device_user_ids');
+     if(adminErr)throw adminErr;
+     const adminUserIds=new Set((adminRows||[]).map(a=>String(a.user_id)));
      // Map opaque phone-alias emails to the real registered phone, admin only.
      let phoneByUser={};
      try{
@@ -7596,8 +7600,8 @@ function mainDrawsForCross2(row){
        (phoneResult.accounts||[]).forEach(a=>{if(a.user_id&&a.phone_e164)phoneByUser[String(a.user_id)]=String(a.phone_e164);});
      }catch(_e){}
      const deviceQuery=(document.getElementById("deviceListSearch")?.value||"").trim().toLocaleLowerCase("vi-VN");
-     const deviceStatusOf=x=>{const uid=String(x.user_id||"");const licenseActive=Object.prototype.hasOwnProperty.call(licenseStateByUser,uid)?licenseStateByUser[uid]:true;return !x.active?"locked":!licenseActive?"paused":"active";};
-     for(const status of ["active","paused","locked"]){const el=document.querySelector(`[data-device-count="${status}"]`);if(el)el.textContent=String(data.filter(x=>deviceStatusOf(x)===status).length);}
+     const deviceStatusOf=x=>{const uid=String(x.user_id||"");if(adminUserIds.has(uid))return "admin";const licenseActive=Object.prototype.hasOwnProperty.call(licenseStateByUser,uid)?licenseStateByUser[uid]:true;return !x.active?"locked":!licenseActive?"paused":"active";};
+     for(const status of ["active","paused","locked","admin"]){const el=document.querySelector(`[data-device-count="${status}"]`);if(el)el.textContent=String(data.filter(x=>deviceStatusOf(x)===status).length);}
      const filteredDevices=data.filter(x=>{if(deviceStatusOf(x)!==selectedDeviceStatus)return false;const raw=String(x.email||x.user_email||x.user_id||"");const phone=phoneByUser[String(x.user_id||"")]||"";return [raw,phone,String(x.device_name||""),String(x.device_id||"")].some(v=>v.toLocaleLowerCase("vi-VN").includes(deviceQuery));});
      box.innerHTML=filteredDevices.map((x,i)=>{
        const rawEmail=String(x.email||x.user_email||x.user_id||'Không rõ');
@@ -7610,7 +7614,7 @@ function mainDrawsForCross2(row){
        const licenseActive=(uid && Object.prototype.hasOwnProperty.call(licenseStateByUser,uid)) ? licenseStateByUser[uid] : true;
        const safe=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
        const status=deviceStatusOf(x);
-       const statusLabel=status==="active"?"Hoạt động":status==="paused"?"Tạm ngưng":"Đã khóa";
+       const statusLabel=status==="admin"?"Quản trị viên":status==="active"?"Hoạt động":status==="paused"?"Tạm ngưng":"Đã khóa";
        return `<div class="device-account-card">
          <div class="device-account-main">
           <div class="device-account-icon">▯</div>
@@ -7618,10 +7622,10 @@ function mainDrawsForCross2(row){
            <div class="device-account-name">${safe(email)}</div>
            <div class="device-account-meta">${safe(dev)} · ${statusLabel} · ${safe(last)}</div>
           </div>
-          <button type="button" class="device-actions-toggle" aria-expanded="false">••• Thao tác</button>
+          ${status==="admin"?'<span class="device-admin-label">ADMIN</span>':'<button type="button" class="device-actions-toggle" aria-expanded="false">••• Thao tác</button>'}
          </div>
          <div class="device-actions-panel" hidden>
-          ${uid? `
+          ${uid && status!=="admin"? `
            ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 Đổi máy</button>`:''}
            <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ Tạm ngưng':'▶️ Mở lại'}</button>
            <button type="button" class="soft password-reset-btn" data-email="${safe(email)}">🔑 Đặt lại mật khẩu</button>
@@ -7636,7 +7640,7 @@ function mainDrawsForCross2(row){
        panel.hidden=!open;
        btn.setAttribute('aria-expanded',String(open));
      }));
-     st.className='device-list-status'; st.textContent=`${selectedDeviceStatus==="active"?"Đang hoạt động":selectedDeviceStatus==="paused"?"Tạm ngưng":"Đã khóa"}: ${filteredDevices.length} máy (tổng ${data.length}).`;
+     st.className='device-list-status'; st.textContent=`${selectedDeviceStatus==="active"?"Đang hoạt động":selectedDeviceStatus==="paused"?"Tạm ngưng":selectedDeviceStatus==="admin"?"Admin":"Đã khóa"}: ${filteredDevices.length} máy (tổng ${data.length}).`;
      if(!filteredDevices.length)box.textContent="Không có máy nào trong nhóm này phù hợp tìm kiếm.";
      box.querySelectorAll('.device-change-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const uid=btn.dataset.userId, email=btn.dataset.email||'tài khoản này';
@@ -13679,7 +13683,7 @@ body.app-unlocked #liveSoiBar{display:block!important}
 .device-manager-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 1px 10px;font-size:14px;font-weight:750;color:#333}
 .device-refresh{width:34px;height:34px;border:1px solid #dedede;border-radius:50%;background:#f7f7f7;color:#333;font-size:22px;line-height:1}
 .device-search{display:block;width:100%;height:46px;box-sizing:border-box;border:1px solid #d8d8d8;border-radius:25px;padding:0 16px;font-size:15px;background:#fff;color:#171717;margin:0 0 12px}
-.device-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.device-status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 12px}
 .device-status-card{min-width:0;min-height:91px;padding:9px 4px;border:1px solid #e4e4e4;border-radius:17px;background:#f3f3f3;color:#222;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:13px;font-weight:600}
 .device-status-card.is-selected{border:2px solid #c9c9c9;background:#ededed;padding:8px 3px}
 .device-status-card strong{font-size:21px;line-height:1.1;font-weight:800;color:#111}
@@ -13699,6 +13703,9 @@ body.app-unlocked #liveSoiBar{display:block!important}
 .device-actions-panel button{min-width:0;padding:8px 5px;font-size:12px;border-radius:10px}
 .device-actions-panel .password-reset-btn{grid-column:1/-1}
 @media(max-width:430px){.device-manager{padding:12px}.device-status-card{min-height:84px;font-size:12px}.device-account-card{padding:10px}.device-account-name{font-size:14px}.device-actions-toggle{padding:7px 8px;font-size:12px}}
+
+.device-admin-label{border:1px solid #ddd;border-radius:16px;background:#f2f2f2;padding:6px 10px;font-size:12px;font-weight:800;color:#333;white-space:nowrap}
+@media(max-width:420px){.device-status-card{font-size:10px!important;min-height:78px!important}.device-status-card strong{font-size:19px}}
 </style>
 <script>
 (function(){

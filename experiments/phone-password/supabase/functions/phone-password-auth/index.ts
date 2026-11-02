@@ -22,7 +22,7 @@ Deno.serve(async(req)=>{
  try{
   const body=await req.json();if(!body||typeof body!=="object"||Array.isArray(body))return json(400,{error:"INVALID_INPUT"},origin);
   if(body.action==="register"||body.action==="login"){
-   const phone=normalize(body.phone),password=String(body.password??"");if(password.length<12||password.length>128)return json(400,{error:"INVALID_PASSWORD"},origin);if(body.action==="register"){try{resolveAvailablePlan(body.plan_id);}catch(e){return json(400,{error:e instanceof Error?e.message:"INVALID_PLAN"},origin);}}
+   const phone=normalize(body.phone),password=String(body.password??"");if(password.length<8||password.length>128)return json(400,{error:"INVALID_PASSWORD"},origin);if(body.action==="register"){try{resolveAvailablePlan(body.plan_id);}catch(e){return json(400,{error:e instanceof Error?e.message:"INVALID_PLAN"},origin);}}
    await rateLimit(body.action,phone);
    const email=await alias(phone);
    if(body.action==="register"){

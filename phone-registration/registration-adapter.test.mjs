@@ -10,7 +10,7 @@ test('registers using existing email flow without granting a license',async()=>{
  assert.equal(args.email,'example@gmail.com');
  assert.equal(args.options.data.phone_contact_unverified,'+84912345678');
  assert.equal(args.password,valid.password);
- assert.deepEqual(result,{emailConfirmationRequired:true,phoneVerified:false,licenseGranted:false});
+ assert.deepEqual(result,{emailConfirmationRequired:true,phoneVerified:false,licenseGranted:false,accountCreatedUnconfirmed:true});
 });
 test('rejects invalid input before calling remote auth',async()=>{
  let calls=0;

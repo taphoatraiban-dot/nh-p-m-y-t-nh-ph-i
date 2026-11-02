@@ -15,10 +15,17 @@ test('unknown origins are not reflected in CORS responses', () => {
 });
 
 test('missing phone account never falls back to Gmail access', () => {
-  assert.match(edge, /!account&&identity\.user\.app_metadata\?\.auth_method==="phone_alias"/);
+  assert.match(edge, /!account&&phoneIdentity/);
   assert.match(edge, /app_metadata:\{auth_method:"phone_alias"\}/);
   assert.doesNotMatch(edge, /user_metadata\?\.auth_method/);
-  assert.match(edge, /account&&identity\.user\.app_metadata\?\.auth_method!=="phone_alias"/);
+  assert.match(edge, /account&&!phoneIdentity/);
+});
+
+test('legacy phone identities fail closed in access checks', () => {
+  assert.match(edge, /identity\.user\.app_metadata\?\.cuncun_auth_type==="phone_password"/);
+  assert.match(edge, /phoneIdentity=identity\.user\.app_metadata/);
+  assert.match(edge, /!account&&phoneIdentity/);
+  assert.match(edge, /account&&!phoneIdentity/);
 });
 
 test('phone login requires server-controlled identity marker', () => {

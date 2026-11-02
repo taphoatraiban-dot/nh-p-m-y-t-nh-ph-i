@@ -29,9 +29,11 @@ test('phone login matches the deterministic alias for the submitted number', () 
   assert.match(edge, /data\.user\.email!==email/);
 });
 
-test('deny and revoke both deactivate licenses', () => {
-  assert.match(edge, /body\.action==="revoke"\|\|body\.action==="deny"/);
-  assert.match(edge, /update\(\{active:false/);
+test('admin transitions use one atomic service-only RPC', () => {
+  assert.match(edge, /adminDb\.rpc\("phone_auth_admin_transition"/);
+  assert.match(edge, /p_admin_id:adminId,p_user_id:userId,p_action:body\.action/);
+  assert.doesNotMatch(edge, /from\("licenses"\)\.upsert/);
+  assert.doesNotMatch(edge, /from\("phone_auth_audit"\)\.insert/);
 });
 
 test('license reads and expiry parsing fail closed', () => {

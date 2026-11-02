@@ -7577,11 +7577,14 @@ function mainDrawsForCross2(row){
      // Lấy trạng thái quyền riêng biệt với trạng thái thiết bị. Tạm ngưng quyền KHÔNG reset máy.
      let licenseStateByUser={};
      try{
-       const {data:licRows,error:licErr}=await sb.from('license_admin_view').select('user_id,active');
-       if(!licErr && Array.isArray(licRows)){
+       const {data:licRows,error:licErr}=await sb.rpc('admin_list_license_status');
+       if(licErr)throw licErr;
+       if(Array.isArray(licRows)){
          licRows.forEach(r=>{ if(r?.user_id) licenseStateByUser[String(r.user_id)]=Boolean(r.active); });
        }
-     }catch(_e){}
+     }catch(licenseReadError){
+       throw new Error('Không đọc được trạng thái bản quyền: '+(licenseReadError?.message||licenseReadError));
+     }
      if(!Array.isArray(data)||!data.length){
        box.innerHTML='<div class="muted">Chưa có tài khoản nào đang gắn máy.</div>';
        st.className='device-list-status'; st.textContent='Hiển thị 0 tài khoản'; return;
@@ -7678,7 +7681,14 @@ function mainDrawsForCross2(row){
          const {data,error}=await sb.rpc('admin_set_license_paused',{p_user_id:uid,p_paused:nextPaused});
          if(error)throw error;
          if(!data?.ok)throw new Error(data?.message||'Không đổi được trạng thái quyền.');
-         st.className='status ok'; st.textContent=nextPaused?`⏸ Đã tạm ngưng ${email} — máy KHÔNG bị reset.`:`▶️ Đã mở lại quyền của ${email}.`;
+         st.className='device-list-status'; st.textContent=nextPaused?`⏸ Đã tạm ngưng ${email} — máy KHÔNG bị reset.`:`▶️ Đã mở lại quyền của ${email}.`;
+         // Chuyển sang đúng nhóm trạng thái ngay sau khi thao tác thành công.
+         selectedDeviceStatus=nextPaused?'paused':'active';
+         document.querySelectorAll("#deviceStatusTabs [data-device-filter]").forEach(tab=>{
+           const selected=tab.dataset.deviceFilter===selectedDeviceStatus;
+           tab.setAttribute('aria-pressed',String(selected));
+           tab.classList.toggle('is-selected',selected);
+         });
          await loadDeviceList();
        }catch(e){
          btn.disabled=false; btn.textContent=isPaused?'▶️ MỞ LẠI':'⏸ TẠM NGƯNG';

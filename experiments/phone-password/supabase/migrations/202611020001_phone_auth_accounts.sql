@@ -46,6 +46,24 @@ begin
       'email',v_email,'expires_at',null,'message','Admin');
   end if;
 
+  -- Phone identities must use phone approval and license only, never email licenses.
+  if exists (select 1 from public.phone_auth_accounts pa where pa.user_id = auth.uid()) then
+    if exists (
+      select 1 from public.phone_auth_accounts pa
+      join public.licenses l on l.user_id = pa.user_id
+      where pa.user_id = auth.uid() and pa.status = 'approved'
+        and l.active = true and (l.expires_at is null or l.expires_at > now())
+    ) then
+      select l.expires_at into v_license from public.licenses l
+      where l.user_id = auth.uid() and l.active = true
+        and (l.expires_at is null or l.expires_at > now());
+      return json_build_object('success',true,'active',true,'is_admin',false,
+        'email',v_email,'expires_at',v_license.expires_at,'message','Phone license còn hạn');
+    end if;
+    return json_build_object('success',false,'active',false,'is_admin',false,
+      'email',v_email,'expires_at',null,'message','Tài khoản SĐT chưa có bản quyền hợp lệ.');
+  end if;
+
   select el.expires_at into v_license
   from public.email_licenses el
   where el.user_id = auth.uid() and el.active = true and el.expires_at > now();

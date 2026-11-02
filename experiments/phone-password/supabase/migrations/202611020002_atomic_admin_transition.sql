@@ -28,14 +28,14 @@ begin
     where user_id = p_user_id for update;
   if not found then raise exception 'ACCOUNT_NOT_FOUND'; end if;
   if p_action = 'approve' then
-    if p_term not in ('1m','3m','12m','permanent') or p_term is null then
+    if p_term not in ('1m','3m','6m','12m') or p_term is null then
       raise exception 'INVALID_TERM';
     end if;
     select * into v_license from public.licenses where user_id = p_user_id for update;
-    if p_term = 'permanent' or (v_license.active is true and v_license.expires_at is null) then
+    if v_license.active is true and v_license.expires_at is null then
       v_expiry := null;
     else
-      v_months := case p_term when '1m' then 1 when '3m' then 3 else 12 end;
+      v_months := case p_term when '1m' then 1 when '3m' then 3 when '6m' then 6 else 12 end;
       v_base := case when v_license.active is true and v_license.expires_at > now()
                      then v_license.expires_at else now() end;
       -- Clamp day-of-month to avoid overflow at the end of shorter months.

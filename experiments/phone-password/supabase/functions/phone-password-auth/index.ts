@@ -75,13 +75,13 @@ Deno.serve(async(req)=>{
    const {data,error}=body.action==="list_pending"?await query.eq("status","pending"):await query;
    if(error)throw new Error("QUERY_FAILED");return json(200,{accounts:data??[]},origin);
   }
-  const userId=String(body.user_id??"");if(!/^[0-9a-f-]{36}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);
+  const userId=String(body.user_id??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);
   if(!["approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const {data:account,error:ae}=await adminDb.from("phone_auth_accounts").select("phone_e164,status").eq("user_id",userId).maybeSingle();if(ae||!account)return json(404,{error:"ACCOUNT_NOT_FOUND"},origin);
   let term=String(body.term??"1m"),expires:string|null=null;
   if(body.action==="approve"){
    const months:Record<string,number>={"1m":1,"3m":3,"12m":12};if(!["1m","3m","12m","permanent"].includes(term))return json(400,{error:"INVALID_TERM"},origin);
-   const {data:old}=await adminDb.from("licenses").select("expires_at,active").eq("user_id",userId).maybeSingle();
+   const {data:old,error:oldLicenseError}=await adminDb.from("licenses").select("expires_at,active").eq("user_id",userId).maybeSingle();if(oldLicenseError)throw new Error("LICENSE_READ_FAILED");
    if(term==="permanent"||(old?.active===true&&old.expires_at===null))expires=null;else{const previousExpiry=old?.expires_at?Date.parse(old.expires_at):null;if(previousExpiry!==null&&!Number.isFinite(previousExpiry))throw new Error("INVALID_EXISTING_LICENSE_EXPIRY");const base=old?.active===true&&previousExpiry!==null&&previousExpiry>Date.now()?new Date(previousExpiry):new Date();expires=addMonthsClamped(base,months[term]).toISOString();}
    const {error:le}=await adminDb.from("licenses").upsert({user_id:userId,phone:account.phone_e164,activated_at:new Date().toISOString(),expires_at:expires,active:true,note:"Phone account approved by admin",updated_at:new Date().toISOString()},{onConflict:"user_id"});if(le)throw new Error("LICENSE_WRITE_FAILED");
   }else if(body.action==="revoke"){

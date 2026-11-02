@@ -2,6 +2,8 @@
 // Run with PHONE_AUTH_TEST_DATABASE_URL pointing to a LOOPBACK PostgreSQL database.
 // Not a Supabase Auth login; does not authorize existing Cuncun data.
 import http from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { createPhoneAuthService, AuthError } from './phone-auth-service.mjs';
 import { createPostgresPhoneStore } from './postgres-phone-store.mjs';
@@ -33,6 +35,20 @@ export function createPhoneHttpServer(auth) {
       });
       res.end(JSON.stringify(body));
     };
+    if (req.method === 'GET' && (req.url === '/' || req.url === '/phone-auth-preview.html')) {
+      if (!req.headers.host || !/^127\.0\.0\.1:\d+$/.test(req.headers.host)) return send(403,{error:'LOCAL_ONLY'});
+      try {
+        const html = await readFile(fileURLToPath(new URL('./phone-auth-preview.html', import.meta.url)));
+        res.writeHead(200,{
+          'Content-Type':'text/html; charset=utf-8',
+          'Cache-Control':'no-store',
+          'X-Content-Type-Options':'nosniff',
+          'Referrer-Policy':'no-referrer',
+          'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+        });
+        return res.end(html);
+      } catch { return send(500,{error:'PREVIEW_UNAVAILABLE'}); }
+    }
     if (req.method !== 'POST' || !['/register','/login','/logout','/me'].includes(req.url)) return send(404,{error:'NOT_FOUND'});
     const host = req.headers.host;
     const origin = req.headers.origin;

@@ -11,6 +11,7 @@ test('admin and customer use isolated Supabase session storage', () => {
   assert.match(html, /adminClient\.auth\.signInWithPassword/);
   assert.match(html, /await edge\(\{action:'list_accounts'\},true\)/);
   assert.match(html, /await adminClient\.auth\.signOut\(\)/);
+  assert.match(html, /catch\(e\)\{if\(adminClient\)await adminClient\.auth\.signOut\(\)/);
 });
 
 test('phone login does not retain a session after denied license', () => {

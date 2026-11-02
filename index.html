@@ -1138,8 +1138,11 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
     </label>
     <label style="font-weight:600">Thời hạn
      <select id="unifiedLicenseTerm" style="width:100%;box-sizing:border-box;margin-top:6px">
-      <option value="1m">1 tháng</option><option value="3m">3 tháng</option><option value="6m">6 tháng</option><option value="12m">12 tháng</option>
+      <option value="1m">1 tháng</option><option value="3m">3 tháng</option><option value="6m">6 tháng</option><option value="12m">12 tháng</option><option value="custom">Tùy chỉnh số ngày</option>
      </select>
+    </label>
+    <label id="unifiedCustomDaysWrap" style="display:none;font-weight:600">Nhập số ngày
+     <input id="unifiedCustomDays" type="number" inputmode="numeric" min="1" max="3650" value="30" style="width:100%;box-sizing:border-box;margin-top:6px" placeholder="Ví dụ: 45">
     </label>
     <button type="button" class="green" id="unifiedLicenseSubmit" style="width:100%">🔐 TÌM / CẤP QUYỀN</button>
     <div id="unifiedLicenseHint" class="muted" style="font-size:12px">Gmail: cấp quyền trực tiếp. SĐT: tìm tài khoản đã đăng ký để duyệt hoặc gia hạn.</div>
@@ -1757,23 +1760,26 @@ $("unifiedLicenseSubmit").onclick=async()=>{
  const term=$("unifiedLicenseTerm").value;
  const hint=$("unifiedLicenseHint");
  if(!value){hint.textContent="Vui lòng nhập Gmail hoặc SĐT.";return;}
- $("phoneAdminTerm").value=term;
+ const customDays=Number($("unifiedCustomDays").value);
+ if(term==="custom"&&(!Number.isInteger(customDays)||customDays<1||customDays>3650)){hint.textContent="Nhập số ngày từ 1 đến 3650.";return;}
+ if(term!=="custom")$("phoneAdminTerm").value=term;
  if(value.includes("@")){
    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value)){hint.textContent="Gmail không hợp lệ.";return;}
    $("otherDeviceEmail").value=value;
-   $("otherDeviceDays").value=String(({"1m":30,"3m":90,"6m":180,"12m":365})[term]||30);
+   $("otherDeviceDays").value=String(term==="custom"?customDays:(({"1m":30,"3m":90,"6m":180,"12m":365})[term]||30));
    hint.textContent="Đang xử lý cấp quyền Gmail...";
    $("grantOtherDeviceBtn").click();
    hint.textContent="Đã chuyển yêu cầu cấp Gmail. Xem kết quả ngay bên dưới.";
  }else{
    const phone=value.replace(/[\\s().-]/g,"");
    if(!/^(0[0-9]{9}|\\+84[0-9]{9})$/.test(phone)){hint.textContent="Số điện thoại không hợp lệ.";return;}
+   if(term==="custom"){hint.textContent="Cấp quyền SĐT hiện chỉ hỗ trợ các gói tháng. Hãy chọn 1, 3, 6 hoặc 12 tháng; chưa cấp quyền.";return;}
    $("phoneAdminSearch").value=phone.replace(/[^0-9]/g,"");
    hint.textContent="Đang tìm tài khoản SĐT. Chọn Cấp quyền/Gia hạn trong danh sách bên dưới.";
    await phoneAdminLoad();
  }
 };
-$("unifiedLicenseTerm").onchange=()=>{$("phoneAdminTerm").value=$("unifiedLicenseTerm").value;};
+$("unifiedLicenseTerm").onchange=()=>{const t=$("unifiedLicenseTerm").value;$("unifiedCustomDaysWrap").style.display=t==="custom"?"block":"none";if(t!=="custom")$("phoneAdminTerm").value=t;};
 $("phoneAdminRefresh").onclick=()=>phoneAdminLoad();
 $("phoneAdminFind").onclick=()=>phoneAdminLoad();
 function isPhoneLogin(v){return /^(0[35789][0-9]{8}|\\+84[35789][0-9]{8})$/.test(String(v).replace(/[\\s().-]/g,""));}

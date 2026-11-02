@@ -65,6 +65,13 @@ test('legacy phone identities remain excluded from Gmail admin authorization', (
   assert.match(migration, /not coalesce\(v_phone_identity, false\)/);
 });
 
+test('Gmail admin license behavior retains existing profile-role rule', () => {
+  const migration = readFileSync(new URL('./supabase/migrations/202611020001_phone_auth_accounts.sql', import.meta.url), 'utf8');
+  const adminBranch = migration.slice(migration.indexOf('-- A phone account must never gain admin privileges'), migration.indexOf('-- Phone identities must use phone approval'));
+  assert.match(adminBranch, /and v_role = 'admin' then/);
+  assert.doesNotMatch(adminBranch, /or exists \(select 1 from public\.admin_users/);
+});
+
 test('atomic admin RPC has a standalone follow-up migration', () => {
   const migration = readFileSync(new URL('./supabase/migrations/202611020002_atomic_admin_transition.sql', import.meta.url), 'utf8');
   assert.match(migration, /create or replace function public\.phone_auth_admin_transition/);

@@ -38,6 +38,12 @@ test('denied phone login signs out the issued auth session', () => {
   assert.match(edge, /return await rejectLogin\("LICENSE_INACTIVE"\)/);
 });
 
+test('failed admin membership checks do not leave a login session intentionally active', () => {
+  assert.match(edge, /if\(membershipError\|\|!member\)\{/);
+  assert.match(edge, /client\.auth\.signOut\(\{scope:"global"\}\)/);
+  assert.match(edge, /ADMIN_SESSION_CLEANUP_FAILED/);
+});
+
 test('admin transitions use one atomic service-only RPC', () => {
   assert.match(edge, /adminDb\.rpc\("phone_auth_admin_transition"/);
   assert.match(edge, /p_admin_id:adminId,p_user_id:userId,p_action:body\.action/);

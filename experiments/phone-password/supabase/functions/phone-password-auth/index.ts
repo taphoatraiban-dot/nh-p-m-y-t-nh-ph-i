@@ -39,6 +39,7 @@ Deno.serve(async(req)=>{
    if(licenseError||!license||license.active!==true||(license.expires_at!==null&&new Date(license.expires_at).getTime()<=Date.now()))return json(403,{error:"LICENSE_INACTIVE"},origin);
    return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; bản quyền đang hoạt động."},origin);
   }
+  if(!["list_pending","list_accounts","approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const {id:adminId}=await verifyAdmin(req);
   if(body.action==="list_pending"||body.action==="list_accounts"){
    const query=adminDb.from("phone_auth_accounts").select("user_id,phone_e164,status,created_at").order("created_at",{ascending:false}).limit(100);

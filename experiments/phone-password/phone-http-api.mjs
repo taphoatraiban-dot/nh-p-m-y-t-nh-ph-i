@@ -47,7 +47,7 @@ export function createPhoneHttpServer(auth) {
           'Cache-Control':'no-store',
           'X-Content-Type-Options':'nosniff',
           'Referrer-Policy':'no-referrer',
-          'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+          'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; connect-src 'self' https://*.supabase.co; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
         });
         return res.end(html);
       } catch { return send(500,{error:'PREVIEW_UNAVAILABLE'}); }

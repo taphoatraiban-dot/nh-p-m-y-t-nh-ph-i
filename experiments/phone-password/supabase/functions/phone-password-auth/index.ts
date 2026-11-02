@@ -25,7 +25,7 @@ Deno.serve(async(req)=>{
    await rateLimit(body.action,phone);
    const email=await alias(phone);
    if(body.action==="register"){
-    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{auth_method:"phone_alias"}});
+    const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{auth_method:"phone_alias",phone_verified:false}});
     if(error||!data.user)return json(409,{error:"REGISTRATION_FAILED"},origin);
     const {error:insertError}=await adminDb.from("phone_auth_accounts").insert({user_id:data.user.id,phone_e164:phone,status:"pending"});
     if(insertError){await adminDb.auth.admin.deleteUser(data.user.id);return json(500,{error:"REGISTRATION_FAILED"},origin);}
@@ -36,7 +36,7 @@ Deno.serve(async(req)=>{
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",data.user.id).maybeSingle();
    if(accountError||!account||account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
    const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",data.user.id).maybeSingle();
-   if(licenseError||!license||license.active!==true||(license.expires_at!==null&&new Date(license.expires_at).getTime()<=Date.now()))return json(403,{error:"LICENSE_INACTIVE"},origin);
+   if(licenseError||!license||license.active!==true||(license.expires_at!==null&&(!Number.isFinite(Date.parse(license.expires_at))||Date.parse(license.expires_at)<=Date.now())))return json(403,{error:"LICENSE_INACTIVE"},origin);
    return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; bản quyền đang hoạt động."},origin);
   }
   if(body.action==="admin_login"){

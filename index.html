@@ -7574,8 +7574,15 @@ function mainDrawsForCross2(row){
        box.innerHTML='<div class="muted">Chưa có tài khoản nào đang gắn máy.</div>';
        st.className='status ok'; st.textContent='Đã tải: 0 máy.'; return;
      }
+     // Map opaque phone-alias emails to the real registered phone, admin only.
+     let phoneByUser={};
+     try{
+       const phoneResult=await phoneAdminRequest("list_accounts");
+       (phoneResult.accounts||[]).forEach(a=>{if(a.user_id&&a.phone_e164)phoneByUser[String(a.user_id)]=String(a.phone_e164);});
+     }catch(_e){}
      box.innerHTML=data.map((x,i)=>{
-       const email=String(x.email||x.user_email||x.user_id||'Không rõ');
+       const rawEmail=String(x.email||x.user_email||x.user_id||'Không rõ');
+       const email=phoneByUser[String(x.user_id||'')]||(/^phone-[0-9a-f]{64}@accounts\\.invalid$/i.test(rawEmail)?'Tài khoản SĐT':'Không rõ'===rawEmail?rawEmail:rawEmail);
        const dev=String(x.device_name||'Chưa xác định');
        const did=String(x.device_id||'');
        const last=x.last_seen?new Date(x.last_seen).toLocaleString('vi-VN'):'Chưa ghi nhận';
@@ -7583,11 +7590,11 @@ function mainDrawsForCross2(row){
        const uid=String(x.user_id||'');
        const licenseActive=(uid && Object.prototype.hasOwnProperty.call(licenseStateByUser,uid)) ? licenseStateByUser[uid] : true;
        const safe=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-       return `<div style="border:1px solid #d7eadc;background:#f7fff9;border-radius:11px;padding:9px">
-         <div style="font-weight:900;color:#174b2c">${i+1}. ${safe(email)}</div>
+       return `<div style="border:1px solid #d7eadc;background:#f7fff9;border-radius:11px;padding:9px;min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden">
+         <div style="font-weight:900;color:#174b2c;overflow-wrap:anywhere;word-break:break-word;font-size:16px">${i+1}. ${safe(email)}</div>
          <div style="font-size:13px;margin-top:4px"><b>📱 ${safe(dev)}</b> • ${deviceActive?'🟢 ĐANG DÙNG':'⚪ ĐÃ RESET'} • ${licenseActive?'🔓 QUYỀN MỞ':'⏸ ĐANG TẠM NGƯNG'}</div>
          <div style="font-size:11px;color:#667085;margin-top:3px">Mã: ${safe(did?did.slice(0,12)+'…':'—')}<br>Hoạt động: ${safe(last)}</div>
-         ${uid?`<div style="display:grid;grid-template-columns:${deviceActive?'1fr 1fr':'1fr'};gap:6px;margin-top:7px">
+         ${uid?`<div style="display:grid;grid-template-columns:${deviceActive?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)'};gap:6px;margin-top:7px">
            ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 ĐỔI MÁY</button>`:''}
            <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ TẠM NGƯNG':'▶️ MỞ LẠI'}</button>
          </div>

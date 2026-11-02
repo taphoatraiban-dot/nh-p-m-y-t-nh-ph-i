@@ -1156,6 +1156,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   <h3>📱 MÁY ĐANG SỬ DỤNG QUYỀN</h3>
   <div class="drawer-body">
    <button type="button" class="green" id="refreshDeviceListBtn" style="width:100%;margin-bottom:8px">🔄 XEM / CẬP NHẬT DANH SÁCH MÁY</button>
+   <input id="deviceListSearch" type="search" placeholder="🔎 Tìm Gmail, SĐT, tên máy, mã máy..." autocomplete="off" style="width:100%;box-sizing:border-box;margin:8px 0;padding:11px;border:1px solid #cbd5e1;border-radius:10px">
    <div id="deviceListStatus" class="status">Chưa tải danh sách.</div>
    <div id="deviceListBox" style="display:grid;gap:7px;margin-top:8px"></div>
    <div class="muted" style="margin-top:8px;font-size:11px">“ĐỔI MÁY” sẽ hủy liên kết máy hiện tại của đúng tài khoản đó. Sau đó khách đăng nhập trên máy mới để máy mới được nhận quyền.</div>
@@ -1705,6 +1706,8 @@ async function phoneAdminRequest(action,fields={}){
  const result=await response.json();if(!response.ok)throw Error(result.error||"Không thực hiện được.");return result;
 }
 function phoneAdminMessage(message,error=false){const el=$("phoneAdminStatus");if(el){el.className="status "+(error?"err":"ok");el.textContent=message;}}
+function phoneAdminFilter(){const query=$("phoneAdminSearch").value.replace(/[^0-9]/g,"");phoneAdminRender(query?phoneAdminAccounts.filter(a=>a.phone_e164.replace(/[^0-9]/g,"").includes(query)):phoneAdminAccounts);}
+$("phoneAdminSearch").addEventListener("input",phoneAdminFilter);
 function phoneAdminRender(accounts){
  const host=$("phoneAdminList");if(!host)return;host.replaceChildren();
  if(!accounts.length){host.textContent="Không tìm thấy tài khoản SĐT phù hợp.";return;}
@@ -1721,7 +1724,7 @@ function phoneAdminRender(accounts){
 }
 async function phoneAdminLoad(onlyPending=false){
  phoneAdminMessage("Đang tải danh sách...");
- try{const result=await phoneAdminRequest(onlyPending?"list_pending":"list_accounts");phoneAdminAccounts=result.accounts||[];const query=$("phoneAdminSearch").value.replace(/[^0-9]/g,"");phoneAdminRender(query?phoneAdminAccounts.filter(a=>a.phone_e164.replace(/[^0-9]/g,"").includes(query)):phoneAdminAccounts);phoneAdminMessage("Đã tải "+phoneAdminAccounts.length+" tài khoản.");}
+ try{const result=await phoneAdminRequest(onlyPending?"list_pending":"list_accounts");phoneAdminAccounts=result.accounts||[];const query=$("phoneAdminSearch").value.replace(/[^0-9]/g,"");phoneAdminFilter();phoneAdminMessage("Đã tải "+phoneAdminAccounts.length+" tài khoản.");}
  catch(e){phoneAdminMessage(e.message,true);}
 }
 async function phoneAdminChange(account,action){
@@ -7550,6 +7553,7 @@ function mainDrawsForCross2(row){
      if(st){st.className='status err';st.textContent='Chưa cấp được: '+(e?.message||e);}
    }
  });
+ document.getElementById("deviceListSearch")?.addEventListener("input",()=>{if(typeof loadDeviceList==="function")loadDeviceList();});
  // ===== QUẢN LÝ MÁY ĐANG DÙNG QUYỀN =====
  async function loadDeviceList(){
    const box=document.getElementById('deviceListBox');
@@ -7580,7 +7584,9 @@ function mainDrawsForCross2(row){
        const phoneResult=await phoneAdminRequest("list_accounts");
        (phoneResult.accounts||[]).forEach(a=>{if(a.user_id&&a.phone_e164)phoneByUser[String(a.user_id)]=String(a.phone_e164);});
      }catch(_e){}
-     box.innerHTML=data.map((x,i)=>{
+     const deviceQuery=(document.getElementById("deviceListSearch")?.value||"").trim().toLocaleLowerCase("vi-VN");
+     const filteredDevices=data.filter(x=>{const raw=String(x.email||x.user_email||x.user_id||"");const phone=phoneByUser[String(x.user_id||"")]||"";return [raw,phone,String(x.device_name||""),String(x.device_id||"")].some(v=>v.toLocaleLowerCase("vi-VN").includes(deviceQuery));});
+     box.innerHTML=filteredDevices.map((x,i)=>{
        const rawEmail=String(x.email||x.user_email||x.user_id||'Không rõ');
        const email=phoneByUser[String(x.user_id||'')]||(/^phone-[0-9a-f]{64}@accounts\\.invalid$/i.test(rawEmail)?'Tài khoản SĐT':'Không rõ'===rawEmail?rawEmail:rawEmail);
        const dev=String(x.device_name||'Chưa xác định');
@@ -7601,7 +7607,8 @@ function mainDrawsForCross2(row){
          <button type="button" class="soft password-reset-btn" data-email="${safe(email)}" style="width:100%;margin-top:6px">🔑 GỬI ĐẶT LẠI MẬT KHẨU</button>`:''}
        </div>`;
      }).join('');
-     st.className='status ok'; st.textContent=`Đã tải ${data.length} quyền/máy.`;
+     st.className='status ok'; st.textContent=`Hiển thị ${filteredDevices.length}/${data.length} quyền/máy.`;
+     if(!filteredDevices.length)box.textContent="Không tìm thấy tài khoản hoặc thiết bị phù hợp.";
      box.querySelectorAll('.device-change-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const uid=btn.dataset.userId, email=btn.dataset.email||'tài khoản này';
        if(!uid)return;

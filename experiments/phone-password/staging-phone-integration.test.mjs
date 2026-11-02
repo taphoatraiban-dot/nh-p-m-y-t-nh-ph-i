@@ -38,3 +38,17 @@ test('rejects identity mismatch before license check',async()=>{
  assert.equal(result.allowed,false);
  assert.equal(calls.some(x=>x[0]==='rpc'),false);
 });
+
+test('admin license is never accepted by phone flow',async()=>{
+ const {alias,gate}=setup({license:{success:true,active:true,is_admin:true}});
+ const logged=await alias.login(phone,'secure-password-2026');
+ const result=await gate({accessToken:logged.session.access_token,expectedUserId:logged.userId});
+ assert.deepEqual(result,{allowed:false,reason:'ADMIN_PHONE_LOGIN_DISABLED'});
+});
+test('unverified or failed identity check denies access',async()=>{
+ const {alias,gate,calls}=setup({authError:new Error('invalid token')});
+ const logged=await alias.login(phone,'secure-password-2026');
+ const result=await gate({accessToken:logged.session.access_token,expectedUserId:logged.userId});
+ assert.equal(result.allowed,false);
+ assert.equal(calls.some(x=>x[0]==='rpc'),false);
+});

@@ -57,6 +57,14 @@ test('atomic transition locks phone account and records audit in same SQL functi
   assert.match(transition, /from public\.admin_users where user_id = p_admin_id/);
 });
 
+test('legacy phone identities remain excluded from Gmail admin authorization', () => {
+  const migration = readFileSync(new URL('./supabase/migrations/202611020001_phone_auth_accounts.sql', import.meta.url), 'utf8');
+  assert.match(migration, /raw_app_meta_data ->> 'auth_method' = 'phone_alias'/);
+  assert.match(migration, /raw_app_meta_data ->> 'cuncun_auth_type' = 'phone_password'/);
+  assert.match(migration, /email like 'phone-%@accounts\.invalid'/);
+  assert.match(migration, /not coalesce\(v_phone_identity, false\)/);
+});
+
 test('atomic admin RPC has a standalone follow-up migration', () => {
   const migration = readFileSync(new URL('./supabase/migrations/202611020002_atomic_admin_transition.sql', import.meta.url), 'utf8');
   assert.match(migration, /create or replace function public\.phone_auth_admin_transition/);

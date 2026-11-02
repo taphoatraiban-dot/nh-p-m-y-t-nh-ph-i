@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thử nghiệm đăng ký ÔNG THẦN TÀI</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light}
+body{margin:0;background:#f4f5f7;color:#202124;display:grid;place-items:center;min-height:100dvh}
+main{box-sizing:border-box;width:min(100%,430px);background:white;border-radius:18px;padding:24px;box-shadow:0 8px 30px #0001}
+h1{font-size:23px;margin:0 0 8px}p{line-height:1.5;color:#555}
+nav{display:flex;gap:8px;margin:18px 0}nav button{flex:1}
+button,input{font:inherit;padding:13px;border-radius:10px;border:1px solid #bfc3ca}
+button{cursor:pointer;background:#f1f2f4}button[aria-pressed=true],button.primary{background:#202124;color:white}
+label{display:block;margin:14px 0;font-weight:600}input{box-sizing:border-box;width:100%;margin-top:7px}
+small{display:block;color:#666;margin-top:6px}#status{min-height:25px;font-weight:600}
+</style></head><body><main>
+<h1>ĐĂNG KÝ TÀI KHOẢN</h1>
+<p>Bản xem trước giao diện. Chưa kết nối máy chủ, chưa tạo tài khoản hoặc cấp bản quyền.</p>
+<nav aria-label="Phương thức đăng ký"><button type="button" id="phoneTab" aria-pressed="true">Số điện thoại</button><button type="button" id="emailTab" aria-pressed="false">Gmail</button></nav>
+<form id="form" novalidate>
+<label id="identityLabel">Số điện thoại Việt Nam<input id="identity" autocomplete="tel" inputmode="tel" placeholder="0912 345 678" required></label>
+<label>Mật khẩu<input id="password" type="password" autocomplete="new-password" minlength="10" required></label>
+<label>Nhập lại mật khẩu<input id="confirm" type="password" autocomplete="new-password" required></label>
+<small id="notice">Không dùng SMS. Số điện thoại chưa được xác minh quyền sở hữu; không thể dùng để khôi phục tài khoản hoặc cấp quyền.</small>
+<p id="status" role="status" aria-live="polite"></p>
+<button class="primary" type="submit">KIỂM TRA THÔNG TIN</button>
+</form></main>
+<script type="module">
+import {normalizeVietnameseMobile,validateRegistrationPassword} from './validation.mjs';
+const $=id=>document.getElementById(id);let mode='phone';
+function setMode(next){mode=next;for(const value of ['phone','email']) $(value+'Tab').setAttribute('aria-pressed',String(value===mode));$('identityLabel').firstChild.textContent=mode==='phone'?'Số điện thoại Việt Nam':'Địa chỉ Gmail';$('identity').value='';$('identity').type=mode==='phone'?'tel':'email';$('identity').inputMode=mode==='phone'?'tel':'email';$('identity').autocomplete=mode==='phone'?'tel':'email';$('identity').placeholder=mode==='phone'?'0912 345 678':'ten@gmail.com';$('notice').textContent=mode==='phone'?'Không dùng SMS. Số điện thoại chưa được xác minh quyền sở hữu; không thể dùng để khôi phục tài khoản hoặc cấp quyền.':'Gmail tiếp tục sử dụng luồng đăng ký hiện có trên phần mềm chính thức.';$('status').textContent='';}
+$('phoneTab').addEventListener('click',()=>setMode('phone'));$('emailTab').addEventListener('click',()=>setMode('email'));
+$('form').addEventListener('submit',e=>{e.preventDefault();try{const identity=$('identity').value.trim();if(mode==='phone')normalizeVietnameseMobile(identity);else if(!/^[^\s@]+@gmail\.com$/i.test(identity))throw Error('Vui lòng nhập địa chỉ Gmail hợp lệ');validateRegistrationPassword($('password').value);if($('password').value!==$('confirm').value)throw Error('Hai mật khẩu không khớp');$('status').textContent='Thông tin hợp lệ. Đây chỉ là bản thử nghiệm, chưa tạo tài khoản.';}catch(err){$('status').textContent=err.message;}});
+</script></body></html>

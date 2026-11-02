@@ -1,0 +1,32 @@
+-- STAGING ONLY. Requires phone_auth_accounts, licenses and phone_auth_has_active_license(uuid).
+-- Add a RESTRICTIVE policy to each private table; unlike a permissive policy,
+-- this is AND-ed with the existing owner policies, preserving Gmail behavior.
+-- Check role grants and test service-role integrations before deployment.
+create or replace function public.phone_auth_session_allowed()
+returns boolean language sql stable security definer set search_path = ''
+as $sql$
+  select (select auth.uid()) is not null and (
+    not exists (select 1 from public.phone_auth_accounts a where a.user_id = (select auth.uid()))
+    or public.phone_auth_has_active_license((select auth.uid()))
+  );
+$sql$;
+revoke all on function public.phone_auth_session_allowed() from public, anon;
+grant execute on function public.phone_auth_session_allowed() to authenticated;
+
+-- Existing policies are permissive and target authenticated. Restrictive
+-- policies enforce the phone license even if multiple permissive policies OR.
+create policy phone_license_guard on public.print_queue as restrictive
+  for all to authenticated using ((select public.phone_auth_session_allowed()))
+  with check ((select public.phone_auth_session_allowed()));
+create policy phone_license_guard on public.printed_phoi as restrictive
+  for all to authenticated using ((select public.phone_auth_session_allowed()))
+  with check ((select public.phone_auth_session_allowed()));
+create policy phone_license_guard on public.customer_message_archive as restrictive
+  for all to authenticated using ((select public.phone_auth_session_allowed()))
+  with check ((select public.phone_auth_session_allowed()));
+create policy phone_license_guard on public.telegram_messages as restrictive
+  for all to authenticated using ((select public.phone_auth_session_allowed()))
+  with check ((select public.phone_auth_session_allowed()));
+
+-- This is NOT a complete rollout: audit remaining private tables, validate
+-- legacy users and service-role workers, and test revoked JWTs in staging.

@@ -17,7 +17,7 @@ create table if not exists public.phone_auth_audit (
   term text,
   created_at timestamptz not null default now()
 );
-alter table public.phone_auth_accounts enable row level security;
+-- Lifetime phone licenses require a nullable expiry; existing email licenses remain unchanged.\nalter table public.licenses alter column expires_at drop not null;\nalter table public.phone_auth_accounts enable row level security;
 alter table public.phone_auth_audit enable row level security;
 revoke all on public.phone_auth_accounts, public.phone_auth_audit from anon, authenticated;
 grant all on public.phone_auth_accounts, public.phone_auth_audit to service_role;

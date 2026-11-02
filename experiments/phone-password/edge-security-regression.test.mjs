@@ -95,3 +95,22 @@ test('phone alias secret is mandatory and never hardcoded', () => {
   assert.match(edge, /ALIAS_SECRET\)\.length < 32/);
   assert.match(edge, /HMAC/);
 });
+
+
+test('phone login hands session to main app without persisting passwords', () => {
+  const ui=readFileSync(new URL('./phone-auth.html',import.meta.url),'utf8');
+  const main=readFileSync(new URL('../../index.html',import.meta.url),'utf8');
+  assert.match(ui,/sessionStorage\.setItem\('cuncun_phone_pending_session'/);
+  assert.match(ui,/location\.assign\('\/\?phone_session=1'\)/);
+  assert.match(main,/sessionStorage\.removeItem\('cuncun_phone_pending_session'\)/);
+  assert.match(main,/sb\.auth\.setSession/);
+  assert.doesNotMatch(ui,/localStorage\.setItem\([^\n]*password/);
+});
+
+test('phone registration remains approval-only and never claims SMS verification', () => {
+  const ui=readFileSync(new URL('./phone-auth.html',import.meta.url),'utf8');
+  assert.match(ui,/Chờ Admin duyệt/);
+  assert.match(edge,/phone_verified:false/);
+  assert.match(edge,/status:"pending"/);
+  assert.doesNotMatch(edge,/sendOtp\(/);
+});

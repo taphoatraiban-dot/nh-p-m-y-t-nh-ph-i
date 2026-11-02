@@ -7,7 +7,7 @@ create table if not exists phone_auth_private.access_grants (
  revoked_at timestamptz,
  approved_by text,
  updated_at timestamptz not null default now(),
- constraint approval_has_expiry check (status <> 'approved' or expires_at is not null)
+ constraint approval_has_expiry check (status <> 'approved' or expires_at is null or expires_at > updated_at)
 );
 alter table phone_auth_private.access_grants enable row level security;
 revoke all on phone_auth_private.access_grants from public, anon, authenticated;

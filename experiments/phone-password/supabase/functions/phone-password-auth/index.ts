@@ -66,9 +66,10 @@ Deno.serve(async(req)=>{
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",identity.user.id).maybeSingle();
    if(accountError)return json(503,{error:"LICENSE_CHECK_FAILED"},origin);
    // Phone identities must never fall back to the legacy Gmail authorization path.
-   if(!account&&identity.user.app_metadata?.auth_method==="phone_alias")return json(403,{error:"PHONE_ACCOUNT_NOT_FOUND"},origin);
+   const phoneIdentity=identity.user.app_metadata?.auth_method==="phone_alias"||identity.user.app_metadata?.cuncun_auth_type==="phone_password"||/^phone-.*@accounts\.invalid$/i.test(identity.user.email??"");
+   if(!account&&phoneIdentity)return json(403,{error:"PHONE_ACCOUNT_NOT_FOUND"},origin);
    // Never let a legacy Gmail identity inherit a phone-only approval record.
-   if(account&&identity.user.app_metadata?.auth_method!=="phone_alias")return json(403,{error:"PHONE_IDENTITY_MISMATCH"},origin);
+   if(account&&!phoneIdentity)return json(403,{error:"PHONE_IDENTITY_MISMATCH"},origin);
    if(account){
     if(account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
     const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",identity.user.id).maybeSingle();

@@ -11,7 +11,7 @@ create table if not exists phone_auth_private.accounts (
   phone_verified boolean not null default false,
   created_at timestamptz not null default now(),
   disabled_at timestamptz,
-  constraint phone_e164_format check (phone_e164 ~ '^\+84[35789][0-9]{8}),
+  constraint phone_e164_format check (phone_e164 ~ '^[+]84[35789][0-9]{8}$'),
   constraint password_hash_format check (password_hash like 'scrypt$16384$8$1$%')
 );
 alter table phone_auth_private.accounts enable row level security;

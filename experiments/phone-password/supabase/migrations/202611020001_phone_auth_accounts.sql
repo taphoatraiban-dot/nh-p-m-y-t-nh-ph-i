@@ -34,20 +34,24 @@ as $function$
 declare
   v_email text;
   v_role text;
+  v_phone_identity boolean;
   v_license record;
 begin
   select email into v_email from auth.users where id = auth.uid();
   select role into v_role from public.profiles where id = auth.uid();
+  select coalesce(raw_app_meta_data ->> 'auth_method' = 'phone_alias', false)
+    into v_phone_identity from auth.users where id = auth.uid();
 
   -- A phone account must never gain admin privileges from a stale profile role.
-  if not exists (select 1 from public.phone_auth_accounts pa where pa.user_id = auth.uid())
+  if not coalesce(v_phone_identity, false)
+     and not exists (select 1 from public.phone_auth_accounts pa where pa.user_id = auth.uid())
      and (v_role = 'admin' or exists (select 1 from public.admin_users au where au.user_id = auth.uid())) then
     return json_build_object('success',true,'active',true,'is_admin',true,
       'email',v_email,'expires_at',null,'message','Admin');
   end if;
 
   -- Phone identities must use phone approval and license only, never email licenses.
-  if exists (select 1 from public.phone_auth_accounts pa where pa.user_id = auth.uid()) then
+  if coalesce(v_phone_identity, false) or exists (select 1 from public.phone_auth_accounts pa where pa.user_id = auth.uid()) then
     if exists (
       select 1 from public.phone_auth_accounts pa
       join public.licenses l on l.user_id = pa.user_id

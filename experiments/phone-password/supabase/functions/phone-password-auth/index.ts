@@ -33,7 +33,7 @@ Deno.serve(async(req)=>{
    }
    const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.auth.signInWithPassword({email,password});if(error||!data.session)return json(401,{error:"INVALID_CREDENTIALS"},origin);
    // A valid password alone must never grant application access.
-   if(data.user.app_metadata?.auth_method!=="phone_alias")return json(403,{error:"PHONE_IDENTITY_INVALID"},origin);
+   if(data.user.app_metadata?.auth_method!=="phone_alias"||data.user.email!==email)return json(403,{error:"PHONE_IDENTITY_INVALID"},origin);
    const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",data.user.id).maybeSingle();
    if(accountError||!account||account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
    const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",data.user.id).maybeSingle();

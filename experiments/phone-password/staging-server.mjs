@@ -15,8 +15,7 @@ const url=new URL(process.env.SUPABASE_URL);
 if(!['localhost','127.0.0.1'].includes(url.hostname))throw new Error('LOCAL_SUPABASE_ONLY');
 const port=Number(process.env.PORT||8787);
 if(!Number.isSafeInteger(port)||port<1024||port>65535)throw new Error('INVALID_PORT');
-const anon=createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
-const phoneAuth=createPhoneAliasAuth({supabase:anon,aliasSecret:process.env.PHONE_ALIAS_SECRET,allowStaging:true});
+const newAuthClient=()=>createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 const licenseGate=createProductionLicenseRpcGate({userClientFactory:async token=>createClient(url.href,process.env.SUPABASE_PUBLISHABLE_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false,autoRefreshToken:false}})});
 const limit=createLocalPhoneRateLimiter({maxAttempts:5});
 function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
@@ -42,6 +41,7 @@ const server=http.createServer(async(req,res)=>{
    if(!phoneLimit.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
   }
   if(mode==='phone'){
+   const phoneAuth=createPhoneAliasAuth({supabase:newAuthClient(),aliasSecret:process.env.PHONE_ALIAS_SECRET,allowStaging:true});
    if(action==='register'){await phoneAuth.register(body.identity,body.password);return json(res,200,{message:'Đã tạo tài khoản thử nghiệm trên Supabase Local. Chưa có quyền sử dụng; cần được cấp bản quyền theo quy trình quản trị hiện có.'});}
    const result=await phoneAuth.login(body.identity,body.password);
    const access=await licenseGate({accessToken:result.session.access_token,expectedUserId:result.userId});
@@ -49,7 +49,7 @@ const server=http.createServer(async(req,res)=>{
    // Do not return tokens or set cookies until server-side session design is reviewed.
    return json(res,200,{message:'Xác thực SĐT và bản quyền thành công (chỉ thử nghiệm, chưa tạo phiên ứng dụng).'});
   }
-  const {data,error}=await anon.auth.signInWithPassword({email:body.identity,password:body.password});
+  const {data,error}=await newAuthClient().auth.signInWithPassword({email:body.identity,password:body.password});
   if(error||!data?.user?.id||!data?.session?.access_token)return json(res,401,{message:'Email hoặc mật khẩu không đúng'});
   // Email login is only a credential smoke test. It MUST NOT grant app access.
   // Existing email login and license logic remain in the production app.

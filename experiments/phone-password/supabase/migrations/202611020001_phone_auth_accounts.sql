@@ -40,6 +40,8 @@ begin
   select email into v_email from auth.users where id = auth.uid();
   select role into v_role from public.profiles where id = auth.uid();
   select coalesce(raw_app_meta_data ->> 'auth_method' = 'phone_alias', false)
+      or coalesce(raw_app_meta_data ->> 'cuncun_auth_type' = 'phone_password', false)
+      or coalesce(email like 'phone-%@accounts.invalid', false)
     into v_phone_identity from auth.users where id = auth.uid();
 
   -- A phone account must never gain admin privileges from a stale profile role.

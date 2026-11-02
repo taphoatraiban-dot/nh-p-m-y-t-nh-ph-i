@@ -1153,18 +1153,16 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
   <div class="drawer-body"><button type="button" id="openWebPmInbox" class="green" style="width:100%">📩 XEM YÊU CẦU TỪ CUN CUN SHOP</button></div>
  </div>
  <div id="deviceListSection" class="drawer-section device-list-section" hidden>
-  <h3>📱 MÁY ĐANG SỬ DỤNG QUYỀN</h3>
-  <div class="drawer-body">
-   <button type="button" class="green" id="refreshDeviceListBtn" style="width:100%;margin-bottom:8px">🔄 XEM / CẬP NHẬT DANH SÁCH MÁY</button>
-   <input id="deviceListSearch" type="search" placeholder="🔎 Tìm Gmail, SĐT, tên máy, mã máy..." autocomplete="off" style="width:100%;box-sizing:border-box;margin:8px 0;padding:11px;border:1px solid #cbd5e1;border-radius:10px">
-   <div id="deviceListStatus" class="status">Chưa tải danh sách.</div>
-   <div id="deviceStatusTabs" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:9px 0">
-    <button type="button" class="soft" data-device-filter="active" aria-pressed="true" style="min-width:0;padding:9px 3px;font-size:12px;white-space:normal">🟢 Hoạt động <span data-device-count="active">0</span></button>
-    <button type="button" class="soft" data-device-filter="paused" aria-pressed="false" style="min-width:0;padding:9px 3px;font-size:12px;white-space:normal">🟠 Tạm ngưng <span data-device-count="paused">0</span></button>
-    <button type="button" class="soft" data-device-filter="locked" aria-pressed="false" style="min-width:0;padding:9px 3px;font-size:12px;white-space:normal">🔴 Đã khóa <span data-device-count="locked">0</span></button>
+  <div class="device-manager">
+   <div class="device-manager-head"><h3>📱 Quản lý thiết bị</h3><button type="button" id="refreshDeviceListBtn" class="device-refresh" aria-label="Tải lại danh sách">↻</button></div>
+   <input id="deviceListSearch" class="device-search" type="search" placeholder="Tìm Gmail hoặc SĐT..." autocomplete="off">
+   <div id="deviceStatusTabs" class="device-status-grid">
+    <button type="button" class="device-status-card is-selected" data-device-filter="active" aria-pressed="true"><span class="device-status-icon active">✓</span><span>Hoạt động</span><strong data-device-count="active">0</strong></button>
+    <button type="button" class="device-status-card" data-device-filter="paused" aria-pressed="false"><span class="device-status-icon paused">Ⅱ</span><span>Tạm ngưng</span><strong data-device-count="paused">0</strong></button>
+    <button type="button" class="device-status-card" data-device-filter="locked" aria-pressed="false"><span class="device-status-icon locked">▣</span><span>Đã khóa</span><strong data-device-count="locked">0</strong></button>
    </div>
-   <div id="deviceListBox" style="display:grid;gap:7px;margin-top:8px"></div>
-   <div class="muted" style="margin-top:8px;font-size:11px">“ĐỔI MÁY” sẽ hủy liên kết máy hiện tại của đúng tài khoản đó. Sau đó khách đăng nhập trên máy mới để máy mới được nhận quyền.</div>
+   <div id="deviceListStatus" class="device-list-status">Chưa tải danh sách.</div>
+   <div id="deviceListBox" class="device-list-box"></div>
   </div>
  </div>
  <div id="maintenanceAdminSection" class="drawer-section maintenance-admin" hidden>
@@ -7560,13 +7558,13 @@ function mainDrawsForCross2(row){
  });
  document.getElementById("deviceListSearch")?.addEventListener("input",()=>{if(typeof loadDeviceList==="function")loadDeviceList();});
  let selectedDeviceStatus="active";
- document.querySelectorAll("#deviceStatusTabs [data-device-filter]").forEach(btn=>btn.addEventListener("click",()=>{selectedDeviceStatus=btn.dataset.deviceFilter;document.querySelectorAll("#deviceStatusTabs [data-device-filter]").forEach(b=>b.setAttribute("aria-pressed",String(b===btn)));loadDeviceList();}));
+ document.querySelectorAll("#deviceStatusTabs [data-device-filter]").forEach(btn=>btn.addEventListener("click",()=>{selectedDeviceStatus=btn.dataset.deviceFilter;document.querySelectorAll("#deviceStatusTabs [data-device-filter]").forEach(b=>{b.setAttribute("aria-pressed",String(b===btn));b.classList.toggle("is-selected",b===btn);});loadDeviceList();}));
  // ===== QUẢN LÝ MÁY ĐANG DÙNG QUYỀN =====
  async function loadDeviceList(){
    const box=document.getElementById('deviceListBox');
    const st=document.getElementById('deviceListStatus');
    if(!box||!st)return;
-   st.className='status'; st.textContent='Đang tải danh sách máy...';
+   st.className='device-list-status'; st.textContent='Đang tải danh sách...';
    box.innerHTML='';
    try{
      const lic=await checkLicense();
@@ -7583,7 +7581,7 @@ function mainDrawsForCross2(row){
      }catch(_e){}
      if(!Array.isArray(data)||!data.length){
        box.innerHTML='<div class="muted">Chưa có tài khoản nào đang gắn máy.</div>';
-       st.className='status ok'; st.textContent='Đã tải: 0 máy.'; return;
+       st.className='device-list-status'; st.textContent='Hiển thị 0 tài khoản'; return;
      }
      // Map opaque phone-alias emails to the real registered phone, admin only.
      let phoneByUser={};
@@ -7605,18 +7603,34 @@ function mainDrawsForCross2(row){
        const uid=String(x.user_id||'');
        const licenseActive=(uid && Object.prototype.hasOwnProperty.call(licenseStateByUser,uid)) ? licenseStateByUser[uid] : true;
        const safe=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-       return `<div style="border:1px solid #d7eadc;background:#f7fff9;border-radius:11px;padding:9px;min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden">
-         <div style="font-weight:900;color:#174b2c;overflow-wrap:anywhere;word-break:break-word;font-size:16px">${i+1}. ${safe(email)}</div>
-         <div style="font-size:13px;margin-top:4px"><b>📱 ${safe(dev)}</b> • ${deviceActive?'🟢 ĐANG DÙNG':'⚪ ĐÃ RESET'} • ${licenseActive?'🔓 QUYỀN MỞ':'⏸ ĐANG TẠM NGƯNG'}</div>
-         <div style="font-size:11px;color:#667085;margin-top:3px">Mã: ${safe(did?did.slice(0,12)+'…':'—')}<br>Hoạt động: ${safe(last)}</div>
-         ${uid?`<div style="display:grid;grid-template-columns:${deviceActive?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)'};gap:6px;margin-top:7px">
-           ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 ĐỔI MÁY</button>`:''}
-           <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ TẠM NGƯNG':'▶️ MỞ LẠI'}</button>
+       const status=deviceStatusOf(x);
+       const statusLabel=status==="active"?"Hoạt động":status==="paused"?"Tạm ngưng":"Đã khóa";
+       return `<div class="device-account-card">
+         <div class="device-account-main">
+          <div class="device-account-icon">▯</div>
+          <div class="device-account-info">
+           <div class="device-account-name">${safe(email)}</div>
+           <div class="device-account-meta">${safe(dev)} · ${statusLabel} · ${safe(last)}</div>
+          </div>
+          <button type="button" class="device-actions-toggle" aria-expanded="false">••• Thao tác</button>
          </div>
-         <button type="button" class="soft password-reset-btn" data-email="${safe(email)}" style="width:100%;margin-top:6px">🔑 GỬI ĐẶT LẠI MẬT KHẨU</button>`:''}
+         <div class="device-actions-panel" hidden>
+          ${uid? `
+           ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 Đổi máy</button>`:''}
+           <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ Tạm ngưng':'▶️ Mở lại'}</button>
+           <button type="button" class="soft password-reset-btn" data-email="${safe(email)}">🔑 Đặt lại mật khẩu</button>
+          `:''}
+         </div>
        </div>`;
      }).join('');
-     st.className='status ok'; st.textContent=`${selectedDeviceStatus==="active"?"Đang hoạt động":selectedDeviceStatus==="paused"?"Tạm ngưng":"Đã khóa"}: ${filteredDevices.length} máy (tổng ${data.length}).`;
+     box.querySelectorAll('.device-actions-toggle').forEach(btn=>btn.addEventListener('click',()=>{
+       const panel=btn.closest('.device-account-card')?.querySelector('.device-actions-panel');
+       if(!panel)return;
+       const open=panel.hidden;
+       panel.hidden=!open;
+       btn.setAttribute('aria-expanded',String(open));
+     }));
+     st.className='device-list-status'; st.textContent=`${selectedDeviceStatus==="active"?"Đang hoạt động":selectedDeviceStatus==="paused"?"Tạm ngưng":"Đã khóa"}: ${filteredDevices.length} máy (tổng ${data.length}).`;
      if(!filteredDevices.length)box.textContent="Không có máy nào trong nhóm này phù hợp tìm kiếm.";
      box.querySelectorAll('.device-change-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const uid=btn.dataset.userId, email=btn.dataset.email||'tài khoản này';
@@ -7669,7 +7683,7 @@ function mainDrawsForCross2(row){
        }
      }));
    }catch(e){
-     st.className='status err'; st.textContent='Không tải được danh sách: '+(e?.message||e);
+     st.className='device-list-status'; st.textContent='Không tải được danh sách: '+(e?.message||e);
    }
  }
  document.getElementById('refreshDeviceListBtn')?.addEventListener('click',loadDeviceList);
@@ -13646,6 +13660,33 @@ body.app-unlocked #liveSoiBar{display:block!important}
  margin:0!important;align-self:auto!important;
 }
 #appDrawer .cuncun-group-title{text-align:center!important}
+
+/* CUNCUN compact device manager — UI only; existing admin RPC/actions retained */
+.device-manager{border:1px solid #e1e1e1;border-radius:22px;background:#fff;padding:14px;box-sizing:border-box;color:#171717}
+.device-manager-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.device-manager-head h3{margin:0;font-size:19px;font-weight:800;color:#202020}
+.device-refresh{width:34px;height:34px;border:1px solid #dedede;border-radius:50%;background:#f7f7f7;color:#333;font-size:22px;line-height:1}
+.device-search{display:block;width:100%;height:46px;box-sizing:border-box;border:1px solid #d8d8d8;border-radius:25px;padding:0 16px;font-size:15px;background:#fff;color:#171717;margin:0 0 12px}
+.device-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.device-status-card{min-width:0;min-height:91px;padding:9px 4px;border:1px solid #e4e4e4;border-radius:17px;background:#f3f3f3;color:#222;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:13px;font-weight:600}
+.device-status-card.is-selected{border:2px solid #c9c9c9;background:#ededed;padding:8px 3px}
+.device-status-card strong{font-size:21px;line-height:1.1;font-weight:800;color:#111}
+.device-status-icon{width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900;margin-bottom:1px}
+.device-status-icon.active{color:#246b39}.device-status-icon.paused{color:#80651a}.device-status-icon.locked{color:#87372f}
+.device-list-status{font-size:13px;color:#666;margin:0 0 9px}
+.device-list-box{display:grid;gap:9px}
+.device-account-card{border:1px solid #e1e1e1;border-radius:17px;background:#fff;padding:12px;min-width:0;box-sizing:border-box}
+.device-account-main{display:flex;align-items:center;gap:10px;min-width:0}
+.device-account-icon{flex:0 0 26px;color:#555;font-size:21px;text-align:center}
+.device-account-info{min-width:0;flex:1}
+.device-account-name{font-size:15px;font-weight:750;color:#171717;overflow-wrap:anywhere;line-height:1.35}
+.device-account-meta{font-size:13px;color:#666;margin-top:4px;line-height:1.35}
+.device-actions-toggle{flex:0 0 auto;border:1px solid #d8d8d8;border-radius:22px;background:#fff;color:#555;padding:7px 10px;font-size:13px;white-space:nowrap}
+.device-actions-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #eee}
+.device-actions-panel[hidden]{display:none}
+.device-actions-panel button{min-width:0;padding:8px 5px;font-size:12px;border-radius:10px}
+.device-actions-panel .password-reset-btn{grid-column:1/-1}
+@media(max-width:430px){.device-manager{padding:12px}.device-status-card{min-height:84px;font-size:12px}.device-account-card{padding:10px}.device-account-name{font-size:14px}.device-actions-toggle{padding:7px 8px;font-size:12px}}
 </style>
 <script>
 (function(){

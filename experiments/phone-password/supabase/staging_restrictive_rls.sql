@@ -6,7 +6,7 @@ create or replace function public.phone_auth_session_allowed()
 returns boolean language sql stable security definer set search_path = ''
 as $sql$
   select (select auth.uid()) is not null and (
-    not exists (select 1 from public.phone_auth_accounts a where a.user_id = (select auth.uid()))
+    not exists (select 1 from auth.users u where u.id = (select auth.uid()) and u.email like 'phone-%@accounts.invalid')
     or public.phone_auth_has_active_license((select auth.uid()))
   );
 $sql$;

@@ -17,3 +17,23 @@ test('HTTP API denies cross-origin and missing local host', async t => {
  const response=await fetch(url,{method:'POST',headers:{Origin:'https://example.com','Content-Type':'application/json'},body:'{}'});
  assert.equal(response.status,403);
 });
+
+test('phone API never exposes admin approval endpoints', async t => {
+ const server=createPhoneHttpServer({});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const base='http://127.0.0.1:'+server.address().port;
+ const pending=await fetch(base+'/admin/phone/pending');
+ assert.equal(pending.status,404);
+ const grant=await fetch(base+'/admin/phone/grants',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accountId:'11111111-1111-4111-8111-111111111111',action:'approve',term:'1m'})});
+ assert.equal(grant.status,404);
+});
+test('preview route accepts harmless query parameters', async t => {
+ const server=createPhoneHttpServer({});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const url='http://127.0.0.1:'+server.address().port+'/phone-auth-preview.html?utm_source=test';
+ const response=await fetch(url);
+ assert.equal(response.status,200);
+ assert.match(response.headers.get('content-type'),/text\\/html/);
+});

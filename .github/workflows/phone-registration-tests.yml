@@ -28,3 +28,5 @@ jobs:
         run: node --test experiments/phone-password/edge-security-regression.test.mjs
       - name: Test staging admin/customer session isolation
         run: node --test experiments/phone-password/phone-staging-preview.test.mjs
+      - name: Verify subscription prices and release restrictions
+        run: node --experimental-strip-types experiments/phone-password/subscription-plans.test.ts

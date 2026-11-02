@@ -1041,8 +1041,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <section id="loginCard" class="card">
 <h1>🔐 ĐĂNG NHẬP</h1>
 <div class="grid">
-<label>Email
-<input id="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="email@example.com">
+<label>Email hoặc số điện thoại
+<input id="email" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="email@example.com">
 </label>
 <label>Mật khẩu
 <input id="password" type="password" autocomplete="current-password" placeholder="Mật khẩu">
@@ -1067,8 +1067,8 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <section id="registerCard" class="card hidden">
 <h1>🆕 ĐĂNG KÝ LẦN ĐẦU</h1>
 <div class="grid">
-<label>Email
-<input id="regEmail" type="email" autocomplete="username" placeholder="email@example.com">
+<label>Email hoặc số điện thoại
+<input id="regEmail" type="text" autocomplete="username" placeholder="email@example.com">
 </label>
 <label>Mật khẩu mới
 <input id="regPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự">
@@ -1081,7 +1081,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <button class="green" id="registerBtn">TẠO TÀI KHOẢN</button>
 <button class="soft" id="backLoginBtn">QUAY LẠI ĐĂNG NHẬP</button>
 </div>
-<div id="registerStatus" class="status">Email phải được Admin cấp license trước.</div><div class="support-box">💬 HỖ TRỢ: <a href="https://t.me/MRkbiss" target="_blank" rel="noopener">Telegram @MRkbiss</a></div>
+<label>Gói WEB tiêu chuẩn<select id="signupPlan"><option value="web_1m">1 tháng — 799.000đ</option><option value="web_3m">3 tháng — 2.290.000đ</option><option value="web_6m">6 tháng — 4.390.000đ</option><option value="web_12m">12 tháng — 7.990.000đ</option></select></label><div id="registerStatus" class="status">Đăng ký SĐT chưa kích hoạt đến khi máy chủ kiểm thử xong.</div><div class="support-box">💬 HỖ TRỢ: <a href="https://t.me/MRkbiss" target="_blank" rel="noopener">Telegram @MRkbiss</a></div>
 </section>
 
 <section id="pinCard" class="card hidden">

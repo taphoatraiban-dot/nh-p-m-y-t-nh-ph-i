@@ -28,9 +28,9 @@ Deno.serve(async(req)=>{
    if(body.action==="register"){
     const {data,error}=await adminDb.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{phone_verified:false},app_metadata:{auth_method:"phone_alias",requested_plan_id:String(body.plan_id)}});
     if(error||!data.user)return json(409,{error:"REGISTRATION_FAILED"},origin);
-    const {error:insertError}=await adminDb.from("phone_auth_accounts").insert({user_id:data.user.id,phone_e164:phone,status:"pending"});
+    const {data:provision,error:insertError}=await adminDb.rpc("phone_auth_provision_signup",{p_user_id:data.user.id,p_phone:phone,p_plan_id:String(body.plan_id)});
     if(insertError){await adminDb.auth.admin.deleteUser(data.user.id);return json(500,{error:"REGISTRATION_FAILED"},origin);}
-    return json(200,{success:true,status:"pending",message:"Đăng ký thành công. Chờ Admin duyệt bản quyền."},origin);
+    return json(200,{...provision,message:"Đăng ký thành công. Có thể đăng nhập sử dụng ngay; vui lòng chuyển khoản theo hướng dẫn thanh toán."},origin);
    }
    const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.auth.signInWithPassword({email,password});if(error||!data.session)return json(401,{error:"INVALID_CREDENTIALS"},origin);
    // A valid password alone must never grant application access.
@@ -81,7 +81,7 @@ Deno.serve(async(req)=>{
    // Do not modify legacy Gmail authorization behavior: it remains on check_email_license().
    return json(400,{error:"USE_LEGACY_LICENSE_CHECK"},origin);
   }
-  if(!["list_pending","list_accounts","approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
+  if(!["list_pending","list_accounts","approve","deny","revoke","mark_paid"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const {id:adminId}=await verifyAdmin(req);
   if(body.action==="list_pending"||body.action==="list_accounts"){
    const query=adminDb.from("phone_auth_accounts").select("user_id,phone_e164,status,created_at").order("created_at",{ascending:false}).limit(100);
@@ -89,6 +89,7 @@ Deno.serve(async(req)=>{
    if(error)throw new Error("QUERY_FAILED");return json(200,{accounts:data??[]},origin);
   }
   const userId=String(body.user_id??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);
+  if(body.action==="mark_paid"){const {data:payment,error:paymentError}=await adminDb.rpc("phone_auth_mark_paid",{p_admin_id:adminId,p_user_id:userId});if(paymentError)return json(400,{error:"PAYMENT_UPDATE_FAILED"},origin);return json(200,payment,origin);}
   if(!["approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const term=String(body.term??"1m");
   if(body.action==="approve"&&!["1m","3m","6m","12m"].includes(term))return json(400,{error:"INVALID_TERM"},origin);

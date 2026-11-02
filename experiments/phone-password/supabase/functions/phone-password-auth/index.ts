@@ -81,7 +81,7 @@ Deno.serve(async(req)=>{
    // Do not modify legacy Gmail authorization behavior: it remains on check_email_license().
    return json(400,{error:"USE_LEGACY_LICENSE_CHECK"},origin);
   }
-  if(!["list_pending","list_accounts","approve","deny","revoke","mark_paid"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
+  if(!["list_pending","list_accounts","approve","deny","revoke","mark_paid","renew"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const {id:adminId}=await verifyAdmin(req);
   if(body.action==="list_pending"||body.action==="list_accounts"){
    const query=adminDb.from("phone_auth_accounts").select("user_id,phone_e164,status,created_at").order("created_at",{ascending:false}).limit(100);
@@ -89,6 +89,7 @@ Deno.serve(async(req)=>{
    if(error)throw new Error("QUERY_FAILED");return json(200,{accounts:data??[]},origin);
   }
   const userId=String(body.user_id??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);
+  if(body.action==="renew"){const plan=String(body.plan_id??"");try{resolveAvailablePlan(plan);}catch{return json(400,{error:"INVALID_PLAN"},origin);}const {data:renewal,error:renewalError}=await adminDb.rpc("phone_auth_admin_renew",{p_admin_id:adminId,p_user_id:userId,p_plan_id:plan});if(renewalError)return json(400,{error:"RENEWAL_FAILED"},origin);return json(200,renewal,origin);}
   if(body.action==="mark_paid"){const {data:payment,error:paymentError}=await adminDb.rpc("phone_auth_mark_paid",{p_admin_id:adminId,p_user_id:userId});if(paymentError)return json(400,{error:"PAYMENT_UPDATE_FAILED"},origin);return json(200,payment,origin);}
   if(!["approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
   const term=String(body.term??"1m");

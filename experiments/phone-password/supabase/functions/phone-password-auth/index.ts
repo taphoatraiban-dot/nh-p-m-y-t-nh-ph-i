@@ -32,7 +32,12 @@ Deno.serve(async(req)=>{
     return json(200,{success:true,status:"pending",message:"Đăng ký thành công. Chờ Admin duyệt bản quyền."},origin);
    }
    const client=createClient(URL,ANON,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await client.auth.signInWithPassword({email,password});if(error||!data.session)return json(401,{error:"INVALID_CREDENTIALS"},origin);
-   return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; quyền sử dụng cần được Admin duyệt."},origin);
+   // A valid password alone must never grant application access.
+   const {data:account,error:accountError}=await adminDb.from("phone_auth_accounts").select("status").eq("user_id",data.user.id).maybeSingle();
+   if(accountError||!account||account.status!=="approved")return json(403,{error:"LICENSE_NOT_APPROVED"},origin);
+   const {data:license,error:licenseError}=await adminDb.from("licenses").select("active,expires_at").eq("user_id",data.user.id).maybeSingle();
+   if(licenseError||!license||license.active!==true||(license.expires_at!==null&&new Date(license.expires_at).getTime()<=Date.now()))return json(403,{error:"LICENSE_INACTIVE"},origin);
+   return json(200,{session:data.session,user:{id:data.user.id},message:"Đăng nhập thành công; bản quyền đang hoạt động."},origin);
   }
   const {id:adminId}=await verifyAdmin(req);
   if(body.action==="list_pending"||body.action==="list_accounts"){

@@ -26,3 +26,5 @@ jobs:
         run: node --test phone-registration/*.test.mjs
       - name: Test Edge Function security guardrails
         run: node --test experiments/phone-password/edge-security-regression.test.mjs
+      - name: Test staging admin/customer session isolation
+        run: node --test experiments/phone-password/phone-staging-preview.test.mjs

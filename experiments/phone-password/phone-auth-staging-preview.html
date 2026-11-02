@@ -14,7 +14,7 @@
 <label for="phone">Số điện thoại</label><input id="phone" inputmode="tel" autocomplete="off" placeholder="09xxxxxxxx">
 <label for="password">Mật khẩu (tối thiểu 12 ký tự)</label><input id="password" type="password" autocomplete="new-password" minlength="12">
 <div class="actions"><button id="register" class="red">ĐĂNG KÝ</button><button id="login">ĐĂNG NHẬP</button><button id="logout">ĐĂNG XUẤT</button></div><div id="phoneStatus" class="status" role="status"></div><div id="licenseStatus" class="muted"></div></section>
-<section id="adminSection" hidden><h2>3. Quản trị duyệt tài khoản</h2><p class="muted">Đăng nhập bằng tài khoản Admin của CHÍNH PROJECT STAGING. Tài khoản cần có public.profiles.role = 'admin'.</p>
+<section id="adminSection" hidden><h2>3. Quản trị duyệt tài khoản</h2><p class="muted">Đăng nhập bằng tài khoản Admin của CHÍNH PROJECT STAGING. Tài khoản phải có membership trong public.admin_users (giống cơ chế Admin hiện tại).</p>
 <label for="adminEmail">Email Admin staging</label><input id="adminEmail" type="email" autocomplete="username">
 <label for="adminPassword">Mật khẩu Admin staging</label><input id="adminPassword" type="password" autocomplete="current-password">
 <div class="actions"><button id="adminLogin">ĐĂNG NHẬP ADMIN</button><button id="refresh">TẢI TÀI KHOẢN CHỜ</button><button id="adminLogout">ĐĂNG XUẤT ADMIN</button></div><div id="adminStatus" class="status" role="status"></div><div id="pending"></div></section>

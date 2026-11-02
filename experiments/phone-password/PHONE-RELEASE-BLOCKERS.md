@@ -1,5 +1,11 @@
 # Phone/password release gate — not production ready
 
+## Production phone-account inventory (read-only, 2026-11-02)
+
+- Query against `public.phone_auth_accounts`: **0 total, 0 approved, 0 pending**.
+- There are no tracked phone accounts requiring metadata backfill as of this query. This does **not** prove there are no orphaned phone alias identities in `auth.users`; that separate inventory remains outstanding.
+- No production rows were changed. The live Edge Function still differs from the isolated branch and must not be replaced before end-to-end checks.
+
 ## Live compatibility finding (2026-11-02)
 
 - GitHub Actions passed for isolated branch commit `fa0806c4` (run `41467217688`).

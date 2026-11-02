@@ -18,3 +18,10 @@ Must finish before production release:
 6. **Full end-to-end**: register -> pending -> real admin approval -> access -> expiration/revocation, with negative tests and legacy Gmail regression.
 
 Never deploy experimental auth directly to cuncun.icu. No live credentials or production changes are included here.
+
+## Supabase environment audit (2026-11-02, read-only)
+- Production project `zigpqddlhvjbjrwhfhaa` is ACTIVE_HEALTHY. It has no Supabase development branches and no phone-auth tables/functions deployed.
+- A Supabase development branch is billed at USD 0.01344/hour for this organization (about USD 9.81 per 30-day month if left running). Do not create one without explicit user approval; prefer local Supabase for a no-extra-cost staging rehearsal.
+- Production schema currently has `public.admin_users` (2 memberships) and `public.profiles.role='admin'` (2 users); both sets match exactly. There are 5 active Gmail/email licenses. The separate `public.licenses` table has no active rows and its `expires_at` column is currently NOT NULL. Existing `check_email_license()` checks Admin via `profiles.role` and Gmail via `email_licenses`.
+- The experimental migration adds phone-only tables and a phone branch to `check_email_license()`, and makes only `public.licenses.expires_at` nullable. It has NOT been applied. Applying it to production now is prohibited: no phone staging validation has been performed.
+- Next no-cost gate: apply the experimental migration only to the user's isolated local Supabase database, deploy the Edge Function only to local Supabase, and exercise register/login/admin approval/revoke plus Gmail regression. Confirm the local database is the disposable `cuncun-phone-local` instance before applying SQL.

@@ -79,7 +79,7 @@ Deno.serve(async(req)=>{
   }
   const userId=String(body.user_id??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId))return json(400,{error:"INVALID_USER"},origin);
   if(!["approve","deny","revoke"].includes(body.action))return json(400,{error:"INVALID_ACTION"},origin);
-  const {data:account,error:ae}=await adminDb.from("phone_auth_accounts").select("phone_e164,status").eq("user_id",userId).maybeSingle();if(ae||!account)return json(404,{error:"ACCOUNT_NOT_FOUND"},origin);
+  const {data:account,error:ae}=await adminDb.from("phone_auth_accounts").select("phone_e164,status").eq("user_id",userId).maybeSingle();if(ae)return json(503,{error:"ACCOUNT_CHECK_FAILED"},origin);if(!account)return json(404,{error:"ACCOUNT_NOT_FOUND"},origin);
   let term=String(body.term??"1m"),expires:string|null=null;
   if(body.action==="approve"){
    const months:Record<string,number>={"1m":1,"3m":3,"12m":12};if(!["1m","3m","12m","permanent"].includes(term))return json(400,{error:"INVALID_TERM"},origin);

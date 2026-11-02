@@ -56,11 +56,11 @@ test('phone login checks alias and Auth metadata before returning a session', ()
   assert.match(edge, /PHONE_IDENTITY_INVALID/);
   assert.match(edge, /auth_method!=="phone_alias"/);
 });
-test('release UI cannot call undeployed API', () => {
+test('release UI points to deployed endpoint on isolated branch', () => {
   const ui=readFileSync(new URL('./phone-auth.html', import.meta.url),'utf8');
   const admin=readFileSync(new URL('./admin-phone.html', import.meta.url),'utf8');
-  assert.match(ui,/const api='';/);
-  assert.match(admin,/const API_URL='';/);
+  assert.match(ui,/const api='https:\/\/zigpqddlhvjbjrwhfhaa\.supabase\.co\/functions\/v1\/phone-password-auth';/);
+  assert.match(admin,/const API_URL='https:\/\/zigpqddlhvjbjrwhfhaa\.supabase\.co\/functions\/v1\/phone-password-auth';/);
 });
 
 test('admin approval is atomic and never callable by authenticated clients', () => {

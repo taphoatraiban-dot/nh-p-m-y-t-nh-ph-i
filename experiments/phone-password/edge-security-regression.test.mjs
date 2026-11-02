@@ -123,3 +123,14 @@ test('admin UI rejects expired sessions before mutating accounts', () => {
   assert.match(admin,/adminSessionExpiresAt=0/);
   assert.match(admin,/for\(const b of card\.querySelectorAll\('button'\)\)b\.disabled=true/);
 });
+
+
+test('phone UI clears password for all rejected inputs and API failures', () => {
+  const ui=readFileSync(new URL('./phone-auth.html',import.meta.url),'utf8');
+  assert.match(ui,/Số điện thoại Việt Nam không hợp lệ/);
+  assert.match(ui,/Mật khẩu phải có từ 12 đến 128 ký tự/);
+  assert.match(ui,/document\.getElementById\('password'\)\.value=''/);
+  assert.match(ui,/cache:'no-store'/);
+  assert.match(ui,/REGISTRATION_FAILED/);
+  assert.match(ui,/LICENSE_NOT_APPROVED/);
+});

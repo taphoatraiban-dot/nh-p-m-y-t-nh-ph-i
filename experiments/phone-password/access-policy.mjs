@@ -9,9 +9,10 @@ export function evaluatePhoneAccess({ identity, grant, now = new Date() } = {}) 
     return { allowed:false, reason:'PENDING_APPROVAL' };
   }
   if (grant.revoked_at) return { allowed:false, reason:'REVOKED' };
-  if (!grant.expires_at || !Number.isFinite(Date.parse(grant.expires_at)) ||
-      new Date(grant.expires_at).getTime() <= new Date(now).getTime()) {
+  if (grant.expires_at !== null && (!Number.isFinite(Date.parse(grant.expires_at)) ||
+      new Date(grant.expires_at).getTime() <= new Date(now).getTime())) {
     return { allowed:false, reason:'EXPIRED' };
   }
+  if (grant.expires_at === undefined) return { allowed:false, reason:'EXPIRED' };
   return { allowed:true, reason:'APPROVED_EXPERIMENT_ONLY' };
 }

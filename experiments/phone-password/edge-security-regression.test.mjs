@@ -21,6 +21,10 @@ test('missing phone account never falls back to Gmail access', () => {
   assert.match(edge, /account&&identity\.user\.app_metadata\?\.auth_method!=="phone_alias"/);
 });
 
+test('phone login requires server-controlled identity marker', () => {
+  assert.match(edge, /data\.user\.app_metadata\?\.auth_method!=="phone_alias"/);
+});
+
 test('deny and revoke both deactivate licenses', () => {
   assert.match(edge, /body\.action==="revoke"\|\|body\.action==="deny"/);
   assert.match(edge, /update\(\{active:false/);

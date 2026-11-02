@@ -36,7 +36,7 @@ const server=http.createServer(async(req,res)=>{
    const result=await flow.login(body.identity,body.password);
    if(!result.allowed)return json(res,403,{message:'Tài khoản chưa được duyệt hoặc chưa có giấy phép hợp lệ.'});
    // Do not return tokens or set cookies until server-side session design is reviewed.
-   return json(res,200,{message:'Đăng nhập và giấy phép hợp lệ (chỉ kiểm thử, chưa tạo phiên ứng dụng).'});
+   return json(res,200,{message:'Xác thực SĐT thử nghiệm thành công. Chưa cấp quyền sử dụng: cần đối chiếu check_email_license.'});
   }
   const {data,error}=await anon.auth.signInWithPassword({email:body.identity,password:body.password});
   if(error||!data?.user?.id||!data?.session?.access_token)return json(res,401,{message:'Email hoặc mật khẩu không đúng'});

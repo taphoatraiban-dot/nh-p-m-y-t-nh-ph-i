@@ -30,7 +30,7 @@ test('phone login matches the deterministic alias for the submitted number', () 
 });
 
 test('denied phone login signs out the issued auth session', () => {
-  assert.match(edge, /const rejectLogin=async\(reason:string\)=>\{try\{const \{error:signOutError\}=await client\.auth\.signOut\(\)/);
+  assert.match(edge, /const rejectLogin=async\(reason:string\)=>\{try\{const \{error:signOutError\}=await client\.auth\.signOut\(\{scope:"global"\}\)/);
   assert.match(edge, /if\(signOutError\)console\.error\("PHONE_SESSION_CLEANUP_FAILED"/);
   assert.match(edge, /return await rejectLogin\("PHONE_IDENTITY_INVALID"\)/);
   assert.match(edge, /return await rejectLogin\("LICENSE_NOT_APPROVED"\)/);

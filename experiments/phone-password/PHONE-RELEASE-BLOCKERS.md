@@ -26,6 +26,12 @@
 
 - Production Auth identity inventory: read-only SQL found zero phone alias Auth users and zero old/new phone metadata markers on 2026-11-02. No account backfill is currently indicated; end-to-end tests remain mandatory.
 
+## Admin approval consistency blocker
+
+- The experimental Edge Function performs license upsert/update, phone account status update, and audit insertion as separate operations. These are **not one database transaction**. A failure after the first write can leave inconsistent license/status/audit records.
+- Before production release, implement an atomic server-side database operation with verified Admin authorization and appropriate restricted EXECUTE grants; test rollback when the audit or status update fails. Do not treat sequential API calls as atomic.
+- This finding is based on code inspection, not a live failure. No production writes were performed.
+
 ## Verified progress (2026-11-02)
 - Local test suite: 103/103 passed, 0 failed, 0 skipped, including real local PostgreSQL registration/login/logout persistence and pending -> approve -> revoke with audit assertions.
 - GitHub Actions workflow `Phone registration isolated tests`: completed successfully for the latest preview update.

@@ -40,14 +40,14 @@ begin
   select role into v_role from public.profiles where id = auth.uid();
 
   -- A phone account must never gain admin privileges from a stale profile role.
-  if not exists (select 1 from auth.users u where u.id = auth.uid() and u.email like 'phone-%@accounts.invalid')
+  if not exists (select 1 from auth.users u where u.id = auth.uid() and (u.email like 'phone-%@accounts.invalid' or u.raw_app_meta_data->>'cuncun_auth_type' = 'phone_password'))
      and (v_role = 'admin' or exists (select 1 from public.admin_users au where au.user_id = auth.uid())) then
     return json_build_object('success',true,'active',true,'is_admin',true,
       'email',v_email,'expires_at',null,'message','Admin');
   end if;
 
   -- Phone identities must use phone approval and license only, never email licenses.
-  if exists (select 1 from auth.users u where u.id = auth.uid() and u.email like 'phone-%@accounts.invalid') then
+  if exists (select 1 from auth.users u where u.id = auth.uid() and (u.email like 'phone-%@accounts.invalid' or u.raw_app_meta_data->>'cuncun_auth_type' = 'phone_password')) then
     if exists (
       select 1 from public.phone_auth_accounts pa
       join public.licenses l on l.user_id = pa.user_id

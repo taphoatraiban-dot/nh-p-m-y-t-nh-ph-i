@@ -47,7 +47,7 @@ begin
   -- A phone account must never gain admin privileges from a stale profile role.
   if not coalesce(v_phone_identity, false)
      and not exists (select 1 from public.phone_auth_accounts pa where pa.user_id = auth.uid())
-     and (v_role = 'admin' or exists (select 1 from public.admin_users au where au.user_id = auth.uid())) then
+     and v_role = 'admin' then
     return json_build_object('success',true,'active',true,'is_admin',true,
       'email',v_email,'expires_at',null,'message','Admin');
   end if;

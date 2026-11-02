@@ -13083,6 +13083,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 #tgCustomerVpsSetup{padding:9px;margin:8px 0;border:1px solid #94a3b8;border-radius:9px;background:#fff}
 #tgCustomerVpsSetup summary{cursor:pointer;font-weight:700;font-size:13px}
 #tgCustomerVpsSetup button{margin:5px 0;max-width:100%;white-space:normal}
+/* iOS Safari: prevent focus zoom and keep login controls comfortably tappable. */
+#tgCustomerVpsSetup input,#tgCustomerVpsSetup select,#tgCustomerVpsSetup textarea{font-size:16px!important;line-height:1.4!important;min-height:44px!important;box-sizing:border-box!important}
+#tgCustomerVpsSetup input:focus{outline:2px solid #2563eb;outline-offset:1px}
 </style>
 <script id="tg-customer-vps-setup-20261022-js">
 (function(){
@@ -13131,6 +13134,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Đóng";cancel.className="soft";
   const feedback=document.createElement("div");feedback.setAttribute("role","status");feedback.style.cssText="font-size:12px;margin-top:7px";
   loginArea.append(loginInfo,phone,code,password,submit,cancel,feedback);availability.after(loginArea);
+  // Keep the nested details panels open while iOS focuses an input and opens its keyboard.
+  loginArea.addEventListener("focusin",()=>{box.open=true;const parent=box.closest("details.cc-tg-settings");if(parent)parent.open=true;});
+  box.addEventListener("toggle",()=>{if(!box.open&&loginArea.contains(document.activeElement)){box.open=true;}});
   let step="start",busy=false;
   function resetLogin(){step="start";phone.hidden=false;code.hidden=true;password.hidden=true;code.value="";password.value="";submit.textContent="Gửi mã Telegram";feedback.textContent="";}
   cancel.onclick=()=>{loginArea.hidden=true;resetLogin();};

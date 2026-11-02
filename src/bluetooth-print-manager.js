@@ -46,10 +46,10 @@
     document.getElementById('bluetoothPrintManager')?.remove();
     const backdrop = document.createElement('div');
     backdrop.id = 'bluetoothPrintManager';
-    backdrop.style.cssText = 'position:fixed;inset:0;z-index:310000;background:rgba(15,23,42,.78);padding:10px;overflow:auto';
-    backdrop.innerHTML = `<section style="width:min(780px,100%);margin:auto;background:#f8fafc;border-radius:15px;overflow:hidden">
+    backdrop.style.cssText = 'position:fixed;inset:0;z-index:310000;background:rgba(15,23,42,.64);padding:12px;overflow:auto;display:flex;align-items:flex-start;justify-content:center';
+    backdrop.innerHTML = `<section style="width:min(780px,100%);margin:0 auto;background:#f8fafc;border-radius:22px;overflow:hidden;box-shadow:0 18px 55px #0003;max-height:calc(100dvh - 35px);overflow-y:auto">
       <header style="position:sticky;top:0;z-index:1;background:#172554;color:#fff;padding:12px;display:flex;align-items:center;gap:9px">
-        <strong style="flex:1">🖨️ QUẢN LÝ IN BLUETOOTH</strong><button type="button" data-action="close" style="background:#fff;color:#111827;border-radius:8px;padding:8px">✕</button>
+        <strong style="flex:1">🖨️ QUẢN LÝ PHƠI IN</strong><button type="button" data-action="close" style="background:#fff;color:#111827;border-radius:8px;padding:8px">✕</button>
       </header>
       <div style="padding:10px">
         <p style="font-size:12px;color:#475569;margin:4px 0 12px">Lịch sử chỉ lưu trên trình duyệt này. Sao chép tin để tự dán sang Telegram; phần mềm không tự gửi.</p>
@@ -61,7 +61,7 @@
     const selected = new Set();
     const expanded = new Set();
     let activeRegion = 'MN';
-    let actionsOpen = false;
+    let actionsOpen = false;\n    let searchText = '';\n    backdrop.querySelector('#bluetoothPrintSearch').addEventListener('input',e=>{searchText=e.target.value.toLocaleLowerCase('vi').trim();render();});
     const dayClosed = new Set();
     function notify(message) {
       const old=backdrop.querySelector('#tshPrintNotice'); if(old)old.remove();
@@ -92,14 +92,14 @@
       if (all.length !== entries.length) write(entries);
       const list = backdrop.querySelector('#bluetoothPrintList');
       const regions = ['MN','MT','MB'];
-      const rows = entries.filter(x=>region(x)===activeRegion).sort((x,y)=>stamp(y)-stamp(x));
+      const rows = entries.filter(x=>region(x)===activeRegion && (!searchText || [x.customer,x.raw,x.text,x.date,dayKey(x)].some(v=>String(v||'').toLocaleLowerCase('vi').includes(searchText)))).sort((x,y)=>stamp(y)-stamp(x));
       const days = [...new Set(rows.map(dayKey))].sort().reverse();
       const btn = 'border:0;border-radius:8px;padding:10px 5px;font-size:13px;font-weight:700;min-height:40px;';
       list.innerHTML =
         '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px">'+regions.map(reg=>
           '<button type="button" data-action="region" data-region="'+reg+'" style="'+btn+'background:'+(reg===activeRegion?'#1d4ed8':'#e2e8f0')+';color:'+(reg===activeRegion?'#fff':'#334155')+'">'+reg+' ('+entries.filter(x=>region(x)===reg).length+')</button>'
         ).join('')+'</div>'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:#475569">'+selected.size+' tin đã chọn · Lưu 48 giờ</span><button type="button" data-action="toggle-actions" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">'+(actionsOpen?'▴ Thu gọn':'⚙ Thao tác ▾')+'</button></div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:#475569">'+selected.size+' tin đã chọn · Lưu 48 giờ</span><button type="button" data-action="toggle-actions" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">'+(actionsOpen?'✕':'•••')+'</button></div>'+
         (actionsOpen?'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:10px">'+
           '<button data-action="select-region" style="'+btn+'background:#dbeafe">☑ Chọn tất cả</button>'+
           '<button data-action="unselect-region" style="'+btn+'background:#e2e8f0">Bỏ chọn</button>'+
@@ -121,7 +121,7 @@
               '<button type="button" data-action="copy" style="'+btn+'background:#dbeafe;color:#1e40af">📋 Copy</button>'+
               '<button type="button" data-action="print" style="'+btn+'background:#dcfce7;color:#166534">🖨 In lại</button>'+
               '<button type="button" data-action="delete" style="'+btn+'background:#fee2e2;color:#991b1b">🗑 Xóa</button></div></article>').join(''))+'</div>';
-        }).join(''):'<p style="padding:24px;text-align:center;color:#64748b">Chưa có phơi '+activeRegion+'.</p>');
+        }).join(''):'<p style="padding:18px 12px;text-align:center;color:#64748b">'+(searchText?'Không tìm thấy phơi phù hợp.':'Chưa có phơi '+activeRegion+'.')+'</p>');
     }
     backdrop.addEventListener('click', async event => {
       const button = event.target.closest('[data-action]');

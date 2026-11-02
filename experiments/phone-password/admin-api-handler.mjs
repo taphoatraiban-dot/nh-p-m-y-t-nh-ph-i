@@ -13,8 +13,10 @@ export function createAdminApiHandler({store, verifyAdmin, verifyCsrf}) {
   if (req.method==='POST' && req.url==='/admin/phone/grants') {
    if (!await verifyCsrf(req,admin)) return {status:403,body:{error:'CSRF_REJECTED'}};
    const body=req.body;
+   if (JSON.stringify(body??{}).length>4096) return {status:413,body:{error:'BODY_TOO_LARGE'}};
    if (!body || typeof body!=='object' || Array.isArray(body) ||
        typeof body.accountId!=='string' ||
+       !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.accountId) ||
        !['approve','deny','revoke'].includes(body.action) ||
        (body.action==='approve' && !['1m','3m','12m','permanent'].includes(body.term)))
     return {status:400,body:{error:'INVALID_INPUT'}};

@@ -36,11 +36,13 @@ const server=http.createServer(async(req,res)=>{
    const result=await flow.login(body.identity,body.password);
    if(!result.allowed)return json(res,403,{message:'Tài khoản chưa được duyệt hoặc chưa có giấy phép hợp lệ.'});
    // Do not return tokens or set cookies until server-side session design is reviewed.
-   return json(res,200,{message:'Đăng nhập và giấy phép hợp lệ (kiểm thử).',userId:result.userId});
+   return json(res,200,{message:'Đăng nhập và giấy phép hợp lệ (chỉ kiểm thử, chưa tạo phiên ứng dụng).'});
   }
   const {data,error}=await anon.auth.signInWithPassword({email:body.identity,password:body.password});
-  if(error||!data?.user?.id)return json(res,401,{message:'Email hoặc mật khẩu không đúng'});
-  return json(res,200,{message:'Xác thực Email thành công (kiểm thử).',userId:data.user.id});
+  if(error||!data?.user?.id||!data?.session?.access_token)return json(res,401,{message:'Email hoặc mật khẩu không đúng'});
+  // Email login is only a credential smoke test. It MUST NOT grant app access.
+  // Existing email login and license logic remain in the production app.
+  return json(res,200,{message:'Xác thực Email thành công (chỉ kiểm thử, chưa cấp quyền truy cập).'});
  }catch(e){return json(res,400,{message:'Không thể xử lý yêu cầu. Kiểm tra dữ liệu và cấu hình Local.'});}
 });
 server.listen(port,'127.0.0.1',()=>process.stdout.write('Local staging: http://127.0.0.1:'+port+'\n'));

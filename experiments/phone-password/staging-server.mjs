@@ -37,7 +37,8 @@ const server=http.createServer(async(req,res)=>{
   const ipLimit=limit('ip:'+clientKey(req));
   if(!ipLimit.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
   if(mode==='phone'){
-   const normalized=normalizeVietnamesePhone(body.identity);
+   let normalized;
+   try{normalized=normalizeVietnamesePhone(body.identity);}catch{return json(res,400,{message:'Số điện thoại không hợp lệ'});}
    const phoneLimit=limit('phone:'+normalized);
    if(!phoneLimit.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
   }

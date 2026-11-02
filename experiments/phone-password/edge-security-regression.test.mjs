@@ -77,3 +77,10 @@ test('expired license renewal does not extend from stale expiry', () => {
   assert.match(sql,/v_old_active and v_old_expiry>now\(\)/);
   assert.match(sql,/least\(extract\(day from v_base\)/);
 });
+
+test('trusted Auth app metadata tags phone accounts across email changes', () => {
+ assert.match(edge,/app_metadata:\{cuncun_auth_type:"phone_password"\}/);
+ assert.match(edge,/data\.user\.app_metadata\?\.cuncun_auth_type!=="phone_password"/);
+ assert.match(migration,/raw_app_meta_data->>'cuncun_auth_type'/);
+ assert.match(rls,/raw_app_meta_data->>'cuncun_auth_type'/);
+});

@@ -33,7 +33,7 @@ const server=http.createServer(async(req,res)=>{
   if(mode==='email'&&action==='register')return json(res,404,{message:'Chỉ thử nghiệm đăng ký SĐT'});
   if(!['127.0.0.1','::1','::ffff:127.0.0.1'].includes(clientKey(req)))return json(res,403,{message:'Chỉ cho phép truy cập trên máy thử nghiệm'});
   let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>4096)return json(res,413,{message:'Yêu cầu quá lớn'});}
-  const body=JSON.parse(raw);if(typeof body.identity!=='string'||typeof body.password!=='string')return json(res,400,{message:'Dữ liệu không hợp lệ'});
+  const body=JSON.parse(raw);if(!body||typeof body!=='object'||Array.isArray(body)||typeof body.identity!=='string'||typeof body.password!=='string')return json(res,400,{message:'Dữ liệu không hợp lệ'});
   const ipLimit=limit('ip:'+clientKey(req));
   if(!ipLimit.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
   if(mode==='phone'){

@@ -29,6 +29,13 @@ test('phone login matches the deterministic alias for the submitted number', () 
   assert.match(edge, /data\.user\.email!==email/);
 });
 
+test('denied phone login signs out the issued auth session', () => {
+  assert.match(edge, /const rejectLogin=async\(reason:string\)=>\{await client\.auth\.signOut\(\)/);
+  assert.match(edge, /return await rejectLogin\("PHONE_IDENTITY_INVALID"\)/);
+  assert.match(edge, /return await rejectLogin\("LICENSE_NOT_APPROVED"\)/);
+  assert.match(edge, /return await rejectLogin\("LICENSE_INACTIVE"\)/);
+});
+
 test('admin transitions use one atomic service-only RPC', () => {
   assert.match(edge, /adminDb\.rpc\("phone_auth_admin_transition"/);
   assert.match(edge, /p_admin_id:adminId,p_user_id:userId,p_action:body\.action/);

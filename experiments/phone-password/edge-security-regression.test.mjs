@@ -57,6 +57,13 @@ test('atomic transition locks phone account and records audit in same SQL functi
   assert.match(transition, /from public\.admin_users where user_id = p_admin_id/);
 });
 
+test('atomic admin RPC has a standalone follow-up migration', () => {
+  const migration = readFileSync(new URL('./supabase/migrations/202611020002_atomic_admin_transition.sql', import.meta.url), 'utf8');
+  assert.match(migration, /create or replace function public\.phone_auth_admin_transition/);
+  assert.match(migration, /revoke all on function public\.phone_auth_admin_transition/);
+  assert.match(migration, /grant execute on function public\.phone_auth_admin_transition.*to service_role/);
+});
+
 test('license expiry parsing fails closed and admin transitions roll back atomically', () => {
   assert.match(edge, /!Number\.isFinite\(Date\.parse\(license\.expires_at\)\)/);
   const migration = readFileSync(new URL('./supabase/migrations/202611020001_phone_auth_accounts.sql', import.meta.url), 'utf8');

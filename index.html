@@ -1054,6 +1054,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
 <button class="soft" id="showRegisterBtn">ĐĂNG KÝ LẦN ĐẦU</button>
 <button class="soft" id="forgotPasswordBtn" type="button">🔑 QUÊN MẬT KHẨU</button>
 </div>
+<div style="margin:10px 0;padding:12px;border:1px solid #d4d4d4;border-radius:10px"><strong>ĐĂNG KÝ BẰNG SỐ ĐIỆN THOẠI</strong><p style="font-size:13px;margin:6px 0">SĐT + mật khẩu, không cần SMS. Tài khoản mới chờ Admin duyệt.</p><button type="button" id="phoneAuthPreviewBtn" class="soft">XEM ĐĂNG KÝ SĐT</button><p style="font-size:12px;margin:6px 0">Đang hoàn thiện; đăng nhập Gmail hiện tại vẫn hoạt động bình thường.</p></div>
 <div id="loginStatus" class="status">Đăng nhập bằng Email + mật khẩu.</div>
 <div style="margin-top:10px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;color:#1e293b">
 <strong>🔗 KIỂM TRA TÀI KHOẢN CUN CUN SHOP</strong>
@@ -1475,6 +1476,7 @@ body.app-unlocked #betsCard #cuncunCompactBottom button{font-size:11px!important
 </div>
 
 <script>
+document.getElementById("phoneAuthPreviewBtn")?.addEventListener("click",()=>{window.location.href="/experiments/phone-password/phone-auth.html";});
 const SUPABASE_URL="https://zigpqddlhvjbjrwhfhaa.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_U8VKihgNe0M7ff5KHB3Mvg_04ifZ7ni";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});

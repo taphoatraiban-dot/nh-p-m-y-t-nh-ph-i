@@ -28,7 +28,7 @@ test('staging page explicitly prohibits production credentials', () => {
 });
 
 test('resuming staging rechecks phone approval and closes invalid sessions', () => {
-  assert.match(html, /async function recheckPhoneOnResume\(\)/);
+  assert.match(html, /async function recheckPhoneOnResume\(force=false\)/);
   assert.match(html, /document\.addEventListener\('visibilitychange'/);
   assert.match(html, /window\.addEventListener\('focus'/);
   assert.match(html, /const access=await edge\(\{action:'check_access'\}\)/);

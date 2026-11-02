@@ -54,8 +54,9 @@ export function mountCommercialAdmin({root,client}) {
       let message='';
       try{await confirmOrderPayment(client,order.id);message='Đã ghi nhận thanh toán. Bản quyền chưa được gia hạn.';}
       catch(e){message='Lỗi: '+e.message;}
-      finally{setBusy(false);button.disabled=false;cancel.disabled=false;}
+      finally{setBusy(false);}
       const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
+      button.disabled=false;cancel.disabled=false;
      });
      item.append(button);
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Hủy đơn chưa thanh toán';
@@ -65,8 +66,9 @@ export function mountCommercialAdmin({root,client}) {
       let message='';
       try{await cancelPendingOrder(client,order.id);message='Đã hủy đơn. Bản quyền không thay đổi.';}
       catch(e){message='Lỗi: '+e.message;}
-      finally{setBusy(false);cancel.disabled=false;button.disabled=false;}
+      finally{setBusy(false);}
       const refreshed=await load(true);status.textContent=refreshed?message:message+' Danh sách chưa tải lại được.';
+      cancel.disabled=false;button.disabled=false;
      });
      item.append(cancel);
     }

@@ -40,10 +40,10 @@ const server=http.createServer(async(req,res)=>{
    if(!phoneLimit.allowed)return json(res,429,{message:'Thử lại sau 15 phút'});
   }
   if(mode==='phone'){
-   if(action==='register'){await phoneAuth.register(body.identity,body.password);return json(res,200,{message:'Đã gửi yêu cầu đăng ký. Chờ quản trị viên duyệt.'});}
+   if(action==='register'){await phoneAuth.register(body.identity,body.password);return json(res,200,{message:'Đã tạo tài khoản thử nghiệm trên Supabase Local. Chưa có quyền sử dụng; cần được cấp bản quyền theo quy trình quản trị hiện có.'});}
    const result=await phoneAuth.login(body.identity,body.password);
    const access=await licenseGate({accessToken:result.session.access_token,expectedUserId:result.userId});
-   if(!access.allowed)return json(res,403,{message:'Tài khoản chưa được duyệt hoặc chưa có giấy phép hợp lệ.'});
+   if(!access.allowed)return json(res,403,{message:'Tài khoản chưa được cấp bản quyền hợp lệ trên hệ thống thử nghiệm.'});
    // Do not return tokens or set cookies until server-side session design is reviewed.
    return json(res,200,{message:'Xác thực SĐT và bản quyền thành công (chỉ thử nghiệm, chưa tạo phiên ứng dụng).'});
   }

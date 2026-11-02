@@ -27,7 +27,7 @@ Never deploy experimental auth directly to cuncun.icu. No live credentials or pr
 - Next no-cost gate: apply the experimental migration only to the user's isolated local Supabase database, deploy the Edge Function only to local Supabase, and exercise register/login/admin approval/revoke plus Gmail regression. Confirm the local database is the disposable `cuncun-phone-local` instance before applying SQL.
 
 ## Local runtime evidence — 2026-11-02 (user-confirmed)
-- Supabase Local restarted successfully after running `202611020000_local_prerequisites.sql` before `202611020001_phone_auth_accounts.sql`. This prerequisite migration currently exists on the user's Mac only; it is **not yet committed** to this branch. Never run the production-only migration assumptions against a fresh Local database without the prerequisites.
+- Supabase Local restarted successfully after running `202611020000_local_prerequisites.sql` before `202611020001_phone_auth_accounts.sql`. The local prerequisite migration is now committed as `experiments/phone-password/supabase/migrations/202611020000_local_prerequisites.sql` (commit `3d4cf555`). It is **local-only** and must never be included in a production migration deployment. Never run the production-only migration assumptions against a fresh Local database without the prerequisites.
 - A new Local database was observed with zero Auth users, phone accounts, licenses, and admin memberships. The previous Local users were not recovered; no production users were affected.
 - User verified a 340 KB local pg_dump file with `pg_restore --list`. This confirms readable archive metadata, **not** a full restore rehearsal.
 - Edge Function served at localhost; invalid action with an allowed Origin returned `INVALID_ACTION` (400). A missing Origin returned `ORIGIN_NOT_ALLOWED` (403).
@@ -39,5 +39,12 @@ Never deploy experimental auth directly to cuncun.icu. No live credentials or pr
 1. Carry the Local-only prerequisite migration into the isolated test setup without inadvertently shipping it to production; ensure migrations can bootstrap a clean Local database and remain safe for an existing production schema.
 2. Review phone account identity/ownership and recovery: phone numbers are unverified without SMS; prohibit phone-based recovery or reassignment absent separate verification.
 3. Validate end-to-end approval and access with existing admin membership, RLS and legacy Gmail flows in a safe environment. Document negative cases, audit and rollback.
-4. Extract a minimal reviewed change set from this branch (180 commits ahead and 4 behind main as observed), instead of merging unrelated changes.
+4. Extract a minimal reviewed change set from this branch (192 commits ahead and 4 behind main as observed on 2026-11-02), instead of merging unrelated changes.
 5. Before production deployment, back up production, obtain explicit release approval, deploy with rollback plan and verify no regression.
+
+## Additional review findings (2026-11-02)
+- `phone-password-auth/index.ts` returns Supabase Auth sessions for approved phone aliases, but production app RLS and all existing client entry points still require integration verification. A successful Edge Function login response alone is not proof that the production app is authorized correctly.
+- `PHONE_ALIAS_SECRET` must be set securely on the target environment before deployment; never commit the secret to GitHub.
+- The experimental migration modifies the existing `check_email_license()` function. Obtain its live definition and compare behavior for both existing admin memberships and legacy Gmail licenses before any release.
+- Password-based registration without SMS does **not** verify ownership of the submitted phone number. Do not offer phone-number-based password reset, number reassignment, or verified-phone claims without a separate identity check.
+- Run local tests after the newly committed bootstrap migration and record results; this document does not claim those tests have been rerun.

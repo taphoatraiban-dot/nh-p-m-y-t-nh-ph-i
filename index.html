@@ -7746,7 +7746,7 @@ function mainDrawsForCross2(row){
        const days=document.createElement('input');days.type='number';days.min='1';days.max='3650';days.placeholder='Nhập số ngày';days.style.cssText='display:none;width:100%;box-sizing:border-box;padding:12px;margin-bottom:10px;font-size:16px';
        sel.onchange=()=>days.style.display=sel.value==='days'?'block':'none';
        const amount=document.createElement('input');amount.type='number';amount.min='0';amount.max='1000000000';amount.placeholder='Tiền thu (VNĐ, nhập 0 nếu miễn phí)';amount.style.cssText='box-sizing:border-box;width:100%;padding:12px;margin-bottom:10px;font-size:16px';
-       const note=document.createElement('textarea');note.placeholder='Ghi chú gia hạn (không bắt buộc)';note.maxLength=500;note.style.cssText='box-sizing:border-box;width:100%;padding:12px;margin-bottom:10px;font-size:15px';
+       const note=document.createElement('textarea');note.placeholder='Ghi chú gia hạn (không bắt buộc)';note.maxLength=500;note.rows=2;note.style.cssText='box-sizing:border-box;width:100%;height:76px;min-height:76px;max-height:110px;resize:vertical;padding:10px;margin-bottom:10px;font-size:15px;line-height:1.4';
        const history=document.createElement('div');history.style.cssText='font-size:13px;border-top:1px solid #e2e8f0;margin-top:14px;padding-top:10px;max-height:160px;overflow:auto';
        history.textContent='Đang tải lịch sử gia hạn...';
        sb.rpc('admin_customer_license_history',{p_user_id:uid}).then(({data,error})=>{

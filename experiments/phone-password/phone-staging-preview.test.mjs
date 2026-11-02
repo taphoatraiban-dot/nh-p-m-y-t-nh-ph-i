@@ -34,3 +34,9 @@ test('resuming staging rechecks phone approval and closes invalid sessions', () 
   assert.match(html, /const access=await edge\(\{action:'check_access'\}\)/);
   assert.match(html, /await client\.auth\.signOut\(\)/);
 });
+
+test('restored phone session is checked immediately after staging connection', () => {
+  assert.match(html, /Đang kiểm tra phiên đã lưu/);
+  assert.match(html, /await recheckPhoneOnResume\(\)/);
+  assert.match(html, /Phiên SĐT đã được kiểm tra nếu có/);
+});

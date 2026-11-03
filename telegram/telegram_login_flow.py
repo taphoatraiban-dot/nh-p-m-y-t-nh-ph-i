@@ -141,8 +141,12 @@ def create_router(require_licensed_user):
             except SessionPasswordNeededError:
                 entry["state"] = "password"
                 return {"success": True, "step": "password"}
-            except (PhoneCodeInvalidError, PhoneCodeExpiredError):
-                raise HTTPException(400, "Invalid or expired code")
+            except PhoneCodeExpiredError:
+                pending.pop(uid, None)
+                await close_entry(entry)
+                raise HTTPException(409, "Telegram code expired; request a new code")
+            except PhoneCodeInvalidError:
+                raise HTTPException(400, "Invalid Telegram code")
             except FloodWaitError:
                 raise HTTPException(429, "Telegram rate limited the request")
             await finish(uid, entry)

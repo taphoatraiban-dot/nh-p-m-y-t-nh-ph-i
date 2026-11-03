@@ -93,3 +93,19 @@ async def capabilities(authorization: str = Header(default="")):
                 "otp_flow_ready": False, "telegram_login_enabled": False,
             }
         raise
+
+@app.get("/telegram-login/status")
+async def telegram_login_status(authorization: str = Header(default="")):
+    """Report only the authenticated customer's own stored session state.
+
+    A saved session is not proof that Telegram is connected or its worker is running.
+    Never return session contents, Telegram phone, or another customer's identity.
+    """
+    uid = await require_licensed_user(authorization)
+    if not LOGIN_ENABLED:
+        return {"success": True, "enabled": False, "session_saved": False}
+    from pathlib import Path
+    directory = Path(os.environ.get("TELEGRAM_SESSION_DIR", "/var/lib/ongthantai-telegram-sessions"))
+    # UUID_RE is checked by require_licensed_user; do not accept a client-supplied ID.
+    saved = (directory / (uid + ".session.enc")).is_file()
+    return {"success": True, "enabled": True, "session_saved": saved}

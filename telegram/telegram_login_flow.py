@@ -248,8 +248,12 @@ def create_router(require_licensed_user):
     async def get_group_selection(uid: str = Depends(user_id)):
         """Read only this customer's consented group IDs; no worker side effects."""
         target = directory / (uid + ".groups.json")
+        if target.is_symlink():
+            raise HTTPException(503, "Saved group selection is unsafe")
         if not target.is_file():
             return {"success": True, "chat_ids": [], "configured": False}
+        if target.stat().st_mode & 0o077:
+            raise HTTPException(503, "Saved group selection permissions are unsafe")
         try:
             data = json.loads(target.read_text(encoding="utf-8"))
             if data.get("user_id") != uid:

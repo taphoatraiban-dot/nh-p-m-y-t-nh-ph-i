@@ -13349,7 +13349,12 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(obj.success===true&&obj.licensed===true&&obj.self_service_enabled===true&&obj.otp_flow_ready===true){
       start.disabled=false;start.textContent="Tự kết nối Telegram";
       availability.textContent="Dịch vụ xác thực đã sẵn sàng.";
-      groupRequest("status").then(result=>{if(result.session_saved){loginArea.hidden=true;loadCustomerGroups();}}).catch(()=>{});
+      groupArea.hidden=false;
+      groupMessage.textContent="Bấm Tải lại danh sách nhóm để kiểm tra phiên Telegram đã lưu.";
+      groupRequest("status").then(result=>{
+        if(result.session_saved){loginArea.hidden=true;loadCustomerGroups();}
+        else groupMessage.textContent="VPS chưa xác nhận phiên Telegram đã lưu. Bấm Tải lại danh sách nhóm để kiểm tra; không cần gửi lại OTP.";
+      }).catch(error=>{groupMessage.textContent="Không kiểm tra được phiên Telegram: "+(error.message||"Lỗi không xác định");});
     }
    }catch(_){availability.textContent="Chưa kết nối được dịch vụ xác thực VPS. Vui lòng kiểm tra lại sau.";}
   }

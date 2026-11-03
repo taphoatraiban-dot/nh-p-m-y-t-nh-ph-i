@@ -13349,6 +13349,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     if(obj.success===true&&obj.licensed===true&&obj.self_service_enabled===true&&obj.otp_flow_ready===true){
       start.disabled=false;start.textContent="Tự kết nối Telegram";
       availability.textContent="Dịch vụ xác thực đã sẵn sàng.";
+      groupRequest("status").then(result=>{if(result.session_saved){loginArea.hidden=true;loadCustomerGroups();}}).catch(()=>{});
     }
    }catch(_){availability.textContent="Chưa kết nối được dịch vụ xác thực VPS. Vui lòng kiểm tra lại sau.";}
   }
@@ -13362,6 +13363,54 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Đóng";cancel.className="soft";
   const feedback=document.createElement("div");feedback.setAttribute("role","status");feedback.style.cssText="font-size:12px;margin-top:7px";
   loginArea.append(loginInfo,phone,code,password,submit,cancel,feedback);availability.after(loginArea);
+  const groupArea=document.createElement("div");
+  groupArea.hidden=true;groupArea.style.cssText="padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;background:#fff";
+  const groupMessage=document.createElement("p");groupMessage.setAttribute("role","status");
+  const groupList=document.createElement("div");
+  const reloadGroups=document.createElement("button");reloadGroups.type="button";reloadGroups.className="soft";reloadGroups.textContent="Tải lại danh sách nhóm";
+  const selectAll=document.createElement("button");selectAll.type="button";selectAll.className="soft";selectAll.textContent="Chọn tất cả";
+  const clearAll=document.createElement("button");clearAll.type="button";clearAll.className="soft";clearAll.textContent="Bỏ chọn";
+  const saveGroups=document.createElement("button");saveGroups.type="button";saveGroups.className="soft";saveGroups.textContent="Lưu nhóm đã chọn";
+  groupArea.append(groupMessage,groupList,reloadGroups,selectAll,clearAll,saveGroups);loginArea.after(groupArea);
+  let availableGroups=[];
+  async function groupRequest(action,payload){
+    const session=(await sb.auth.getSession()).data.session;
+    if(!session)throw Error("Vui lòng đăng nhập CUNCUN");
+    const res=await fetch(SUPABASE_URL+"/functions/v1/telegram-self-service?action="+action,{
+      method:payload===undefined?"GET":"POST",
+      headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,...(payload===undefined?{}:{"Content-Type":"application/json"})},
+      ...(payload===undefined?{}:{body:JSON.stringify(payload)}),cache:"no-store"});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||data.success!==true)throw Error(data.error||data.detail||"Lỗi dịch vụ nhóm Telegram ("+res.status+")");
+    return data;
+  }
+  async function loadCustomerGroups(){
+    groupArea.hidden=false;groupMessage.textContent="Đang lấy nhóm Telegram...";
+    try{
+      const [result,selection]=await Promise.all([groupRequest("groups"),groupRequest("selection")]);
+      availableGroups=Array.isArray(result.groups)?result.groups:[];
+      const selected=new Set((selection.chat_ids||[]).map(String));
+      groupList.replaceChildren();
+      for(const group of availableGroups){
+        const label=document.createElement("label");label.style.cssText="display:block;padding:8px 0";
+        const input=document.createElement("input");input.type="checkbox";input.value=String(group.chat_id);input.checked=selected.has(input.value);
+        label.append(input,document.createTextNode(" "+String(group.name||group.chat_id)));groupList.append(label);
+      }
+      groupMessage.textContent=availableGroups.length?"Đã tải "+availableGroups.length+" nhóm. Chọn nhóm muốn đồng bộ.":"Telegram chưa trả về nhóm nào cho tài khoản này.";
+    }catch(error){groupMessage.textContent="Không tải được nhóm: "+error.message;}
+  }
+  reloadGroups.onclick=loadCustomerGroups;
+  selectAll.onclick=()=>groupList.querySelectorAll('input[type="checkbox"]').forEach(el=>el.checked=true);
+  clearAll.onclick=()=>groupList.querySelectorAll('input[type="checkbox"]').forEach(el=>el.checked=false);
+  saveGroups.onclick=async()=>{
+    saveGroups.disabled=true;
+    try{
+      const chat_ids=[...groupList.querySelectorAll('input[type="checkbox"]:checked')].map(el=>el.value);
+      const result=await groupRequest("select",{chat_ids});
+      groupMessage.textContent="Đã lưu "+result.selected_count+" nhóm. Chờ VPS kích hoạt đồng bộ.";
+    }catch(error){groupMessage.textContent="Không lưu được nhóm: "+error.message;}
+    finally{saveGroups.disabled=false;}
+  };
   // Keep the nested details panels open while iOS focuses an input and opens its keyboard.
   loginArea.addEventListener("focusin",()=>{box.open=true;const parent=box.closest("details.cc-tg-settings");if(parent)parent.open=true;});
   box.addEventListener("toggle",()=>{if(!box.open&&loginArea.contains(document.activeElement)){box.open=true;}});
@@ -13400,7 +13449,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       code.value="";password.value="";
       if(result.step==="code"){step="confirm";phone.hidden=true;code.hidden=false;submit.textContent="Xác nhận mã";feedback.textContent="Kiểm tra Telegram để lấy mã xác nhận.";}
       else if(result.step==="password"){step="password";code.hidden=true;password.hidden=false;submit.textContent="Xác nhận mật khẩu";feedback.textContent="Tài khoản yêu cầu mật khẩu 2 bước.";}
-      else if(result.step==="connected"){loginArea.hidden=true;resetLogin();status.textContent="Telegram đã xác thực. Đang kiểm tra dữ liệu nhóm...";await check();}
+      else if(result.step==="connected"){loginArea.hidden=true;resetLogin();status.textContent="Telegram đã xác thực. Đang lấy danh sách nhóm...";await loadCustomerGroups();}
       else throw Error("Phản hồi không hợp lệ từ dịch vụ.");
     }catch(e){feedback.textContent=e.message||"Không thể kết nối Telegram.";}
     finally{busy=false;submit.disabled=false;}

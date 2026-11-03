@@ -4817,8 +4817,10 @@ function renderCalc(){
    // MB/HN theo mẫu chuẩn: Tiền xác × Giá nhận, không nhân Hồi.
    // THU/BÙ chuẩn: trừ tiền trúng trước, sau đó mới áp dụng Hồi khi thu.
    const raw=(g*Number(c.receive||0)-w)*(Number(c.repay)||1);
-   thuBy[d.row.region]+=Math.ceil(raw);
+   thuBy[d.row.region]+=raw;
  }
+ // Round once per region after aggregating all exact row amounts.
+ for(const region of ['N','T','B']) thuBy[region]=Math.ceil(thuBy[region]);
  for(const [r,n] of [["N","🄽 MIỀN NAM"],["T","🅃 MIỀN TRUNG"],["B","🅱 MIỀN BẮC"]]){
    if(!grossBy[r]&&!winBy[r]) continue;
    const thu=thuBy[r]; total+=thu;

@@ -108,4 +108,5 @@ async def telegram_login_status(authorization: str = Header(default="")):
     directory = Path(os.environ.get("TELEGRAM_SESSION_DIR", "/var/lib/ongthantai-telegram-sessions"))
     # UUID_RE is checked by require_licensed_user; do not accept a client-supplied ID.
     saved = (directory / (uid + ".session.enc")).is_file()
-    return {"success": True, "enabled": True, "session_saved": saved}
+    pending_disconnect = (directory / (uid + ".revoked")).exists()
+    return {"success": True, "enabled": True, "session_saved": saved, "disconnect_pending": pending_disconnect}

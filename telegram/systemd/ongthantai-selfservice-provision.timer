@@ -1,0 +1,11 @@
+[Unit]
+Description=Check new Telegram self-service customers every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=1min
+Persistent=false
+Unit=ongthantai-selfservice-provision.service
+
+[Install]
+WantedBy=timers.target

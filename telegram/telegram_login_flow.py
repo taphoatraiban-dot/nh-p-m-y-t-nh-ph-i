@@ -78,15 +78,17 @@ def create_router(require_licensed_user):
         if target.exists():
             raise HTTPException(409, "A session is already saved for this account")
         temporary = target.with_name(target.name + "." + secrets.token_hex(8) + ".tmp")
-        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         try:
-            with os.fdopen(fd, "wb") as output:
-                output.write(encrypted)
-            os.link(temporary, target)
+            fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            try:
+                with os.fdopen(fd, "wb") as output:
+                    output.write(encrypted)
+                os.link(temporary, target)
+            finally:
+                temporary.unlink(missing_ok=True)
         finally:
-            temporary.unlink(missing_ok=True)
-        pending.pop(uid, None)
-        await close_entry(entry)
+            pending.pop(uid, None)
+            await close_entry(entry)
 
     async def get_pending(uid, expected):
         entry = pending.get(uid)

@@ -57,8 +57,9 @@ def run(uid):
     for table in ("email_licenses", "licenses"):
         for row in query(table, "active,expires_at", uid, secret):
             try:
-                expiry = datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00"))
-                active |= row.get("active") is True and expiry > now
+                expiry_raw = row.get("expires_at")
+                expiry = datetime.fromisoformat(expiry_raw.replace("Z", "+00:00")) if expiry_raw else None
+                active |= row.get("active") is True and (expiry is None or expiry > now)
             except (KeyError, TypeError, AttributeError, ValueError):
                 continue
     if not active:

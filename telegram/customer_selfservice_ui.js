@@ -41,6 +41,10 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
   form.append(heading, status, phone, buttons[0], code, buttons[1], password, buttons[2], buttons[3], groupsEl, buttons[4]);
   root.replaceChildren(form);
   form.hidden = true;
+  code.hidden = true;
+  password.hidden = true;
+  buttons[1].hidden = true;
+  buttons[2].hidden = true;
   Promise.all([api("/capabilities"), api("/telegram-login/status")]).then(([capabilities, connection]) => {
     if (!capabilities.licensed) {
       status.textContent = "Tài khoản chưa có quyền sử dụng CUNCUN.";
@@ -61,6 +65,10 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
       buttons[0].disabled = true;
       buttons[1].disabled = true;
       buttons[2].disabled = true;
+      code.hidden = true;
+      password.hidden = true;
+      buttons[1].hidden = true;
+      buttons[2].hidden = true;
       status.textContent = "Đã lưu phiên Telegram. Bấm Lấy danh sách nhóm để tiếp tục.";
     } else {
       buttons[3].disabled = true;
@@ -88,9 +96,19 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
   }
   async function request(path, body) {
     const result = await api(path, body);
-    if (result.step === "password") status.textContent = "Nhập mật khẩu xác minh 2 bước Telegram";
-    else if (result.step === "connected") { state.connected = true; buttons[0].disabled = true; buttons[1].disabled = true; buttons[2].disabled = true; buttons[3].disabled = false; status.textContent = "Đã lưu phiên Telegram. Chọn nhóm để đồng bộ."; }
-    else status.textContent = "Đã gửi yêu cầu. Kiểm tra Telegram để lấy mã.";
+    if (result.step === "password") {
+      code.hidden = true;
+      buttons[1].hidden = true;
+      password.hidden = false;
+      buttons[2].hidden = false;
+      status.textContent = "Nhập mật khẩu xác minh 2 bước Telegram";
+    }
+    else if (result.step === "connected") { code.hidden = true; password.hidden = true; buttons[1].hidden = true; buttons[2].hidden = true; state.connected = true; buttons[0].disabled = true; buttons[1].disabled = true; buttons[2].disabled = true; buttons[3].disabled = false; status.textContent = "Đã lưu phiên Telegram. Chọn nhóm để đồng bộ."; }
+    else {
+      code.hidden = false;
+      buttons[1].hidden = false;
+      status.textContent = "Đã gửi yêu cầu. Kiểm tra Telegram để lấy mã.";
+    }
   }
   async function loadGroups() {
     const [available, saved] = await Promise.all([

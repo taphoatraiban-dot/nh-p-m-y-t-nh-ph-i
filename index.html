@@ -2268,12 +2268,12 @@ function showLogin(){
 async function doLogout(){
   await forceLogout("Đã đăng xuất.");
 }
-async let cuncunLoginInFlight=null;
+let cuncunLoginInFlight=null;
 function performLogin(){
   if(cuncunLoginInFlight)return cuncunLoginInFlight;
   const pending=performLoginOnce();
   cuncunLoginInFlight=pending;
-  void pending.finally(()=>{if(cuncunLoginInFlight===pending)cuncunLoginInFlight=null;});
+  void pending.then(()=>{if(cuncunLoginInFlight===pending)cuncunLoginInFlight=null;},()=>{if(cuncunLoginInFlight===pending)cuncunLoginInFlight=null;});
   return pending;
 }
 async function performLoginOnce(){

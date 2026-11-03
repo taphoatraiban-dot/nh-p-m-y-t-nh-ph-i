@@ -6675,6 +6675,7 @@ async function runAll(){
   // Hiển thị phần TÍNH TIỀN NGAY khi bấm OK, không chờ API xổ số.
   // Nhờ vậy dù nguồn KQ chậm/lỗi thì bảng vẫn luôn xuất hiện.
   let firstResult=null;
+  window.__lotteryPartialSettlement=false;
   window.__lotteryResultPending=true;
   try{
     firstResult=renderCalculation(rows,[],c,null,'Đang dò kết quả tự động...');
@@ -6922,12 +6923,15 @@ async function liveSoiTick(){
     if(changed){
       liveSoiSignature=sig;
       if(window.__lotteryPartialDraws?.length){
-        window.__lotteryResultPending=true;
-        renderCalculation(snap.rows,[],snap.price,null,'LIVE ĐANG QUAY: '+window.__lotteryPartialDraws.join(' • ')+'. Chưa chốt thắng/thua.');
+        window.__lotteryResultPending=false;
+        window.__lotteryPartialSettlement=true;
+        const partialWin=calcWinningAvailable(snap.rows,snap.price);
+        renderCalculation(snap.rows,[],snap.price,partialWin,'LIVE: Đã dò các đài đủ giải; '+partialWin.pendingCount+' dòng đang CHỜ KQ. Tổng thu/bù chưa chốt.');
         liveProvisionalHits(snap);
       }else{
         window.__lotteryResultPending=false;
-        const win=calcWinning(snap.rows,snap.price);
+        window.__lotteryPartialSettlement=false;
+        const win=calcWinningAvailable(snap.rows,snap.price);
         renderCalculation(snap.rows,[],snap.price,win,null);
         liveProvisionalHits(snap);
         liveSoiState('Đã đủ giải. LIVE hoàn tất.');

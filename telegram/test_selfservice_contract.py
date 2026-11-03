@@ -35,6 +35,13 @@ class SelfServiceContractTests(unittest.TestCase):
         self.assertLess(finish.index("        try:\n            if target.exists():"), finish.index("raise HTTPException(409"))
         self.assertIn("finally:\n            pending.pop(uid, None)\n            await close_entry(entry)", finish)
 
+    def test_expired_otp_closes_pending_client(self):
+        confirm = self.source.split('    async def confirm(', 1)[1].split('    @router.post("/password")', 1)[0]
+        expired = confirm.split("except PhoneCodeExpiredError:", 1)[1].split("except PhoneCodeInvalidError:", 1)[0]
+        self.assertIn("pending.pop(uid, None)", expired)
+        self.assertIn("await close_entry(entry)", expired)
+        self.assertIn("HTTPException(409", expired)
+
     def test_selected_groups_checked_against_telegram_membership(self):
         self.assertIn("set(selected).issubset(allowed)", self.source)
         self.assertIn('data.get("user_id") != uid', self.source)

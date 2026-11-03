@@ -8714,7 +8714,7 @@ window.showHistoryItem=showHistoryItem;
       else printPhoiToMac(true);
     }
     if(e.target.closest('#savePhoiNoPrint')){e.preventDefault();printPhoiToMac(false,false,false,false,true);}
-    if(e.target.closest('#printPhoiDirect')){e.preventDefault();printPhoiToMac(false,true);}
+    if(e.target.closest('#printPhoiDirect')){e.preventDefault();window.cuncunOpenDirectPrintChooser();}
     if(e.target.closest('#openPrintHistory')){e.preventDefault();openHistory();}
     if(e.target.closest('#openBluetoothPrintManager')){e.preventDefault();try{if(typeof window.TSHBluetoothPrintManager?.open==='function')window.TSHBluetoothPrintManager.open();else openHistory();}catch(err){console.warn('Print manager fallback:',err);openHistory();}}
   });
@@ -8722,7 +8722,26 @@ window.showHistoryItem=showHistoryItem;
 </script>
 
 <script src="src/ios-share-phoi.js?v=20261103-qr-topright-v1"></script>
-<script src="src/ios-native-print-bridge.js?v=20261028-receipt-bold-v2"></script>
+<script src="src/ios-native-print-bridge.js?v=20261103-mode-selector-v2"></script>
+<script>
+(function(){
+  window.cuncunOpenDirectPrintChooser=function(){
+    if(document.getElementById('cuncunDirectPrintChoice'))return;
+    var layer=document.createElement('div');
+    layer.id='cuncunDirectPrintChoice';
+    layer.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px';
+    layer.innerHTML='<section style="width:min(360px,100%);padding:20px;background:white;color:#111;border-radius:18px;box-shadow:0 12px 40px #0004"><strong style="font-size:20px">CHỌN KẾT NỐI IN</strong><p style="font-size:13px">Chọn kết nối máy in CuncunPrint</p><button type="button" data-mode="wifi" style="display:block;width:100%;padding:16px;margin:10px 0;border-radius:12px;border:1px solid #aaa;background:#f5f5f5;font-weight:800">📶 IN Wi-Fi</button><button type="button" data-mode="bluetooth" style="display:block;width:100%;padding:16px;margin:10px 0;border-radius:12px;border:1px solid #aaa;background:#f5f5f5;font-weight:800">ᛒ IN Bluetooth</button><button type="button" data-mode="cancel" style="display:block;width:100%;padding:12px;border:0;background:#eee;border-radius:10px">HỦY</button></section>';
+    layer.addEventListener('click',function(ev){
+      var b=ev.target.closest('[data-mode]');if(!b){if(ev.target===layer)layer.remove();return;}
+      var mode=b.dataset.mode;layer.remove();if(mode==='cancel')return;
+      if(!window.TSHNativePrintBridge?.available()){alert('Không tìm thấy kết nối in của ứng dụng CuncunPrint. Hãy mở trong ứng dụng iPhone.');return;}
+      window.cuncunDirectPrintMode=mode;
+      try{printPhoiToMac(false,true);}catch(err){window.cuncunDirectPrintMode=null;alert(err.message||String(err));}
+    });
+    document.body.appendChild(layer);
+  };
+})();
+</script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
  const direct=document.getElementById('printPhoiDirect');

@@ -228,4 +228,21 @@ def create_router(require_licensed_user):
             temporary.unlink(missing_ok=True)
         return {"success": True, "selected_count": len(selected), "worker_started": False}
 
+    @router.get("/groups/selection")
+    async def get_group_selection(uid: str = Depends(user_id)):
+        """Read only this customer's consented group IDs; no worker side effects."""
+        target = directory / (uid + ".groups.json")
+        if not target.is_file():
+            return {"success": True, "chat_ids": [], "configured": False}
+        try:
+            data = json.loads(target.read_text(encoding="utf-8"))
+            if data.get("user_id") != uid:
+                raise ValueError("Wrong owner")
+            values = data["allowed_chat_ids"]
+            if not isinstance(values, list) or any(type(v) is not int for v in values):
+                raise ValueError("Invalid selection")
+        except (OSError, ValueError, KeyError, TypeError):
+            raise HTTPException(503, "Saved group selection is invalid")
+        return {"success": True, "chat_ids": [str(v) for v in values], "configured": True}
+
     return router

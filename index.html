@@ -8598,6 +8598,30 @@ window.showHistoryItem=showHistoryItem;
     }catch(err){if(b){b.disabled=false;b.textContent=old;}if(err?.name!=='AbortError')alert('Không thực hiện được thao tác in: '+(err?.message||'Hãy kiểm tra máy in và chế độ kết nối.'));}
     finally{tshPrintInFlight=false;}
   }
+  function readablePrintedPhoi(rec){
+    const raw=String(rec?.raw||rec?.phoi||rec?.message||rec?.text||'');
+    const marker='[[TABLE80]]';
+    const start=raw.indexOf(marker);
+    if(start<0)return raw;
+    try{
+      const data=JSON.parse(raw.slice(start+marker.length).split('[[/TABLE80]]')[0].trim());
+      const lines=[];
+      if(data.title)lines.push(data.title);
+      if(data.date||data.time)lines.push([data.date,data.time].filter(Boolean).join(' • '));
+      if(data.customer)lines.push('Khách: '+data.customer);
+      for(const item of (Array.isArray(data.items)?data.items:[])){
+        const station=item.station||item.region||'';
+        const type=item.type||'';
+        const numbers=item.number||item.numbers||'';
+        const points=item.points||'';
+        const amount=item.amount||'';
+        const content=item.content||'';
+        lines.push([station,type,numbers,points,content,amount].filter(Boolean).join(' | '));
+      }
+      if(data.total)lines.push('Tổng tiền: '+data.total);
+      return lines.join('\n')||'Phiếu chưa có nội dung hiển thị';
+    }catch(err){console.warn('Cannot format stored receipt',err);return raw;}
+  }
   function openHistory(){
     document.getElementById('printHistoryOverlay')?.remove();
     const a=read().sort((x,y)=>(y.lastPrintedAt||0)-(x.lastPrintedAt||0));
@@ -8605,7 +8629,7 @@ window.showHistoryItem=showHistoryItem;
     ov.innerHTML=`<div style="width:min(900px,100%);margin:auto;background:#f8fafc;border-radius:16px;overflow:hidden">
       <div style="position:sticky;top:0;z-index:2;background:#111827;color:#fff;padding:11px;display:flex;gap:8px;align-items:center"><b style="flex:1;text-align:center">📚 PHƠI ĐÃ IN</b><button id="phClose" style="background:#fff">✕</button></div>
       <div style="padding:10px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><button id="phCopy" style="background:#229ED9;color:#fff">📋 COPY TELEGRAM</button><button id="phSelectAll" style="background:#e2e8f0">CHỌN / BỎ TẤT CẢ</button></div>
-      <div id="phList">${a.length?a.map(x=>`<div class="ph-card" data-ph-id="${esc(x.id)}" style="background:#fff;border:1px solid #dbe2ea;border-radius:12px;padding:10px;margin:8px 0"><label style="display:flex;gap:8px;align-items:flex-start"><input class="phSel" data-id="${esc(x.id)}" type="checkbox" ${x.selected!==false?'checked':''} style="width:20px;height:20px"><span style="flex:1"><b>${esc(x.customer||'Không tên')}</b> • ${esc(x.date||'')} • <b>Đã in ×${Number(x.printCount)||1}</b><br><small>${x.summary?'Tổng xác '+fmt(x.summary.totalGross):'Chưa có số tiền lúc in'}</small></span><button type="button" class="ph-delete" data-del-id="${esc(x.id)}">🗑 XÓA</button></label><pre style="white-space:pre-wrap;background:#f8fafc;padding:8px;border-radius:8px;font-size:12px;max-height:150px;overflow:auto">${esc(x.text)}</pre></div>`).join(''):'<div style="text-align:center;padding:25px;color:#64748b">Chưa có phơi đã in.</div>'}</div></div></div>`;
+      <div id="phList">${a.length?a.map(x=>`<div class="ph-card" data-ph-id="${esc(x.id)}" style="background:#fff;border:1px solid #dbe2ea;border-radius:12px;padding:10px;margin:8px 0"><label style="display:flex;gap:8px;align-items:flex-start"><input class="phSel" data-id="${esc(x.id)}" type="checkbox" ${x.selected!==false?'checked':''} style="width:20px;height:20px"><span style="flex:1"><b>${esc(x.customer||'Không tên')}</b> • ${esc(x.date||'')} • <b>Đã in ×${Number(x.printCount)||1}</b><br><small>${x.summary?'Tổng xác '+fmt(x.summary.totalGross):'Chưa có số tiền lúc in'}</small></span><button type="button" class="ph-delete" data-del-id="${esc(x.id)}">🗑 XÓA</button></label><pre style="white-space:pre-wrap;background:#f8fafc;padding:8px;border-radius:8px;font-size:12px;max-height:150px;overflow:auto">${esc(readablePrintedPhoi(x))}</pre></div>`).join(''):'<div style="text-align:center;padding:25px;color:#64748b">Chưa có phơi đã in.</div>'}</div></div></div>`;
     document.body.appendChild(ov);
     ov.querySelector('#phClose').onclick=()=>ov.remove();
     ov.querySelector('#phSelectAll').onclick=()=>{const cs=[...ov.querySelectorAll('.phSel')],all=cs.every(c=>c.checked);cs.forEach(c=>c.checked=!all)};

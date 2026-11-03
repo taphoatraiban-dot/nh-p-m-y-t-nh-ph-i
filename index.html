@@ -13049,6 +13049,14 @@ async function load(){
 let info=panel.querySelector("#tgConnectedAccount");
 if(!info){info=document.createElement("div");info.id="tgConnectedAccount";info.style.cssText="padding:12px;margin:10px 0;border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc;white-space:pre-line";status.after(info);}
 info.textContent=p.telegram_id?["✅ Telegram đã kết nối","👤 "+p.display_name+(p.username?" (@"+p.username+")":""),"📱 "+p.phone].join(String.fromCharCode(10)):"Chưa nhận thông tin tài khoản Telegram từ VPS";
+if(p.telegram_id){
+  const logout=document.getElementById("tgCustomerVpsLogout");
+  const logoutStatus=logout&&logout.nextElementSibling;
+  if(logout&&logout.previousElementSibling!==info){
+    info.after(logout);
+    if(logoutStatus&&logoutStatus.getAttribute("role")==="status")logout.after(logoutStatus);
+  }
+}
 status.textContent=(fresh.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+fresh.groups.length+" nhóm · "+fresh.messages.length+" tin trong 48 giờ · Tự cập nhật";
   if(signature!==lastInboxSignature){
    const scroll=list.scrollTop;

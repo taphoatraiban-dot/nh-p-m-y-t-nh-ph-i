@@ -63,6 +63,8 @@ def provision(uid):
     os.umask(0o077)
     with lock.open("a+") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
+        if (SELECTION / (uid + ".revoked")).exists():
+            raise RuntimeError("Telegram connection revoked; no provisioning")
         if not eligible(uid, key):
             raise RuntimeError("Customer license not active; no provisioning")
         selected = SELECTION / (uid + ".groups.json")

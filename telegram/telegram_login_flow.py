@@ -160,4 +160,29 @@ def create_router(require_licensed_user):
             await finish(uid, entry)
             return {"success": True, "step": "connected"}
 
+    @router.get("/groups")
+    async def list_available_groups(uid: str = Depends(user_id)):
+        """List groups from the customer's own saved Telegram session only."""
+        saved = path_for(uid)
+        if not saved.is_file():
+            raise HTTPException(409, "Connect Telegram first")
+        try:
+            session_value = cipher.decrypt(saved.read_bytes()).decode("utf-8")
+        except Exception:
+            raise HTTPException(503, "Unable to read saved Telegram session")
+        client = TelegramClient(StringSession(session_value), api_id, api_hash)
+        try:
+            await client.connect()
+            if not await client.is_user_authorized():
+                raise HTTPException(401, "Telegram session is no longer authorized")
+            groups = []
+            async for dialog in client.iter_dialogs():
+                if dialog.is_group:
+                    groups.append({"chat_id": str(dialog.id), "name": dialog.name})
+                if len(groups) >= 200:
+                    break
+            return {"success": True, "groups": groups}
+        finally:
+            await client.disconnect()
+
     return router

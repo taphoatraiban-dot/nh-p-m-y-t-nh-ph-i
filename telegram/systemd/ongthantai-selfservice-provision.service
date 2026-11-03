@@ -1,0 +1,15 @@
+[Unit]
+Description=Provision eligible Telegram self-service customers
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/ongthantai-multi/telegram
+EnvironmentFile=/etc/ongthantai-telegram-selfservice/telegram-login.env
+EnvironmentFile=/etc/ongthantai-telegram-selfservice/secrets.env
+ExecStart=/opt/ongthantai-telegram/venv/bin/python /opt/ongthantai-multi/telegram/provision_pending_customers.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true

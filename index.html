@@ -14022,23 +14022,36 @@ body.app-unlocked #liveSoiBar{display:block!important}
 const input=document.getElementById("bets"),out=document.getElementById("phoiLiveWarnings");if(!input||!out)return;
 let timer;
 function inspect(){
- const lines=input.value.split(/\r?\n/),warnings=[];
+ const warnings=[],lines=input.value.replace(/\r/g,"").split("\n");
+ function warn(i,part,reason,level){if(!warnings.some(w=>w.line===i+1&&w.part===part&&w.reason===reason))warnings.push({line:i+1,part,reason,level});}
  for(let i=0;i<lines.length;i++){
   const line=lines[i].trim();if(!line)continue;
-  const groups=line.match(/(?:^|[\s.])((?:\d{2,4}\.){1,}\d{2,4})(?:\[?da\]?|đá|da)(?=\d|\s|\.|$)/ig)||[];
-  for(const g of groups){
-   const nums=g.replace(/(?:\[?da\]?|đá|da).*$/i,"").trim().replace(/^\./,"").split(".").filter(Boolean);
-   if(nums.length>1&&new Set(nums.map(n=>n.length)).size>1)warnings.push({line:i+1,part:g.trim(),reason:"Các số trong cùng nhóm đá có độ dài khác nhau."});
+  // Only check completed wager tokens. Never flag unfinished typing or valid b7lo aliases.
+  const tokens=line.match(/(?:^|[\s;])([0-9][0-9.,-]*\s*(?:\[?da\]?|đá|b|bao|xc|dd|xdau|xduoi)\s*[0-9]+(?:[.,][0-9]+)?\.?)(?=\s|;|$)/ig)||[];
+  for(const raw of tokens){
+   const token=raw.trim(),m=token.match(/^([0-9][0-9.,-]*?)\s*(?:\[?(da)\]?|đá|(b)|bao|(xc)|(dd)|(xdau)|(xduoi))\s*([0-9]+(?:[.,][0-9]+)?)\.?$/i);
+   if(!m)continue;
+   const nums=m[1].split(/[.,-]/).filter(Boolean),kind=m[2]||m[3]||m[4]||m[5]||m[6]||m[7]||"";
+   if(kind.toLowerCase()==="da"||/đá/i.test(token)){
+    if(nums.length>=2&&new Set(nums.map(n=>n.length)).size>1)warn(i,token,"Các số đá có độ dài khác nhau; kiểm tra cách ghi.", "warning");
+    if(nums.length>=2&&new Set(nums).size!==nums.length)warn(i,token,"Có số đá bị lặp trong cùng nhóm.", "error");
+    if(nums.length===1&&nums[0].length>4)warn(i,token,"Dãy đá liền nhau có thể thiếu dấu phân cách.", "warning");
+   }
   }
-  const duplicated=line.match(/(?:^|[^\d])(\d{2,4})\s*[.\-]\s*\1\s*(?:da|đá)(?=\d|\.|\s|$)/i);
-  if(duplicated)warnings.push({line:i+1,part:duplicated[0].trim(),reason:"Hai số đá giống nhau, cần kiểm tra."});
+  // Conservative anomaly: 2-digit and 4-digit numbers combined before DA, as in reference screenshot.
+  const suspicious=line.match(/(?:^|[\s;])((?:\d{2}[.,]){1,}\d{4})\s*(?:\[da\]|da|đá)\s*\d+(?:[.,]\d+)?\.?(?=\s|;|$)/ig)||[];
+  suspicious.forEach(part=>warn(i,part.trim(),"Nhóm đá trộn số 2 và 4 chữ số; cần xác nhận.", "warning"));
+  const duplicate=line.match(/(?:^|[\s;])(\d{2,4})[.,-]\1\s*(?:\[da\]|da|đá)\s*\d+(?:[.,]\d+)?\.?(?=\s|;|$)/ig)||[];
+  duplicate.forEach(part=>warn(i,part.trim(),"Đá trùng cùng một số.", "error"));
  }
  out.replaceChildren();if(!warnings.length){out.style.display="none";return;}
- out.style.display="block";const head=document.createElement("strong");head.textContent="⚠️ Phát hiện "+warnings.length+" đoạn đáng nghi — kiểm tra trước khi OK";out.append(head);
- warnings.slice(0,8).forEach(w=>{const div=document.createElement("div");div.style.marginTop="7px";div.textContent="Dòng "+w.line+": "+w.part+" — "+w.reason;out.append(div);});
- if(warnings.length>8){const more=document.createElement("div");more.textContent="Và "+(warnings.length-8)+" cảnh báo khác.";out.append(more);}
+ out.style.display="block";out.style.background=warnings.some(w=>w.level==="error")?"#fff0f0":"#fff8e5";
+ out.style.borderColor=warnings.some(w=>w.level==="error")?"#dc2626":"#efb54a";
+ const head=document.createElement("strong");head.textContent="⚠️ "+warnings.length+" đoạn cần kiểm tra";out.append(head);
+ warnings.slice(0,12).forEach(w=>{const div=document.createElement("div");div.style.marginTop="8px";div.textContent=(w.level==="error"?"🔴 ":"🟡 ")+"Dòng "+w.line+": "+w.part+" — "+w.reason;out.append(div);});
+ if(warnings.length>12){const more=document.createElement("div");more.textContent="Còn "+(warnings.length-12)+" cảnh báo khác.";out.append(more);}
 }
-input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(inspect,180);});
+input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(inspect,150);});
 input.addEventListener("change",inspect);
 document.addEventListener("click",e=>{if(e.target?.id==="checkPhoi"||e.target?.id==="okAll")inspect();});
 inspect();

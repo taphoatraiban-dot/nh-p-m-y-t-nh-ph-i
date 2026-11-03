@@ -1,0 +1,35 @@
+name: Telegram self-service staging checks
+
+on:
+  push:
+    branches:
+      - feature/telegram-customer-selfservice-20261103
+    paths:
+      - 'telegram/telegram_login_flow.py'
+      - 'telegram/selfservice_api.py'
+      - 'telegram/test_selfservice_contract.py'
+      - '.github/workflows/telegram-selfservice-staging.yml'
+  pull_request:
+    paths:
+      - 'telegram/telegram_login_flow.py'
+      - 'telegram/selfservice_api.py'
+      - 'telegram/test_selfservice_contract.py'
+      - '.github/workflows/telegram-selfservice-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile Telegram self-service source
+        run: python -m py_compile telegram/telegram_login_flow.py telegram/selfservice_api.py
+      - name: Run offline isolation contract tests
+        run: python -m unittest discover -s telegram -p test_selfservice_contract.py -v

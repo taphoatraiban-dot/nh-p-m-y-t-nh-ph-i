@@ -71,12 +71,14 @@ def create_router(require_licensed_user):
         value = entry["client"].session.save()
         encrypted = cipher.encrypt(value.encode("utf-8"))
         target = path_for(uid)
+        if target.exists():
+            raise HTTPException(409, "A session is already saved for this account")
         temporary = target.with_name(target.name + "." + secrets.token_hex(8) + ".tmp")
         fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         try:
             with os.fdopen(fd, "wb") as output:
                 output.write(encrypted)
-            os.replace(temporary, target)
+            os.link(temporary, target)
         finally:
             temporary.unlink(missing_ok=True)
         pending.pop(uid, None)
@@ -94,6 +96,8 @@ def create_router(require_licensed_user):
     async def start(body: StartRequest, uid: str = Depends(user_id)):
         if not PHONE.fullmatch(body.phone):
             raise HTTPException(400, "Use international format, e.g. +849xxxxxxxx")
+        if path_for(uid).exists():
+            raise HTTPException(409, "A session is already saved for this account")
         async with lock:
             now = time.monotonic()
             if cooldown.get(uid, 0) > now:

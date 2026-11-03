@@ -4786,7 +4786,7 @@ if(/^\d{4}b\d+(?:[.,]\d+)?n?\.?$/i.test(s)){
 
  return {rows,errors};
 }
-function money(x){return Math.round(x).toLocaleString("vi-VN")+"k"}
+function money(x){return Math.ceil(Number(x)||0).toLocaleString("vi-VN")+"k"}
 function renderCalc(){
  const {rows,errors}=parseBets();
  const guard=phoiStrictErrors({rows,errors});
@@ -4817,7 +4817,7 @@ function renderCalc(){
    // MB/HN theo mẫu chuẩn: Tiền xác × Giá nhận, không nhân Hồi.
    // THU/BÙ chuẩn: trừ tiền trúng trước, sau đó mới áp dụng Hồi khi thu.
    const raw=(g*Number(c.receive||0)-w)*(Number(c.repay)||1);
-   thuBy[d.row.region]+=(raw>0?Math.ceil(raw-1e-9):Math.round(raw));
+   thuBy[d.row.region]+=Math.ceil(raw);
  }
  for(const [r,n] of [["N","🄽 MIỀN NAM"],["T","🅃 MIỀN TRUNG"],["B","🅱 MIỀN BẮC"]]){
    if(!grossBy[r]&&!winBy[r]) continue;
@@ -6242,7 +6242,7 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
   }
   for(const r of ['N','T','B']){
     const raw=preRepay[r]>0 ? preRepay[r]*(repay||1) : preRepay[r];
-    thuBy[r]=raw>0?Math.ceil(raw-1e-9):Math.round(raw);
+    thuBy[r]=Math.ceil(raw);
   }
 
 
@@ -8439,7 +8439,7 @@ window.showHistoryItem=showHistoryItem;
         else if(row.type==='DAO XC')payout=rate*hits.reduce((n,h)=>n+(Number(h.matchCount)||0),0);
         else payout=rate*hits.reduce((n,h)=>n+(Number(h.count)||1),0);
       }
-      const value=Math.round(((Number(row.gross)||0)*Number(price.receive||0)-payout)*(Number(price.repay)||1));
+      const value=Math.ceil(((Number(row.gross)||0)*Number(price.receive||0)-payout)*(Number(price.repay)||1));
       computed+=value;
       items.push({region:row.region==='N'?'MN':row.region==='T'?'MT':'MB',station:String((row.crossProvinces&&row.crossProvinces.length?row.crossProvinces.join(' + '):row.scopeStation||row.station)||''),type:typeLabel(row.type),number:(row.numbers||[]).join('–'),points:displayPoints(row),content:(row.numbers||[]).join('–'),amount:fmtAmount(value)});
     }

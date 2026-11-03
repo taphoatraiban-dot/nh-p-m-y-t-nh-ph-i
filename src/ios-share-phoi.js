@@ -36,9 +36,12 @@
       const raw=String(item.amount||'').replace(/[^0-9,.-]/g,'').replace(/[.,](?=\d{3}(?:\D|$))/g,'').replace(',','.');
       section.total+=Number(raw)||0;
     }
-    const qrSize=Array.isArray(data.qrMatrix)&&data.qrMatrix.length>=21?Math.floor(240/data.qrMatrix.length)*data.qrMatrix.length:0;
-    // 80 mm paper at 203 dpi: ~80 dots = 10 mm after the QR caption.
-    const height=205+sections.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+135+(qrSize?qrSize+30:0)+82;
+    const qr=data.qrMatrix;
+    const valid=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length);
+    const unit=valid?Math.max(1,Math.floor(150/qr.length)):0;
+    const size=valid?unit*qr.length:0;
+    const headerBottom=valid?Math.max(205,106+size+42):205;
+    const height=headerBottom+sections.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+105;
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=height;
     const ctx=canvas.getContext('2d');
@@ -48,9 +51,13 @@
     const ln=(x,y,xx,yy)=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(xx,yy);ctx.stroke();};
     ctx.lineWidth=2.5;
     txt(data.title||'PHIẾU MUA HÀNG',W/2,65,40);
-    txt('NGÀY: '+(data.date||'')+' '+(data.time||''),L,119,28,'left');
-    txt('KHÁCH: '+(data.customer||''),L,159,28,'left',R-L);
-    let y=205;
+    txt('NGÀY: '+(data.date||'')+' '+(data.time||''),L,119,25,'left',valid?W-size-48:R-L);
+    txt('KHÁCH: '+(data.customer||''),L,159,26,'left',valid?W-size-48:R-L);
+    if(valid){const x=R-size,topQr=106;
+      qr.forEach((row,ry)=>row.forEach((bit,rx)=>{if(bit)ctx.fillRect(x+rx*unit,topQr+ry*unit,unit,unit);}));
+      txt(data.code||'',R,topQr+size+16,17,'right',size+22);
+    }
+    let y=headerBottom;
     const cells=(values,h)=>{
       ln(L,y,R,y);ln(L,y+h,R,y+h);
       col.forEach(x=>ln(x,y,x,y+h));
@@ -70,13 +77,6 @@
     });
     txt(data.totalLabel||'TỔNG THU',L,y+40,34,'left');
     txt(data.total||'',R,y+40,36,'right');y+=90;
-    txt('MÃ PHIẾU: '+(data.code||''),W/2,y+17,23,'center',R-L-8);y+=45;
-    const qr=data.qrMatrix;
-    if(Array.isArray(qr)&&qr.length>=21&&qr.every(a=>Array.isArray(a)&&a.length===qr.length)){
-      const unit=Math.max(1,Math.floor(240/qr.length)),size=unit*qr.length,x=Math.floor((W-size)/2);
-      qr.forEach((row,ry)=>row.forEach((bit,rx)=>{if(bit)ctx.fillRect(x+rx*unit,y+ry*unit,unit,unit);}));
-      txt('QUÉT QR ĐỂ XÁC THỰC PHIẾU',W/2,y+size+30,23);
-    }
     return canvas;
   }
   function renderTable(data,doc){

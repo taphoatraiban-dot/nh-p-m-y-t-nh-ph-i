@@ -23,7 +23,7 @@
     return lines;
   }
   function renderFourColumns(data,doc){
-    const items=Array.isArray(data.items)?data.items:[];
+    const items=(Array.isArray(data.items)?data.items:[]).filter(item=>!/(?:số dư|so du|balance|chuyển dư|chuyen du)/i.test([item.station,item.region,item.type,item.number,item.content].join(' ')));
     const W=WIDTH,L=PAD,R=WIDTH-PAD;
     const col=[L,L+157,L+281,L+379,R];
     const rowH=66,headerH=60,groupH=60;

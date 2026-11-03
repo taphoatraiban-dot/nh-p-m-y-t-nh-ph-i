@@ -195,7 +195,7 @@ def create_router(require_licensed_user):
         selected = body.chat_ids
         if len(selected) != len(set(selected)):
             raise HTTPException(400, "Duplicate group IDs")
-        if any(not re.fullmatch(r"-?[0-9]{1,20}", value) for value in selected):
+        if any(not re.fullmatch(r"-?[0-9]{1,19}", value) for value in selected):
             raise HTTPException(400, "Invalid group ID")
         saved = path_for(uid)
         if not saved.is_file():
@@ -239,7 +239,8 @@ def create_router(require_licensed_user):
             if data.get("user_id") != uid:
                 raise ValueError("Wrong owner")
             values = data["allowed_chat_ids"]
-            if not isinstance(values, list) or any(type(v) is not int for v in values):
+            if (not isinstance(values, list) or len(values) > 200 or
+                    any(type(v) is not int or abs(v) > 9999999999999999999 for v in values)):
                 raise ValueError("Invalid selection")
         except (OSError, ValueError, KeyError, TypeError):
             raise HTTPException(503, "Saved group selection is invalid")

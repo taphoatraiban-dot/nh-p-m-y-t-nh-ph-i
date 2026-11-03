@@ -13333,6 +13333,36 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   const availability=document.createElement("div");availability.style.cssText="font-size:12px;color:#64748b;margin-top:5px";
   availability.textContent="Đang kiểm tra dịch vụ xác thực Telegram VPS...";
   start.after(availability);
+  const logoutButton=document.createElement("button");
+  logoutButton.type="button";logoutButton.id="tgCustomerVpsLogout";
+  logoutButton.className="soft";logoutButton.textContent="ĐĂNG XUẤT TELEGRAM";
+  logoutButton.style.cssText="width:100%;margin-top:7px;color:#b91c1c";
+  logoutButton.hidden=true;logoutButton.disabled=true;
+  availability.after(logoutButton);
+  const logoutMessage=document.createElement("div");
+  logoutMessage.setAttribute("role","status");logoutMessage.style.cssText="font-size:12px;margin-top:5px";
+  logoutButton.after(logoutMessage);
+  async function refreshLogout(){
+    try{
+      const result=await groupRequest("status");
+      logoutButton.hidden=!result.session_saved&&!result.disconnect_pending;
+      logoutButton.disabled=!result.session_saved||!!result.disconnect_pending;
+      if(result.disconnect_pending)logoutMessage.textContent="Đang ngắt Telegram cũ. Vui lòng chờ trước khi kết nối tài khoản khác.";
+      else if(!result.session_saved)logoutMessage.textContent="";
+    }catch(_){logoutButton.hidden=true;logoutButton.disabled=true;}
+  }
+  logoutButton.onclick=async()=>{
+    if(logoutButton.disabled||!confirm("Đăng xuất Telegram hiện tại để kết nối Telegram khác? Tin nhắn đã lưu trong CUNCUN vẫn được giữ."))return;
+    logoutButton.disabled=true;logoutMessage.textContent="Đang gửi yêu cầu đăng xuất...";
+    try{
+      const result=await requestLogin("logout",{});
+      if(!result.disconnect_pending)throw Error("VPS chưa xác nhận yêu cầu ngắt kết nối");
+      loginArea.hidden=true;groupArea.hidden=true;
+      logoutMessage.textContent="Đã yêu cầu đăng xuất. Chờ VPS dừng đồng bộ và xóa phiên cũ.";
+      await refreshLogout();
+    }catch(e){logoutMessage.textContent="Chưa đăng xuất: "+e.message;logoutButton.disabled=false;}
+  };
+
   async function checkSelfService(){
    start.disabled=true;start.textContent="Tự kết nối Telegram (đang kiểm tra dịch vụ)";loginArea.hidden=true;
    try{
@@ -13485,7 +13515,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     status.textContent=count?("Supabase đang lưu "+count+" nhóm của tài khoản này. Kiểm tra danh sách tin Telegram phía trên."):("Supabase chưa nhận nhóm nào cho tài khoản này. Nếu đã xác thực Telegram, cần kiểm tra tiến trình đồng bộ VPS; không cần gửi lại OTP.");
    }catch(err){status.textContent="Chưa xác minh kết nối: "+err.message}
   }
-  box.querySelector("#tgCustomerVpsCheck").addEventListener("click",()=>{check();checkSelfService();});
+  box.querySelector("#tgCustomerVpsCheck").addEventListener("click",()=>{check();checkSelfService();refreshLogout();});
+  refreshLogout();
   box.addEventListener("toggle",()=>{if(box.open)check()});
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount);

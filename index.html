@@ -2240,11 +2240,9 @@ window.addEventListener("pagehide",tshMarkAway);
 window.addEventListener("pageshow",tshReturnFromAway);
 
 function showApp(){
-  if(tshAwayExpired()){
-    localStorage.removeItem(TSH_AWAY_KEY);
-    Promise.resolve(forceLogout("Đã khóa sau 1 giờ 30 giây rời ứng dụng."));
-    return;
-  }
+  // A successful password/PIN login is an explicit unlock. The away timer
+  // must only lock an already-open app when it returns from the background.
+  // Otherwise a stale away timestamp can immediately undo a valid login.
   localStorage.removeItem(TSH_AWAY_KEY);
   if(typeof hidePublicCoverForApp==="function") hidePublicCoverForApp();
   $("pinCard")?.classList.add("hidden");

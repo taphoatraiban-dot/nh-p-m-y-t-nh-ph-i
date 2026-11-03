@@ -2065,6 +2065,10 @@ async function setupPinIfNeeded(email,allowAuthenticatedReset=false){
   const pin2=prompt("Nhập lại PIN 4 số:");
   if(pin!==pin2){alert("PIN không trùng nhau.");return;}
   setSavedPin(email,pin);
+  // Also associate this PIN with the signed-in session identity used by boot().
+  const {data:{session:pinSession}}=await sb.auth.getSession();
+  const sessionIdentity=pinSession?.user?.email||pinSession?.user?.id||"";
+  if(sessionIdentity && sessionIdentity!==email)localStorage.setItem(pinKey(sessionIdentity),pin);
   alert("Đã lưu PIN 4 số trên thiết bị này.");
 }
 let pinUnlockBusy=false;
@@ -2283,7 +2287,7 @@ async function performLoginOnce(){
   if(isPhoneLogin(email)){
     authBootEpoch++;loginStatus("Đang đăng nhập số điện thoại...");
     try{const result=await phoneAuthCall("login",email,password);if(!result.session)throw Error("Máy chủ chưa trả phiên đăng nhập.");const {error}=await sb.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});if(error)throw error;
-      await checkLicense();await claimDevice();await cloudRestoreSettings();localStorage.setItem(LOGIN_EMAIL_KEY,email);showApp();await setupPinIfNeeded(result.session.user?.email||result.user?.email||email,true);cloudSaveSettingsSoon();loginStatus("");
+      await checkLicense();await claimDevice();await cloudRestoreSettings();localStorage.setItem(LOGIN_EMAIL_KEY,email);const {data:{session:verifiedSession}}=await sb.auth.getSession();const pinIdentity=verifiedSession?.user?.email||verifiedSession?.user?.id||email;await setupPinIfNeeded(pinIdentity,true);showApp();cloudSaveSettingsSoon();loginStatus("");
     }catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}return;
   }
   authBootEpoch++; // Ignore a slower startup result after manual login begins.

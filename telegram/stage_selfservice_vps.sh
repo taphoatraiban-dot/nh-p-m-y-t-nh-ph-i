@@ -2,17 +2,19 @@
 # Deploy isolated Telegram self-service OTP module. Run on VPS as root.
 # Does NOT touch legacy Telegram bots or tenants; requires explicit credentials to enable OTP.
 set -Eeuo pipefail
-REPO="https://raw.githubusercontent.com/taphoatraiban-dot/nh-p-m-y-t-nh-ph-i/main/telegram"
+SOURCE_REF="feature/telegram-customer-selfservice-20261103"
+REPO="https://raw.githubusercontent.com/taphoatraiban-dot/nh-p-m-y-t-nh-ph-i/$SOURCE_REF/telegram"
 UNIT="ongthantai-telegram-selfservice.service"
 STAGE="/opt/ongthantai-telegram-selfservice"
 SECRETS="/etc/ongthantai-telegram-selfservice/telegram-login.env"
+echo "Staging source ref: $SOURCE_REF (not production main)"
 echo "Checking existing self-service unit..."
 systemctl cat "$UNIT" >/dev/null
 systemctl is-active --quiet "$UNIT" || { echo "Existing service is not active; refusing automatic change"; exit 1; }
 mkdir -p "$STAGE" /var/backups/ongthantai-telegram-selfservice
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
-curl -fsSLo "/tmp/telegram-login-flow-$STAMP.py" "$REPO/telegram_login_flow.py"
-curl -fsSLo "/tmp/telegram-selfservice-$STAMP.py" "$REPO/selfservice_api.py"
+curl --proto "=https" --tlsv1.2 -fsSLo "/tmp/telegram-login-flow-$STAMP.py" "$REPO/telegram_login_flow.py"
+curl --proto "=https" --tlsv1.2 -fsSLo "/tmp/telegram-selfservice-$STAMP.py" "$REPO/selfservice_api.py"
 python3 -m py_compile "/tmp/telegram-login-flow-$STAMP.py" "/tmp/telegram-selfservice-$STAMP.py"
 install -m 0644 "/tmp/telegram-login-flow-$STAMP.py" "$STAGE/telegram_login_flow.py"
 install -m 0644 "/tmp/telegram-selfservice-$STAMP.py" "$STAGE/selfservice_api.py"

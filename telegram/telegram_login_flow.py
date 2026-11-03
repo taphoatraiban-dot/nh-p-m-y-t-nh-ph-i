@@ -48,9 +48,11 @@ def create_router(require_licensed_user):
     api_hash = os.environ["TELEGRAM_API_HASH"]
     cipher = Fernet(os.environ["TELEGRAM_SESSION_KEY"].encode("ascii"))
     directory = Path(os.environ.get("TELEGRAM_SESSION_DIR", "/var/lib/ongthantai-telegram-sessions"))
+    if directory.is_symlink():
+        raise RuntimeError("Session directory must not be a symlink")
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
-    if directory.stat().st_mode & 0o077:
-        raise RuntimeError("Session directory must not be accessible by group or others")
+    if directory.is_symlink() or directory.stat().st_mode & 0o077:
+        raise RuntimeError("Session directory must be private and not a symlink")
 
     def path_for(uid):
         if not UUID.fullmatch(uid):

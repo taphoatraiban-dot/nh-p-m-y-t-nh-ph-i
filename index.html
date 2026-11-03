@@ -2268,7 +2268,15 @@ function showLogin(){
 async function doLogout(){
   await forceLogout("Đã đăng xuất.");
 }
-async function performLogin(){
+async let cuncunLoginInFlight=null;
+function performLogin(){
+  if(cuncunLoginInFlight)return cuncunLoginInFlight;
+  const pending=performLoginOnce();
+  cuncunLoginInFlight=pending;
+  void pending.finally(()=>{if(cuncunLoginInFlight===pending)cuncunLoginInFlight=null;});
+  return pending;
+}
+async function performLoginOnce(){
   const remaining=loginLockRemaining();
   if(remaining){loginStatus(`Đã khóa đăng nhập tạm thời. Thử lại sau ${Math.ceil(remaining/60000)} phút. Dữ liệu vẫn được giữ nguyên.`,"err");return;}
   const email=$("email").value.trim().toLowerCase();

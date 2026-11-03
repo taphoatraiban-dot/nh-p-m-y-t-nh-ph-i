@@ -8715,7 +8715,8 @@ window.showHistoryItem=showHistoryItem;
     }
     if(e.target.closest('#savePhoiNoPrint')){e.preventDefault();printPhoiToMac(false,false,false,false,true);}
     if(e.target.closest('#printPhoiDirect')){e.preventDefault();printPhoiToMac(false,true);}
-    if(e.target.closest('#openPrintHistory')){e.preventDefault();openHistory();}\n    if(e.target.closest('#openBluetoothPrintManager')){e.preventDefault();try{if(typeof window.TSHBluetoothPrintManager?.open==='function')window.TSHBluetoothPrintManager.open();else openHistory();}catch(err){console.warn('Print manager fallback:',err);openHistory();}}
+    if(e.target.closest('#openPrintHistory')){e.preventDefault();openHistory();}
+    if(e.target.closest('#openBluetoothPrintManager')){e.preventDefault();try{if(typeof window.TSHBluetoothPrintManager?.open==='function')window.TSHBluetoothPrintManager.open();else openHistory();}catch(err){console.warn('Print manager fallback:',err);openHistory();}}
   });
 })();
 </script>

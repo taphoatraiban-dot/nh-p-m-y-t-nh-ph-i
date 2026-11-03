@@ -76,7 +76,7 @@
       y+=rowH;
     });
     txt(data.totalLabel||'TỔNG THU',L,y+40,34,'left');
-    txt(data.total||'',R,y+40,36,'right');y+=90;
+    txt(sections.reduce((sum,g)=>sum+g.total,0).toLocaleString('vi-VN')+'k',R,y+40,36,'right');y+=90;
     return canvas;
   }
   function renderTable(data,doc){

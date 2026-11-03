@@ -1211,7 +1211,10 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  <button type="button" id="phoneAdminRefresh">Tải</button><button type="button" id="phoneAdminFind">Tìm</button>
  </div>
  <div class="muted" style="font-size:12px">Danh sách tài khoản SĐT phù hợp sẽ hiển thị bên dưới để Admin xác nhận.</div>
- <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px"><strong>⏳ Tài khoản chờ duyệt <span id="phonePendingCount">(0)</span></strong><button type="button" id="phonePendingRefresh" class="soft" style="width:auto;padding:7px 12px;font-size:13px">↻ TẢI LẠI</button></div><div id="phonePendingStatus" class="muted" style="font-size:12px" aria-live="polite">Bấm TẢI LẠI để xem yêu cầu.</div><div id="phonePendingList"></div><div id="phoneAdminStatus" class="status"></div><div id="phoneAdminList"></div>
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px"><strong>⏳ Tài khoản chờ duyệt <span id="phonePendingCount">(0)</span></strong><button type="button" id="phonePendingRefresh" class="soft" style="width:auto;padding:7px 12px;font-size:13px">↻ TẢI LẠI</button></div><div id="phonePendingStatus" class="muted" style="font-size:12px" aria-live="polite">Bấm TẢI LẠI để xem yêu cầu.</div><div id="phonePendingList"></div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 8px"><strong>✅ Tài khoản đã duyệt <span id="phoneApprovedCount">(0)</span></strong><button type="button" id="phoneApprovedRefresh" class="soft" style="width:auto;padding:7px 12px;font-size:13px">↻ TẢI LẠI</button></div>
+ <input id="phoneApprovedSearch" type="search" placeholder="Tìm số điện thoại đã duyệt..." autocomplete="off" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px">
+ <div id="phoneApprovedStatus" class="muted" style="font-size:12px;margin:8px 0" aria-live="polite">Bấm TẢI LẠI để xem tài khoản đã duyệt.</div><div id="phoneApprovedList"></div>
+ <div id="phoneAdminStatus" class="status"></div><div id="phoneAdminList"></div>
  </div>
 
  </div></div>
@@ -1823,6 +1826,28 @@ async function phonePendingLoad(){
  finally{btn.disabled=false;}
 }
 $("phonePendingRefresh").onclick=phonePendingLoad;
+let phoneApprovedAccounts=[];
+function phoneApprovedRender(){
+ const query=$("phoneApprovedSearch").value.replace(/[^0-9]/g,"");
+ const accounts=phoneApprovedAccounts.filter(a=>!query||a.phone_e164.replace(/[^0-9]/g,"").includes(query));
+ const host=$("phoneApprovedList");host.replaceChildren();
+ if(!accounts.length){host.textContent=query?"Không tìm thấy SĐT đã duyệt.":"Không có tài khoản đã duyệt.";return;}
+ accounts.forEach(account=>{
+  const line=document.createElement("div");line.style.cssText="padding:10px;border:1px solid #d7dee8;border-radius:10px;margin:7px 0";
+  const info=document.createElement("div");info.textContent=account.phone_e164+" • Đã duyệt";info.style.fontWeight="600";line.append(info);
+  const btn=document.createElement("button");btn.type="button";btn.className="soft";btn.style.cssText="width:auto;padding:8px 12px;margin-top:8px";btn.textContent="GIA HẠN";
+  btn.onclick=()=>{ $("unifiedLicenseAccount").value=account.phone_e164;$("phoneAdminSearch").value=account.phone_e164.replace(/[^0-9]/g,"");phoneAdminLoad();$("unifiedLicenseAccount").scrollIntoView({behavior:"smooth",block:"center"});};
+  line.append(btn);host.append(line);
+ });
+}
+async function phoneApprovedLoad(){
+ const btn=$("phoneApprovedRefresh"),status=$("phoneApprovedStatus");btn.disabled=true;status.textContent="Đang tải...";
+ try{const result=await phoneAdminRequest("list_accounts");phoneApprovedAccounts=(result.accounts||[]).filter(a=>a.status==="approved");$("phoneApprovedCount").textContent="("+phoneApprovedAccounts.length+")";status.textContent="Đã tải "+phoneApprovedAccounts.length+" tài khoản đã duyệt.";phoneApprovedRender();}
+ catch(e){status.textContent="Không tải được: "+e.message;}
+ finally{btn.disabled=false;}
+}
+$("phoneApprovedRefresh").onclick=phoneApprovedLoad;
+$("phoneApprovedSearch").addEventListener("input",phoneApprovedRender);
 async function phoneAdminChange(account,action){
  const term=$("phoneAdminTerm").value;
  if(!confirm((action==="approve"?(account.status==="approved"?"Gia hạn ":"Cấp quyền "):"Khóa ")+account.phone_e164+(action==="approve"?" • "+term:"")+"?"))return;

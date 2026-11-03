@@ -13354,7 +13354,11 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       groupRequest("status").then(result=>{
         if(result.session_saved){loginArea.hidden=true;loadCustomerGroups();}
         else groupMessage.textContent="VPS chưa xác nhận phiên Telegram đã lưu. Bấm Tải lại danh sách nhóm để kiểm tra; không cần gửi lại OTP.";
-      }).catch(error=>{groupMessage.textContent="Không kiểm tra được phiên Telegram: "+(error.message||"Lỗi không xác định");});
+      }).catch(error=>{
+        groupMessage.textContent=/not found|404/i.test(String(error.message||""))
+          ?"VPS chưa hỗ trợ kiểm tra phiên Telegram. Không yêu cầu OTP mới; cần cập nhật API trên VPS."
+          :"Không kiểm tra được phiên Telegram: "+(error.message||"Lỗi không xác định");
+      });
     }
    }catch(_){availability.textContent="Chưa kết nối được dịch vụ xác thực VPS. Vui lòng kiểm tra lại sau.";}
   }
@@ -13402,7 +13406,12 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
         label.append(input,document.createTextNode(" "+String(group.name||group.chat_id)));groupList.append(label);
       }
       groupMessage.textContent=availableGroups.length?"Đã tải "+availableGroups.length+" nhóm. Chọn nhóm muốn đồng bộ.":"Telegram chưa trả về nhóm nào cho tài khoản này.";
-    }catch(error){groupMessage.textContent="Không tải được nhóm: "+error.message;}
+    }catch(error){
+      const message=String(error.message||"");
+      groupMessage.textContent=/not found|404/i.test(message)
+        ?"VPS chưa cài API lấy nhóm Telegram (404). Không gửi lại OTP. Cần cập nhật dịch vụ Telegram trên VPS."
+        :"Không tải được nhóm: "+message;
+    }
   }
   reloadGroups.onclick=loadCustomerGroups;
   selectAll.onclick=()=>groupList.querySelectorAll('input[type="checkbox"]').forEach(el=>el.checked=true);

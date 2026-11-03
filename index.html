@@ -1211,7 +1211,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  <button type="button" id="phoneAdminRefresh">Tải</button><button type="button" id="phoneAdminFind">Tìm</button>
  </div>
  <div class="muted" style="font-size:12px">Danh sách tài khoản SĐT phù hợp sẽ hiển thị bên dưới để Admin xác nhận.</div>
- <div id="phoneAdminStatus" class="status"></div><div id="phoneAdminList"></div>
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px"><strong>⏳ Tài khoản chờ duyệt <span id="phonePendingCount">(0)</span></strong><button type="button" id="phonePendingRefresh" class="soft" style="width:auto;padding:7px 12px;font-size:13px">↻ TẢI LẠI</button></div><div id="phonePendingStatus" class="muted" style="font-size:12px" aria-live="polite">Bấm TẢI LẠI để xem yêu cầu.</div><div id="phonePendingList"></div><div id="phoneAdminStatus" class="status"></div><div id="phoneAdminList"></div>
  </div>
 
  </div></div>
@@ -1800,6 +1800,29 @@ async function phoneAdminLoad(onlyPending=false){
  try{const result=await phoneAdminRequest(onlyPending?"list_pending":"list_accounts");phoneAdminAccounts=result.accounts||[];const query=$("phoneAdminSearch").value.replace(/[^0-9]/g,"");phoneAdminFilter();phoneAdminMessage("Đã tải "+phoneAdminAccounts.length+" tài khoản.");}
  catch(e){phoneAdminMessage(e.message,true);}
 }
+async function phonePendingLoad(){
+ const status=$("phonePendingStatus"),host=$("phonePendingList"),btn=$("phonePendingRefresh");
+ btn.disabled=true;status.textContent="Đang tải tài khoản chờ duyệt...";
+ try{
+  const result=await phoneAdminRequest("list_pending");
+  const accounts=result.accounts||[];
+  $("phonePendingCount").textContent="("+accounts.length+")";
+  host.replaceChildren();
+  status.textContent=accounts.length?"Có "+accounts.length+" tài khoản chờ duyệt.":"Không có tài khoản nào đang chờ duyệt.";
+  accounts.forEach(account=>{
+   const line=document.createElement("div");line.style.cssText="border:1px solid #d7dee8;border-radius:10px;padding:10px;margin:7px 0";
+   const info=document.createElement("div");info.style.fontWeight="600";info.textContent=account.phone_e164+" • Chờ duyệt";line.append(info);
+   const actions=document.createElement("div");actions.style.cssText="display:flex;gap:8px;margin-top:8px";
+   const approve=document.createElement("button");approve.type="button";approve.className="green";approve.style.cssText="flex:1;padding:9px";approve.textContent="DUYỆT";
+   approve.onclick=async()=>{await phoneAdminChange(account,"approve");await phonePendingLoad();};
+   const deny=document.createElement("button");deny.type="button";deny.className="soft";deny.style.cssText="flex:1;padding:9px";deny.textContent="TỪ CHỐI";
+   deny.onclick=async()=>{if(!confirm("Từ chối tài khoản "+account.phone_e164+"?"))return;try{await phoneAdminRequest("deny",{user_id:account.user_id});await phonePendingLoad();await phoneAdminLoad();}catch(e){status.textContent=e.message;}};
+   actions.append(approve,deny);line.append(actions);host.append(line);
+  });
+ }catch(e){status.textContent="Không tải được danh sách: "+e.message;}
+ finally{btn.disabled=false;}
+}
+$("phonePendingRefresh").onclick=phonePendingLoad;
 async function phoneAdminChange(account,action){
  const term=$("phoneAdminTerm").value;
  if(!confirm((action==="approve"?(account.status==="approved"?"Gia hạn ":"Cấp quyền "):"Khóa ")+account.phone_e164+(action==="approve"?" • "+term:"")+"?"))return;

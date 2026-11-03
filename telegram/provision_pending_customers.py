@@ -14,7 +14,7 @@ def main():
         uid = file.name.removesuffix(".groups.json")
         if not UUID.fullmatch(uid) or not (SOURCE / (uid + ".session.enc")).is_file():
             continue
-        if (CONFIG / (uid + ".json")).exists():
+        # A revoked account must never be silently re-provisioned.\n        if (SOURCE / (uid + ".revoked")).exists():\n            continue\n        if (CONFIG / (uid + ".json")).exists():
             unit = "ongthantai-tenant@" + uid + ".service"
             if subprocess.run(["systemctl", "is-active", "--quiet", unit], check=False).returncode == 0:
                 continue

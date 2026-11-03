@@ -2160,7 +2160,7 @@ function boot(){
   return authBootPromise;
 }
 // ===== BẢO MẬT PHIÊN ĐĂNG NHẬP =====
-const IDLE_LIMIT_MS=60*60*1000+30*1000;
+const IDLE_LIMIT_MS=90*1000;
 let idleTimer=null;
 let lastActivityAt=Date.now();
 let loginFailCount=Number(sessionStorage.getItem("ts_login_fail_count")||0);
@@ -2193,7 +2193,7 @@ function startIdleLogout(){
   idleTimer=setInterval(()=>{
     if(document.hidden || $('appCard')?.classList.contains('hidden'))return;
     if(Date.now()-lastActivityAt>=IDLE_LIMIT_MS){
-      forceLogout("Đã khóa sau 1 giờ 30 giây không thao tác.");
+      forceLogout("Đã khóa sau 1 phút 30 giây không thao tác.");
     }
   },1000);
 }
@@ -2211,8 +2211,8 @@ function loginLockRemaining(){
   },{passive:true});
 });
 // Lock immediately when Safari/CuncunPrint goes into the background.
-// Allow a 1-hour-30-second grace period after leaving the web/app.
-const TSH_AWAY_LIMIT_MS=60*60*1000+30*1000;
+// Allow a 1-minute-30-second grace period after leaving the web/app.
+const TSH_AWAY_LIMIT_MS=90*1000;
 const TSH_AWAY_KEY="tsh_away_since";
 let tshAwayLockBusy=false;
 function tshAwayExpired(){
@@ -2229,7 +2229,7 @@ function tshReturnFromAway(){
  localStorage.removeItem(TSH_AWAY_KEY);
  if(Date.now()-since>=TSH_AWAY_LIMIT_MS && !tshAwayLockBusy){
   tshAwayLockBusy=true;
-  Promise.resolve(forceLogout("Đã khóa sau 1 giờ 30 giây rời ứng dụng.")).finally(()=>{tshAwayLockBusy=false;});
+  Promise.resolve(forceLogout("Đã khóa sau 1 phút 30 giây rời ứng dụng.")).finally(()=>{tshAwayLockBusy=false;});
  }else resetIdleClock();
 }
 document.addEventListener("visibilitychange",()=>{if(document.hidden)tshMarkAway();else tshReturnFromAway();});

@@ -6,7 +6,7 @@
 export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
   if (!root || typeof getAccessToken !== "function") throw new Error("Missing authenticated host");
   const base = String(apiBase || "").replace(/\/$/, "");
-  const state = { groups: [], selected: new Set(), connected: false };
+  const state = { groups: [], selected: new Set(), connected: false, destroyed: false };
   const form = document.createElement("div");
   form.className = "cuncun-telegram-selfservice";
   const heading = document.createElement("h3");
@@ -31,7 +31,11 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
     button.addEventListener("click", async () => {
       button.disabled = true;
       try { await action(); } catch (error) { status.textContent = error.message || "Không thể kết nối"; }
-      finally { button.disabled = false; code.value = ""; password.value = ""; }
+      finally {
+        button.disabled = state.connected && buttons.slice(0, 3).includes(button) ? true : false;
+        code.value = "";
+        password.value = "";
+      }
     });
     return button;
   });
@@ -46,6 +50,7 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
   buttons[1].hidden = true;
   buttons[2].hidden = true;
   Promise.all([api("/capabilities"), api("/telegram-login/status")]).then(([capabilities, connection]) => {
+    if (state.destroyed) return;
     if (!capabilities.licensed) {
       status.textContent = "Tài khoản chưa có quyền sử dụng CUNCUN.";
       root.replaceChildren(status);
@@ -76,6 +81,7 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
       status.textContent = "Nhập số điện thoại Telegram để bắt đầu.";
     }
   }).catch(() => {
+    if (state.destroyed) return;
     status.textContent = "Không kiểm tra được quyền kết nối Telegram.";
     root.replaceChildren(status);
   });
@@ -139,5 +145,5 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
     const result = await api("/telegram-login/groups/select", { chat_ids: chosen });
     status.textContent = "Đã lưu " + result.selected_count + " nhóm. Đồng bộ chưa được kích hoạt trên VPS.";
   }
-  return { refresh: loadGroups, destroy: () => root.replaceChildren() };
+  return { refresh: loadGroups, destroy: () => { state.destroyed = true; root.replaceChildren(); } };
 }

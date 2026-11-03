@@ -8657,10 +8657,12 @@ window.showHistoryItem=showHistoryItem;
           if(window.TSHNativePrintBridge?.available()){
             const result=await window.TSHNativePrintBridge.send(content);
             if(!result?.sent)throw Error('Máy in chưa xác nhận nhận lệnh.');
-          }else if(window.TSHIOSSharePhoi?.share){
-            await window.TSHIOSSharePhoi.share(content);
-            if(!confirm('Phiếu đã in ra giấy đầy đủ chưa?'))return;
-          }else throw Error('Chưa kết nối chế độ in tương thích.');
+          }else if(typeof printReceiptAirPrint==='function' && window.TSHIOSSharePhoi?.render){
+            // Safari/browser: use the existing 80mm AirPrint receipt flow.
+            printReceiptAirPrint(content);
+            alert('Đã mở hộp thoại in. Chọn máy in để IN LẠI.');
+            return;
+          }else throw Error('Chưa tải được bộ in 80mm. Hãy tải lại trang.');
           const all=read(), saved=all.find(x=>String(x.id)===String(item.id));
           if(saved){saved.printCount=(Number(saved.printCount)||1)+1;saved.lastPrintedAt=Date.now();write(all);}
           reprint.closest('.ph-card')?.querySelector('label b:last-of-type')?.replaceChildren('Đã in ×'+(saved?.printCount||1));

@@ -32,7 +32,8 @@ class SelfServiceContractTests(unittest.TestCase):
         finish = self.source.split("    async def finish(uid, entry):", 1)[1].split("    async def get_pending(", 1)[0]
         self.assertIn("finally:\n            pending.pop(uid, None)\n            await close_entry(entry)", finish)
         self.assertIn("os.link(temporary, target)", finish)
-        self.assertLess(finish.index("        try:\n            if target.exists():"), finish.index("raise HTTPException(409"))
+        self.assertLess(finish.index("        try:\n            value = entry"), finish.index("raise HTTPException(409"))
+        self.assertIn("encrypted = cipher.encrypt", finish)
         self.assertIn("finally:\n            pending.pop(uid, None)\n            await close_entry(entry)", finish)
 
     def test_expired_otp_closes_pending_client(self):

@@ -5168,7 +5168,7 @@ async function getAllLotteryResults(requiredRegions){
     $('sourceCompare').textContent=failures.length?failures.join(' • '):partial.length?'ĐANG QUAY – '+partial.join(' • '):'Kết quả từ API xổ số riêng đã đủ số lượng.';
     $('sourceCompare').className=failures.length?'status err':partial.length?'status':'muted';
   }
-  if(failures.length) throw new Error(failures.join(' • ')+'; đã giữ kết quả tải trước (nếu có).');
+  if(failures.length){ window.__lotteryFailedRegions=failures; for(const f of failures){ const region=f.split(':')[0]; partial.push(region+' chưa lấy được KQ'); } } else window.__lotteryFailedRegions=[];
   if(partial.length){
     if(typeof liveQualityReport==='function'){const q=liveQualityReport(next,requestedDate);if(q.warnings.length)partial.push(...q.warnings.filter(x=>x.includes('thiếu ')).slice(0,5));}
     setStatus('KẾT QUẢ CHƯA ĐỦ: '+partial.join(' • ')+' — không chốt thắng/thua.','ok');
@@ -6131,6 +6131,27 @@ function calcWinning(rows, priceTable){
 }
 
 
+// Settle only rows whose exact stations have complete results. Other rows remain pending.
+function calcWinningAvailable(rows,priceTable){
+  const ready=[],waiting=new Set();
+  for(const row of rows){
+    if(row.hidden){ready.push(row);continue;}
+    const draws=regionDraws(row);
+    const label=String(row.scopeStation||row.station||'');
+    const count=/^3 Đài/i.test(label)?3:/^4 Đài/i.test(label)?4:/^2 Đài/i.test(label)?2:Array.isArray(row.crossProvinces)&&row.cross2?2:Array.isArray(row.fixedStations)&&row.fixedStations.length?row.fixedStations.length:1;
+    const complete=draws.length>=count && draws.every(d=>{
+      const prizes=drawPrizes(d);
+      const n=Object.values(prizes).reduce((sum,v)=>sum+(Array.isArray(v)?v.length:0),0);
+      return n>=(row.region==='B'?27:18);
+    });
+    if(complete)ready.push(row);else waiting.add(row);
+  }
+  const win=calcWinning(ready,priceTable);
+  const map=new Map(win.details.map(d=>[d.row,d]));
+  win.details=rows.map(row=>waiting.has(row)?{row,hits:[],payout:0,pending:true}:map.get(row)||{row,hits:[],payout:0,pending:true});
+  win.pendingCount=waiting.size;
+  return win;
+}
 function typeLabel(t){
   if(/^B2$/.test(t)) return "Bao 2";
   if(/^B3$/.test(t)) return "Bao 3";
@@ -6185,7 +6206,7 @@ function stationDisplayName(v){
 }
 // QUY TẮC TIỀN TRÚNG: điểm trúng × số thưởng; TIỀN XÁC chỉ dùng để tính thu/bù.
 function calcRowResultText(d){
-  if(window.__lotteryResultPending) return 'CHỜ KQ';
+  if(d.pending || (window.__lotteryResultPending && !window.__lotteryPartialSettlement)) return 'CHỜ KQ';
   if(!d.hits.length) return 'X';
   const p=Math.round(Number(d.payout)||0);
   const extra=d.hits.map(h=>h.detail||'').filter(Boolean).join(' • ');
@@ -6675,8 +6696,10 @@ async function runAll(){
       new Promise((_,reject)=>setTimeout(()=>reject(new Error('Nguồn kết quả phản hồi quá lâu (20 giây).')),20000))
     ]);
     if(window.__lotteryPartialDraws?.length){
-      window.__lotteryResultPending=true;
-      renderCalculation(rows,[],c,null,'LIVE ĐANG QUAY: '+window.__lotteryPartialDraws.join(' • ')+'. Chưa đủ giải, chưa chốt trúng/trượt.');
+      window.__lotteryResultPending=false;
+      window.__lotteryPartialSettlement=true;
+      const partialWin=calcWinningAvailable(rows,c);
+      renderCalculation(rows,[],c,partialWin,'Đã dò các đài đủ giải; '+partialWin.pendingCount+' dòng còn CHỜ KQ. Tổng thu/bù đang tạm tính, không chốt khi còn dòng chờ.');
       setStatus('LIVE ĐANG QUAY: '+window.__lotteryPartialDraws.join(' • ')+'. Đang chờ đủ giải để dò chính thức.','ok');
       // Start the existing 30-second LIVE checker without requiring an extra tap.
       if(!liveSoiRunning){liveSoiRunning=true;const btn=document.getElementById('liveSoiToggle');if(btn)btn.textContent='Tắt LIVE';}
@@ -6684,7 +6707,8 @@ async function runAll(){
       return;
     }
     window.__lotteryResultPending=false;
-    const win=calcWinning(rows,c);
+    window.__lotteryPartialSettlement=false;
+    const win=calcWinningAvailable(rows,c);
     const result=renderCalculation(rows,[],c,win,null);
     saveCalculationHistory();
     setStatus(`Đã hoàn tất: tính + tự dò kết quả. Tổng xác ${money(result.totalGross)} • Thu/Bù ${money(result.totalThu)}.`,'ok');

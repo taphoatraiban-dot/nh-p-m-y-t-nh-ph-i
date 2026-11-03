@@ -74,7 +74,11 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
       password.hidden = true;
       buttons[1].hidden = true;
       buttons[2].hidden = true;
-      status.textContent = "Đã lưu phiên Telegram. Bấm Lấy danh sách nhóm để tiếp tục.";
+      buttons[3].disabled = false;
+      status.textContent = "Đã lưu phiên Telegram. Đang tải danh sách nhóm...";
+      loadGroups().catch(error => {
+        if (!state.destroyed) status.textContent = "Đã lưu phiên Telegram nhưng chưa tải được nhóm: " + (error.message || "Lỗi không xác định") + ". Bấm Lấy danh sách nhóm để thử lại.";
+      });
     } else {
       buttons[3].disabled = true;
       buttons[4].disabled = true;

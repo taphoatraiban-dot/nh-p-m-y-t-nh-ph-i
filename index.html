@@ -13337,7 +13337,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   logoutButton.type="button";logoutButton.id="tgCustomerVpsLogout";
   logoutButton.className="soft";logoutButton.textContent="ĐĂNG XUẤT TELEGRAM";
   logoutButton.style.cssText="width:100%;margin-top:7px;color:#b91c1c";
-  logoutButton.hidden=true;logoutButton.disabled=true;
+  logoutButton.hidden=false;logoutButton.disabled=true;
   availability.after(logoutButton);
   const logoutMessage=document.createElement("div");
   logoutMessage.setAttribute("role","status");logoutMessage.style.cssText="font-size:12px;margin-top:5px";
@@ -13345,11 +13345,12 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   async function refreshLogout(){
     try{
       const result=await groupRequest("status");
-      logoutButton.hidden=!result.session_saved&&!result.disconnect_pending;
+      logoutButton.hidden=false;
       logoutButton.disabled=!result.session_saved||!!result.disconnect_pending;
       if(result.disconnect_pending)logoutMessage.textContent="Đang ngắt Telegram cũ. Vui lòng chờ trước khi kết nối tài khoản khác.";
-      else if(!result.session_saved)logoutMessage.textContent="";
-    }catch(_){logoutButton.hidden=true;logoutButton.disabled=true;}
+      else if(!result.session_saved)logoutMessage.textContent="Chưa tìm thấy phiên Telegram tự kết nối trên VPS. Nút tạm khóa để bảo vệ kết nối hiện tại.";
+      else logoutMessage.textContent="";
+    }catch(_){logoutButton.hidden=false;logoutButton.disabled=true;logoutMessage.textContent="Chưa kiểm tra được phiên Telegram VPS. Nút tạm khóa; bấm Kiểm tra kết nối để thử lại.";}
   }
   logoutButton.onclick=async()=>{
     if(logoutButton.disabled||!confirm("Đăng xuất Telegram hiện tại để kết nối Telegram khác? Tin nhắn đã lưu trong CUNCUN vẫn được giữ."))return;

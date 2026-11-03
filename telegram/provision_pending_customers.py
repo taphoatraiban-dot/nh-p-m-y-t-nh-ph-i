@@ -4,11 +4,13 @@ import re
 import subprocess
 from pathlib import Path
 from provision_selfservice_customer import provision
+from process_telegram_disconnects import main as process_disconnects
 
 SOURCE = Path("/var/lib/ongthantai-telegram-sessions")
 CONFIG = Path("/etc/ongthantai-telegram/tenants")
 UUID = re.compile(r"^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
 def main():
+    process_disconnects()
     successes = failures = 0
     for file in sorted(SOURCE.glob("*.groups.json")):
         uid = file.name.removesuffix(".groups.json")

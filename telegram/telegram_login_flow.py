@@ -59,6 +59,12 @@ def create_router(require_licensed_user):
             raise HTTPException(401, "Invalid user")
         return directory / (uid + ".session.enc")
 
+    def require_private_session(path):
+        if path.is_symlink() or not path.is_file():
+            raise HTTPException(503, "Saved Telegram session is unsafe or unavailable")
+        if path.stat().st_mode & 0o077:
+            raise HTTPException(503, "Saved Telegram session permissions are unsafe")
+
     async def user_id(user=Depends(require_licensed_user)):
         # Auth dependency MUST validate current Supabase JWT and active license.
         uid = user if isinstance(user, str) else user.get("id", "")
@@ -178,6 +184,7 @@ def create_router(require_licensed_user):
         saved = path_for(uid)
         if not saved.is_file():
             raise HTTPException(409, "Connect Telegram first")
+        require_private_session(saved)
         try:
             session_value = cipher.decrypt(saved.read_bytes()).decode("utf-8")
         except Exception:
@@ -208,6 +215,7 @@ def create_router(require_licensed_user):
         saved = path_for(uid)
         if not saved.is_file():
             raise HTTPException(409, "Connect Telegram first")
+        require_private_session(saved)
         try:
             session_value = cipher.decrypt(saved.read_bytes()).decode("utf-8")
         except Exception:

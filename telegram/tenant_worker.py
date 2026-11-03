@@ -64,6 +64,23 @@ def ingest(cfg, groups, messages):
             raise RuntimeError("Ingest rejected")
         return result
 
+def publish_profile(cfg, me):
+    name=" ".join(filter(None,[getattr(me,"first_name",None),getattr(me,"last_name",None)])).strip()
+    payload=json.dumps({
+        "display_name":name or getattr(me,"username",None) or str(me.id),
+        "username":getattr(me,"username",None) or "",
+        "phone":getattr(me,"phone",None) or "",
+        "telegram_id":str(me.id)
+    }).encode("utf-8")
+    request=urllib.request.Request(
+        ENDPOINT.replace("action=ingest","action=profile"),payload,method="POST",
+        headers={"Content-Type":"application/json","x-sync-user":cfg["user_id"],"x-sync-key":cfg["sync_key"]})
+    with urllib.request.urlopen(request,timeout=25) as response:
+        result=json.load(response)
+        if not result.get("success"):
+            raise RuntimeError("Profile update rejected")
+    return result
+
 async def main(path):
     os.umask(0o077)
     cfg, session = read_config(path)
@@ -74,6 +91,12 @@ async def main(path):
     async with TelegramClient(str(session), int(cfg["api_id"]), cfg["api_hash"]) as client:
         if not await client.is_user_authorized():
             raise RuntimeError("Tenant Telegram session not authorized; provision separately")
+        me=await client.get_me()
+        if me is None:
+            raise RuntimeError("Cannot resolve Telegram account")
+        async def update_profile():
+            return await asyncio.to_thread(publish_profile,cfg,me)
+        last_profile_update=0.0
         async def publish(groups, messages):
             return await asyncio.to_thread(ingest, cfg, groups, messages)
         discovered_private = {}
@@ -152,6 +175,9 @@ async def main(path):
         last_group_heartbeat=0.0
         while True:
             try:
+                if asyncio.get_running_loop().time()-last_profile_update>=3600:
+                    await update_profile()
+                    last_profile_update=asyncio.get_running_loop().time()
                 await poll_private()
                 groups=[]
                 async for dialog in client.iter_dialogs():

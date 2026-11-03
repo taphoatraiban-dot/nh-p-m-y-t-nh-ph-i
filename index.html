@@ -6455,12 +6455,34 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
     regionButtons.forEach(x=>{ x.classList.remove('active'); x.setAttribute('aria-expanded','false'); });
   };
   closeAllRegionDetails();
+  // Re-check source wagers when opening details, even if DÒ SAI was skipped.
+  function showDetailSafetyReminder(){
+    const picker=document.querySelector('.region-picker-sample');
+    if(!picker)return;
+    let box=picker.querySelector('#detailSafetyReminder');
+    if(!box){box=document.createElement('div');box.id='detailSafetyReminder';box.setAttribute('role','alert');box.style.cssText='margin:10px;padding:12px;border-radius:10px;font-size:15px;text-align:left;white-space:pre-wrap';picker.appendChild(box);}
+    try{
+      if(typeof window.cuncunInspectLiveWagers==='function')window.cuncunInspectLiveWagers();
+      const parsed=parseBets(),issues=phoiStrictErrors(parsed);
+      const strict=[...(issues.parser||[]).map(String),...(issues.schedule||[]).map(e=>'Dòng '+e.lineNo+': '+e.details)];
+      const live=document.getElementById('phoiLiveWarnings');
+      const suspicious=live&&live.style.display!=='none'?live.innerText.trim():'';
+      if(strict.length||suspicious){
+        box.style.background='#fff0ed';box.style.border='1px solid #dc2626';box.style.color='#991b1b';
+        box.textContent='⚠️ KIỂM TRA PHƠI TRƯỚC KHI SỬ DỤNG KẾT QUẢ\n'+strict.slice(0,6).join('\n')+(strict.length>6?'\nCòn '+(strict.length-6)+' lỗi khác.':'')+(suspicious?'\n'+suspicious:'')+'\nHãy quay lại ô nhập để sửa nếu cần.';
+      }else{
+        box.style.background='#e8f7ee';box.style.border='1px solid #b9e4ca';box.style.color='#166534';
+        box.textContent='✓ Đã kiểm tra lại: không phát hiện lỗi cú pháp, lịch đài hoặc đoạn đáng nghi theo các quy tắc hiện có.';
+      }
+    }catch(e){box.style.background='#fff8e5';box.style.color='#704500';box.textContent='⚠️ Không thể hoàn tất kiểm tra lại. Hãy bấm DÒ SAI trước khi sử dụng kết quả.';}
+  }
   regionButtons.forEach(btn=>btn.addEventListener('click',()=>{
     const r=btn.dataset.region;
     const same=openRegion===r;
     closeAllRegionDetails();
     if(same){ openRegion=null; return; }
     openRegion=r;
+    showDetailSafetyReminder();
     const panel=detailPanels.find(el=>el.dataset.regionPanel===r);
     if(panel){ panel.hidden=false; panel.style.setProperty('display','block','important'); }
     btn.classList.add('active');
@@ -14051,6 +14073,7 @@ function inspect(){
  warnings.slice(0,12).forEach(w=>{const div=document.createElement("div");div.style.marginTop="8px";div.textContent=(w.level==="error"?"🔴 ":"🟡 ")+"Dòng "+w.line+": "+w.part+" — "+w.reason;out.append(div);});
  if(warnings.length>12){const more=document.createElement("div");more.textContent="Còn "+(warnings.length-12)+" cảnh báo khác.";out.append(more);}
 }
+window.cuncunInspectLiveWagers=inspect;
 input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(inspect,150);});
 input.addEventListener("change",inspect);
 document.addEventListener("click",e=>{if(e.target?.id==="checkPhoi"||e.target?.id==="okAll")inspect();});

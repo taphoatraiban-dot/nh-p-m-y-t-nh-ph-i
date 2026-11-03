@@ -2257,7 +2257,7 @@ async function performLogin(){
   if(isPhoneLogin(email)){
     authBootEpoch++;loginStatus("Đang đăng nhập số điện thoại...");
     try{const result=await phoneAuthCall("login",email,password);if(!result.session)throw Error("Máy chủ chưa trả phiên đăng nhập.");const {error}=await sb.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});if(error)throw error;
-      await checkLicense();await claimDevice();await cloudRestoreSettings();showApp();await setupPinIfNeeded(email);cloudSaveSettingsSoon();loginStatus("");
+      await checkLicense();await claimDevice();await cloudRestoreSettings();showApp();await setupPinIfNeeded(result.session.user?.email||result.user?.email||email);cloudSaveSettingsSoon();loginStatus("");
     }catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}return;
   }
   authBootEpoch++; // Ignore a slower startup result after manual login begins.

@@ -75,10 +75,10 @@ def create_router(require_licensed_user):
         value = entry["client"].session.save()
         encrypted = cipher.encrypt(value.encode("utf-8"))
         target = path_for(uid)
-        if target.exists():
-            raise HTTPException(409, "A session is already saved for this account")
         temporary = target.with_name(target.name + "." + secrets.token_hex(8) + ".tmp")
         try:
+            if target.exists():
+                raise HTTPException(409, "A session is already saved for this account")
             fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             try:
                 with os.fdopen(fd, "wb") as output:

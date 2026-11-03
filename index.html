@@ -2314,14 +2314,24 @@ async function performLoginOnce(){
 }
 $("loginBtn").onclick=performLogin;
 $("quickLoginBtn").onclick=async()=>{
-  // Trên iPhone, nút này tận dụng mật khẩu đã lưu/AutoFill (Face ID) nếu Safari cung cấp.
-  if(!$("email").value) restoreLoginEmail();
-  if(!$("password").value){
-    $("password").focus();
-    loginStatus("Nếu iPhone hiện mật khẩu đã lưu, chọn tài khoản bằng Face ID rồi bấm lại Đăng nhập nhanh.","ok");
-    return;
-  }
-  await performLogin();
+  // PIN unlock is allowed only with a valid Supabase session. Never use a PIN
+  // as a substitute for server authentication after the session expires.
+  const account=($("email").value.trim().toLowerCase()||localStorage.getItem(LOGIN_EMAIL_KEY)||"");
+  try{
+    const {data:{session},error}=await sb.auth.getSession();
+    if(error)throw error;
+    if(session){
+      const sessionEmail=session.user?.email||"";
+      const hasPin=!!getSavedPin(sessionEmail)||!!(await cloudPinHash());
+      if(hasPin){showPinLock(sessionEmail);return;}
+      loginStatus("Chưa thiết lập PIN 4 số. Đăng nhập bằng mật khẩu một lần để tạo PIN.","ok");
+    }else{
+      loginStatus("Phiên đăng nhập đã hết hạn. Nhập mật khẩu một lần để xác thực lại và tạo PIN 4 số.","ok");
+    }
+  }catch(e){loginStatus("Không kiểm tra được phiên đăng nhập. Hãy dùng mật khẩu để đăng nhập.","err");}
+  if(account && !$("email").value)$("email").value=account;
+  if($("password").value){await performLogin();return;}
+  $("password").focus();
 };
 if($("logoutBtn2")) $("logoutBtn2").onclick=doLogout;
 $("logoutBelowPhoi")?.addEventListener("click",doLogout);

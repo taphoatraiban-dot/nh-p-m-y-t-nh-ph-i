@@ -8415,7 +8415,8 @@ window.showHistoryItem=showHistoryItem;
       return;
     }
     const money=n=>Math.round(Math.abs(Number(n)||0)).toLocaleString('vi-VN');
-    const balance=Number(sm.finalTotal)||0;
+    // Printed receipt totals must exclude the customer's previous-day balance.
+    let balance=0;
     // Use the SAME parsed, priced rows as the calculation; do not guess line amounts.
     const pricedRows=parsedForPrint.rows.filter(row=>!row.hidden);
     const grossRows=pricedRows.reduce((sum,row)=>sum+(Number(row.gross)||0),0);
@@ -8457,8 +8458,9 @@ window.showHistoryItem=showHistoryItem;
       computed+=value;
       items.push({region:row.region==='N'?'MN':row.region==='T'?'MT':'MB',station:String((row.crossProvinces&&row.crossProvinces.length?row.crossProvinces.join(' + '):row.scopeStation||row.station)||''),type:typeLabel(row.type),number:(row.numbers||[]).join('–'),points:displayPoints(row),content:(row.numbers||[]).join('–'),amount:fmtAmount(value)});
     }
-    const remainder=Math.round(balance-computed);
-    if(remainder)items.push({station:'SỐ DƯ CHUYỂN',number:'',type:'',points:'',content:'Số dư cũ',amount:fmtAmount(remainder)});
+    // Receipt total is the sum of its printed line amounts only.
+    // Previous-day carry remains in accounting, never in the receipt or QR.
+    balance=computed;
     // Direct, AirPrint, and queue share the same 80mm receipt payload.
     // QR verification is intentionally omitted until its backend is deployed.
     const receipt='[[TABLE80]]'+JSON.stringify({

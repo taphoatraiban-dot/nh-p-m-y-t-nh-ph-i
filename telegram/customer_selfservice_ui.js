@@ -40,6 +40,24 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
   groupsEl.setAttribute("aria-label", "Nhóm Telegram muốn đồng bộ");
   form.append(heading, status, phone, buttons[0], code, buttons[1], password, buttons[2], buttons[3], groupsEl, buttons[4]);
   root.replaceChildren(form);
+  form.hidden = true;
+  api("/capabilities").then(capabilities => {
+    if (!capabilities.licensed) {
+      status.textContent = "Tài khoản chưa có quyền sử dụng CUNCUN.";
+      root.replaceChildren(status);
+      return;
+    }
+    if (!capabilities.telegram_login_enabled) {
+      status.textContent = "Tính năng Telegram tự kết nối chưa được kích hoạt.";
+      root.replaceChildren(status);
+      return;
+    }
+    form.hidden = false;
+    status.textContent = "Nhập số điện thoại Telegram để bắt đầu.";
+  }).catch(() => {
+    status.textContent = "Không kiểm tra được quyền kết nối Telegram.";
+    root.replaceChildren(status);
+  });
 
   async function api(path, body) {
     const token = await getAccessToken();

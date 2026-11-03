@@ -234,6 +234,8 @@ def create_router(require_licensed_user):
         finally:
             await client.disconnect()
         target = directory / (uid + ".groups.json")
+        if target.is_symlink():
+            raise HTTPException(503, "Saved group selection is unsafe")
         temporary = target.with_name(target.name + "." + secrets.token_hex(8) + ".tmp")
         fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         try:

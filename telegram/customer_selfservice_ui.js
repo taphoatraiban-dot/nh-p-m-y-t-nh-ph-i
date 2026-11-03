@@ -41,7 +41,7 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
   form.append(heading, status, phone, buttons[0], code, buttons[1], password, buttons[2], buttons[3], groupsEl, buttons[4]);
   root.replaceChildren(form);
   form.hidden = true;
-  api("/capabilities").then(capabilities => {
+  Promise.all([api("/capabilities"), api("/telegram-login/status")]).then(([capabilities, connection]) => {
     if (!capabilities.licensed) {
       status.textContent = "Tài khoản chưa có quyền sử dụng CUNCUN.";
       root.replaceChildren(status);
@@ -53,7 +53,20 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
       return;
     }
     form.hidden = false;
-    status.textContent = "Nhập số điện thoại Telegram để bắt đầu.";
+    if (connection.session_saved) {
+      state.connected = true;
+      phone.disabled = true;
+      code.disabled = true;
+      password.disabled = true;
+      buttons[0].disabled = true;
+      buttons[1].disabled = true;
+      buttons[2].disabled = true;
+      status.textContent = "Đã lưu phiên Telegram. Bấm Lấy danh sách nhóm để tiếp tục.";
+    } else {
+      buttons[3].disabled = true;
+      buttons[4].disabled = true;
+      status.textContent = "Nhập số điện thoại Telegram để bắt đầu.";
+    }
   }).catch(() => {
     status.textContent = "Không kiểm tra được quyền kết nối Telegram.";
     root.replaceChildren(status);
@@ -76,7 +89,7 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
   async function request(path, body) {
     const result = await api(path, body);
     if (result.step === "password") status.textContent = "Nhập mật khẩu xác minh 2 bước Telegram";
-    else if (result.step === "connected") { state.connected = true; status.textContent = "Đã lưu phiên Telegram. Chọn nhóm để đồng bộ."; }
+    else if (result.step === "connected") { state.connected = true; buttons[0].disabled = true; buttons[1].disabled = true; buttons[2].disabled = true; buttons[3].disabled = false; status.textContent = "Đã lưu phiên Telegram. Chọn nhóm để đồng bộ."; }
     else status.textContent = "Đã gửi yêu cầu. Kiểm tra Telegram để lấy mã.";
   }
   async function loadGroups() {
@@ -98,6 +111,7 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
       label.append(checkbox, document.createTextNode(" " + group.name));
       groupsEl.append(label, document.createElement("br"));
     }
+    buttons[4].disabled = false;
     status.textContent = "Đã tải " + state.groups.length + " nhóm. Chọn nhóm muốn đồng bộ.";
   }
   async function saveGroups() {

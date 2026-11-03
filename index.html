@@ -14057,7 +14057,7 @@ function inspect(){
    if(kind.toLowerCase()==="da"||/đá/i.test(token)){
     if(nums.length>=2&&new Set(nums.map(n=>n.length)).size>1)warn(i,token,"Các số đá có độ dài khác nhau; kiểm tra cách ghi.", "warning");
     if(nums.length>=2&&new Set(nums).size!==nums.length)warn(i,token,"Có số đá bị lặp trong cùng nhóm.", "error");
-    if(nums.length===1&&nums[0].length>4)warn(i,token,"Dãy đá liền nhau có thể thiếu dấu phân cách.", "warning");
+    if(nums.length===1&&nums[0].length>4&&nums[0].length%2!==0)warn(i,token,"Dãy đá có số chữ số lẻ; kiểm tra lại cách ghi.", "warning");
    }
   }
   // Conservative anomaly: 2-digit and 4-digit numbers combined before DA, as in reference screenshot.

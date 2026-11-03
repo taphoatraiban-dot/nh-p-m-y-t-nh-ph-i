@@ -28,6 +28,11 @@ class SelfServiceContractTests(unittest.TestCase):
         finish = self.source.split("    async def finish(uid, entry):", 1)[1].split("    async def get_pending(", 1)[0]
         self.assertNotIn("os.replace(temporary, target)", finish)
 
+    def test_session_write_cleanup_on_failure(self):
+        finish = self.source.split("    async def finish(uid, entry):", 1)[1].split("    async def get_pending(", 1)[0]
+        self.assertIn("finally:\n            pending.pop(uid, None)\n            await close_entry(entry)", finish)
+        self.assertIn("os.link(temporary, target)", finish)
+
     def test_selected_groups_checked_against_telegram_membership(self):
         self.assertIn("set(selected).issubset(allowed)", self.source)
         self.assertIn('data.get("user_id") != uid', self.source)

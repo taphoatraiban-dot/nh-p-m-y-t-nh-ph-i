@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Process authenticated Telegram disconnect markers; root-only, fail closed."""
 import os
+import fcntl
 import re
 import shutil
 import stat
@@ -22,6 +23,12 @@ def private_regular(path):
         raise RuntimeError("Unsafe file permissions")
 
 def disconnect(uid):
+    lock_path = Path("/run/lock/ongthantai-telegram-provision.lock")
+    with lock_path.open("a+") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        return disconnect_locked(uid)
+
+def disconnect_locked(uid):
     if os.geteuid() != 0 or not UUID.fullmatch(uid):
         raise RuntimeError("Root and canonical UUID required")
     marker = SOURCE / (uid + ".revoked")

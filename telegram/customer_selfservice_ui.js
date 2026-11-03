@@ -97,7 +97,8 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
       api("/telegram-login/groups"), api("/telegram-login/groups/selection")
     ]);
     state.groups = Array.isArray(available.groups) ? available.groups : [];
-    state.selected = new Set(saved.chat_ids || []);
+    const availableIds = new Set(state.groups.map(group => String(group.chat_id)));
+    state.selected = new Set((saved.chat_ids || []).map(String).filter(id => availableIds.has(id)));
     groupsEl.replaceChildren();
     for (const group of state.groups) {
       const label = document.createElement("label");
@@ -115,7 +116,9 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
     status.textContent = "Đã tải " + state.groups.length + " nhóm. Chọn nhóm muốn đồng bộ.";
   }
   async function saveGroups() {
-    const result = await api("/telegram-login/groups/select", { chat_ids: [...state.selected] });
+    const availableIds = new Set(state.groups.map(group => String(group.chat_id)));
+    const chosen = [...state.selected].filter(id => availableIds.has(id));
+    const result = await api("/telegram-login/groups/select", { chat_ids: chosen });
     status.textContent = "Đã lưu " + result.selected_count + " nhóm. Đồng bộ chưa được kích hoạt trên VPS.";
   }
   return { refresh: loadGroups, destroy: () => root.replaceChildren() };

@@ -109,7 +109,7 @@ export function mountTelegramSelfService(root, { apiBase, getAccessToken }) {
       buttons[2].hidden = false;
       status.textContent = "Nhập mật khẩu xác minh 2 bước Telegram";
     }
-    else if (result.step === "connected") { code.hidden = true; password.hidden = true; buttons[1].hidden = true; buttons[2].hidden = true; state.connected = true; buttons[0].disabled = true; buttons[1].disabled = true; buttons[2].disabled = true; buttons[3].disabled = false; status.textContent = "Đã lưu phiên Telegram. Chọn nhóm để đồng bộ."; }
+    else if (result.step === "connected") { code.hidden = true; password.hidden = true; buttons[1].hidden = true; buttons[2].hidden = true; state.connected = true; buttons[0].disabled = true; buttons[1].disabled = true; buttons[2].disabled = true; buttons[3].disabled = false; status.textContent = "Đã lưu phiên Telegram. Đang tải danh sách nhóm..."; try { await loadGroups(); } catch (error) { status.textContent = "Đã kết nối Telegram nhưng chưa tải được nhóm: " + (error.message || "Lỗi không xác định") + ". Bấm Lấy danh sách nhóm để thử lại."; } }
     else {
       code.hidden = false;
       buttons[1].hidden = false;

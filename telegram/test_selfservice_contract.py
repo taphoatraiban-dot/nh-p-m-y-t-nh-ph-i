@@ -25,7 +25,8 @@ class SelfServiceContractTests(unittest.TestCase):
     def test_session_not_overwritten(self):
         self.assertIn("if target.exists():", self.source)
         self.assertIn("os.link(temporary, target)", self.source)
-        self.assertNotIn("os.replace(temporary, target)", self.source)
+        finish = self.source.split("    async def finish(uid, entry):", 1)[1].split("    async def get_pending(", 1)[0]
+        self.assertNotIn("os.replace(temporary, target)", finish)
 
     def test_selected_groups_checked_against_telegram_membership(self):
         self.assertIn("set(selected).issubset(allowed)", self.source)

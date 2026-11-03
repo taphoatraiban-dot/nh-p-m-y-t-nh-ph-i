@@ -106,10 +106,28 @@ def create_router(require_licensed_user):
             raise HTTPException(409, "Login session expired; start again")
         return entry
 
+    @router.post("/logout")
+    async def logout(uid: str = Depends(user_id)):
+        """Queue disconnect for the authenticated customer only."""
+        marker = directory / (uid + ".revoked")
+        if marker.is_symlink():
+            raise HTTPException(503, "Unsafe disconnect state")
+        async with lock:
+            old = pending.pop(uid, None)
+            await close_entry(old)
+            if not marker.exists():
+                fd = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                             getattr(os, "O_NOFOLLOW", 0), 0o600)
+                with os.fdopen(fd, "w", encoding="utf-8") as output:
+                    output.write(uid)
+        return {"success": True, "disconnect_pending": True}
+
     @router.post("/start")
     async def start(body: StartRequest, uid: str = Depends(user_id)):
         if not PHONE.fullmatch(body.phone):
             raise HTTPException(400, "Use international format, e.g. +849xxxxxxxx")
+        if (directory / (uid + ".revoked")).exists():
+            raise HTTPException(409, "Disconnect still processing")
         if path_for(uid).exists():
             raise HTTPException(409, "A session is already saved for this account")
         async with lock:

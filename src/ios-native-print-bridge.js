@@ -18,16 +18,17 @@
     else slot.reject(new Error(String(result?.error||'Không gửi được dữ liệu đến máy in.')));
     return true;
   }
-  function send(text,doc){
+  function send(text,doc,connectionMode){
     if(!available())throw Error('Cần mở trong ứng dụng Cucun Printer trên iPhone.');
     if(!root?.TSHIOSSharePhoi)throw Error('Chưa tải được mẫu phiếu in.');
     const png=root.TSHIOSSharePhoi.render(text,doc||root.document).toDataURL('image/png');
     if(png.length>2_000_000)throw Error('Phiếu quá dài để in trực tiếp.');
+    const mode=connectionMode==='wifi'||connectionMode==='bluetooth'?connectionMode:null;
     const id=++counter;
     return new Promise((resolvePromise,reject)=>{
       const timer=setTimeout(()=>{pending.delete(id);reject(Error('Không có phản hồi từ ứng dụng máy in.'));},60000);
       pending.set(id,{resolve:resolvePromise,reject,timer});
-      try{root.webkit.messageHandlers.tshPrinter.postMessage({id,png});}
+      try{root.webkit.messageHandlers.tshPrinter.postMessage(mode?{id,png,mode,connectionMode:mode}:{id,png});}
       catch(err){pending.delete(id);clearTimeout(timer);reject(err);}
     });
   }

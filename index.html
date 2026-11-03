@@ -8559,7 +8559,7 @@ window.showHistoryItem=showHistoryItem;
         printedResult=await window.TSHIOSSharePhoi.share(text);
       }else if(forceNative){
         if(!window.TSHNativePrintBridge?.available())throw new Error('Chế độ in trực tiếp chỉ hoạt động trong ứng dụng Cucun Printer dành cho iPhone. Trên trình duyệt, hãy bấm CHUYỂN SANG XPRINTER.');
-        printedResult=await window.TSHNativePrintBridge.send(text,document,window.cuncunDirectPrintMode||null);
+        printedResult=await window.TSHNativePrintBridge.send(text);
         window.cuncunDirectPrintMode=null;
       }else if(forceIOSShare){
         if(!window.TSHIOSSharePhoi)throw new Error('Chưa tải được tính năng chia sẻ ảnh phơi.');

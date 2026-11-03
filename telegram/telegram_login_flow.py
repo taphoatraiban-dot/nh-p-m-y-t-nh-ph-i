@@ -6,6 +6,7 @@ Mount with create_router(require_licensed_user) AFTER checking identity/license.
 Single uvicorn worker; use durable, shared expiring state before scaling.
 """
 import asyncio
+import json
 import os
 import re
 import secrets
@@ -34,6 +35,9 @@ class StartRequest(BaseModel):
 
 class ConfirmRequest(BaseModel):
     code: str = Field(min_length=3, max_length=12)
+
+class GroupSelectionRequest(BaseModel):
+    chat_ids: list[str] = Field(default_factory=list, max_length=200)
 
 class PasswordRequest(BaseModel):
     password: str = Field(min_length=1, max_length=256)
@@ -184,5 +188,44 @@ def create_router(require_licensed_user):
             return {"success": True, "groups": groups}
         finally:
             await client.disconnect()
+
+    @router.post("/groups/select")
+    async def select_groups(body: GroupSelectionRequest, uid: str = Depends(user_id)):
+        """Save explicit group consent; never activate or change a running worker."""
+        selected = body.chat_ids
+        if len(selected) != len(set(selected)):
+            raise HTTPException(400, "Duplicate group IDs")
+        if any(not re.fullmatch(r"-?[0-9]{1,20}", value) for value in selected):
+            raise HTTPException(400, "Invalid group ID")
+        saved = path_for(uid)
+        if not saved.is_file():
+            raise HTTPException(409, "Connect Telegram first")
+        try:
+            session_value = cipher.decrypt(saved.read_bytes()).decode("utf-8")
+        except Exception:
+            raise HTTPException(503, "Unable to read saved Telegram session")
+        client = TelegramClient(StringSession(session_value), api_id, api_hash)
+        try:
+            await client.connect()
+            if not await client.is_user_authorized():
+                raise HTTPException(401, "Telegram session expired")
+            allowed = set()
+            async for dialog in client.iter_dialogs():
+                if dialog.is_group:
+                    allowed.add(str(dialog.id))
+            if not set(selected).issubset(allowed):
+                raise HTTPException(403, "Selected groups must belong to this Telegram account")
+        finally:
+            await client.disconnect()
+        target = directory / (uid + ".groups.json")
+        temporary = target.with_name(target.name + "." + secrets.token_hex(8) + ".tmp")
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as output:
+                json.dump({"user_id": uid, "allowed_chat_ids": [int(v) for v in selected]}, output)
+            os.replace(temporary, target)
+        finally:
+            temporary.unlink(missing_ok=True)
+        return {"success": True, "selected_count": len(selected), "worker_started": False}
 
     return router

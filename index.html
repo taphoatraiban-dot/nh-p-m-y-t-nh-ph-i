@@ -1699,7 +1699,7 @@ const loginStatus=(t,cls="")=>{ $("loginStatus").className="status "+cls; $("log
 const LOGIN_EMAIL_KEY="ts_login_email_v1";
 function restoreLoginEmail(){
   const saved=localStorage.getItem(LOGIN_EMAIL_KEY)||"";
-  if(saved && $("email") && !$("email").value) $("email").value=saved;
+  if(saved && $("email")) $("email").value=saved;
 }
 restoreLoginEmail();
 
@@ -2285,7 +2285,7 @@ async function performLoginOnce(){
   if(isPhoneLogin(email)){
     authBootEpoch++;loginStatus("Đang đăng nhập số điện thoại...");
     try{const result=await phoneAuthCall("login",email,password);if(!result.session)throw Error("Máy chủ chưa trả phiên đăng nhập.");const {error}=await sb.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});if(error)throw error;
-      await checkLicense();await claimDevice();await cloudRestoreSettings();showApp();await setupPinIfNeeded(result.session.user?.email||result.user?.email||email,true);cloudSaveSettingsSoon();loginStatus("");
+      await checkLicense();await claimDevice();await cloudRestoreSettings();localStorage.setItem(LOGIN_EMAIL_KEY,email);showApp();await setupPinIfNeeded(result.session.user?.email||result.user?.email||email,true);cloudSaveSettingsSoon();loginStatus("");
     }catch(e){await sb.auth.signOut();showLogin();loginStatus(e.message,"err");}return;
   }
   authBootEpoch++; // Ignore a slower startup result after manual login begins.

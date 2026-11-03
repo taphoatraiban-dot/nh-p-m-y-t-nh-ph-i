@@ -2160,7 +2160,7 @@ function boot(){
   return authBootPromise;
 }
 // ===== BẢO MẬT PHIÊN ĐĂNG NHẬP =====
-const IDLE_LIMIT_MS=60*1000;
+const IDLE_LIMIT_MS=60*60*1000+30*1000;
 let idleTimer=null;
 let lastActivityAt=Date.now();
 let loginFailCount=Number(sessionStorage.getItem("ts_login_fail_count")||0);
@@ -2193,7 +2193,7 @@ function startIdleLogout(){
   idleTimer=setInterval(()=>{
     if(document.hidden || $('appCard')?.classList.contains('hidden'))return;
     if(Date.now()-lastActivityAt>=IDLE_LIMIT_MS){
-      forceLogout("Đã khóa sau 1 phút không thao tác.");
+      forceLogout("Đã khóa sau 1 giờ 30 giây không thao tác.");
     }
   },1000);
 }
@@ -2211,21 +2211,38 @@ function loginLockRemaining(){
   },{passive:true});
 });
 // Lock immediately when Safari/CuncunPrint goes into the background.
-let tshBackgroundLockPending=false;
-function tshLockOnExit(){
-  if(tshBackgroundLockPending || $('appCard')?.classList.contains('hidden'))return;
-  tshBackgroundLockPending=true;
-  // Hide sensitive content synchronously before the async session check.
-  document.body.classList.remove('app-unlocked');
-  $('appCard')?.classList.add('hidden');
-  Promise.resolve(forceLogout('Đã khóa khi rời ứng dụng.')).finally(()=>{tshBackgroundLockPending=false;});
+// Allow a 1-hour-30-second grace period after leaving the web/app.
+const TSH_AWAY_LIMIT_MS=60*60*1000+30*1000;
+const TSH_AWAY_KEY="tsh_away_since";
+let tshAwayLockBusy=false;
+function tshAwayExpired(){
+ const since=Number(localStorage.getItem(TSH_AWAY_KEY)||0);
+ return since>0 && Date.now()-since>=TSH_AWAY_LIMIT_MS;
 }
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden)tshLockOnExit();
-});
-window.addEventListener('pagehide',tshLockOnExit);
+function tshMarkAway(){
+ if(!$("appCard")?.classList.contains("hidden") && !localStorage.getItem(TSH_AWAY_KEY))
+  localStorage.setItem(TSH_AWAY_KEY,String(Date.now()));
+}
+function tshReturnFromAway(){
+ const since=Number(localStorage.getItem(TSH_AWAY_KEY)||0);
+ if(!since)return;
+ localStorage.removeItem(TSH_AWAY_KEY);
+ if(Date.now()-since>=TSH_AWAY_LIMIT_MS && !tshAwayLockBusy){
+  tshAwayLockBusy=true;
+  Promise.resolve(forceLogout("Đã khóa sau 1 giờ 30 giây rời ứng dụng.")).finally(()=>{tshAwayLockBusy=false;});
+ }else resetIdleClock();
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)tshMarkAway();else tshReturnFromAway();});
+window.addEventListener("pagehide",tshMarkAway);
+window.addEventListener("pageshow",tshReturnFromAway);
 
 function showApp(){
+  if(tshAwayExpired()){
+    localStorage.removeItem(TSH_AWAY_KEY);
+    Promise.resolve(forceLogout("Đã khóa sau 1 giờ 30 giây rời ứng dụng."));
+    return;
+  }
+  localStorage.removeItem(TSH_AWAY_KEY);
   if(typeof hidePublicCoverForApp==="function") hidePublicCoverForApp();
   $("pinCard")?.classList.add("hidden");
   $("loginCard").classList.add("hidden");

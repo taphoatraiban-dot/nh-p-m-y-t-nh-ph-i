@@ -143,3 +143,20 @@ test('merge excludes cloud receipts explicitly deleted by the owner',()=>{
  const merged=api.mergeRestored([],cloud,now,['deleted-1']);
  assert.deepEqual(Array.from(merged,x=>x.id),['kept-1']);
 });
+
+test('deletion markers are account-scoped and prevent restore resurrection',async()=>{
+ const store=new Map();
+ let userId='account-a';
+ const ledger=api.createDeletionLedger({
+  storage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+  getUserId:async()=>userId
+ });
+ const now=new Date('2026-11-04T05:00:00Z');
+ await ledger.markDeleted('receipt-1',now);
+ assert.deepEqual(Array.from(await ledger.deletedIds(now)),['receipt-1']);
+ userId='account-b';
+ assert.deepEqual(Array.from(await ledger.deletedIds(now)),[]);
+ userId='account-a';
+ const merged=api.mergeRestored([],[{id:'receipt-1',created_at:'2026-11-04T03:00:00Z'}],now,await ledger.deletedIds(now));
+ assert.equal(merged.length,0);
+});

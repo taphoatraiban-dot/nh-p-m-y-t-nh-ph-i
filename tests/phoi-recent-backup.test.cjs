@@ -136,3 +136,10 @@ test('invalid queued entry cannot stop a valid receipt from uploading',async()=>
  assert.equal(result.pending,1);
  assert.equal(result.error,'retry_required');
 });
+
+test('merge excludes cloud receipts explicitly deleted by the owner',()=>{
+ const now=new Date('2026-11-04T05:00:00Z');
+ const cloud=[{id:'deleted-1',created_at:'2026-11-04T03:00:00Z'},{id:'kept-1',created_at:'2026-11-04T03:00:00Z'}];
+ const merged=api.mergeRestored([],cloud,now,['deleted-1']);
+ assert.deepEqual(Array.from(merged,x=>x.id),['kept-1']);
+});

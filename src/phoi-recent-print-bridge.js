@@ -21,7 +21,7 @@
    const integration=root.CuncunRecentPhoiIntegration;
    if(!helper||!integration)throw new Error('Recent backup helpers not loaded');
    const ledger=helper.createDeletionLedger({storage,getUserId});
-   const read=()=>{const a=JSON.parse(storage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];};
+   const read=()=>{try{const a=JSON.parse(storage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch{return [];}};
    const write=rows=>storage.setItem(KEY,JSON.stringify(rows.slice(-1000)));
    const client=integration.create({
      supabase,getUserId,storage,onStatus,

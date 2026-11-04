@@ -7,7 +7,7 @@ vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../src/p
 const api=ctx.CuncunRecentPhoiBackup;
 test('Vietnamese day boundary and yesterday at midnight',()=>{
  assert.equal(api.dayKey('2026-11-03T17:30:00Z'),'2026-11-04');
- assert.deepEqual(Array.from(api.allowedDays(new Date('2026-11-04T18:00:00Z'))),['11/05/2026','11/04/2026'].map(x=>x)); // Intl en-CA locale varies in Node
+ assert.deepEqual(Array.from(api.allowedDays(new Date('2026-11-04T18:00:00Z'))),['2026-11-05','2026-11-04']);
 });
 test('upsert is idempotent by owner and receipt id',async()=>{
  let calls=[];

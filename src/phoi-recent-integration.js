@@ -8,10 +8,13 @@
    const queue=helper.createBackupQueue({supabase,getUserId,storage});
    const status=typeof onStatus==='function'?onStatus:()=>{};
    async function onReceiptSaved(receipt){
-     const userId=await getUserId();
+     let userId;
+     try {userId=await getUserId();}
+     catch(error){status({state:'backup_unavailable',error:String(error)});return {queued:false,error:'backup_unavailable'};}
      if(!userId){status({state:'not_authenticated'});return {queued:false};}
-     // Persist before initiating Wi-Fi printing, then upload asynchronously.
-     queue.enqueue(receipt,userId);
+     // Never block printing if offline backup storage cannot be written.
+     try {queue.enqueue(receipt,userId);}
+     catch(error){status({state:'backup_unavailable',error:String(error)});return {queued:false,error:'backup_unavailable'};}
      status({state:'pending',count:queue.pending()});
      // Never wait for the network before the caller proceeds to print.
      // enqueue() has already durably written the pending snapshot to storage.

@@ -147,3 +147,21 @@ test('offline deletion persists for retry and clears after connection returns',a
  assert.equal(retried.deletions.synced,1);
  assert.equal(client.pending(),0);
 });
+
+test('restore excludes receipts pending offline deletion for current account',async()=>{
+ const integration=load();
+ const now=new Date();
+ const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const remote={id:'deleted-receipt',created_at:now.toISOString()};
+ const store=new Map([['cuncun_pending_phoi_deletions_v1',JSON.stringify([{userId:'owner-1',receiptId:remote.id}])]]);
+ const supabase={from:()=>({select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:remote.id,receipt_day:day,receipt_snapshot:remote}],error:null})})})})};
+ let written=false;
+ const client=integration.create({
+  supabase,getUserId:async()=> 'owner-1',
+  storage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+  readLocal:async()=>[],writeLocal:async()=>{written=true;}
+ });
+ const result=await client.recover();
+ assert.equal(result.restored,0);
+ assert.equal(written,false);
+});

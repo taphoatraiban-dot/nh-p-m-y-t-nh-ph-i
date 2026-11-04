@@ -14,3 +14,11 @@ Trạng thái: **chưa tích hợp vào in Wi-Fi hoặc bản chính**.
 
 ## Chú ý
 Bản mã thử nghiệm chỉ là thư viện dùng khi tích hợp. Chưa có bảng `phoi_recent_backups` trên production, chưa có lịch dọn tự động, chưa có kiểm thử end-to-end, và chưa bật tính năng cho khách.
+
+## Kiểm tra cơ sở dữ liệu thật (04/11/2026, chỉ đọc)
+
+Dự án production `zigpqddlhvjbjrwhfhaa` hiện có `public.printed_phoi` và `public.print_queue`; chưa có `public.phoi_recent_backups`. `printed_phoi` chứa `id` bigint, `user_id` uuid, `phoi_key`, `phoi_text`, `created_at`, `deleted` và các tổng tiền. `print_queue` chứa `print_text`, `created_at`, `printed_at` và trạng thái. Hai bảng có chính sách RLS theo `auth.uid() = user_id`.
+
+**Cảnh báo bảo mật trước khi triển khai:** Cả hai bảng có thêm policy `phone_license_guard` loại `ALL` với điều kiện `phone_auth_session_allowed()`. Các policy permissive PostgreSQL được kết hợp bằng OR; policy ALL không có điều kiện `user_id` có thể mở rộng quyền xem/sửa bản ghi ngoài phạm vi chủ sở hữu nếu hàm này trả true. Cần xác minh `pg_policies.permissive`, định nghĩa hàm và thử nghiệm hai tài khoản trước khi mở thêm đường truy cập. Không sửa policy production khi chưa có phương án kiểm thử và khôi phục.
+
+**Tích hợp thực tế:** Không tự suy diễn `TSH_PRINT_HISTORY_V1` tương đương `printed_phoi`. Cần xác định nơi ghi phiếu trong `index.html` và mối liên hệ ID trước khi bật adapter. Giữ nguyên bản ghi `printed_phoi` và `print_queue`; không chạy thao tác xóa hoặc migration lên production cho đến khi kiểm thử staging đạt.

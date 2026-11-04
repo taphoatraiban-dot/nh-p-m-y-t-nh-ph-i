@@ -25,6 +25,16 @@ declare
   snapshot_id text;
   snapshot_time timestamptz;
 begin
+  -- Serialize receipt operations across both tables for this account and ID.
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(new.owner_user_id::text || ':' || new.receipt_id, 0)
+  );
+  if exists (
+    select 1 from public.phoi_recent_backup_deletions d
+    where d.owner_user_id=new.owner_user_id and d.receipt_id=new.receipt_id
+  ) then
+    raise exception 'Receipt has been deleted';
+  end if;
   -- A tombstone is immutable: later stale backup upserts cannot resurrect it.
   if tg_op = 'UPDATE' and old.deleted_at is not null then
     new.deleted_at := old.deleted_at;
@@ -80,6 +90,27 @@ create policy "owners_select_recent_phoi_deletions" on public.phoi_recent_backup
  for select to authenticated using (owner_user_id=auth.uid());
 create policy "owners_insert_recent_phoi_deletions" on public.phoi_recent_backup_deletions
  for insert to authenticated with check (owner_user_id=auth.uid());
+
+-- Use the same transaction lock when inserting deletion markers, ensuring
+-- a simultaneous backup cannot pass the check before deletion commits.
+create or replace function public.lock_phoi_recent_deletion()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $
+begin
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(new.owner_user_id::text || ':' || new.receipt_id, 0)
+  );
+  return new;
+end;
+$;
+revoke all on function public.lock_phoi_recent_deletion() from public, anon;
+drop trigger if exists lock_phoi_recent_deletion_trigger on public.phoi_recent_backup_deletions;
+create trigger lock_phoi_recent_deletion_trigger
+before insert on public.phoi_recent_backup_deletions
+for each row execute function public.lock_phoi_recent_deletion();
 
 -- Cleanup is a separate, explicit server-side operation. Run only after staging verification.
 -- Vietnam calendar date is derived from the server clock, not the client device.

@@ -206,3 +206,19 @@ test('restore excludes independently deleted cloud receipts',async()=>{
  const restored=await realRestore({supabase,userId:'owner-1',now});
  assert.equal(restored.length,0);
 });
+
+test('skipped deleted receipt is not counted as uploaded',async()=>{
+ const now=new Date('2026-11-04T05:00:00Z');
+ let raw='[]',uploads=0;
+ const storage={getItem:()=>raw,setItem:(_,value)=>{raw=value}};
+ const supabase={from(table){
+  if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>({eq:async()=>({data:[{receipt_id:'gone'}],error:null})})})};
+  return {upsert:async()=>{uploads++;return {error:null}}};
+ }};
+ const queue=realBackup && api.createBackupQueue({supabase,getUserId:async()=> 'owner-1',storage});
+ queue.enqueue({id:'gone',created_at:'2026-11-04T03:00:00Z'},'owner-1');
+ const result=await queue.flush(now);
+ assert.equal(result.saved,0);
+ assert.equal(result.pending,0);
+ assert.equal(uploads,0);
+});

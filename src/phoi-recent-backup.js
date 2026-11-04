@@ -6,7 +6,7 @@
   function dayKey(value){
     const d=new Date(value);
     if(Number.isNaN(d.getTime())) throw new Error('Invalid receipt timestamp');
-    return new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+    return new Intl.DateTimeFormat('sv-SE',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
   }
   function allowedDays(now=new Date()){
     const today=dayKey(now);

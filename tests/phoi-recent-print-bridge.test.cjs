@@ -68,3 +68,23 @@ test('corrupt existing history JSON does not crash restore adapter',async()=>{
  assert.equal(typeof client.recover,'function');
  assert.equal(client.pending(),0);
 });
+
+test('cloud restore never resurrects a receipt marked deleted locally',async()=>{
+ const bridge=load(),store=new Map(),now=Date.now();
+ const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
+ const cloud={id:'deleted-on-phone',createdAt:now,created_at:new Date(now).toISOString(),text:'old receipt'};
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const supabase={from(table){
+  if(table==='phoi_recent_backup_deletions')return {
+   select:()=>({eq:()=>Promise.resolve({data:[],error:null})}),
+   upsert:async()=>({error:null})
+  };
+  return {select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:cloud.id,receipt_day:day,receipt_snapshot:cloud}],error:null})})})};
+ }};
+ const client=bridge.create({supabase,getUserId:async()=> 'owner-1',storage});
+ const deleted=await client.deleted(cloud.id);
+ assert.equal(deleted.synced,true);
+ const result=await client.recover();
+ assert.equal(result.restored,0);
+ assert.equal(JSON.parse(store.get('TSH_PRINT_HISTORY_V1')||'[]').length,0);
+});

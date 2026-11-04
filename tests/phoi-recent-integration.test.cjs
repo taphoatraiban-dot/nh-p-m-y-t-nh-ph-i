@@ -38,3 +38,16 @@ test('recovery merges cloud receipts without replacing local copies',async()=>{
  assert.equal(result.restored,0);
  assert.equal(written,null);
 });
+
+test('recovery refuses to write when account changes during cloud fetch',async()=>{
+ const integration=load();
+ let raw='[]',userId='owner-1',writes=0;
+ const storage={getItem:()=>raw,setItem:(_,value)=>{raw=value}};
+ const now=new Date();
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const receipt={id:'remote',created_at:now.toISOString()};
+ const supabase={from:()=>({select:()=>({eq:()=>({in:async()=>{userId='owner-2';return {data:[{receipt_id:'remote',receipt_day:day,receipt_snapshot:receipt}],error:null};}})})})};
+ const client=integration.create({supabase,getUserId:async()=>userId,storage,readLocal:async()=>[],writeLocal:async()=>{writes++;}});
+ await assert.rejects(()=>client.recover(),/Account changed during restore/);
+ assert.equal(writes,0);
+});

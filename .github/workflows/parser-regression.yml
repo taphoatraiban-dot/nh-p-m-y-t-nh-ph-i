@@ -5,6 +5,7 @@ on:
       - 'index.html'
       - 'tests/**'
       - 'src/**'
+      - 'supabase/migrations/20261104_phoi_recent_backups_draft.sql'
       - 'scripts/build-reconcile-preview.cjs'
       - 'doi-soat-thu.html'
       - '.github/workflows/parser-regression.yml'
@@ -13,6 +14,7 @@ on:
       - 'index.html'
       - 'tests/**'
       - 'src/**'
+      - 'supabase/migrations/20261104_phoi_recent_backups_draft.sql'
       - 'scripts/build-reconcile-preview.cjs'
       - 'doi-soat-thu.html'
       - '.github/workflows/parser-regression.yml'
@@ -105,3 +107,13 @@ jobs:
         run: node --check src/phoi-recent-backup.js && node --check src/phoi-recent-integration.js && node --check src/bluetooth-print-manager.js
       - name: Verify recent receipt backup and restore regressions
         run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs
+      - name: Validate recent backup SQL function delimiters
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          sql=Path('supabase/migrations/20261104_phoi_recent_backups_draft.sql').read_text()
+          assert sql.count('as $$') == 3, 'Expected three dollar-quoted functions'
+          assert sum(line.strip() == '$$;' for line in sql.splitlines()) == 3, 'Unbalanced SQL function delimiters'
+          assert not any(line.strip() in ('as $', '$;') for line in sql.splitlines()), 'Malformed SQL dollar quote'
+          print('SQL delimiter checks passed')
+          PY

@@ -113,8 +113,10 @@ test('restore aborts if account switches during deletion ledger lookup',async()=
  let userId='owner-1',writes=0;
  const cloud={id:'remote',createdAt:now,created_at:new Date(now).toISOString()};
  const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
- let authChecks=0;
- const getUserId=async()=>{authChecks++;if(authChecks===7)userId='owner-2';return userId;};
+ let ledgerReads=0;
+ const getUserId=async()=>userId;
+ const originalGetItem=storage.getItem;
+ storage.getItem=k=>{if(k==='cuncun_deleted_phoi_receipts_v1'&&++ledgerReads===3)userId='owner-2';return originalGetItem(k)};
  const supabase={from(table){
   if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>Promise.resolve({data:[],error:null})})};
   return {select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:cloud.id,receipt_day:day,receipt_snapshot:cloud}],error:null})})})};

@@ -69,3 +69,25 @@ test('authentication lookup failure never throws into the print flow',async()=>{
  assert.equal(result.queued,false);
  assert.equal(result.error,'backup_unavailable');
 });
+
+test('recovery preserves a new local receipt added during cloud restoration',async()=>{
+ const integration=load();
+ const now=new Date();
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const remote={id:'remote-1',created_at:now.toISOString()};
+ const newLocal={id:'local-new',created_at:now.toISOString()};
+ let reads=0,written=null;
+ const supabase={from:()=>({select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:remote.id,receipt_day:day,receipt_snapshot:remote}],error:null})})})})};
+ const client=integration.create({
+  supabase,getUserId:async()=> 'owner-1',
+  storage:{getItem:()=> '[]',setItem:()=>{}},
+  readLocal:async()=>{reads++;return reads===1?[]:[newLocal];},
+  writeLocal:async rows=>{written=rows;}
+ });
+ const result=await client.recover();
+ assert.equal(reads,2);
+ assert.equal(result.restored,1);
+ assert.equal(written.length,2);
+ assert.ok(written.some(x=>x.id==='local-new'));
+ assert.ok(written.some(x=>x.id==='remote-1'));
+});

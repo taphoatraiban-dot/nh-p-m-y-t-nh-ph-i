@@ -190,3 +190,19 @@ test('invalid deletion IDs cannot create local or remote tombstones',async()=>{
  assert.equal(localCalls,0);
  assert.equal(cloudCalls,0);
 });
+
+test('failed local deletion marker must not send a cloud tombstone',async()=>{
+ const integration=load();
+ let cloudCalls=0;
+ const client=integration.create({
+  supabase:{deletionUpsert:async()=>{cloudCalls++;return {error:null}}},
+  getUserId:async()=> 'owner-1',
+  storage:{getItem:()=>null,setItem:()=>{}},
+  readLocal:async()=>[],writeLocal:async()=>{},
+  onReceiptDeletedLocal:async()=>{throw new Error('local storage full')}
+ });
+ const result=await client.onReceiptDeleted('receipt-1');
+ assert.equal(result.synced,false);
+ assert.equal(cloudCalls,0);
+ assert.equal(client.pending(),0);
+});

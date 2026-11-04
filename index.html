@@ -2255,8 +2255,17 @@ function showApp(){
   $("appCard").classList.remove("hidden");
   resetIdleClock();
   startIdleLogout();
+  // Start recent receipt backup only after the app is unlocked and authenticated.
+  // Failures must not interrupt the existing login or printing flow.
+  Promise.resolve().then(async()=>{
+    if(document.getElementById('appCard')?.classList.contains('hidden'))return;
+    try{await window.CuncunRecentPhoiControl?.enable();}
+    catch(error){window.CuncunRecentPhoiBackupStatus={state:'backup_unavailable',error:String(error)};}
+    if(document.getElementById('appCard')?.classList.contains('hidden'))window.CuncunRecentPhoiControl?.disable();
+  });
 }
 function showLogin(){
+  window.CuncunRecentPhoiControl?.disable();
   document.body.classList.remove('app-unlocked');
   document.getElementById('appCard')?.classList.add('hidden');
   if(!document.body.classList.contains("public-auth-open") && typeof showPublicCover==="function") showPublicCover();

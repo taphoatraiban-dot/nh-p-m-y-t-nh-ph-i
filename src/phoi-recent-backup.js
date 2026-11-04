@@ -101,8 +101,9 @@
         try{
           // A user may switch accounts while an earlier flush is awaiting the network.
           if(await getUserId()!==userId){failed=true;break;}
-          await backup({supabase,userId,receipt:item.receipt,now});
-          saved++;completed.set(key,JSON.stringify(item));
+          const outcome=await backup({supabase,userId,receipt:item.receipt,now});
+          if(outcome.saved) saved++;
+          completed.set(key,JSON.stringify(item));
         }
         catch{failed=true;}
       }

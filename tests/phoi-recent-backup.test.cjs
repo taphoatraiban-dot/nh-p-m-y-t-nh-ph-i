@@ -161,12 +161,14 @@ test('deletion markers are account-scoped and prevent restore resurrection',asyn
  assert.equal(merged.length,0);
 });
 
-test('cloud tombstone update is scoped to account and receipt',async()=>{
+test('cloud tombstone works before the first receipt backup',async()=>{
  const calls=[];
- const query={eq(k,v){calls.push([k,v]);return this;}};
- const supabase={from(table){assert.equal(table,'phoi_recent_backups');return {update(values){calls.push(['update',values]);return query;}}}};
+ const supabase={from(table){
+  assert.equal(table,'phoi_recent_backup_deletions');
+  return {upsert:async(row,options)=>{calls.push({row,options});return {error:null}}};
+ }};
  await api.markCloudDeleted({supabase,userId:'owner-a',receiptId:'receipt-1',now:new Date('2026-11-04T05:00:00Z')});
- assert.deepEqual(calls.filter(x=>x[0]==='owner_user_id'),[['owner_user_id','owner-a']]);
- assert.deepEqual(calls.filter(x=>x[0]==='receipt_id'),[['receipt_id','receipt-1']]);
- assert.ok(calls[0][1].deleted_at);
+ assert.equal(calls[0].row.owner_user_id,'owner-a');
+ assert.equal(calls[0].row.receipt_id,'receipt-1');
+ assert.equal(calls[0].options.ignoreDuplicates,true);
 });

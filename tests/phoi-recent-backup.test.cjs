@@ -24,3 +24,18 @@ test('old receipt is skipped without database writes',async()=>{
  const result=await api.backup({supabase,userId:'owner-1',receipt:{id:'old',created_at:'2026-11-01T03:00:00Z'},now:new Date('2026-11-04T05:00:00Z')});
  assert.equal(result.skipped,true);
 });
+
+test('restore only current and previous Vietnam dates',async()=>{
+ const now=new Date('2026-11-04T18:00:00Z');
+ const rows=[
+  {receipt_id:'old',receipt_day:'2026-11-03',receipt_snapshot:{id:'old',created_at:'2026-11-03T03:00:00Z'}},
+  {receipt_id:'yesterday',receipt_day:'2026-11-04',receipt_snapshot:{id:'yesterday',created_at:'2026-11-04T03:00:00Z'}},
+  {receipt_id:'today',receipt_day:'2026-11-05',receipt_snapshot:{id:'today',created_at:'2026-11-04T18:00:00Z'}}
+ ];
+ const supabase={from:()=>({select:()=>({eq:()=>({in:()=>Promise.resolve({data:rows,error:null})})})})};
+ const restored=await api.restore({supabase,userId:'owner-1',now});
+ assert.deepEqual(Array.from(restored,x=>x.id),['yesterday','today']);
+});
+test('missing user cannot access backups',async()=>{
+ await assert.rejects(()=>api.restore({supabase:{},userId:''}),/Authenticated user required/);
+});

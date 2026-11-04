@@ -4,6 +4,7 @@ create table if not exists public.phoi_recent_backups (
  receipt_id text not null,
  receipt_day date not null,
  receipt_snapshot jsonb not null,
+ deleted_at timestamptz,
  updated_at timestamptz not null default now(),
  primary key(owner_user_id,receipt_id)
 );
@@ -12,6 +13,7 @@ alter table public.phoi_recent_backups enable row level security;
 -- Data API table privileges and row ownership checks are separate controls.
 revoke all on public.phoi_recent_backups from anon;
 grant select, insert, update on public.phoi_recent_backups to authenticated;
+-- Deletions are represented by owner-scoped tombstones, never by re-uploading old snapshots.
 -- Validate receipt metadata server-side; never trust the browser's receipt_day.
 create or replace function public.validate_phoi_recent_backup()
 returns trigger
@@ -23,6 +25,10 @@ declare
   snapshot_id text;
   snapshot_time timestamptz;
 begin
+  if new.deleted_at is not null then
+    if new.deleted_at > now() + interval '1 minute' then raise exception 'Invalid deletion timestamp'; end if;
+    return new;
+  end if;
   snapshot_id := new.receipt_snapshot->>'id';
   if snapshot_id is null or length(trim(snapshot_id)) = 0 or snapshot_id <> new.receipt_id then
     raise exception 'Invalid receipt ID';

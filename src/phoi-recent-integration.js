@@ -6,6 +6,7 @@
    const helper=root.CuncunRecentPhoiBackup;
    if(!helper) throw new Error('Backup helper not loaded');
    const queue=helper.createBackupQueue({supabase,getUserId,storage});
+   // Pending deletes must be synchronized before retrying old backup uploads.
    const status=typeof onStatus==='function'?onStatus:()=>{};
    async function onReceiptSaved(receipt){
      let userId;
@@ -100,7 +101,7 @@
        return {synced:false};
      }
    }
-   return {onReceiptSaved,onReceiptDeleted,recover,retry:async()=>({backups:await queue.flush(),deletions:await retryDeletions()}),pending:()=>queue.pending()+pendingDeletions().length};
+   return {onReceiptSaved,onReceiptDeleted,recover,retry:async()=>({deletions:await retryDeletions(),backups:await queue.flush()}),pending:()=>queue.pending()+pendingDeletions().length};
  }
  root.CuncunRecentPhoiIntegration={create};
 })(typeof window!=='undefined'?window:globalThis);

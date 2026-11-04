@@ -34,7 +34,13 @@
     if(!userId) throw new Error('Authenticated user required');
     const {data,error}=await supabase.from('phoi_recent_backups').select('receipt_id,receipt_day,receipt_snapshot').eq('owner_user_id',userId).in('receipt_day',allowedDays(now));
     if(error) throw error;
-    return (data||[]).filter(row=>allowedDays(now).includes(row.receipt_day)).map(row=>assertReceipt(row.receipt_snapshot));
+    return (data||[]).filter(row=>{
+      if(!allowedDays(now).includes(row.receipt_day)) return false;
+      try {
+        const receipt=assertReceipt(row.receipt_snapshot);
+        return receipt.id===row.receipt_id && dayKey(receipt.created_at)===row.receipt_day;
+      } catch { return false; }
+    }).map(row=>row.receipt_snapshot);
   }
   // Optional integration: call only after the receipt has been saved locally.
   // A network failure must never prevent printing; surface the failure for retry.
@@ -69,7 +75,7 @@
         if(item.userId!==userId) continue;
         const key=item.userId+'\\u0000'+item.receipt.id;
         if(!allowedDays(now).includes(dayKey(item.receipt.created_at))){completed.set(key,JSON.stringify(item));continue;}
-        try{await backup({supabase,userId,receipt:item.receipt,now});saved++;completed.set(key,JSON.stringify(item));}
+        try{\n          // A user may switch accounts while an earlier flush is awaiting the network.\n          if(await getUserId()!==userId){failed=true;break;}\n          await backup({supabase,userId,receipt:item.receipt,now});\n          saved++;completed.set(key,JSON.stringify(item));\n        }
         catch{failed=true;}
       }
       // Re-read to preserve new receipts enqueued while the network was busy.

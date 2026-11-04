@@ -23,8 +23,8 @@ function load(){
 }
 test('saved receipt is queued without waiting for a stalled cloud upload',async()=>{
  const integration=load();
- let raw='[]',resolveUpload,uploadStarted=false;
- const storage={getItem:()=>raw,setItem:(_,value)=>{raw=value}};
+ const store=new Map();let resolveUpload,uploadStarted=false;
+ const storage={getItem:key=>store.get(key)||null,setItem:(key,value)=>{store.set(key,value)}};
  const supabase={from:()=>({upsert:()=>{uploadStarted=true;return new Promise(resolve=>{resolveUpload=resolve;});}})};
  const client=integration.create({supabase,getUserId:async()=> 'owner-1',storage,readLocal:async()=>[],writeLocal:async()=>{}});
  const result=await client.onReceiptSaved({id:'p1',created_at:new Date().toISOString()});
@@ -112,7 +112,7 @@ test('deleted receipt writes local marker before cloud tombstone',async()=>{
  const supabase={deletionUpsert:async row=>{calls.push('cloud:'+row.owner_user_id+':'+row.receipt_id);return {error:null}}};
  const client=integration.create({
   supabase,getUserId:async()=> 'owner-1',
-  storage:{getItem:()=> '[]',setItem:()=>{}},
+  storage:(()=>{const store=new Map();return {getItem:key=>store.get(key)||null,setItem:(key,value)=>store.set(key,value)}})(),
   readLocal:async()=>[],writeLocal:async()=>{},
   onReceiptDeletedLocal:async id=>{calls.push('local:'+id);}
  });
@@ -126,7 +126,7 @@ test('deleted receipt is retained locally when cloud is unavailable',async()=>{
  const supabase={deletionUpsert:async()=>({error:new Error('offline')})};
  const client=integration.create({
   supabase,getUserId:async()=> 'owner-1',
-  storage:{getItem:()=> '[]',setItem:()=>{}},
+  storage:(()=>{const store=new Map();return {getItem:key=>store.get(key)||null,setItem:(key,value)=>store.set(key,value)}})(),
   readLocal:async()=>[],writeLocal:async()=>{},
   onReceiptDeletedLocal:async()=>{local=true;}
  });

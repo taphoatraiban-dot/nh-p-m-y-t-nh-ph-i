@@ -99,3 +99,13 @@ test('simultaneous flush calls share one upload',async()=>{
  await Promise.all([queue.flush(new Date('2026-11-04T05:00:00Z')),queue.flush(new Date('2026-11-04T05:00:00Z'))]);
  assert.equal(uploads,1);
 });
+
+test('restore merge preserves local records and adds only missing recent records',()=>{
+ const now=new Date('2026-11-04T05:00:00Z');
+ const local=[{id:'existing',created_at:'2026-11-01T03:00:00Z',total:111},{id:'same',created_at:'2026-11-04T03:00:00Z',total:200}];
+ const remote=[{id:'same',created_at:'2026-11-04T03:00:00Z',total:999},{id:'new',created_at:'2026-11-04T03:00:00Z',total:300},{id:'old',created_at:'2026-11-01T03:00:00Z',total:400}];
+ const merged=api.mergeRestored(local,remote,now);
+ assert.deepEqual(Array.from(merged,x=>x.id),['existing','same','new']);
+ assert.equal(merged[1].total,200);
+ assert.equal(local.length,2);
+});

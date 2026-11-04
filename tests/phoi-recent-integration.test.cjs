@@ -126,3 +126,24 @@ test('deleted receipt is retained locally when cloud is unavailable',async()=>{
  assert.equal(result.synced,false);
  assert.equal(local,true);
 });
+
+test('offline deletion persists for retry and clears after connection returns',async()=>{
+ const integration=load();
+ const store=new Map();
+ let offline=true;
+ const query={eq(){return this;}};
+ const supabase={from:()=>({update:()=>{if(offline)throw Error('offline');return query;}})};
+ const client=integration.create({
+  supabase,getUserId:async()=> 'owner-1',
+  storage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+  readLocal:async()=>[],writeLocal:async()=>{},
+  onReceiptDeletedLocal:async()=>{}
+ });
+ const first=await client.onReceiptDeleted('receipt-1');
+ assert.equal(first.synced,false);
+ assert.equal(client.pending(),1);
+ offline=false;
+ const retried=await client.retry();
+ assert.equal(retried.deletions.synced,1);
+ assert.equal(client.pending(),0);
+});

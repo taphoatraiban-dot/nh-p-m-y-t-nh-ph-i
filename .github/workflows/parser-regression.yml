@@ -69,6 +69,23 @@ jobs:
                   matched = ','.join(term for term in terms if term in line)
                   print(f'index.html:{i}: {matched}')
           PY
+      - name: Inspect receipt-save control flow without logging secrets
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          lines = Path('index.html').read_text(encoding='utf-8').splitlines()
+          for center in (8366, 8580, 8806, 9927):
+              print(f'--- index.html around {center} ---')
+              for i in range(max(1,center-9), min(len(lines),center+10)+1):
+                  line=lines[i-1].strip()
+                  if not line or len(line)>400 or re.search(r'(key|token|secret|password|apikey|authorization|bearer|supabaseUrl)',line,re.I):
+                      continue
+                  # Show only relevant call shapes, not literal values or user data.
+                  if re.search(r'(localStorage|setItem|JSON.parse|\.from\(|\.insert\(|\.upsert\(|\.push\(|function |=>|addEventListener|save|history|print)',line,re.I):
+                      sanitized=re.sub(r'(["\x27\x60])(?:\\.|(?!\1).)*?\1', '<string>', line)
+                      print(f'{i}: {sanitized[:200]}')
+          PY
       - name: Check backup and print history JavaScript syntax
         run: node --check src/phoi-recent-backup.js && node --check src/phoi-recent-integration.js && node --check src/bluetooth-print-manager.js
       - name: Verify recent receipt backup and restore regressions

@@ -20,7 +20,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = ''
-as $
+as $$
 declare
   snapshot_id text;
   snapshot_time timestamptz;
@@ -53,7 +53,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.validate_phoi_recent_backup() from public, anon;
 drop trigger if exists validate_phoi_recent_backup_trigger on public.phoi_recent_backups;
 create trigger validate_phoi_recent_backup_trigger

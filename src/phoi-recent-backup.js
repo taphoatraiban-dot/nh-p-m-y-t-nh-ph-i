@@ -44,10 +44,11 @@
       catch {return [];}
     }
     function write(rows){storage.setItem(storageKey,JSON.stringify(rows));}
-    function enqueue(receipt){
+    function enqueue(receipt,userId){
       assertReceipt(receipt);
-      const rows=read().filter(x=>x.id!==receipt.id);
-      rows.push(receipt);
+      if(!userId) throw new Error('Authenticated user required');
+      const rows=read().filter(x=>!(x.userId===userId && x.receipt.id===receipt.id));
+      rows.push({userId,receipt});
       write(rows);
       return rows.length;
     }
@@ -55,10 +56,12 @@
       const userId=await getUserId();
       if(!userId) return {saved:0,pending:read().length,error:'not_authenticated'};
       let saved=0, pending=[],failed=false;
-      for(const receipt of read()){
-        if(!allowedDays(now).includes(dayKey(receipt.created_at))) continue;
-        try{await backup({supabase,userId,receipt,now});saved++;}
-        catch{pending.push(receipt);failed=true;}
+      for(const item of read()){
+        if(!item || !item.receipt || !item.userId) {failed=true;continue;}
+        if(item.userId!==userId){pending.push(item);continue;}
+        if(!allowedDays(now).includes(dayKey(item.receipt.created_at))) continue;
+        try{await backup({supabase,userId,receipt:item.receipt,now});saved++;}
+        catch{pending.push(item);failed=true;}
       }
       write(pending);
       return {saved,pending:pending.length,error:failed?'retry_required':null};

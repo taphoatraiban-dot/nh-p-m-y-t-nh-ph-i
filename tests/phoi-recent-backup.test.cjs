@@ -45,7 +45,7 @@ test('offline queue retries and does not discard failed receipts',async()=>{
  const storage={getItem:()=>raw,setItem:(_,v)=>{raw=v}};
  const supabase={from:()=>({upsert:async()=>({error:fail?new Error('offline'):null})})};
  const queue=api.createBackupQueue({supabase,getUserId:async()=> 'owner-1',storage});
- queue.enqueue({id:'receipt-1',created_at:'2026-11-04T03:00:00Z',total:50});
+ queue.enqueue({id:'receipt-1',created_at:'2026-11-04T03:00:00Z',total:50},'owner-1');
  assert.equal(queue.pending(),1);
  const now=new Date('2026-11-04T05:00:00Z');
  const first=await queue.flush(now);
@@ -59,5 +59,19 @@ test('invalid receipt date is rejected before queueing',()=>{
  let raw='[]';
  const storage={getItem:()=>raw,setItem:(_,v)=>{raw=v}};
  const queue=api.createBackupQueue({supabase:{},getUserId:async()=>null,storage});
- assert.throws(()=>queue.enqueue({id:'x',created_at:'bad'}),/Invalid receipt creation time/);
+ assert.throws(()=>queue.enqueue({id:'x',created_at:'bad'},'owner-1'),/Invalid receipt creation time/);
+});
+
+test('queued receipts from another account are never uploaded under current user',async()=>{
+ let raw='[]',uploaded=[];
+ const storage={getItem:()=>raw,setItem:(_,v)=>{raw=v}};
+ const supabase={from:()=>({upsert:async row=>{uploaded.push(row);return {error:null}}})};
+ const queue=api.createBackupQueue({supabase,getUserId:async()=> 'owner-2',storage});
+ queue.enqueue({id:'a',created_at:'2026-11-04T03:00:00Z'},'owner-1');
+ queue.enqueue({id:'b',created_at:'2026-11-04T03:00:00Z'},'owner-2');
+ const result=await queue.flush(new Date('2026-11-04T05:00:00Z'));
+ assert.equal(result.saved,1);
+ assert.equal(result.pending,1);
+ assert.equal(uploaded[0].receipt_id,'b');
+ assert.equal(uploaded[0].owner_user_id,'owner-2');
 });

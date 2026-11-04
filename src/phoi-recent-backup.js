@@ -83,5 +83,20 @@
     }
     return {enqueue,flush,pending:()=>read().length};
   }
-  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore,createBackupQueue};
+  // Merge only by stable ID. Never replace the existing local print history.
+  function mergeRestored(localReceipts,remoteReceipts,now=new Date()){
+    if(!Array.isArray(localReceipts)||!Array.isArray(remoteReceipts)) throw new Error('Receipt arrays required');
+    const byId=new Map();
+    for(const item of localReceipts){
+      if(!item || typeof item.id!=='string' || !item.id.trim()) continue;
+      byId.set(item.id,item);
+    }
+    for(const item of remoteReceipts){
+      assertReceipt(item);
+      if(!allowedDays(now).includes(dayKey(item.created_at))) continue;
+      if(!byId.has(item.id)) byId.set(item.id,item);
+    }
+    return Array.from(byId.values());
+  }
+  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore,createBackupQueue,mergeRestored};
 })(typeof window!=='undefined'?window:globalThis);

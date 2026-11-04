@@ -48,3 +48,5 @@ jobs:
         run: node --test tests/b7lo-regression.test.cjs
       - name: Verify parser and integration regressions
         run: node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs tests/login-startup.test.cjs tests/pin-unlock.test.cjs
+      - name: Verify recent receipt backup and restore regressions
+        run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs

@@ -57,5 +57,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Check backup and print history JavaScript syntax
+        run: node --check src/phoi-recent-backup.js && node --check src/phoi-recent-integration.js && node --check src/bluetooth-print-manager.js
       - name: Verify recent receipt backup and restore regressions
         run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs

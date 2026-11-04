@@ -109,3 +109,30 @@ test('restore merge preserves local records and adds only missing recent records
  assert.equal(merged[1].total,200);
  assert.equal(local.length,2);
 });
+
+test('restore rejects rows whose receipt id or Vietnam date differs from metadata',async()=>{
+ const now=new Date('2026-11-04T05:00:00Z');
+ const rows=[
+  {receipt_id:'valid',receipt_day:'2026-11-04',receipt_snapshot:{id:'valid',created_at:'2026-11-04T03:00:00Z'}},
+  {receipt_id:'other',receipt_day:'2026-11-04',receipt_snapshot:{id:'mismatch',created_at:'2026-11-04T03:00:00Z'}},
+  {receipt_id:'wrong-day',receipt_day:'2026-11-04',receipt_snapshot:{id:'wrong-day',created_at:'2026-11-03T03:00:00Z'}},
+  {receipt_id:'broken',receipt_day:'2026-11-04',receipt_snapshot:{id:'broken',created_at:'not-a-date'}}
+ ];
+ const supabase={from:()=>({select:()=>({eq:()=>({in:async()=>({data:rows,error:null})})})})};
+ const restored=await api.restore({supabase,userId:'owner-1',now});
+ assert.deepEqual(Array.from(restored,x=>x.id),['valid']);
+});
+test('invalid queued entry cannot stop a valid receipt from uploading',async()=>{
+ let raw=JSON.stringify([
+  {userId:'owner-1',receipt:{id:'broken',created_at:'invalid'}},
+  {userId:'owner-1',receipt:{id:'valid',created_at:'2026-11-04T03:00:00Z'}}
+ ]);
+ const storage={getItem:()=>raw,setItem:(_,value)=>{raw=value}};
+ const uploaded=[];
+ const supabase={from:()=>({upsert:async row=>{uploaded.push(row.receipt_id);return {error:null}}})};
+ const queue=api.createBackupQueue({supabase,getUserId:async()=> 'owner-1',storage});
+ const result=await queue.flush(new Date('2026-11-04T05:00:00Z'));
+ assert.deepEqual(uploaded,['valid']);
+ assert.equal(result.pending,1);
+ assert.equal(result.error,'retry_required');
+});

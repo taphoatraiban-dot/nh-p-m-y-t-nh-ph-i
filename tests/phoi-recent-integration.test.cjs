@@ -94,3 +94,35 @@ test('recovery preserves a new local receipt added during cloud restoration',asy
 
 // The receipt-save hook is intentionally not enabled in production until the
 // actual index.html persistence point and its receipt shape are verified.
+
+test('deleted receipt writes local marker before cloud tombstone',async()=>{
+ const integration=load();
+ const calls=[];
+ const query={eq(k,v){calls.push(k+':'+v);return this;}};
+ const supabase={from:()=>({update:()=>{calls.push('cloud');return query;}})};
+ const client=integration.create({
+  supabase,getUserId:async()=> 'owner-1',
+  storage:{getItem:()=> '[]',setItem:()=>{}},
+  readLocal:async()=>[],writeLocal:async()=>{},
+  onReceiptDeletedLocal:async id=>{calls.push('local:'+id);}
+ });
+ const result=await client.onReceiptDeleted('receipt-1');
+ assert.equal(result.synced,true);
+ assert.equal(calls[0],'local:receipt-1');
+ assert.equal(calls[1],'cloud');
+ assert.ok(calls.includes('owner_user_id:owner-1'));
+});
+test('deleted receipt is retained locally when cloud is unavailable',async()=>{
+ const integration=load();
+ let local=false;
+ const supabase={from:()=>({update:()=>{throw Error('offline');}})};
+ const client=integration.create({
+  supabase,getUserId:async()=> 'owner-1',
+  storage:{getItem:()=> '[]',setItem:()=>{}},
+  readLocal:async()=>[],writeLocal:async()=>{},
+  onReceiptDeletedLocal:async()=>{local=true;}
+ });
+ const result=await client.onReceiptDeleted('receipt-1');
+ assert.equal(result.synced,false);
+ assert.equal(local,true);
+});

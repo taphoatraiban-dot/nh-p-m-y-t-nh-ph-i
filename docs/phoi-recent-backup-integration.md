@@ -22,3 +22,14 @@ Dự án production `zigpqddlhvjbjrwhfhaa` hiện có `public.printed_phoi` và 
 **Đã xác minh bảo mật bằng truy vấn chỉ đọc:** `phone_license_guard` trên cả hai bảng có `permissive = RESTRICTIVE` (không phải `PERMISSIVE`). Do đó điều kiện `phone_auth_session_allowed()` được kết hợp AND với các policy chủ sở hữu theo `auth.uid() = user_id`; không phát sinh đường OR bỏ qua chủ sở hữu từ policy này. Hàm `phone_auth_session_allowed()` kiểm tra phiên đăng nhập và hạn sử dụng của tài khoản SĐT. Không cần thay đổi policy production vì nghi ngờ ban đầu. Vẫn phải kiểm thử hai tài khoản trước khi phát hành.
 
 **Tích hợp thực tế:** Không tự suy diễn `TSH_PRINT_HISTORY_V1` tương đương `printed_phoi`. Cần xác định nơi ghi phiếu trong `index.html` và mối liên hệ ID trước khi bật adapter. Giữ nguyên bản ghi `printed_phoi` và `print_queue`; không chạy thao tác xóa hoặc migration lên production cho đến khi kiểm thử staging đạt.
+
+
+## Independent deletion markers (draft)
+The backup client now queries `phoi_recent_backup_deletions` before upload and restore.
+A deletion is upserted to that table even when the original snapshot was never uploaded.
+Both tables must be provisioned together on staging before enabling the feature.
+Never enable the new helper against production before verifying RLS, account switching,
+offline retries, and race conditions. A check-then-upsert is not atomic: a concurrent
+backup request can still race with deletion, so a server-side enforcement trigger or
+transactional RPC is required before release. The deletion marker table also needs a
+retention policy; do not purge markers while stale upload queues may still retry.

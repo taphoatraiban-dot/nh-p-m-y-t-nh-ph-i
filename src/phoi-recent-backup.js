@@ -25,6 +25,10 @@
     if(!userId) throw new Error('Authenticated user required');
     const day=dayKey(receipt.created_at);
     if(!allowedDays(now).includes(day)) return {skipped:true,reason:'outside_today_yesterday'};
+    const {data:deletions,error:deletionError}=await supabase.from('phoi_recent_backup_deletions')
+      .select('receipt_id').eq('owner_user_id',userId).eq('receipt_id',receipt.id);
+    if(deletionError) throw deletionError;
+    if((deletions||[]).length) return {skipped:true,reason:'deleted_receipt'};
     const row={owner_user_id:userId,receipt_id:receipt.id,receipt_day:day,receipt_snapshot:receipt,updated_at:new Date().toISOString()};
     // Do not send deleted_at:null: stale retries must never clear a tombstone.
     const {error}=await supabase.from('phoi_recent_backups').upsert(row,{onConflict:'owner_user_id,receipt_id'});
@@ -35,7 +39,12 @@
     if(!userId) throw new Error('Authenticated user required');
     const {data,error}=await supabase.from('phoi_recent_backups').select('receipt_id,receipt_day,receipt_snapshot,deleted_at').eq('owner_user_id',userId).in('receipt_day',allowedDays(now));
     if(error) throw error;
+    const {data:deletions,error:deletionError}=await supabase.from('phoi_recent_backup_deletions')
+      .select('receipt_id').eq('owner_user_id',userId);
+    if(deletionError) throw deletionError;
+    const deletedIds=new Set((deletions||[]).map(x=>x.receipt_id));
     return (data||[]).filter(row=>{
+      if(deletedIds.has(row.receipt_id)) return false;
       if(row.deleted_at || !allowedDays(now).includes(row.receipt_day)) return false;
       try {
         const receipt=assertReceipt(row.receipt_snapshot);
@@ -43,13 +52,12 @@
       } catch { return false; }
     }).map(row=>row.receipt_snapshot);
   }
-  // Mark an existing cloud snapshot deleted without deleting its ownership record.
-  // A missing row is not created: callers must verify the receipt was backed up.
+  // An independent tombstone works even when no backup row exists yet.
   async function markCloudDeleted({supabase,userId,receiptId,now=new Date()}){
     if(!userId || typeof receiptId!=='string' || !receiptId.trim()) throw new Error('Account and receipt ID required');
-    const {error}=await supabase.from('phoi_recent_backups')
-      .update({deleted_at:now.toISOString(),updated_at:now.toISOString()})
-      .eq('owner_user_id',userId).eq('receipt_id',receiptId);
+    const {error}=await supabase.from('phoi_recent_backup_deletions')
+      .upsert({owner_user_id:userId,receipt_id:receiptId,deleted_at:now.toISOString()},
+        {onConflict:'owner_user_id,receipt_id',ignoreDuplicates:true});
     if(error) throw error;
     return {marked:true};
   }

@@ -75,3 +75,27 @@ test('queued receipts from another account are never uploaded under current user
  assert.equal(uploaded[0].receipt_id,'b');
  assert.equal(uploaded[0].owner_user_id,'owner-2');
 });
+
+test('receipt enqueued during in-flight upload survives flush',async()=>{
+ let raw='[]',release;
+ const storage={getItem:()=>raw,setItem:(_,v)=>{raw=v}};
+ const supabase={from:()=>({upsert:()=>new Promise(resolve=>{release=()=>resolve({error:null})})})};
+ const queue=api.createBackupQueue({supabase,getUserId:async()=> 'owner-1',storage});
+ queue.enqueue({id:'first',created_at:'2026-11-04T03:00:00Z'},'owner-1');
+ const running=queue.flush(new Date('2026-11-04T05:00:00Z'));
+ await new Promise(resolve=>setImmediate(resolve));
+ queue.enqueue({id:'second',created_at:'2026-11-04T03:00:00Z'},'owner-1');
+ release();
+ await running;
+ assert.equal(queue.pending(),1);
+ assert.equal(JSON.parse(raw)[0].receipt.id,'second');
+});
+test('simultaneous flush calls share one upload',async()=>{
+ let raw='[]',uploads=0;
+ const storage={getItem:()=>raw,setItem:(_,v)=>{raw=v}};
+ const supabase={from:()=>({upsert:async()=>{uploads++;return {error:null}}})};
+ const queue=api.createBackupQueue({supabase,getUserId:async()=> 'owner-1',storage});
+ queue.enqueue({id:'once',created_at:'2026-11-04T03:00:00Z'},'owner-1');
+ await Promise.all([queue.flush(new Date('2026-11-04T05:00:00Z')),queue.flush(new Date('2026-11-04T05:00:00Z'))]);
+ assert.equal(uploads,1);
+});

@@ -7873,9 +7873,10 @@ function mainDrawsForCross2(row){
            <div class="device-account-meta">${safe(dev)} · ${statusLabel} · ${safe(last)}</div>
            <div class="device-account-meta">${safe(termLabel(statusLabel))}</div>
           </div>
-          ${status==="admin"?'<span class="device-admin-label">ADMIN</span>':'<button type="button" class="device-actions-toggle" aria-expanded="false">••• Thao tác</button>'}
+          ${status==="admin"?'<span class="device-admin-label">ADMIN</span><button type="button" class="device-actions-toggle" aria-expanded="false">••• Thao tác</button>':'<button type="button" class="device-actions-toggle" aria-expanded="false">••• Thao tác</button>'}
          </div>
          <div class="device-actions-panel" hidden>
+          ${uid && status==="admin"? `<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 ĐỔI THIẾT BỊ ADMIN</button>` : ""}
           ${uid && status!=="admin"? `
            ${deviceActive?`<button type="button" class="danger device-change-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}">🔄 Đổi máy</button>`:''}
            <button type="button" class="soft license-pause-btn" data-user-id="${safe(uid)}" data-email="${safe(email)}" data-paused="${licenseActive?'0':'1'}">${licenseActive?'⏸ Tạm ngưng':'▶️ Mở lại'}</button>
@@ -7898,7 +7899,7 @@ function mainDrawsForCross2(row){
      box.querySelectorAll('.device-change-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const uid=btn.dataset.userId, email=btn.dataset.email||'tài khoản này';
        if(!uid)return;
-       if(!confirm(`Đổi máy cho ${email}?\n\nMáy hiện tại sẽ bị hủy liên kết. Khách sẽ đăng nhập trên máy mới để nhận quyền.`))return;
+       if(!confirm(`Đổi thiết bị cho ${email}?\n\nThiết bị hiện tại sẽ bị hủy liên kết. Tài khoản có thể đăng nhập trên thiết bị mới. Quyền và dữ liệu tài khoản được giữ nguyên.`))return;
        btn.disabled=true; btn.textContent='⏳ ĐANG ĐỔI MÁY...';
        try{
          const {data,error}=await sb.rpc('admin_reset_device',{p_user_id:uid});

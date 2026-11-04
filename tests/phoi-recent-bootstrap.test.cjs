@@ -21,10 +21,14 @@ test('staging backup bootstrap stays disabled until explicit authenticated start
  assert.equal(client.pending(),0);
  api.stop();assert.equal(detached,1);assert.equal(api.active(),false);
 });
-test('staging HTML loads all dependencies in order and never auto-starts backup',()=>{
+test('HTML loads dependencies and only starts backup through explicit authenticated control',()=>{
  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
  const paths=['phoi-recent-backup.js','phoi-recent-integration.js','phoi-recent-print-bridge.js','phoi-recent-print-hooks.js','phoi-recent-bootstrap.js'];
  let last=-1;
  for(const name of paths){const pos=html.indexOf('src/'+name);assert.ok(pos>last,name);last=pos;}
- assert.doesNotMatch(html,/CuncunRecentPhoiBootstrap\.start\s*\(/);
+ assert.match(html,/CuncunRecentPhoiControl\s*=\s*\{/);
+ assert.match(html,/async enable\(\)/);
+ assert.match(html,/sb\.auth\.getUser\(\)/);
+ assert.match(html,/CuncunRecentPhoiBootstrap\.start\s*\(/);
+ assert.doesNotMatch(html,/CuncunRecentPhoiControl\.enable\s*\(/);
 });

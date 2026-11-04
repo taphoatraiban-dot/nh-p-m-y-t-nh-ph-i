@@ -99,7 +99,9 @@
     return {enqueue,flush,pending:()=>read().length};
   }
   // Merge only by stable ID. Never replace the existing local print history.
-  function mergeRestored(localReceipts,remoteReceipts,now=new Date()){
+  function mergeRestored(localReceipts,remoteReceipts,now=new Date(),deletedIds=[]){
+    if(!Array.isArray(deletedIds)) throw new Error('Deleted receipt IDs must be an array');
+    const deleted=new Set(deletedIds.filter(id=>typeof id==='string'&&id.trim()));
     if(!Array.isArray(localReceipts)||!Array.isArray(remoteReceipts)) throw new Error('Receipt arrays required');
     const byId=new Map();
     for(const item of localReceipts){
@@ -109,7 +111,7 @@
     for(const item of remoteReceipts){
       assertReceipt(item);
       if(!allowedDays(now).includes(dayKey(item.created_at))) continue;
-      if(!byId.has(item.id)) byId.set(item.id,item);
+      if(!deleted.has(item.id) && !byId.has(item.id)) byId.set(item.id,item);
     }
     return Array.from(byId.values());
   }

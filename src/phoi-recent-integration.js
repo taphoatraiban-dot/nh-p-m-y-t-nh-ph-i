@@ -21,7 +21,9 @@
      const userId=await getUserId();
      if(!userId) throw new Error('Authenticated user required');
      const remote=await helper.restore({supabase,userId});
+     if(await getUserId()!==userId) throw new Error('Account changed during restore');
      const local=await readLocal();
+     if(await getUserId()!==userId) throw new Error('Account changed during restore');
      const merged=helper.mergeRestored(local,remote);
      if(merged.length>local.length) await writeLocal(merged);
      status({state:'restored',count:merged.length-local.length});

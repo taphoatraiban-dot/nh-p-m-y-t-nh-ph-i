@@ -31,3 +31,12 @@ test('real print history contains the opt-in save and deletion integration point
  assert.match(html,/window\.CuncunRecentPhoiHooks\?\.saved\(x\)/);
  assert.match(html,/window\.CuncunRecentPhoiHooks\?\.deleted\(ids\)/);
 });
+
+test('hooks cannot silently replace an already configured backup adapter',()=>{
+ const hooks=load();
+ const adapter={saved:()=>{},deleted:()=>{}};
+ hooks.attach(adapter);
+ assert.throws(()=>hooks.attach(adapter),/already attached/);
+ hooks.detach();
+ assert.doesNotThrow(()=>hooks.attach(adapter));
+});

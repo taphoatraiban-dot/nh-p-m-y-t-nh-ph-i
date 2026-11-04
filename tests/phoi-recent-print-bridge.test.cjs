@@ -106,3 +106,23 @@ test('restore refuses to write another account cloud receipts after auth switche
  await assert.rejects(()=>client.recover(),/Account changed during restore/);
  assert.equal(writes,0);
 });
+
+test('restore aborts if account switches during deletion ledger lookup',async()=>{
+ const bridge=load(),store=new Map(),now=Date.now();
+ const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
+ let userId='owner-1',writes=0;
+ const cloud={id:'remote',createdAt:now,created_at:new Date(now).toISOString()};
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ let authChecks=0;
+ const getUserId=async()=>{authChecks++;if(authChecks===7)userId='owner-2';return userId;};
+ const supabase={from(table){
+  if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>Promise.resolve({data:[],error:null})})};
+  return {select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:cloud.id,receipt_day:day,receipt_snapshot:cloud}],error:null})})})};
+ }};
+ const client=bridge.create({supabase,getUserId,storage:{
+  getItem:storage.getItem,
+  setItem:(k,v)=>{if(k==='TSH_PRINT_HISTORY_V1')writes++;storage.setItem(k,v)}
+ }});
+ await assert.rejects(()=>client.recover(),/Account changed/);
+ assert.equal(writes,0);
+});

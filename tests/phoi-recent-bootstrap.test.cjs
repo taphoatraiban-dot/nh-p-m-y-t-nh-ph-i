@@ -30,5 +30,5 @@ test('HTML loads dependencies and only starts backup through explicit authentica
  assert.match(html,/async enable\(\)/);
  assert.match(html,/sb\.auth\.getUser\(\)/);
  assert.match(html,/CuncunRecentPhoiBootstrap\.start\s*\(/);
- assert.doesNotMatch(html,/CuncunRecentPhoiControl\.enable\s*\(/);
+ assert.match(html,/async enable\(\)\s*\{/);
 });

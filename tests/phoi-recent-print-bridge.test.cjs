@@ -88,3 +88,21 @@ test('cloud restore never resurrects a receipt marked deleted locally',async()=>
  assert.equal(result.restored,0);
  assert.equal(JSON.parse(store.get('TSH_PRINT_HISTORY_V1')||'[]').length,0);
 });
+
+test('restore refuses to write another account cloud receipts after auth switches',async()=>{
+ const bridge=load(),store=new Map(),now=Date.now();
+ const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
+ let userId='owner-1',writes=0;
+ const cloud={id:'owner-1-receipt',createdAt:now,created_at:new Date(now).toISOString()};
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const supabase={from(table){
+  if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>Promise.resolve({data:[],error:null})})};
+  return {select:()=>({eq:()=>({in:async()=>{userId='owner-2';return {data:[{receipt_id:cloud.id,receipt_day:day,receipt_snapshot:cloud}],error:null};}})})};
+ }};
+ const client=bridge.create({supabase,getUserId:async()=>userId,storage:{
+  getItem:storage.getItem,
+  setItem:(k,v)=>{if(k==='TSH_PRINT_HISTORY_V1')writes++;storage.setItem(k,v)}
+ }});
+ await assert.rejects(()=>client.recover(),/Account changed during restore/);
+ assert.equal(writes,0);
+});

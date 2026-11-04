@@ -39,3 +39,25 @@ test('restore only current and previous Vietnam dates',async()=>{
 test('missing user cannot access backups',async()=>{
  await assert.rejects(()=>api.restore({supabase:{},userId:''}),/Authenticated user required/);
 });
+
+test('offline queue retries and does not discard failed receipts',async()=>{
+ let raw='[]',fail=true;
+ const storage={getItem:()=>raw,setItem:(_,v)=>{raw=v}};
+ const supabase={from:()=>({upsert:async()=>({error:fail?new Error('offline'):null})})};
+ const queue=api.createBackupQueue({supabase,getUserId:async()=> 'owner-1',storage});
+ queue.enqueue({id:'receipt-1',created_at:'2026-11-04T03:00:00Z',total:50});
+ assert.equal(queue.pending(),1);
+ const now=new Date('2026-11-04T05:00:00Z');
+ const first=await queue.flush(now);
+ assert.equal(first.pending,1);
+ fail=false;
+ const second=await queue.flush(now);
+ assert.equal(second.saved,1);
+ assert.equal(queue.pending(),0);
+});
+test('invalid receipt date is rejected before queueing',()=>{
+ let raw='[]';
+ const storage={getItem:()=>raw,setItem:(_,v)=>{raw=v}};
+ const queue=api.createBackupQueue({supabase:{},getUserId:async()=>null,storage});
+ assert.throws(()=>queue.enqueue({id:'x',created_at:'bad'}),/Invalid receipt creation time/);
+});

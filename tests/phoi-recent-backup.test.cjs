@@ -183,3 +183,25 @@ test('cloud tombstone works before the first receipt backup',async()=>{
  assert.equal(calls[0].row.receipt_id,'receipt-1');
  assert.equal(calls[0].options.ignoreDuplicates,true);
 });
+
+test('deleted receipt is not uploaded even when a stale queue retries',async()=>{
+ const now=new Date('2026-11-04T05:00:00Z');
+ let uploaded=false;
+ const supabase={from(table){
+  if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>({eq:async()=>({data:[{receipt_id:'gone'}],error:null})})})};
+  return {upsert:async()=>{uploaded=true;return {error:null}}};
+ }};
+ const result=await api.backup({supabase,userId:'owner-1',receipt:{id:'gone',created_at:'2026-11-04T03:00:00Z'},now});
+ assert.equal(result.reason,'deleted_receipt');
+ assert.equal(uploaded,false);
+});
+test('restore excludes independently deleted cloud receipts',async()=>{
+ const now=new Date('2026-11-04T05:00:00Z');
+ const receipt={id:'gone',created_at:'2026-11-04T03:00:00Z'};
+ const supabase={from(table){
+  if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>Promise.resolve({data:[{receipt_id:'gone'}],error:null})})};
+  return {select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:'gone',receipt_day:'2026-11-04',receipt_snapshot:receipt}],error:null})})})};
+ }};
+ const restored=await api.restore({supabase,userId:'owner-1',now});
+ assert.equal(restored.length,0);
+});

@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const ctx={Date,Intl};ctx.globalThis=ctx;
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../src/phoi-recent-backup.js'),'utf8'),ctx);
 const api=ctx.CuncunRecentPhoiBackup;
-const realBackup=api.backup,realRestore=api.restore;
+const realBackup=api.backup,realRestore=api.restore,realQueue=api.createBackupQueue;
 function testClient(db){
  return {from(table){
   if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>({eq:async()=>({data:[],error:null}),then:fn=>Promise.resolve({data:[],error:null}).then(fn)})})};
@@ -215,7 +215,7 @@ test('skipped deleted receipt is not counted as uploaded',async()=>{
   if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>({eq:async()=>({data:[{receipt_id:'gone'}],error:null})})})};
   return {upsert:async()=>{uploads++;return {error:null}}};
  }};
- const queue=realBackup && api.createBackupQueue({supabase,getUserId:async()=> 'owner-1',storage});
+ const queue=realQueue({supabase,getUserId:async()=> 'owner-1',storage});
  queue.enqueue({id:'gone',created_at:'2026-11-04T03:00:00Z'},'owner-1');
  const result=await queue.flush(now);
  assert.equal(result.saved,0);

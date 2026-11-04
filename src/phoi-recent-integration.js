@@ -2,7 +2,7 @@
    Do not automatically intercept print buttons or infer receipt IDs. */
 (function(root){
  'use strict';
- function create({supabase,getUserId,storage,readLocal,writeLocal,onStatus}){
+ function create({supabase,getUserId,storage,readLocal,writeLocal,readDeletedIds,onStatus}){
    const helper=root.CuncunRecentPhoiBackup;
    if(!helper) throw new Error('Backup helper not loaded');
    const queue=helper.createBackupQueue({supabase,getUserId,storage});
@@ -32,12 +32,14 @@
      if(await getUserId()!==userId) throw new Error('Account changed during restore');
      const local=await readLocal();
      if(await getUserId()!==userId) throw new Error('Account changed during restore');
-     const merged=helper.mergeRestored(local,remote);
+     const deletedIds=typeof readDeletedIds==='function'?await readDeletedIds():[];
+     const merged=helper.mergeRestored(local,remote,new Date(),deletedIds);
      if(merged.length>local.length){
        // Re-read immediately before writing to preserve receipts saved while the cloud request was in flight.
        const latest=await readLocal();
        if(await getUserId()!==userId) throw new Error('Account changed before restore write');
-       const current=helper.mergeRestored(latest,remote);
+       const latestDeletedIds=typeof readDeletedIds==='function'?await readDeletedIds():[];
+       const current=helper.mergeRestored(latest,remote,new Date(),latestDeletedIds);
        if(current.length>latest.length) await writeLocal(current);
        status({state:'restored',count:current.length-latest.length});
        return {restored:current.length-latest.length,total:current.length};

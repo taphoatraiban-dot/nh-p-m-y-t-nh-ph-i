@@ -91,3 +91,6 @@ test('recovery preserves a new local receipt added during cloud restoration',asy
  assert.ok(written.some(x=>x.id==='local-new'));
  assert.ok(written.some(x=>x.id==='remote-1'));
 });
+
+// The receipt-save hook is intentionally not enabled in production until the
+// actual index.html persistence point and its receipt shape are verified.

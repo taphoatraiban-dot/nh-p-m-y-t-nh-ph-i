@@ -59,3 +59,12 @@ test('corrupt or out-of-range local timestamp never throws or queues a backup',a
  }
  assert.equal(client.pending(),0);
 });
+
+test('corrupt existing history JSON does not crash restore adapter',async()=>{
+ const bridge=load(),store=new Map([['TSH_PRINT_HISTORY_V1','{broken json']]);
+ const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
+ const client=bridge.create({supabase:{},getUserId:async()=> 'owner-1',storage});
+ // No network call: the adapter must remain constructible even with corrupt data.
+ assert.equal(typeof client.recover,'function');
+ assert.equal(client.pending(),0);
+});

@@ -65,6 +65,22 @@ create policy "owners_update_recent_phoi" on public.phoi_recent_backups for upda
 -- A server-side scheduled cleanup job is required to delete records older
 -- than the previous Vietnam calendar day; do not rely on client-side deletion.
 
+-- Deletion can precede the first upload. Keep a separate tombstone so a
+-- delayed first upload cannot recreate a receipt the owner already removed.
+create table if not exists public.phoi_recent_backup_deletions (
+ owner_user_id uuid not null references auth.users(id) on delete cascade,
+ receipt_id text not null,
+ deleted_at timestamptz not null default now(),
+ primary key(owner_user_id,receipt_id)
+);
+alter table public.phoi_recent_backup_deletions enable row level security;
+revoke all on public.phoi_recent_backup_deletions from anon;
+grant select, insert on public.phoi_recent_backup_deletions to authenticated;
+create policy "owners_select_recent_phoi_deletions" on public.phoi_recent_backup_deletions
+ for select to authenticated using (owner_user_id=auth.uid());
+create policy "owners_insert_recent_phoi_deletions" on public.phoi_recent_backup_deletions
+ for insert to authenticated with check (owner_user_id=auth.uid());
+
 -- Cleanup is a separate, explicit server-side operation. Run only after staging verification.
 -- Vietnam calendar date is derived from the server clock, not the client device.
 create or replace function public.purge_expired_phoi_recent_backups()

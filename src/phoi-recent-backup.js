@@ -52,19 +52,34 @@
       write(rows);
       return rows.length;
     }
+    let flushing=null;
     async function flush(now=new Date()){
+      if(flushing) return flushing;
+      flushing=flushOnce(now);
+      try{return await flushing;}finally{flushing=null;}
+    }
+    async function flushOnce(now){
       const userId=await getUserId();
       if(!userId) return {saved:0,pending:read().length,error:'not_authenticated'};
-      let saved=0, pending=[],failed=false;
-      for(const item of read()){
+      let saved=0,failed=false;
+      const completed=new Map();
+      const snapshot=read();
+      for(const item of snapshot){
         if(!item || !item.receipt || !item.userId) {failed=true;continue;}
-        if(item.userId!==userId){pending.push(item);continue;}
-        if(!allowedDays(now).includes(dayKey(item.receipt.created_at))) continue;
-        try{await backup({supabase,userId,receipt:item.receipt,now});saved++;}
-        catch{pending.push(item);failed=true;}
+        if(item.userId!==userId) continue;
+        const key=item.userId+'\\u0000'+item.receipt.id;
+        if(!allowedDays(now).includes(dayKey(item.receipt.created_at))){completed.set(key,JSON.stringify(item));continue;}
+        try{await backup({supabase,userId,receipt:item.receipt,now});saved++;completed.set(key,JSON.stringify(item));}
+        catch{failed=true;}
       }
-      write(pending);
-      return {saved,pending:pending.length,error:failed?'retry_required':null};
+      // Re-read to preserve new receipts enqueued while the network was busy.
+      const remaining=read().filter(item=>{
+        if(!item || !item.receipt || !item.userId) return true;
+        const key=item.userId+'\\u0000'+item.receipt.id;
+        return completed.get(key)!==JSON.stringify(item);
+      });
+      write(remaining);
+      return {saved,pending:remaining.length,error:failed?'retry_required':null};
     }
     return {enqueue,flush,pending:()=>read().length};
   }

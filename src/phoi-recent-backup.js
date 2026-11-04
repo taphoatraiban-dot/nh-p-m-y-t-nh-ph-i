@@ -26,6 +26,7 @@
     const day=dayKey(receipt.created_at);
     if(!allowedDays(now).includes(day)) return {skipped:true,reason:'outside_today_yesterday'};
     const row={owner_user_id:userId,receipt_id:receipt.id,receipt_day:day,receipt_snapshot:receipt,updated_at:new Date().toISOString()};
+    // Do not send deleted_at:null: stale retries must never clear a tombstone.
     const {error}=await supabase.from('phoi_recent_backups').upsert(row,{onConflict:'owner_user_id,receipt_id'});
     if(error) throw error;
     return {saved:true};

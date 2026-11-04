@@ -5,6 +5,17 @@ const vm=require('node:vm');
 const ctx={Date,Intl};ctx.globalThis=ctx;
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../src/phoi-recent-backup.js'),'utf8'),ctx);
 const api=ctx.CuncunRecentPhoiBackup;
+function testClient(db){
+ return {from(table){
+  if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>({eq:async()=>({data:[],error:null}),then:fn=>Promise.resolve({data:[],error:null}).then(fn)})})};
+  return db.from(table);
+ }};
+}
+for(const method of ['backup','restore','createBackupQueue']){
+ const original=api[method];
+ api[method]=args=>original({...args,supabase:testClient(args.supabase)});
+}
+
 test('Vietnamese day boundary and yesterday at midnight',()=>{
  assert.equal(api.dayKey('2026-11-03T17:30:00Z'),'2026-11-04');
  assert.deepEqual(Array.from(api.allowedDays(new Date('2026-11-04T18:00:00Z'))),['2026-11-05','2026-11-04']);

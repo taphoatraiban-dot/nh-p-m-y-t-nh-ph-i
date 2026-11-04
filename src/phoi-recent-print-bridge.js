@@ -23,13 +23,16 @@
    const ledger=helper.createDeletionLedger({storage,getUserId});
    const read=()=>{try{const a=JSON.parse(storage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch{return [];}};
    const write=rows=>storage.setItem(KEY,JSON.stringify(rows.slice(-1000)));
+   // A restore must never append a receipt which was deleted during its cloud fetch.
+   const localDeletionLedger=helper.createDeletionLedger({storage,getUserId});
    const client=integration.create({
      supabase,getUserId,storage,onStatus,
      readLocal:async()=>read().map(toCloud).filter(Boolean),
      writeLocal:async rows=>{
        // Keep existing local rows and IDs. The integration merges by stable ID.
        const existing=read(),ids=new Set(existing.map(x=>x.id));
-       const fresh=rows.filter(x=>!ids.has(x.id)).map(toLocal);
+       const deleted=new Set(await localDeletionLedger.deletedIds());
+       const fresh=rows.filter(x=>!ids.has(x.id)&&!deleted.has(x.id)).map(toLocal);
        if(fresh.length)write(existing.concat(fresh));
      },
      readDeletedIds:()=>ledger.deletedIds(),

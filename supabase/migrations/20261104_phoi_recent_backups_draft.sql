@@ -25,9 +25,13 @@ declare
   snapshot_id text;
   snapshot_time timestamptz;
 begin
-  if new.deleted_at is not null then
-    if new.deleted_at > now() + interval '1 minute' then raise exception 'Invalid deletion timestamp'; end if;
-    return new;
+  -- A tombstone is immutable: later stale backup upserts cannot resurrect it.
+  if tg_op = 'UPDATE' and old.deleted_at is not null then
+    new.deleted_at := old.deleted_at;
+    new.receipt_snapshot := old.receipt_snapshot;
+  end if;
+  if new.deleted_at is not null and new.deleted_at > now() + interval '1 minute' then
+    raise exception 'Invalid deletion timestamp';
   end if;
   snapshot_id := new.receipt_snapshot->>'id';
   if snapshot_id is null or length(trim(snapshot_id)) = 0 or snapshot_id <> new.receipt_id then

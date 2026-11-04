@@ -21,7 +21,7 @@
  function saved(receipt){
    if(!bridge)return;
    const current=bridge;
-   run(()=>current.saved(receipt));
+   run(()=>{if(bridge===current)return current.saved(receipt);});
  }
  function deleted(receiptIds){
    if(!bridge)return;
@@ -29,7 +29,7 @@
    for(const id of ids){
      if(typeof id!=='string'||!id.trim())continue;
      const current=bridge;
-     run(()=>current.deleted(id));
+     run(()=>{if(bridge===current)return current.deleted(id);});
    }
  }
  function diagnostics(){return {attached:!!bridge,inFlight,lastError};}

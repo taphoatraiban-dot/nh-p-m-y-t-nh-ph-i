@@ -51,3 +51,21 @@ test('recovery refuses to write when account changes during cloud fetch',async()
  await assert.rejects(()=>client.recover(),/Account changed during restore/);
  assert.equal(writes,0);
 });
+
+test('local storage failure never throws into the print flow',async()=>{
+ const integration=load();
+ const storage={getItem:()=> '[]',setItem:()=>{throw new Error('QuotaExceededError');}};
+ const client=integration.create({supabase:{},getUserId:async()=> 'owner-1',storage,readLocal:async()=>[],writeLocal:async()=>{}});
+ const result=await client.onReceiptSaved({id:'p1',created_at:new Date().toISOString()});
+ assert.equal(result.queued,false);
+ assert.equal(result.error,'backup_unavailable');
+});
+
+test('authentication lookup failure never throws into the print flow',async()=>{
+ const integration=load();
+ const storage={getItem:()=> '[]',setItem:()=>{}};
+ const client=integration.create({supabase:{},getUserId:async()=>{throw new Error('offline auth');},storage,readLocal:async()=>[],writeLocal:async()=>{}});
+ const result=await client.onReceiptSaved({id:'p1',created_at:new Date().toISOString()});
+ assert.equal(result.queued,false);
+ assert.equal(result.error,'backup_unavailable');
+});

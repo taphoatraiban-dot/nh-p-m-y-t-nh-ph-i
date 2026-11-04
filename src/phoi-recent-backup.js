@@ -79,7 +79,12 @@
         try {assertReceipt(item.receipt);receiptDay=dayKey(item.receipt.created_at);}
         catch {failed=true;continue;}
         if(!allowedDays(now).includes(receiptDay)){completed.set(key,JSON.stringify(item));continue;}
-        try{\n          // A user may switch accounts while an earlier flush is awaiting the network.\n          if(await getUserId()!==userId){failed=true;break;}\n          await backup({supabase,userId,receipt:item.receipt,now});\n          saved++;completed.set(key,JSON.stringify(item));\n        }
+        try{
+          // A user may switch accounts while an earlier flush is awaiting the network.
+          if(await getUserId()!==userId){failed=true;break;}
+          await backup({supabase,userId,receipt:item.receipt,now});
+          saved++;completed.set(key,JSON.stringify(item));
+        }
         catch{failed=true;}
       }
       // Re-read to preserve new receipts enqueued while the network was busy.

@@ -160,3 +160,13 @@ test('deletion markers are account-scoped and prevent restore resurrection',asyn
  const merged=api.mergeRestored([],[{id:'receipt-1',created_at:'2026-11-04T03:00:00Z'}],now,await ledger.deletedIds(now));
  assert.equal(merged.length,0);
 });
+
+test('cloud tombstone update is scoped to account and receipt',async()=>{
+ const calls=[];
+ const query={eq(k,v){calls.push([k,v]);return this;}};
+ const supabase={from(table){assert.equal(table,'phoi_recent_backups');return {update(values){calls.push(['update',values]);return query;}}}};
+ await api.markCloudDeleted({supabase,userId:'owner-a',receiptId:'receipt-1',now:new Date('2026-11-04T05:00:00Z')});
+ assert.deepEqual(calls.filter(x=>x[0]==='owner_user_id'),[['owner_user_id','owner-a']]);
+ assert.deepEqual(calls.filter(x=>x[0]==='receipt_id'),[['receipt_id','receipt-1']]);
+ assert.ok(calls[0][1].deleted_at);
+});

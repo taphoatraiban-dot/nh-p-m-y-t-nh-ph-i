@@ -104,9 +104,9 @@ jobs:
                       print(f'{i}: {sanitized[:220]}')
           PY
       - name: Check backup and print history JavaScript syntax
-        run: node --check src/phoi-recent-backup.js && node --check src/phoi-recent-integration.js && node --check src/bluetooth-print-manager.js
+        run: node --check src/phoi-recent-backup.js && node --check src/phoi-recent-integration.js && node --check src/phoi-recent-print-bridge.js && node --check src/bluetooth-print-manager.js
       - name: Verify recent receipt backup and restore regressions
-        run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs
+        run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs tests/phoi-recent-print-bridge.test.cjs
       - name: Validate recent backup SQL function delimiters
         run: |
           python3 - <<'PY'

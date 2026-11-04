@@ -32,15 +32,25 @@
   }
   async function restore({supabase,userId,now=new Date()}){
     if(!userId) throw new Error('Authenticated user required');
-    const {data,error}=await supabase.from('phoi_recent_backups').select('receipt_id,receipt_day,receipt_snapshot').eq('owner_user_id',userId).in('receipt_day',allowedDays(now));
+    const {data,error}=await supabase.from('phoi_recent_backups').select('receipt_id,receipt_day,receipt_snapshot,deleted_at').eq('owner_user_id',userId).in('receipt_day',allowedDays(now));
     if(error) throw error;
     return (data||[]).filter(row=>{
-      if(!allowedDays(now).includes(row.receipt_day)) return false;
+      if(row.deleted_at || !allowedDays(now).includes(row.receipt_day)) return false;
       try {
         const receipt=assertReceipt(row.receipt_snapshot);
         return receipt.id===row.receipt_id && dayKey(receipt.created_at)===row.receipt_day;
       } catch { return false; }
     }).map(row=>row.receipt_snapshot);
+  }
+  // Mark an existing cloud snapshot deleted without deleting its ownership record.
+  // A missing row is not created: callers must verify the receipt was backed up.
+  async function markCloudDeleted({supabase,userId,receiptId,now=new Date()}){
+    if(!userId || typeof receiptId!=='string' || !receiptId.trim()) throw new Error('Account and receipt ID required');
+    const {error}=await supabase.from('phoi_recent_backups')
+      .update({deleted_at:now.toISOString(),updated_at:now.toISOString()})
+      .eq('owner_user_id',userId).eq('receipt_id',receiptId);
+    if(error) throw error;
+    return {marked:true};
   }
   // Optional integration: call only after the receipt has been saved locally.
   // A network failure must never prevent printing; surface the failure for retry.
@@ -144,5 +154,5 @@
     }
     return {markDeleted,deletedIds};
   }
-  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore,createBackupQueue,mergeRestored,createDeletionLedger};
+  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore,markCloudDeleted,createBackupQueue,mergeRestored,createDeletionLedger};
 })(typeof window!=='undefined'?window:globalThis);

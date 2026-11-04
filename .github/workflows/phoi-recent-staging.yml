@@ -43,3 +43,25 @@ jobs:
           assert sql.count('as $$') == 3
           assert sum(line.strip() == '$$;' for line in sql.splitlines()) == 3
           PY
+
+  postgres-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cuncun_staging_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test migration on disposable PostgreSQL 17
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d cuncun_staging_test -v ON_ERROR_STOP=1 -f tests/phoi-recent-postgres-smoke.sql

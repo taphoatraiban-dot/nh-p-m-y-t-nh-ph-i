@@ -4,6 +4,7 @@ on:
     branches:
       - feature/phoi-backup-today-yesterday-20261104
     paths:
+      - 'index.html'
       - 'src/phoi-recent-*.js'
       - 'tests/phoi-recent-*.test.cjs'
       - 'supabase/migrations/20261104_phoi_recent_backups_draft.sql'
@@ -30,11 +31,15 @@ jobs:
           node --check src/phoi-recent-backup.js
           node --check src/phoi-recent-integration.js
           node --check src/phoi-recent-print-bridge.js
+          node --check src/phoi-recent-print-hooks.js
+          node --check src/phoi-recent-bootstrap.js
           node --check tests/phoi-recent-backup.test.cjs
           node --check tests/phoi-recent-integration.test.cjs
           node --check tests/phoi-recent-print-bridge.test.cjs
+          node --check tests/phoi-recent-print-hooks.test.cjs
+          node --check tests/phoi-recent-bootstrap.test.cjs
       - name: Run backup and restore tests
-        run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs tests/phoi-recent-print-bridge.test.cjs
+        run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs tests/phoi-recent-print-bridge.test.cjs tests/phoi-recent-print-hooks.test.cjs tests/phoi-recent-bootstrap.test.cjs
       - name: Validate SQL function delimiters
         run: |
           python3 - <<'PY'

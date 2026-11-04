@@ -25,7 +25,10 @@
      const local=await readLocal();
      if(await getUserId()!==userId) throw new Error('Account changed during restore');
      const merged=helper.mergeRestored(local,remote);
-     if(merged.length>local.length) await writeLocal(merged);
+     if(merged.length>local.length){
+       if(await getUserId()!==userId) throw new Error('Account changed before restore write');
+       await writeLocal(merged);
+     }
      status({state:'restored',count:merged.length-local.length});
      return {restored:merged.length-local.length,total:merged.length};
    }

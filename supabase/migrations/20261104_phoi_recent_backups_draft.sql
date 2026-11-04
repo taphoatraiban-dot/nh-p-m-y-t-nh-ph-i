@@ -14,3 +14,22 @@ create policy "owners_insert_recent_phoi" on public.phoi_recent_backups for inse
 create policy "owners_update_recent_phoi" on public.phoi_recent_backups for update to authenticated using (owner_user_id=auth.uid()) with check (owner_user_id=auth.uid());
 -- A server-side scheduled cleanup job is required to delete records older
 -- than the previous Vietnam calendar day; do not rely on client-side deletion.
+
+-- Cleanup is a separate, explicit server-side operation. Run only after staging verification.
+-- Vietnam calendar date is derived from the server clock, not the client device.
+create or replace function public.purge_expired_phoi_recent_backups()
+returns bigint
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare removed bigint;
+begin
+  delete from public.phoi_recent_backups
+   where receipt_day < ((now() at time zone 'Asia/Ho_Chi_Minh')::date - 1);
+  get diagnostics removed = row_count;
+  return removed;
+end;
+$$;
+revoke all on function public.purge_expired_phoi_recent_backups() from public, anon, authenticated;
+-- Schedule this function via an approved server-side cron after the migration is reviewed.

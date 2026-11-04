@@ -78,6 +78,10 @@
      return {synced,pending:remaining.length};
    }
    async function onReceiptDeleted(receiptId){
+     if(typeof receiptId!=='string'||!receiptId.trim()){
+       status({state:'delete_sync_pending',error:'invalid_receipt_id'});
+       return {synced:false,error:'invalid_receipt_id'};
+     }
      // The real delete handler must persist its own deletion first, then call this.
      // A cloud failure never undoes a local deletion; report it for explicit retry.
      let userId;

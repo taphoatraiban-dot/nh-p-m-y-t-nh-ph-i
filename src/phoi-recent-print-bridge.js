@@ -29,9 +29,13 @@
      supabase,getUserId,storage,onStatus,
      readLocal:async()=>read().map(toCloud).filter(Boolean),
      writeLocal:async rows=>{
-       // Keep existing local rows and IDs. The integration merges by stable ID.
-       const existing=read(),ids=new Set(existing.map(x=>x.id));
+       // Revalidate the account after the asynchronous deletion-ledger lookup.
+       const ownerBefore=await getUserId();
+       if(!ownerBefore)throw new Error('Authenticated user required before restore write');
        const deleted=new Set(await localDeletionLedger.deletedIds());
+       if(await getUserId()!==ownerBefore)throw new Error('Account changed before restore write');
+       // Re-read just before writing so receipts saved during the cloud fetch survive.
+       const existing=read(),ids=new Set(existing.map(x=>x.id));
        const fresh=rows.filter(x=>!ids.has(x.id)&&!deleted.has(x.id)).map(toLocal);
        if(fresh.length)write(existing.concat(fresh));
      },

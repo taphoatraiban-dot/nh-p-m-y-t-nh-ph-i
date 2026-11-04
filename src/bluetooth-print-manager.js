@@ -61,7 +61,9 @@
     const selected = new Set();
     const expanded = new Set();
     let activeRegion = 'MN';
-    let actionsOpen = false;\n    let searchText = '';\n    backdrop.querySelector('#bluetoothPrintSearch').addEventListener('input',e=>{searchText=e.target.value.toLocaleLowerCase('vi').trim();render();});
+    let actionsOpen = false;
+    let searchText = '';
+    backdrop.querySelector('#bluetoothPrintSearch')?.addEventListener('input',e=>{searchText=e.target.value.toLocaleLowerCase('vi').trim();render();});
     const dayClosed = new Set();
     function notify(message) {
       const old=backdrop.querySelector('#tshPrintNotice'); if(old)old.remove();

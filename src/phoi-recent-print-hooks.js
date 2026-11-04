@@ -4,6 +4,7 @@
  'use strict';
  let bridge=null;
  function attach(client){
+   if(bridge)throw new Error('Print backup hooks already attached');
    if(!client||typeof client.saved!=='function'||typeof client.deleted!=='function')
      throw new TypeError('Configured print backup bridge required');
    bridge=client;

@@ -8366,6 +8366,43 @@ window.showHistoryItem=showHistoryItem;
 <script src="src/phoi-recent-print-hooks.js"></script>
 <script src="src/phoi-recent-bootstrap.js"></script>
 <script>
+/* Controlled activation for the owner during the first production verification.
+   Uses the already authenticated main CUNCUN Supabase client. No secret keys.
+   Call await CuncunRecentPhoiControl.enable() only after login; disable() stops hooks. */
+window.CuncunRecentPhoiControl={
+  async enable(){
+    if(window.CuncunRecentPhoiBootstrap.active())return {active:true,alreadyStarted:true};
+    const {data,error}=await sb.auth.getUser();
+    if(error||!data?.user?.id)throw new Error('Đăng nhập CUNCUN trước khi bật sao lưu');
+    const ownerId=data.user.id;
+    const getUserId=async()=>{
+      const result=await sb.auth.getUser();
+      if(result.error)throw result.error;
+      return result.data?.user?.id||null;
+    };
+    const client=window.CuncunRecentPhoiBootstrap.start({
+      supabase:sb,getUserId,storage:localStorage,
+      onStatus:state=>{window.CuncunRecentPhoiBackupStatus=state;}
+    });
+    try{
+      if(await getUserId()!==ownerId)throw new Error('Tài khoản đã thay đổi');
+      const recovery=await client.recover();
+      const retry=await client.retry();
+      return {active:true,recovery,retry,pending:client.pending()};
+    }catch(e){window.CuncunRecentPhoiBootstrap.stop();throw e;}
+  },
+  disable(){window.CuncunRecentPhoiBootstrap.stop();},
+  status(){return {
+    active:window.CuncunRecentPhoiBootstrap.active(),
+    hooks:window.CuncunRecentPhoiHooks.diagnostics(),
+    last:window.CuncunRecentPhoiBackupStatus||null
+  };}
+};
+sb.auth.onAuthStateChange((event)=>{
+  if(event==='SIGNED_OUT')window.CuncunRecentPhoiBootstrap.stop();
+});
+</script>
+<script>
 /* ===== IN PHOI + LICH SU IN + TONG HOP TELEGRAM ===== */
 (function(){
   const KEY='TSH_PRINT_HISTORY_V1';

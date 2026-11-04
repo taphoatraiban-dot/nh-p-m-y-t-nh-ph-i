@@ -171,3 +171,22 @@ test('restore excludes receipts pending offline deletion for current account',as
  assert.equal(result.restored,0);
  assert.equal(written,false);
 });
+
+test('invalid deletion IDs cannot create local or remote tombstones',async()=>{
+ const integration=load();
+ let localCalls=0,cloudCalls=0;
+ const client=integration.create({
+  supabase:{deletionUpsert:async()=>{cloudCalls++;return {error:null}}},
+  getUserId:async()=> 'owner-1',
+  storage:{getItem:()=>null,setItem:()=>{}},
+  readLocal:async()=>[],writeLocal:async()=>{},
+  onReceiptDeletedLocal:async()=>{localCalls++}
+ });
+ for(const id of [null,undefined,'','   ',42]){
+  const result=await client.onReceiptDeleted(id);
+  assert.equal(result.synced,false);
+  assert.equal(result.error,'invalid_receipt_id');
+ }
+ assert.equal(localCalls,0);
+ assert.equal(cloudCalls,0);
+});

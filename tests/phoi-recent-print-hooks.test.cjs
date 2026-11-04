@@ -51,3 +51,13 @@ test('diagnostics expose backup failures without interrupting print',async()=>{
  assert.equal(status.inFlight,0);
  assert.match(status.lastError,/network offline/);
 });
+
+test('detaching before queued callbacks run prevents stale account uploads',async()=>{
+ const hooks=load(),events=[];
+ hooks.attach({saved:r=>events.push('saved:'+r.id),deleted:id=>events.push('deleted:'+id)});
+ hooks.saved({id:'p1'});hooks.deleted('p1');
+ hooks.detach();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.deepEqual(events,[]);
+ assert.equal(hooks.diagnostics().inFlight,0);
+});

@@ -6,7 +6,9 @@
  const KEY='TSH_PRINT_HISTORY_V1';
  function toCloud(row){
    if(!row||typeof row.id!=='string'||!row.id.trim()||!Number.isFinite(Number(row.createdAt))||Number(row.createdAt)<=0)return null;
-   const created_at=new Date(Number(row.createdAt)).toISOString();
+   const date=new Date(Number(row.createdAt));
+   if(Number.isNaN(date.getTime()))return null;
+   const created_at=date.toISOString();
    return {...row,created_at};
  }
  function toLocal(row){

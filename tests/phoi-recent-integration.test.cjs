@@ -14,7 +14,7 @@ function load(){
   from(table){
    if(table==='phoi_recent_backup_deletions')return {
     select:()=>({eq:()=>({eq:async()=>({data:[],error:null}),then:fn=>Promise.resolve({data:[],error:null}).then(fn)})}),
-    upsert:async()=>({error:null})
+    upsert:async(row,opts)=>args.supabase.deletionUpsert?args.supabase.deletionUpsert(row,opts):{error:null}
    };
    return args.supabase.from(table);
   }
@@ -109,8 +109,7 @@ test('recovery preserves a new local receipt added during cloud restoration',asy
 test('deleted receipt writes local marker before cloud tombstone',async()=>{
  const integration=load();
  const calls=[];
- const query={eq(k,v){calls.push(k+':'+v);return this;}};
- const supabase={from:()=>({update:()=>{calls.push('cloud');return query;}})};
+ const supabase={deletionUpsert:async row=>{calls.push('cloud:'+row.owner_user_id+':'+row.receipt_id);return {error:null}}};
  const client=integration.create({
   supabase,getUserId:async()=> 'owner-1',
   storage:{getItem:()=> '[]',setItem:()=>{}},
@@ -119,14 +118,12 @@ test('deleted receipt writes local marker before cloud tombstone',async()=>{
  });
  const result=await client.onReceiptDeleted('receipt-1');
  assert.equal(result.synced,true);
- assert.equal(calls[0],'local:receipt-1');
- assert.equal(calls[1],'cloud');
- assert.ok(calls.includes('owner_user_id:owner-1'));
+ assert.deepEqual(calls,['local:receipt-1','cloud:owner-1:receipt-1']);
 });
 test('deleted receipt is retained locally when cloud is unavailable',async()=>{
  const integration=load();
  let local=false;
- const supabase={from:()=>({update:()=>{throw Error('offline');}})};
+ const supabase={deletionUpsert:async()=>({error:new Error('offline')})};
  const client=integration.create({
   supabase,getUserId:async()=> 'owner-1',
   storage:{getItem:()=> '[]',setItem:()=>{}},
@@ -137,13 +134,11 @@ test('deleted receipt is retained locally when cloud is unavailable',async()=>{
  assert.equal(result.synced,false);
  assert.equal(local,true);
 });
-
 test('offline deletion persists for retry and clears after connection returns',async()=>{
  const integration=load();
  const store=new Map();
  let offline=true;
- const query={eq(){return this;}};
- const supabase={from:()=>({update:()=>{if(offline)throw Error('offline');return query;}})};
+ const supabase={deletionUpsert:async()=>({error:offline?new Error('offline'):null})};
  const client=integration.create({
   supabase,getUserId:async()=> 'owner-1',
   storage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},

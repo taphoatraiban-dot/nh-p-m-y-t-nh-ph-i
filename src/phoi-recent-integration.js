@@ -2,7 +2,7 @@
    Do not automatically intercept print buttons or infer receipt IDs. */
 (function(root){
  'use strict';
- function create({supabase,getUserId,storage,readLocal,writeLocal,readDeletedIds,onStatus}){
+ function create({supabase,getUserId,storage,readLocal,writeLocal,readDeletedIds,onReceiptDeletedLocal,onStatus}){
    const helper=root.CuncunRecentPhoiBackup;
    if(!helper) throw new Error('Backup helper not loaded');
    const queue=helper.createBackupQueue({supabase,getUserId,storage});
@@ -47,7 +47,30 @@
      status({state:'restored',count:merged.length-local.length});
      return {restored:merged.length-local.length,total:merged.length};
    }
-   return {onReceiptSaved,recover,retry:()=>queue.flush(),pending:()=>queue.pending()};
+   async function onReceiptDeleted(receiptId){
+     // The real delete handler must persist its own deletion first, then call this.
+     // A cloud failure never undoes a local deletion; report it for explicit retry.
+     let userId;
+     try {userId=await getUserId();}
+     catch(error){status({state:'delete_sync_pending',error:String(error)});return {synced:false};}
+     if(!userId){status({state:'delete_sync_pending',error:'not_authenticated'});return {synced:false};}
+     try {
+       if(typeof onReceiptDeletedLocal!=='function') throw new Error('Local deletion marker adapter required');
+       await onReceiptDeletedLocal(receiptId);
+     } catch(error){
+       status({state:'delete_sync_pending',error:String(error)});
+       return {synced:false};
+     }
+     try {
+       await helper.markCloudDeleted({supabase,userId,receiptId});
+       status({state:'delete_synced'});
+       return {synced:true};
+     } catch(error){
+       status({state:'delete_sync_pending',error:String(error)});
+       return {synced:false};
+     }
+   }
+   return {onReceiptSaved,onReceiptDeleted,recover,retry:()=>queue.flush(),pending:()=>queue.pending()};
  }
  root.CuncunRecentPhoiIntegration={create};
 })(typeof window!=='undefined'?window:globalThis);

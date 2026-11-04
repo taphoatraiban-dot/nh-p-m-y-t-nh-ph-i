@@ -40,3 +40,14 @@ test('hooks cannot silently replace an already configured backup adapter',()=>{
  hooks.detach();
  assert.doesNotThrow(()=>hooks.attach(adapter));
 });
+
+test('diagnostics expose backup failures without interrupting print',async()=>{
+ const hooks=load();
+ hooks.attach({saved:()=>Promise.reject(Error('network offline')),deleted:()=>{}});
+ hooks.saved({id:'p1'});
+ await new Promise(resolve=>setImmediate(resolve));
+ const status=hooks.diagnostics();
+ assert.equal(status.attached,true);
+ assert.equal(status.inFlight,0);
+ assert.match(status.lastError,/network offline/);
+});

@@ -98,14 +98,14 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = ''
-as $
+as $$
 begin
   perform pg_catalog.pg_advisory_xact_lock(
     pg_catalog.hashtextextended(new.owner_user_id::text || ':' || new.receipt_id, 0)
   );
   return new;
 end;
-$;
+$$;
 revoke all on function public.lock_phoi_recent_deletion() from public, anon;
 drop trigger if exists lock_phoi_recent_deletion_trigger on public.phoi_recent_backup_deletions;
 create trigger lock_phoi_recent_deletion_trigger

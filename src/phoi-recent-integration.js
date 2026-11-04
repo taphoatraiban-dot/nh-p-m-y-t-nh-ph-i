@@ -32,13 +32,13 @@
      if(await getUserId()!==userId) throw new Error('Account changed during restore');
      const local=await readLocal();
      if(await getUserId()!==userId) throw new Error('Account changed during restore');
-     const deletedIds=typeof readDeletedIds==='function'?await readDeletedIds():[];
+     const deletedIds=[...(typeof readDeletedIds==='function'?await readDeletedIds():[]),...pendingDeletions().filter(x=>x.userId===userId).map(x=>x.receiptId)];
      const merged=helper.mergeRestored(local,remote,new Date(),deletedIds);
      if(merged.length>local.length){
        // Re-read immediately before writing to preserve receipts saved while the cloud request was in flight.
        const latest=await readLocal();
        if(await getUserId()!==userId) throw new Error('Account changed before restore write');
-       const latestDeletedIds=typeof readDeletedIds==='function'?await readDeletedIds():[];
+       const latestDeletedIds=[...(typeof readDeletedIds==='function'?await readDeletedIds():[]),...pendingDeletions().filter(x=>x.userId===userId).map(x=>x.receiptId)];
        const current=helper.mergeRestored(latest,remote,new Date(),latestDeletedIds);
        if(current.length>latest.length) await writeLocal(current);
        status({state:'restored',count:current.length-latest.length});

@@ -5,6 +5,7 @@ const vm=require('node:vm');
 const ctx={Date,Intl};ctx.globalThis=ctx;
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../src/phoi-recent-backup.js'),'utf8'),ctx);
 const api=ctx.CuncunRecentPhoiBackup;
+const realBackup=api.backup,realRestore=api.restore;
 function testClient(db){
  return {from(table){
   if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>({eq:async()=>({data:[],error:null}),then:fn=>Promise.resolve({data:[],error:null}).then(fn)})})};
@@ -191,7 +192,7 @@ test('deleted receipt is not uploaded even when a stale queue retries',async()=>
   if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>({eq:async()=>({data:[{receipt_id:'gone'}],error:null})})})};
   return {upsert:async()=>{uploaded=true;return {error:null}}};
  }};
- const result=await api.backup({supabase,userId:'owner-1',receipt:{id:'gone',created_at:'2026-11-04T03:00:00Z'},now});
+ const result=await realBackup({supabase,userId:'owner-1',receipt:{id:'gone',created_at:'2026-11-04T03:00:00Z'},now});
  assert.equal(result.reason,'deleted_receipt');
  assert.equal(uploaded,false);
 });
@@ -202,6 +203,6 @@ test('restore excludes independently deleted cloud receipts',async()=>{
   if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>Promise.resolve({data:[{receipt_id:'gone'}],error:null})})};
   return {select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:'gone',receipt_day:'2026-11-04',receipt_snapshot:receipt}],error:null})})})};
  }};
- const restored=await api.restore({supabase,userId:'owner-1',now});
+ const restored=await realRestore({supabase,userId:'owner-1',now});
  assert.equal(restored.length,0);
 });

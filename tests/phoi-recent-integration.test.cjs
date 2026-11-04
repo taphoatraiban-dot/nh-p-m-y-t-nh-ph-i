@@ -151,7 +151,7 @@ test('offline deletion persists for retry and clears after connection returns',a
 test('restore excludes receipts pending offline deletion for current account',async()=>{
  const integration=load();
  const now=new Date();
- const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
  const remote={id:'deleted-receipt',created_at:now.toISOString()};
  const store=new Map([['cuncun_pending_phoi_deletions_v1',JSON.stringify([{userId:'owner-1',receiptId:remote.id}])]]);
  const supabase={from:()=>({select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:remote.id,receipt_day:day,receipt_snapshot:remote}],error:null})})})})};

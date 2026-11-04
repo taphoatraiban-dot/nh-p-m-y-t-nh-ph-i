@@ -57,6 +57,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Locate real print persistence hooks for safe integration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          lines = Path('index.html').read_text(encoding='utf-8').splitlines()
+          terms = ('printed_phoi', 'TSH_PRINT_HISTORY_V1', 'print_queue', 'bluetooth-print-manager.js')
+          for i, line in enumerate(lines, 1):
+              if any(term in line for term in terms):
+                  # Show line positions and keyword only; never emit source containing credentials.
+                  matched = ','.join(term for term in terms if term in line)
+                  print(f'index.html:{i}: {matched}')
+          PY
       - name: Check backup and print history JavaScript syntax
         run: node --check src/phoi-recent-backup.js && node --check src/phoi-recent-integration.js && node --check src/bluetooth-print-manager.js
       - name: Verify recent receipt backup and restore regressions

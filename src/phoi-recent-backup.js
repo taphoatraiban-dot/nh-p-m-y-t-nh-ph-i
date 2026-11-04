@@ -47,7 +47,7 @@
     function enqueue(receipt,userId){
       assertReceipt(receipt);
       if(!userId) throw new Error('Authenticated user required');
-      const rows=read().filter(x=>!(x.userId===userId && x.receipt.id===receipt.id));
+      const rows=read().filter(x=>!(x && x.userId===userId && x.receipt && x.receipt.id===receipt.id));
       rows.push({userId,receipt});
       write(rows);
       return rows.length;

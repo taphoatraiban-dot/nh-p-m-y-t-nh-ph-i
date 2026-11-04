@@ -8,7 +8,18 @@ function load(){
  for(const name of ['phoi-recent-backup.js','phoi-recent-integration.js']){
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src',name),'utf8'),ctx);
  }
- return ctx.CuncunRecentPhoiIntegration;
+ const integration=ctx.CuncunRecentPhoiIntegration;
+ const original=integration.create;
+ integration.create=args=>original({...args,supabase:{
+  from(table){
+   if(table==='phoi_recent_backup_deletions')return {
+    select:()=>({eq:()=>({eq:async()=>({data:[],error:null}),then:fn=>Promise.resolve({data:[],error:null}).then(fn)})}),
+    upsert:async()=>({error:null})
+   };
+   return args.supabase.from(table);
+  }
+ }});
+ return integration;
 }
 test('saved receipt is queued without waiting for a stalled cloud upload',async()=>{
  const integration=load();

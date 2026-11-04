@@ -115,5 +115,34 @@
     }
     return Array.from(byId.values());
   }
-  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore,createBackupQueue,mergeRestored};
+  // Account-scoped deletion markers prevent cloud restoration from resurrecting
+  // intentionally removed receipts on this device. These markers are retained
+  // for two Vietnam calendar days, not merely for 48 elapsed hours.
+  function createDeletionLedger({storage,getUserId,storageKey='cuncun_deleted_phoi_receipts_v1'}){
+    function read(){
+      try {const value=JSON.parse(storage.getItem(storageKey)||'[]');return Array.isArray(value)?value:[];}
+      catch{return [];}
+    }
+    function active(rows,now=new Date()){
+      const days=allowedDays(now);
+      return rows.filter(x=>x&&typeof x.userId==='string'&&typeof x.receiptId==='string'&&typeof x.deletedAt==='string'&&
+        x.receiptId.trim()&&x.userId.trim()&&
+        !Number.isNaN(new Date(x.deletedAt).getTime())&&days.includes(dayKey(x.deletedAt)));
+    }
+    function write(rows){storage.setItem(storageKey,JSON.stringify(rows));}
+    async function markDeleted(receiptId,now=new Date()){
+      const userId=await getUserId();
+      if(!userId||typeof receiptId!=='string'||!receiptId.trim()) throw new Error('Account and receipt ID required');
+      const rows=active(read(),now).filter(x=>!(x.userId===userId&&x.receiptId===receiptId));
+      rows.push({userId,receiptId,deletedAt:now.toISOString()});
+      write(rows);
+    }
+    async function deletedIds(now=new Date()){
+      const userId=await getUserId();
+      if(!userId) return [];
+      return active(read(),now).filter(x=>x.userId===userId).map(x=>x.receiptId);
+    }
+    return {markDeleted,deletedIds};
+  }
+  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore,createBackupQueue,mergeRestored,createDeletionLedger};
 })(typeof window!=='undefined'?window:globalThis);

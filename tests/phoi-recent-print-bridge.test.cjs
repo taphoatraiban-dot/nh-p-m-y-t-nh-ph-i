@@ -48,3 +48,14 @@ test('restoring cloud history retains local records and avoids duplicates',async
  await client.recover();
  assert.equal(JSON.parse(store.get('TSH_PRINT_HISTORY_V1')).length,2);
 });
+
+test('corrupt or out-of-range local timestamp never throws or queues a backup',async()=>{
+ const bridge=load(),store=new Map();
+ const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
+ const client=bridge.create({supabase:{},getUserId:async()=> 'owner-1',storage});
+ for(const createdAt of [Number.MAX_VALUE,-1,0,NaN,'bad']){
+  const result=await client.saved({id:'bad',createdAt});
+  assert.equal(result.queued,false);
+ }
+ assert.equal(client.pending(),0);
+});

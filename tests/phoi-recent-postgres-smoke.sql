@@ -42,3 +42,29 @@ begin
   if sqlerrm = 'Tombstone failed to block upload' then raise; end if;
  end;
 end $$;
+
+-- The second account must not be able to insert or read the first account data.
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000002';
+do $$
+begin
+ begin
+  insert into public.phoi_recent_backups(owner_user_id,receipt_id,receipt_day,receipt_snapshot)
+  values ('00000000-0000-0000-0000-000000000001','forged-owner',
+   (now() at time zone 'Asia/Ho_Chi_Minh')::date,
+   jsonb_build_object('id','forged-owner','created_at',now()::text));
+  raise exception 'Cross-account insert unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='Cross-account insert unexpectedly succeeded' then raise;end if;
+ end;
+end $$;
+-- The second account must not be able to forge deletion markers for another owner.
+do $$
+begin
+ begin
+  insert into public.phoi_recent_backup_deletions(owner_user_id,receipt_id)
+  values ('00000000-0000-0000-0000-000000000001','receipt-ok');
+  raise exception 'Cross-account delete marker unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='Cross-account delete marker unexpectedly succeeded' then raise;end if;
+ end;
+end $$;

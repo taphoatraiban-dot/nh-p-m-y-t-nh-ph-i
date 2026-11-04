@@ -36,7 +36,11 @@
        if(await getUserId()!==ownerBefore)throw new Error('Account changed before restore write');
        // Re-read just before writing so receipts saved during the cloud fetch survive.
        const existing=read(),ids=new Set(existing.map(x=>x.id));
-       const fresh=rows.filter(x=>!ids.has(x.id)&&!deleted.has(x.id)).map(toLocal);
+       // A deletion can arrive while the restore is awaiting the first ledger read.
+       // Recheck immediately before the synchronous localStorage write.
+       const latestDeleted=new Set(await localDeletionLedger.deletedIds());
+       if(await getUserId()!==ownerBefore)throw new Error('Account changed before final restore write');
+       const fresh=rows.filter(x=>!ids.has(x.id)&&!deleted.has(x.id)&&!latestDeleted.has(x.id)).map(toLocal);
        if(fresh.length)write(existing.concat(fresh));
      },
      readDeletedIds:()=>ledger.deletedIds(),

@@ -33,3 +33,17 @@ offline retries, and race conditions. A check-then-upsert is not atomic: a concu
 backup request can still race with deletion, so a server-side enforcement trigger or
 transactional RPC is required before release. The deletion marker table also needs a
 retention policy; do not purge markers while stale upload queues may still retry.
+
+
+## Concurrency test required before release
+The draft migration now uses matching transaction-scoped advisory locks in the
+backup validation trigger and deletion-marker insert trigger. Verify with two
+authenticated staging sessions using the same account/receipt:
+1. Hold a backup insert transaction open, then insert its deletion marker in
+   another session; confirm the deletion waits and eventually commits.
+2. Reverse the order: hold the deletion-marker transaction open, then attempt
+   the backup insert; confirm the backup is rejected after the marker commits.
+3. Confirm a different account with the same receipt ID remains independent.
+4. Confirm a stale backup retry cannot clear an existing deletion marker.
+5. Verify the RLS policies reject cross-account reads and writes.
+Do not infer these guarantees from unit tests alone. Run on staging first.

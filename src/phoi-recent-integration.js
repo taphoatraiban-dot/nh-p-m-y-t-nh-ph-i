@@ -13,9 +13,14 @@
      // Persist before initiating Wi-Fi printing, then upload asynchronously.
      queue.enqueue(receipt,userId);
      status({state:'pending',count:queue.pending()});
-     const result=await queue.flush();
-     status({state:result.error?'pending':'synced',count:result.pending});
-     return result;
+     // Never wait for the network before the caller proceeds to print.
+     // enqueue() has already durably written the pending snapshot to storage.
+     void queue.flush().then(result=>{
+       status({state:result.error?'pending':'synced',count:result.pending});
+     }).catch(error=>{
+       status({state:'pending',count:queue.pending(),error:String(error)});
+     });
+     return {queued:true,pending:queue.pending()};
    }
    async function recover(){
      const userId=await getUserId();

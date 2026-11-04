@@ -47,6 +47,35 @@
      status({state:'restored',count:merged.length-local.length});
      return {restored:merged.length-local.length,total:merged.length};
    }
+   const deletedQueueKey='cuncun_pending_phoi_deletions_v1';
+   function pendingDeletions(){
+     try {const rows=JSON.parse(storage.getItem(deletedQueueKey)||'[]');return Array.isArray(rows)?rows:[];}
+     catch{return [];}
+   }
+   function queueDeletion(userId,receiptId){
+     const rows=pendingDeletions().filter(x=>!(x.userId===userId&&x.receiptId===receiptId));
+     rows.push({userId,receiptId});
+     storage.setItem(deletedQueueKey,JSON.stringify(rows));
+   }
+   async function retryDeletions(){
+     const userId=await getUserId();
+     if(!userId)return {synced:0,pending:pendingDeletions().length};
+     let synced=0;
+     const completed=new Set();
+     for(const item of pendingDeletions()){
+       if(!item||item.userId!==userId||typeof item.receiptId!=='string')continue;
+       if(await getUserId()!==userId)break;
+       try {
+         await helper.markCloudDeleted({supabase,userId,receiptId:item.receiptId});
+         completed.add(userId+'\\u0000'+item.receiptId);
+         synced++;
+       } catch {}
+     }
+     // Keep concurrent additions and other accounts' pending deletions.
+     const remaining=pendingDeletions().filter(x=>!completed.has(x.userId+'\\u0000'+x.receiptId));
+     storage.setItem(deletedQueueKey,JSON.stringify(remaining));
+     return {synced,pending:remaining.length};
+   }
    async function onReceiptDeleted(receiptId){
      // The real delete handler must persist its own deletion first, then call this.
      // A cloud failure never undoes a local deletion; report it for explicit retry.
@@ -62,15 +91,16 @@
        return {synced:false};
      }
      try {
-       await helper.markCloudDeleted({supabase,userId,receiptId});
-       status({state:'delete_synced'});
-       return {synced:true};
+       queueDeletion(userId,receiptId);
+       const result=await retryDeletions();
+       status({state:result.pending?'delete_sync_pending':'delete_synced',count:result.pending});
+       return {synced:result.pending===0};
      } catch(error){
        status({state:'delete_sync_pending',error:String(error)});
        return {synced:false};
      }
    }
-   return {onReceiptSaved,onReceiptDeleted,recover,retry:()=>queue.flush(),pending:()=>queue.pending()};
+   return {onReceiptSaved,onReceiptDeleted,recover,retry:async()=>({backups:await queue.flush(),deletions:await retryDeletions()}),pending:()=>queue.pending()+pendingDeletions().length};
  }
  root.CuncunRecentPhoiIntegration={create};
 })(typeof window!=='undefined'?window:globalThis);

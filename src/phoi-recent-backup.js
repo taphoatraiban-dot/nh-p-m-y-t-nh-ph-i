@@ -17,6 +17,7 @@
     if(!receipt || typeof receipt!=='object' || Array.isArray(receipt)) throw new Error('Receipt required');
     if(typeof receipt.id!=='string'||!receipt.id.trim()) throw new Error('Stable receipt id required');
     if(!receipt.created_at) throw new Error('Receipt creation time required');
+    if(Number.isNaN(new Date(receipt.created_at).getTime())) throw new Error('Invalid receipt creation time');
     return receipt;
   }
   async function backup({supabase,userId,receipt,now=new Date()}){
@@ -35,5 +36,34 @@
     if(error) throw error;
     return (data||[]).filter(row=>allowedDays(now).includes(row.receipt_day)).map(row=>assertReceipt(row.receipt_snapshot));
   }
-  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore};
+  // Optional integration: call only after the receipt has been saved locally.
+  // A network failure must never prevent printing; surface the failure for retry.
+  function createBackupQueue({supabase,getUserId,storage,storageKey='cuncun_pending_phoi_backups'}){
+    function read(){
+      try {const v=JSON.parse(storage.getItem(storageKey)||'[]');return Array.isArray(v)?v:[];}
+      catch {return [];}
+    }
+    function write(rows){storage.setItem(storageKey,JSON.stringify(rows));}
+    function enqueue(receipt){
+      assertReceipt(receipt);
+      const rows=read().filter(x=>x.id!==receipt.id);
+      rows.push(receipt);
+      write(rows);
+      return rows.length;
+    }
+    async function flush(now=new Date()){
+      const userId=await getUserId();
+      if(!userId) return {saved:0,pending:read().length,error:'not_authenticated'};
+      let saved=0, pending=[],failed=false;
+      for(const receipt of read()){
+        if(!allowedDays(now).includes(dayKey(receipt.created_at))) continue;
+        try{await backup({supabase,userId,receipt,now});saved++;}
+        catch{pending.push(receipt);failed=true;}
+      }
+      write(pending);
+      return {saved,pending:pending.length,error:failed?'retry_required':null};
+    }
+    return {enqueue,flush,pending:()=>read().length};
+  }
+  root.CuncunRecentPhoiBackup={dayKey,allowedDays,backup,restore,createBackupQueue};
 })(typeof window!=='undefined'?window:globalThis);

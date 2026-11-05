@@ -235,3 +235,20 @@ test('retry blocks old backup uploads until offline deletion markers sync',async
  assert.equal(second.backups.error,null);
  assert.equal(client.pending(),0);
 });
+
+test('automatic receipt save respects pending offline deletions',async()=>{
+ const integration=load();
+ const store=new Map([['cuncun_pending_phoi_deletions_v1',JSON.stringify([{userId:'owner-1',receiptId:'old-deleted'}])]]);
+ let uploads=0;
+ const client=integration.create({
+  supabase:{deletionUpsert:async()=>({error:new Error('offline')}),from:()=>({upsert:async()=>{uploads++;return {error:null}}})},
+  getUserId:async()=> 'owner-1',
+  storage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+  readLocal:async()=>[],writeLocal:async()=>{}
+ });
+ const result=await client.onReceiptSaved({id:'new-receipt',created_at:new Date().toISOString()});
+ assert.equal(result.queued,true);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(uploads,0);
+ assert.equal(client.pending(),2);
+});

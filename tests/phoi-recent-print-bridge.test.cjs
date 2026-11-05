@@ -128,3 +128,23 @@ test('restore aborts if account switches during deletion ledger lookup',async()=
  await assert.rejects(()=>client.recover(),/Account changed/);
  assert.equal(writes,0);
 });
+
+test('cloud restore preserves more than 1000 existing print-history records',async()=>{
+ const bridge=load(),store=new Map(),now=Date.now();
+ const local=Array.from({length:1005},(_,i)=>({id:'existing-'+i,createdAt:now-i*1000}));
+ store.set('TSH_PRINT_HISTORY_V1',JSON.stringify(local));
+ const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
+ const cloud={id:'restored',createdAt:now,created_at:new Date(now).toISOString()};
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const supabase={from(table){
+  if(table==='phoi_recent_backup_deletions')return {select:()=>({eq:()=>Promise.resolve({data:[],error:null})})};
+  return {select:()=>({eq:()=>({in:async()=>({data:[{receipt_id:cloud.id,receipt_day:day,receipt_snapshot:cloud}],error:null})})})};
+ }};
+ const client=bridge.create({supabase,getUserId:async()=> 'owner-1',storage});
+ const result=await client.recover();
+ assert.equal(result.restored,1);
+ const after=JSON.parse(store.get('TSH_PRINT_HISTORY_V1'));
+ assert.equal(after.length,1006);
+ assert.deepEqual(after.slice(0,1005).map(x=>x.id),local.map(x=>x.id));
+ assert.equal(after[1005].id,'restored');
+});

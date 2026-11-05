@@ -101,7 +101,7 @@
         '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px">'+regions.map(reg=>
           '<button type="button" data-action="region" data-region="'+reg+'" style="'+btn+'background:'+(reg===activeRegion?'#1d4ed8':'#e2e8f0')+';color:'+(reg===activeRegion?'#fff':'#334155')+'">'+reg+' ('+entries.filter(x=>region(x)===reg).length+')</button>'
         ).join('')+'</div>'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:#475569">'+selected.size+' tin đã chọn · Lưu 48 giờ</span><button type="button" data-action="toggle-actions" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">'+(actionsOpen?'✕':'•••')+'</button></div>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px"><span style="font-size:12px;color:#166534">☁ Sao lưu đám mây</span><button type="button" data-action="sync-now" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">↻ ĐỒNG BỘ NGAY</button></div>'+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:#475569">'+selected.size+' tin đã chọn · Lưu 48 giờ</span><button type="button" data-action="toggle-actions" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">'+(actionsOpen?'✕':'•••')+'</button></div>'+
         (actionsOpen?'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:10px">'+
           '<button data-action="select-region" style="'+btn+'background:#dbeafe">☑ Chọn tất cả</button>'+
           '<button data-action="unselect-region" style="'+btn+'background:#e2e8f0">Bỏ chọn</button>'+
@@ -136,7 +136,20 @@
       const entries = keep(read());
       const item = entries.find(row => String(row.id) === id);
       try {
-        if (action === 'region') {
+        if (action === 'sync-now') {
+          const control=root.CuncunRecentPhoiControl;
+          if(!control||typeof control.retry!=='function'||typeof control.recover!=='function') {
+            notify('Đồng bộ chưa sẵn sàng. Hãy đăng nhập lại hoặc tải lại trang.'); return;
+          }
+          button.disabled=true;
+          button.textContent='ĐANG ĐỒNG BỘ...';
+          try {
+            await control.retry();
+            await control.recover();
+            render();
+            notify('Đã hoàn tất yêu cầu đồng bộ. Kiểm tra lại danh sách phiếu.');
+          } finally { button.disabled=false; button.textContent='↻ ĐỒNG BỘ NGAY'; }
+        } else if (action === 'region') {
           activeRegion=button.dataset.region; render();
         } else if (action === 'toggle-actions') {
           actionsOpen=!actionsOpen; render();

@@ -1,5 +1,6 @@
-/* CUNCUN: isolated backup helper. Not wired to production print flow yet.
-   Storage table and RLS must be provisioned before enabling. */
+/* CUNCUN: recent print-history backup helper.
+   Used by the authenticated opt-in bridge on the feature branch.
+   Requires owner-scoped Supabase tables and RLS; do not bypass auth. */
 (function(root){
   'use strict';
   const TZ='Asia/Ho_Chi_Minh';

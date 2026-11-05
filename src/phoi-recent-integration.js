@@ -19,8 +19,9 @@
      status({state:'pending',count:queue.pending()});
      // Never wait for the network before the caller proceeds to print.
      // enqueue() has already durably written the pending snapshot to storage.
-     void queue.flush().then(result=>{
-       status({state:result.error?'pending':'synced',count:result.pending});
+     void retry().then(result=>{
+       const backups=result.backups;
+       status({state:backups.error?'pending':'synced',count:backups.pending});
      }).catch(error=>{
        status({state:'pending',count:queue.pending(),error:String(error)});
      });

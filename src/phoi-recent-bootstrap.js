@@ -22,6 +22,11 @@
    root.CuncunRecentPhoiHooks.detach();
    session=null;
  }
+ async function syncNow(){
+   if(!session)throw new Error('Đồng bộ chưa kích hoạt. Hãy đăng nhập lại.');
+   await session.retry();
+   return session.recover();
+ }
  function active(){return !!session;}
- root.CuncunRecentPhoiBootstrap={start,stop,active};
+ root.CuncunRecentPhoiBootstrap={start,stop,active,syncNow};
 })(typeof window!=='undefined'?window:globalThis);

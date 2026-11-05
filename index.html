@@ -2255,8 +2255,17 @@ function showApp(){
   $("appCard").classList.remove("hidden");
   resetIdleClock();
   startIdleLogout();
+  // Start recent receipt backup only after the app is unlocked and authenticated.
+  // Failures must not interrupt the existing login or printing flow.
+  Promise.resolve().then(async()=>{
+    if(document.getElementById('appCard')?.classList.contains('hidden'))return;
+    try{await window.CuncunRecentPhoiControl?.enable();}
+    catch(error){window.CuncunRecentPhoiBackupStatus={state:'backup_unavailable',error:String(error)};}
+    if(document.getElementById('appCard')?.classList.contains('hidden'))window.CuncunRecentPhoiControl?.disable();
+  });
 }
 function showLogin(){
+  window.CuncunRecentPhoiControl?.disable();
   document.body.classList.remove('app-unlocked');
   document.getElementById('appCard')?.classList.add('hidden');
   if(!document.body.classList.contains("public-auth-open") && typeof showPublicCover==="function") showPublicCover();
@@ -8360,6 +8369,48 @@ window.showHistoryItem=showHistoryItem;
 })();
 </script>
 
+<script src="src/phoi-recent-backup.js"></script>
+<script src="src/phoi-recent-integration.js"></script>
+<script src="src/phoi-recent-print-bridge.js"></script>
+<script src="src/phoi-recent-print-hooks.js"></script>
+<script src="src/phoi-recent-bootstrap.js"></script>
+<script>
+/* Controlled activation for the owner during the first production verification.
+   Uses the already authenticated main CUNCUN Supabase client. No secret keys.
+   Call await CuncunRecentPhoiControl.enable() only after login; disable() stops hooks. */
+window.CuncunRecentPhoiControl={
+  async enable(){
+    if(window.CuncunRecentPhoiBootstrap.active())return {active:true,alreadyStarted:true};
+    const {data,error}=await sb.auth.getUser();
+    if(error||!data?.user?.id)throw new Error('Đăng nhập CUNCUN trước khi bật sao lưu');
+    const ownerId=data.user.id;
+    const getUserId=async()=>{
+      const result=await sb.auth.getUser();
+      if(result.error)throw result.error;
+      return result.data?.user?.id||null;
+    };
+    const client=window.CuncunRecentPhoiBootstrap.start({
+      supabase:sb,getUserId,storage:localStorage,
+      onStatus:state=>{window.CuncunRecentPhoiBackupStatus=state;}
+    });
+    try{
+      if(await getUserId()!==ownerId)throw new Error('Tài khoản đã thay đổi');
+      const recovery=await client.recover();
+      const retry=await client.retry();
+      return {active:true,recovery,retry,pending:client.pending()};
+    }catch(e){window.CuncunRecentPhoiBootstrap.stop();throw e;}
+  },
+  disable(){window.CuncunRecentPhoiBootstrap.stop();},
+  status(){return {
+    active:window.CuncunRecentPhoiBootstrap.active(),
+    hooks:window.CuncunRecentPhoiHooks.diagnostics(),
+    last:window.CuncunRecentPhoiBackupStatus||null
+  };}
+};
+sb.auth.onAuthStateChange((event)=>{
+  if(event==='SIGNED_OUT')window.CuncunRecentPhoiBootstrap.stop();
+});
+</script>
 <script>
 /* ===== IN PHOI + LICH SU IN + TONG HOP TELEGRAM ===== */
 (function(){
@@ -8385,7 +8436,9 @@ window.showHistoryItem=showHistoryItem;
       x={id:'p'+Date.now()+'_'+Math.random().toString(36).slice(2,7),key,date,customer,text,raw:raw||'',printCount:1,createdAt:Date.now(),lastPrintedAt:Date.now(),selected:true,summary:sm};
       a.push(x);
     }
-    write(a); return x;
+    write(a);
+    window.CuncunRecentPhoiHooks?.saved(x);
+    return x;
   }
   function printReceiptAirPrint(text){
     // Safari must print the receipt image, never the app DOM or an iframe.
@@ -9944,7 +9997,7 @@ window.addEventListener('DOMContentLoaded',function(){
  }
  function tgText(x,i){return 'Tin '+(i+1)+'\n'+rawPhoi(x)}
  function selectedIds(root,cls){return [...root.querySelectorAll(cls+':checked')].map(c=>c.dataset.id)}
- function delIds(ids){if(!ids.length)return;write(read().filter(x=>!ids.includes(String(x.id))))}
+ function delIds(ids){if(!ids.length)return;write(read().filter(x=>!ids.includes(String(x.id))));window.CuncunRecentPhoiHooks?.deleted(ids)}
  function open(){
    document.getElementById('printHistoryOverlay')?.remove();
    const ov=document.createElement('div');ov.id='printHistoryOverlay';ov.style='position:fixed;inset:0;z-index:300000;background:rgba(15,23,42,.72);padding:10px;overflow:auto';
@@ -9964,9 +10017,9 @@ window.addEventListener('DOMContentLoaded',function(){
      ov.querySelector('#pa')?.addEventListener('click',()=>toggleAll('.ps'));ov.querySelector('#ta')?.addEventListener('click',()=>toggleAll('.ts'));
      ov.querySelectorAll('.one-del').forEach(b=>b.onclick=()=>{if(confirm('Xóa phơi này?')){delIds([b.dataset.id]);render()}});
      ov.querySelector('#pd')?.addEventListener('click',()=>{let ids=selectedIds(ov,'.ps');if(!ids.length)return alert('Chưa chọn phơi.');if(confirm('Xóa '+ids.length+' phơi đã chọn?')){delIds(ids);render()}});
-     ov.querySelector('#pall')?.addEventListener('click',()=>{if(confirm('Xóa TOÀN BỘ phơi đã in?')){write([]);render()}});
+     ov.querySelector('#pall')?.addEventListener('click',()=>{if(confirm('Xóa TOÀN BỘ phơi đã in?')){const ids=read().map(x=>String(x.id));write([]);window.CuncunRecentPhoiHooks?.deleted(ids);render()}});
      ov.querySelector('#td')?.addEventListener('click',()=>{let ids=selectedIds(ov,'.ts');if(!ids.length)return alert('Chưa chọn tin.');if(confirm('Xóa '+ids.length+' tin đã chọn?')){delIds(ids);render()}});
-     ov.querySelector('#tall')?.addEventListener('click',()=>{if(confirm('Xóa TOÀN BỘ dữ liệu Telegram/phơi đã in?')){write([]);render()}});
+     ov.querySelector('#tall')?.addEventListener('click',()=>{if(confirm('Xóa TOÀN BỘ dữ liệu Telegram/phơi đã in?')){const ids=read().map(x=>String(x.id));write([]);window.CuncunRecentPhoiHooks?.deleted(ids);render()}});
      ov.querySelector('#tcopy')?.addEventListener('click',async()=>{let ids=selectedIds(ov,'.ts'),a=read().filter(x=>ids.includes(String(x.id)));if(!a.length)return alert('Chưa chọn tin.');let txt=a.map((x,i)=>tgText(x,i)).join('\n\n');try{await navigator.clipboard.writeText(txt)}catch(_){let ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}alert('Đã COPY '+a.length+' tin.')});
    }
    ov.querySelector('#thClose').onclick=()=>ov.remove();

@@ -1,0 +1,72 @@
+name: CUNCUN recent receipt backup staging tests
+on:
+  push:
+    branches:
+      - feature/phoi-backup-today-yesterday-20261104
+    paths:
+      - 'index.html'
+      - 'src/phoi-recent-*.js'
+      - 'tests/phoi-recent-*.test.cjs'
+      - 'supabase/migrations/20261104_phoi_recent_backups_draft.sql'
+      - '.github/workflows/phoi-recent-staging.yml'
+  pull_request:
+    paths:
+      - 'src/phoi-recent-*.js'
+      - 'tests/phoi-recent-*.test.cjs'
+      - 'supabase/migrations/20261104_phoi_recent_backups_draft.sql'
+      - '.github/workflows/phoi-recent-staging.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backup-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check source and test syntax
+        run: |
+          node --check src/phoi-recent-backup.js
+          node --check src/phoi-recent-integration.js
+          node --check src/phoi-recent-print-bridge.js
+          node --check src/phoi-recent-print-hooks.js
+          node --check src/phoi-recent-bootstrap.js
+          node --check tests/phoi-recent-backup.test.cjs
+          node --check tests/phoi-recent-integration.test.cjs
+          node --check tests/phoi-recent-print-bridge.test.cjs
+          node --check tests/phoi-recent-print-hooks.test.cjs
+          node --check tests/phoi-recent-bootstrap.test.cjs
+      - name: Run backup and restore tests
+        run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs tests/phoi-recent-print-bridge.test.cjs tests/phoi-recent-print-hooks.test.cjs tests/phoi-recent-bootstrap.test.cjs
+      - name: Validate SQL function delimiters
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          sql=Path('supabase/migrations/20261104_phoi_recent_backups_draft.sql').read_text()
+          assert sql.count('as $$') == 3
+          assert sum(line.strip() == '$$;' for line in sql.splitlines()) == 3
+          PY
+
+  postgres-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cuncun_staging_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test migration on disposable PostgreSQL 17
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d cuncun_staging_test -v ON_ERROR_STOP=1 -f tests/phoi-recent-postgres-smoke.sql

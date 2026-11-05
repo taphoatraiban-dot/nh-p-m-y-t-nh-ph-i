@@ -5,6 +5,7 @@ on:
       - 'index.html'
       - 'tests/**'
       - 'src/**'
+      - 'supabase/migrations/20261104_phoi_recent_backups_draft.sql'
       - 'scripts/build-reconcile-preview.cjs'
       - 'doi-soat-thu.html'
       - '.github/workflows/parser-regression.yml'
@@ -13,6 +14,7 @@ on:
       - 'index.html'
       - 'tests/**'
       - 'src/**'
+      - 'supabase/migrations/20261104_phoi_recent_backups_draft.sql'
       - 'scripts/build-reconcile-preview.cjs'
       - 'doi-soat-thu.html'
       - '.github/workflows/parser-regression.yml'
@@ -48,3 +50,70 @@ jobs:
         run: node --test tests/b7lo-regression.test.cjs
       - name: Verify parser and integration regressions
         run: node --test tests/parser-regression.cjs tests/telegram-reconcile.test.cjs tests/telegram-region.test.cjs tests/parser-money.test.cjs tests/reconcile-preview.test.cjs tests/login-startup.test.cjs tests/pin-unlock.test.cjs
+  recent-phoi-backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Locate real print persistence hooks for safe integration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          lines = Path('index.html').read_text(encoding='utf-8').splitlines()
+          terms = ('printed_phoi', 'TSH_PRINT_HISTORY_V1', 'print_queue', 'bluetooth-print-manager.js')
+          for i, line in enumerate(lines, 1):
+              if any(term in line for term in terms):
+                  # Show line positions and keyword only; never emit source containing credentials.
+                  matched = ','.join(term for term in terms if term in line)
+                  print(f'index.html:{i}: {matched}')
+          PY
+      - name: Inspect receipt-save control flow without logging secrets
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          lines = Path('index.html').read_text(encoding='utf-8').splitlines()
+          for center in (8366, 8580, 8806, 9927):
+              print(f'--- index.html around {center} ---')
+              for i in range(max(1,center-9), min(len(lines),center+10)+1):
+                  line=lines[i-1].strip()
+                  if not line or len(line)>400 or re.search(r'(key|token|secret|password|apikey|authorization|bearer|supabaseUrl)',line,re.I):
+                      continue
+                  # Show only relevant call shapes, not literal values or user data.
+                  if re.search(r'(localStorage|setItem|JSON.parse|\.from\(|\.insert\(|\.upsert\(|\.push\(|function |=>|addEventListener|save|history|print)',line,re.I):
+                      sanitized=re.sub(r'(["\x27\x60])(?:\\.|(?!\1).)*?\1', '<string>', line)
+                      print(f'{i}: {sanitized[:200]}')
+          PY
+      - name: Locate exact history write and restore call shapes
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          lines=Path('index.html').read_text(encoding='utf-8').splitlines()
+          for start,end in ((8355,8645),(9918,10035)):
+              print(f'--- receipt control flow {start}-{end} ---')
+              for i in range(start,min(end,len(lines))+1):
+                  line=lines[i-1].strip()
+                  if len(line)>500 or re.search(r'(apikey|bearer|secret|authorization|password|supabaseUrl)',line,re.I):continue
+                  if re.search(r'(historyKey|historyRead|historyWrite|historyKeep|\.setItem\(|\.getItem\(|\.push\(|\.unshift\(|\.splice\(|\.filter\(|\.from\(|function .*history|saveHistory|recordPrint|createdAt|lastPrintedAt|const item|const entry|history\.|write\()',line,re.I):
+                      sanitized=re.sub(r'(["\x27\x60])(?:\\.|(?!\1).)*?\1','<string>',line)
+                      print(f'{i}: {sanitized[:220]}')
+          PY
+      - name: Check backup and print history JavaScript syntax
+        run: node --check src/phoi-recent-backup.js && node --check src/phoi-recent-integration.js && node --check src/phoi-recent-print-bridge.js && node --check src/bluetooth-print-manager.js
+      - name: Verify recent receipt backup and restore regressions
+        run: node --test tests/phoi-recent-backup.test.cjs tests/phoi-recent-integration.test.cjs tests/phoi-recent-print-bridge.test.cjs
+      - name: Validate recent backup SQL function delimiters
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          sql=Path('supabase/migrations/20261104_phoi_recent_backups_draft.sql').read_text()
+          assert sql.count('as $$') == 3, 'Expected three dollar-quoted functions'
+          assert sum(line.strip() == '$$;' for line in sql.splitlines()) == 3, 'Unbalanced SQL function delimiters'
+          assert not any(line.strip() in ('as $', '$;') for line in sql.splitlines()), 'Malformed SQL dollar quote'
+          print('SQL delimiter checks passed')
+          PY

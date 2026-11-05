@@ -137,15 +137,14 @@
       const item = entries.find(row => String(row.id) === id);
       try {
         if (action === 'sync-now') {
-          const control=root.CuncunRecentPhoiControl;
-          if(!control||typeof control.retry!=='function'||typeof control.recover!=='function') {
+          const control=root.CuncunRecentPhoiBootstrap;
+          if(!control||typeof control.syncNow!=='function'||!control.active()) {
             notify('Đồng bộ chưa sẵn sàng. Hãy đăng nhập lại hoặc tải lại trang.'); return;
           }
           button.disabled=true;
           button.textContent='ĐANG ĐỒNG BỘ...';
           try {
-            await control.retry();
-            await control.recover();
+            await control.syncNow();
             render();
             notify('Đã hoàn tất yêu cầu đồng bộ. Kiểm tra lại danh sách phiếu.');
           } finally { button.disabled=false; button.textContent='↻ ĐỒNG BỘ NGAY'; }

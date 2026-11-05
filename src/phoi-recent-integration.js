@@ -105,7 +105,18 @@
        return {synced:false};
      }
    }
-   return {onReceiptSaved,onReceiptDeleted,recover,retry:async()=>({deletions:await retryDeletions(),backups:await queue.flush()}),pending:()=>queue.pending()+pendingDeletions().length};
+   async function retry(){
+     const deletions=await retryDeletions();
+     const userId=await getUserId();
+     // A failed tombstone upload must not be followed by an older receipt upload.
+     // Otherwise a deleted receipt could temporarily reappear on another device.
+     if(userId && pendingDeletions().some(x=>x&&x.userId===userId)){
+       status({state:'delete_sync_pending',count:deletions.pending});
+       return {deletions,backups:{saved:0,pending:queue.pending(),error:'pending_deletions'}};
+     }
+     return {deletions,backups:await queue.flush()};
+   }
+   return {onReceiptSaved,onReceiptDeleted,recover,retry,pending:()=>queue.pending()+pendingDeletions().length};
  }
  root.CuncunRecentPhoiIntegration={create};
 })(typeof window!=='undefined'?window:globalThis);

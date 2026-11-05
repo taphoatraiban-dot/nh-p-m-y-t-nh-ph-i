@@ -206,3 +206,32 @@ test('failed local deletion marker must not send a cloud tombstone',async()=>{
  assert.equal(cloudCalls,0);
  assert.equal(client.pending(),0);
 });
+
+test('retry blocks old backup uploads until offline deletion markers sync',async()=>{
+ const integration=load();
+ const store=new Map();
+ const receipt={id:'receipt-deleted',created_at:new Date().toISOString()};
+ store.set('cuncun_pending_phoi_backups',JSON.stringify([{userId:'owner-1',receipt}]));
+ store.set('cuncun_pending_phoi_deletions_v1',JSON.stringify([{userId:'owner-1',receiptId:receipt.id}]));
+ let uploads=0,offline=true;
+ const supabase={
+  deletionUpsert:async()=>({error:offline?new Error('offline'):null}),
+  from:()=>({upsert:async()=>{uploads++;return {error:null}}})
+ };
+ const client=integration.create({
+  supabase,getUserId:async()=> 'owner-1',
+  storage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+  readLocal:async()=>[],writeLocal:async()=>{}
+ });
+ const first=await client.retry();
+ assert.equal(first.backups.error,'pending_deletions');
+ assert.equal(uploads,0);
+ assert.equal(client.pending(),2);
+ offline=false;
+ const second=await client.retry();
+ assert.equal(second.deletions.synced,1);
+ // Once the tombstone is durable, a stale upload may be attempted safely:
+ // the server trigger must reject it, or the backup helper must skip it.
+ assert.equal(second.backups.error,null);
+ assert.equal(client.pending(),0);
+});

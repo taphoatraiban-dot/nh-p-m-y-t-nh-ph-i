@@ -22,7 +22,7 @@
    if(!helper||!integration)throw new Error('Recent backup helpers not loaded');
    const ledger=helper.createDeletionLedger({storage,getUserId});
    const read=()=>{try{const a=JSON.parse(storage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch{return [];}};
-   const write=rows=>storage.setItem(KEY,JSON.stringify(rows.slice(-1000)));
+   const write=rows=>storage.setItem(KEY,JSON.stringify(rows));
    // A restore must never append a receipt which was deleted during its cloud fetch.
    const localDeletionLedger=helper.createDeletionLedger({storage,getUserId});
    const client=integration.create({

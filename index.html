@@ -2845,6 +2845,15 @@ function ttUnifiedNormalize(raw){
  return output.join('\n');
 }
 function cleanTelegramPhoiText(text){
+ // Expand compact DA + Bao into independent complete wagers before legacy normalizers.
+ // Optional terminal period and trailing comma must not discard any Bao pair.
+ text=String(text??'').split('\n').map(function(rawLine){
+   const m=rawLine.trim().match(/^(\d{4,})\s*da\s*(\d+(?:[,.]\d+)?)(n?)\s*\.\s*b\s*(\d+(?:[,.]\d+)?)(n?)\s*\.?\s*,?\s*$/i);
+   if(!m || m[1].length%2!==0) return rawLine;
+   const pairs=m[1].match(/\d{2}/g)||[];
+   if(pairs.length<2) return rawLine;
+   return [m[1]+'da'+m[2]+m[3]+'.',...pairs.map(n=>n+'b'+m[4]+m[5]+'.')].join('\n');
+ }).join('\n');
  text=ttUnifiedNormalize(text);
  text=ttSeparateJoinedBets(text);
  let out=[];

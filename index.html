@@ -3832,7 +3832,13 @@ function parseBets(){
  // Chỉ chuẩn hoá trên bản sao; DÒ SAI/OK không được tự sửa nội dung gốc.
  // Telegram text can contain invisible Unicode and non-breaking spaces.
  // Sanitize only the parsing copy so Telegram and manual typing follow the same path.
- const _telegramSafeInput=String($("bets")?.value||"")
+ // Collapse redundant terminal periods ONLY on the parsing copy, after a complete stake.
+ // Example: 677677da1.b10.... => 677677da1.b10.
+ const _dotSafeRaw=String($("bets")?.value||"").split(/\r?\n/).map(line=>
+   /(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\.{2,}\s*$/i.test(line)
+     ? line.replace(/\.{2,}\s*$/,'.') : line
+ ).join('\n');
+ const _telegramSafeInput=_dotSafeRaw
    .replace(/\r\n?/g,"\n")
    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,"")
    .replace(/[\u00A0\u202F\u2007]/g," ")

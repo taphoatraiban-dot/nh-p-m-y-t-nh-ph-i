@@ -2446,7 +2446,7 @@ function splitChainedSameNumbers(line){
   // A.BbdaoP.xdaoQ with two 3-digit numbers: both numbers are DAO BL and DAO XC.
   // Keep legacy mixed-length A.B special rules unchanged.
   {
-    const m=s.match(/^(\d{3})[.,](\d{3})\s*bdao\s*(\d+(?:,\d+)?)(n?)\s*[.]\s*xdao\s*(\d+(?:,\d+)?)(n?)\s*[.]?$/i);
+    const m=s.match(/^(\d{3})[.,](\d{3})\s*bdao\s*(\d+(?:,\d+)?)(n?)\s*[.]?\s*xdao\s*(\d+(?:,\d+)?)(n?)\s*[.,]?$/i);
     if(m)return [m[1],m[2]].map(n=>n+'bdao'+m[3]+m[4]+'. '+n+'xdao'+m[5]+m[6]+'.').join(' ');
   }
 
@@ -2895,7 +2895,7 @@ function cleanTelegramPhoiText(text){
 
      // Explicit 3-digit DAO BL + DAO XC pair: never downgrade the first to Bao 3.
      {
-       const both=line.match(/^(\d{3})[.,](\d{3})\s*bdao\s*(\d+(?:,\d+)?)(n?)\s*[.]\s*xdao\s*(\d+(?:,\d+)?)(n?)\s*[.]?$/i);
+       const both=line.match(/^(\d{3})[.,](\d{3})\s*bdao\s*(\d+(?:,\d+)?)(n?)\s*[.]?\s*xdao\s*(\d+(?:,\d+)?)(n?)\s*[.,]?$/i);
        if(both){
          out.push([both[1],both[2]].map(n=>n+'bdao'+both[3]+both[4]+'. '+n+'xdao'+both[5]+both[6]+'.').join(' '));
          continue;

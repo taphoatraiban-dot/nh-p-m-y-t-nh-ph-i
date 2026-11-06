@@ -3935,7 +3935,8 @@ function parseBets(){
    const sharedRe=/^\s*(?:\d{2,}\s*\.\s*)+\d{2,}\s*(?:(?:xcdao|daoxc|xdao|dxc|xc|da|b|bao2|bl2|dd|dau|duoi|dui)\s*\d+(?:,\d+)?n?\s*\.?\s*)+$/i;
    // For a simple phoi with one header and one shared group, use the original
    // line verbatim; all later stages can then parse it as one group.
-   if(sourceLines.length===2 && /^(?:[234]dm[nt]|hn|mb)$/i.test(sourceLines[0].trim()) && sharedRe.test(sourceLines[1])) {
+   if(sourceLines.length===2 && /^(?:[234]dm[nt]|hn|mb)$/i.test(sourceLines[0].trim()) && sharedRe.test(sourceLines[1])
+      && !/^\s*\d{4,}\s*da\s*\d+(?:[,.]\d+)?n?\s*\.\s*b\s*\d+(?:[,.]\d+)?n?\s*\.?\s*,?\s*$/i.test(sourceLines[1])) {
      text=sourceLines.map(x=>x.trim()).join('\n');
    }
  }

@@ -9213,7 +9213,7 @@ document.addEventListener('DOMContentLoaded',function(){
  const ta=document.getElementById('bets');
  function apply(){if(!ta)return;const v=norm(ta.value);if(v!==ta.value)ta.value=v}
  // Keep raw pasted text; normalization runs only inside the parser.
- ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
+ // Do not mutate the raw wager textarea on OK or DÒ SAI; parseBets uses a private copy.
 })();
 </script>
 
@@ -11008,7 +11008,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function init(){const ta=document.getElementById('bets');if(!ta)return;
   function apply(){if(typeof ttUnifiedNormalize!=='function')return;const before=ta.value,after=ttUnifiedNormalize(before);if(after!==before){ta.value=after;ta.dispatchEvent(new Event('input',{bubbles:true}));}}
   // Keep Telegram multi-message input untouched on blur.
-  ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
+  // Do not mutate the raw wager textarea on OK or DÒ SAI; parseBets uses a private copy.
   // Avoid rewriting Telegram multi-message text while the paste is still settling.
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

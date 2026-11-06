@@ -3844,7 +3844,7 @@ function parseBets(){
    if(/^\d\s*d\s*[nm](?:\s|$)/i.test(_rawLine) || /^\d\s*d\s*[nm]\s*$/i.test(_rawLine)){
      _strictRawErrors.push('Dòng '+(_li+1)+': Mã đài không hợp lệ: '+_rawLine+'. Dùng 2dmn, 3dmn, 2dmt hoặc 3dmt.');
    }
-   if(/(?:[,;:]\s*[.,;:]|[.,;:]\s*[,;:])\s*$/.test(_rawLine)){
+   if(/(?:[,;:]\s*[.,;:]|[.,;:]\s*[,;:])\s*$/.test(_rawLine) && !/(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\s*\.[,]\s*$/i.test(_rawLine)){
      _strictRawErrors.push('Dòng '+(_li+1)+': Dư dấu phân cách ở cuối: '+_rawLine);
    }
  }
@@ -4135,7 +4135,13 @@ function parseBets(){
      let station='';
      for(let k=i-1;k>=0;k--)if(header(rawLines[k])){station=rawLines[k].trim();break;}
      if(!station)continue;
-     const start=lines.findIndex(l=>l.trim().toLowerCase()===station.toLowerCase());
+     // Match the SAME occurrence of a repeated station header, never the first one.
+     const occurrence=rawLines.slice(0,i).filter(l=>header(l)&&l.trim().toLowerCase()===station.toLowerCase()).length;
+     let seenOccurrence=0;
+     const start=lines.findIndex(l=>{
+       if(l.trim().toLowerCase()!==station.toLowerCase())return false;
+       return seenOccurrence++===occurrence-1;
+     });
      if(start<0)continue;
      let end=start+1;
      while(end<lines.length&&!header(lines[end]))end++;

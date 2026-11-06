@@ -2443,6 +2443,13 @@ function splitChainedSameNumbers(line){
   let s=String(line||'').trim();
   const type='(?:xdao|xcdao|daoxc|dxc|b7ldao|b7ld|b7lo|baobay|bao7|bao8|b8l|xcdau|xcduoi|xdau|xduoi|duoi|dui|dau|dd|xc|x|bdao|daob|dv|da|b)';
 
+  // A.BbdaoP.xdaoQ with two 3-digit numbers: both numbers are DAO BL and DAO XC.
+  // Keep legacy mixed-length A.B special rules unchanged.
+  {
+    const m=s.match(/^(\d{3})[.,](\d{3})\s*bdao\s*(\d+(?:,\d+)?)(n?)\s*[.]\s*xdao\s*(\d+(?:,\d+)?)(n?)\s*[.]?$/i);
+    if(m)return [m[1],m[2]].map(n=>n+'bdao'+m[3]+m[4]+'. '+n+'xdao'+m[5]+m[6]+'.').join(' ');
+  }
+
   // FIX 07-10-2026: cú pháp cặp đặc biệt A.BbdaoP.xcdaoQ.
   // Quy tắc người dùng chốt:
   // 568.875bdao0,5.xcdao3. => 568b0,5. 875bdao0,5. 568xdao3. 875xcdao3.
@@ -2807,6 +2814,11 @@ function ttUnifiedNormalize(raw){
  text=text.replace(/((?:xcduoi|xduoi|xdui|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?(?:n|ng)?\.)\s*(?=\d{2,}(?:[.,]|(?:b|xc|da|dd)))/giu,'$1\n');
  // Region labels written on the same line must not be consumed as a stake.
  text=text.replace(/([.;]\s*)(?=(?:2\s*d\s*m[nt]|hn|mb)\s+\d)/giu,'$1\n');
+ // Preserve a completed n-suffixed wager boundary before the next numeric list.
+ // This is parsing-copy only: no user input, prices, or saved receipts are changed.
+ // Covers xc5n.5974, b1n.689, xdao10n.94 and comma/space variants.
+ text=text.replace(/((?:b7ldao|b7lo|bdao|xcdao|xdao|xcduoi|xduoi|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n)\s*[.,;]\s*(?=\d{2,4}(?:[.,\s]|(?:b7lo|bdao|xdao|xc|dd|da|b)))/giu,'$1.\n');
+ text=text.replace(/((?:b7ldao|b7lo|bdao|xcdao|xdao|xcduoi|xduoi|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n)\s+(?=\d{2,4}(?:[.,\s]|(?:b7lo|bdao|xdao|xc|dd|da|b)))/giu,'$1.\n');
  const output=[];
  const betTypes='(?:xcduoi|xduoi|xdui|xcdau|xdau|xcdao|xdao|duoi|dau|dd|xc|da|b)';
  const amount='\\d+(?:,\\d+)?(?:n|ng)?';
@@ -2881,6 +2893,14 @@ function cleanTelegramPhoiText(text){
        return arr.length && tail.slice(last).trim()==='' ? arr : null;
      };
 
+     // Explicit 3-digit DAO BL + DAO XC pair: never downgrade the first to Bao 3.
+     {
+       const both=line.match(/^(\d{3})[.,](\d{3})\s*bdao\s*(\d+(?:,\d+)?)(n?)\s*[.]\s*xdao\s*(\d+(?:,\d+)?)(n?)\s*[.]?$/i);
+       if(both){
+         out.push([both[1],both[2]].map(n=>n+'bdao'+both[3]+both[4]+'. '+n+'xdao'+both[5]+both[6]+'.').join(' '));
+         continue;
+       }
+     }
      // FIX 07-10-2026: cặp A.BbdaoP.xcdaoQ phải kết thúc ngay trong chính cụm này.
      // 568.875bdao0,5.xcdao3. => 568b0,5. 875bdao0,5. 568xdao3. 875xcdao3.
      // Không cho số 875 bị kéo sang cược kế tiếp như 91b10.

@@ -11035,7 +11035,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    // Native paste must remain intact until the user chooses DÒ SAI / OK.
   });
   // Do not rewrite the textarea on blur or during a multi-message paste.
-  document.getElementById('okAll')?.addEventListener('click',apply,true);
+  // Restore user-requested automatic conversion on both validation and calculation.
+  // Use the same existing unified normalizer, not multiple competing formatters.
+  ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();

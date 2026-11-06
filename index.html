@@ -3834,10 +3834,12 @@ function parseBets(){
  // Sanitize only the parsing copy so Telegram and manual typing follow the same path.
  // Collapse redundant terminal periods ONLY on the parsing copy, after a complete stake.
  // Example: 677677da1.b10.... => 677677da1.b10.
- const _dotSafeRaw=String($("bets")?.value||"").split(/\r?\n/).map(line=>
-   /(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\.{2,}\s*$/i.test(line)
-     ? line.replace(/\.{2,}\s*$/,'.') : line
- ).join('\n');
+ const _dotSafeRaw=String($("bets")?.value||"").split(/\r?\n/).map(line=>{
+   // Accept repeated dots or a terminal comma after a complete stake, only in parser copy.
+   // Never change decimal commas such as b0,5 or a comma between numbers.
+   if(!/(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\s*[.,]+\s*$/i.test(line))return line;
+   return line.replace(/[.,]+\s*$/,'.');
+ }).join('\n');
  const _telegramSafeInput=_dotSafeRaw
    .replace(/\r\n?/g,"\n")
    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,"")

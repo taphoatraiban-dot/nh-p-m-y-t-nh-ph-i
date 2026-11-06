@@ -2688,6 +2688,10 @@ function ttSeparateJoinedBets(value){
 function ttFixCompactBetSeparators(raw){
  // Strict, narrowly scoped shorthand fixes; do not touch decimal comma or other wagers.
  return String(raw??"")
+  // Three or more two-digit numbers separated by hyphens are a DA group.
+  // Parsing copy only; never alter the customer's visible input.
+  .replace(/(^|[^0-9A-Za-z])((?:\d{2}[ \t]*-[ \t]*){2,}\d{2})[ \t]*(da[ \t]*\d+(?:[,.]\d+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
+    (_m,prefix,group,stake)=>prefix+group.replace(/[ \t-]/g,'')+stake.replace(/[ \t]/g,''))
   .replace(/(^|[^0-9A-Za-z])([0-9]{4})[ \t]*\.[ \t]*(b[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
     (_m,prefix,num,stake)=>prefix+num+stake.replace(/[ \t]/g,""))
   .replace(/(^|[^0-9A-Za-z])([0-9]{2})[ \t]*[:\/\-][ \t]*([0-9]{2})[ \t]*(da[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
@@ -3813,16 +3817,18 @@ function parseBets(){
  // Strict validation of malformed station shorthand and stray terminal punctuation.
  // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
  const _strictRawLines=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n');
+ const _strictRawErrors=[];
  for(let _li=0;_li<_strictRawLines.length;_li++){
    const _rawLine=_strictRawLines[_li].trim();
    if(!_rawLine)continue;
    if(/^\d\s*d\s*[nm](?:\s|$)/i.test(_rawLine) || /^\d\s*d\s*[nm]\s*$/i.test(_rawLine)){
-     return {rows:[],errors:['Dòng '+(_li+1)+': Mã đài không hợp lệ: '+_rawLine+'. Dùng 2dmn, 3dmn, 2dmt hoặc 3dmt.']};
+     _strictRawErrors.push('Dòng '+(_li+1)+': Mã đài không hợp lệ: '+_rawLine+'. Dùng 2dmn, 3dmn, 2dmt hoặc 3dmt.');
    }
    if(/[.,:;]\s*[.,:;]\s*$/.test(_rawLine) || /[.,:;]\s*,\s*[.,:;]?\s*$/.test(_rawLine)){
-     return {rows:[],errors:['Dòng '+(_li+1)+': Dư dấu phân cách ở cuối: '+_rawLine]};
+     _strictRawErrors.push('Dòng '+(_li+1)+': Dư dấu phân cách ở cuối: '+_rawLine);
    }
  }
+ if(_strictRawErrors.length)return {rows:[],errors:_strictRawErrors};
  // Chỉ chuẩn hoá trên bản sao; DÒ SAI/OK không được tự sửa nội dung gốc.
  // Telegram text can contain invisible Unicode and non-breaking spaces.
  // Sanitize only the parsing copy so Telegram and manual typing follow the same path.

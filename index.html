@@ -3836,7 +3836,13 @@ function normalizeLoosePhoiWithoutChangingFunctionCount(text){
 function parseBets(){
  // Strict validation of malformed station shorthand and stray terminal punctuation.
  // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
- const _strictRawLines=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n');
+ // Accept decorative terminal punctuation after a complete wager function, only in parser copy.
+ // Do not touch punctuation between numbers/functions, decimals, or the original textarea.
+ const _terminalSafeInput=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').map(line=>{
+   const m=line.match(/^(.*(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?)([\s.,;:!?/\-\[\]{}#%^*+=_\\|~<>$¥€•'’"]+)$/i);
+   return m ? m[1]+'.' : line;
+ }).join('\n');
+ const _strictRawLines=_terminalSafeInput.split('\n');
  const _strictRawErrors=[];
  for(let _li=0;_li<_strictRawLines.length;_li++){
    const _rawLine=_strictRawLines[_li].trim();
@@ -3854,7 +3860,7 @@ function parseBets(){
  // Sanitize only the parsing copy so Telegram and manual typing follow the same path.
  // Collapse redundant terminal periods ONLY on the parsing copy, after a complete stake.
  // Example: 677677da1.b10.... => 677677da1.b10.
- const _dotSafeRaw=String($("bets")?.value||"").split(/\r?\n/).map(line=>{
+ const _dotSafeRaw=_terminalSafeInput.split(/\r?\n/).map(line=>{
    // Accept repeated dots or a terminal comma after a complete stake, only in parser copy.
    // Never change decimal commas such as b0,5 or a comma between numbers.
    if(!/(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\s*[.,]+\s*$/i.test(line))return line;

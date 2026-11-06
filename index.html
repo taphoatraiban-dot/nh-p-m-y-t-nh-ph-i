@@ -3809,7 +3809,10 @@ function parseBets(){
    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,"")
    .replace(/[\u00A0\u202F\u2007]/g," ")
    .replace(/[\uFF0E\u2024]/g,".")
-   .replace(/[\uFF0C]/g,",");
+   .replace(/[\uFF0C]/g,",")
+   // Complete terminal wagers do not require a trailing period.
+   // Parsing copy only: keep the original textarea and decimal commas unchanged.
+   .replace(/((?:b7ldao|b7lo|b7ld|baobay|bao7|bao8|b8l|bao2|bl2|xcdao|daoxc|xdao|bdao|xcduoi|xcdau|xduoi|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n?)[ \t]*(?=\n|$)/gim,"$1.");
  // Normalize explicit station names attached to a wager, preserving the raw textarea.
  // Do not infer a station when the source contains only an unlabelled number.
  const _stationSafeInput=_telegramSafeInput

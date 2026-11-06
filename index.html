@@ -3840,7 +3840,12 @@ function parseBets(){
    if(!/(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\s*[.,]+\s*$/i.test(line))return line;
    return line.replace(/[.,]+\s*$/,'.');
  }).join('\n');
- const _telegramSafeInput=_dotSafeRaw
+ // Split only an explicit completed n-suffixed wager from the next numeric group.
+ // This must precede legacy normalizers that can consume ",964" as a decimal stake.
+ const _separatedTelegram=_dotSafeRaw.replace(
+   /((?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:[.,]\d+)?n)\s*[,;]\s*(?=\d{2,4}(?:\s*[.,]\s*\d{2,4})*\s*(?:bdao|xdao|xc|dd|da|b))/gi,
+   '$1.');
+ const _telegramSafeInput=_separatedTelegram
    .replace(/\r\n?/g,"\n")
    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,"")
    .replace(/[\u00A0\u202F\u2007]/g," ")

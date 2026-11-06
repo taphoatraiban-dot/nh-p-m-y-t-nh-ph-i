@@ -3286,6 +3286,15 @@ function weeklyThreeMTStations(dateValue){
 function stationToken(t, dateValue){
  // Quy ước: LA = Long An; 2DMN mặc định = TP.HCM + Long An. Các mã cặp riêng như tgiangkgiang dùng đúng 2 đài ghi trong mã.
  t=normalizePhoiToken(t);
+ // Accepted user shorthands: preserve the original text; map only for calculation.
+ if(t==='2mn')t='2dmn';
+ if(t==='4mn')t='4dmn';
+ if(t==='2dt')t='2dmt';
+ if(t==='3dt')t='3dmt';
+ if(t==='2mt')t='2dmt';
+ if(t==='3dn')t='3dmn';
+ if(t==='2dn')t='2dmn';
+ if(t==='4dn')t='4dmn';
  if(t==='tpbp'||t==='tphobp')t='tphobphuoc';
  if(t==='lan'||t==='long')t='longan';
  if(t==='tp')t='tpho';
@@ -3847,7 +3856,7 @@ function parseBets(){
  for(let _li=0;_li<_strictRawLines.length;_li++){
    const _rawLine=_strictRawLines[_li].trim();
    if(!_rawLine)continue;
-   if(/^\d\s*d\s*[nm](?:\s|$)/i.test(_rawLine) || /^\d\s*d\s*[nm]\s*$/i.test(_rawLine)){
+   if(/^\d\s*d\s*[nm](?:\s|$)/i.test(_rawLine) && !/^(?:2dn|3dn|4dn)(?=\s|$)/i.test(_rawLine)){
      _strictRawErrors.push('Dòng '+(_li+1)+': Mã đài không hợp lệ: '+_rawLine+'. Dùng 2dmn, 3dmn, 2dmt hoặc 3dmt.');
    }
    if(/(?:[,;:]\s*[.,;:]|[.,;:]\s*[,;:])\s*$/.test(_rawLine) && !/(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\s*\.[,]\s*$/i.test(_rawLine)){

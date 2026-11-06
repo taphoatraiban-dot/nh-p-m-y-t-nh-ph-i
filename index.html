@@ -4135,7 +4135,13 @@ function parseBets(){
      let station='';
      for(let k=i-1;k>=0;k--)if(header(rawLines[k])){station=rawLines[k].trim();break;}
      if(!station)continue;
-     const start=lines.findIndex(l=>l.trim().toLowerCase()===station.toLowerCase());
+     // Match the SAME occurrence of a repeated station header, never the first one.
+     const occurrence=rawLines.slice(0,i).filter(l=>header(l)&&l.trim().toLowerCase()===station.toLowerCase()).length;
+     let seenOccurrence=0;
+     const start=lines.findIndex(l=>{
+       if(l.trim().toLowerCase()!==station.toLowerCase())return false;
+       return seenOccurrence++===occurrence-1;
+     });
      if(start<0)continue;
      let end=start+1;
      while(end<lines.length&&!header(lines[end]))end++;

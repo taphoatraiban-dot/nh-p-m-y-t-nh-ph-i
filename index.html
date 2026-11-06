@@ -3844,7 +3844,7 @@ function parseBets(){
    if(/^\d\s*d\s*[nm](?:\s|$)/i.test(_rawLine) || /^\d\s*d\s*[nm]\s*$/i.test(_rawLine)){
      _strictRawErrors.push('Dòng '+(_li+1)+': Mã đài không hợp lệ: '+_rawLine+'. Dùng 2dmn, 3dmn, 2dmt hoặc 3dmt.');
    }
-   if(/(?:[,;:]\s*[.,;:]|[.,;:]\s*[,;:])\s*$/.test(_rawLine)){
+   if(/(?:[,;:]\s*[.,;:]|[.,;:]\s*[,;:])\s*$/.test(_rawLine) && !/(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\s*\.[,]\s*$/i.test(_rawLine)){
      _strictRawErrors.push('Dòng '+(_li+1)+': Dư dấu phân cách ở cuối: '+_rawLine);
    }
  }

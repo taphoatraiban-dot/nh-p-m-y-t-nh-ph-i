@@ -3845,7 +3845,15 @@ function parseBets(){
  const _separatedTelegram=_dotSafeRaw.replace(
    /((?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:[.,]\d+)?n)\s*[,;]\s*(?=\d{2,4}(?:\s*[.,]\s*\d{2,4})*\s*(?:bdao|xdao|xc|dd|da|b))/gi,
    '$1.');
- const _telegramSafeInput=_separatedTelegram
+ // Additional Telegram group boundaries: commas between 2-4 digit numbers
+ // and spaces after completed n-suffixed wagers. Decimal points remain intact.
+ const _groupSeparatedTelegram=_separatedTelegram.split('\n').map(line=>{
+   let v=line.replace(/(\d{2,4})\s*,\s*(?=\d{2,4}(?:[.,\s]|(?:bdao|xdao|xc|dd|da|b)))/gi,'$1.');
+   v=v.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n)\s+(?=\d{2,4}(?:[.,]|\s|(?:bdao|xdao|xc|dd|da|b)))/gi,'$1.');
+   v=v.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n)\s+(?=\d{2,4}$)/gi,'$1.');
+   return v;
+ }).join('\n');
+ const _telegramSafeInput=_groupSeparatedTelegram
    .replace(/\r\n?/g,"\n")
    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,"")
    .replace(/[\u00A0\u202F\u2007]/g," ")

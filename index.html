@@ -3810,6 +3810,19 @@ function normalizeLoosePhoiWithoutChangingFunctionCount(text){
 }
 
 function parseBets(){
+ // Strict validation of malformed station shorthand and stray terminal punctuation.
+ // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
+ const _strictRawLines=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n');
+ for(let _li=0;_li<_strictRawLines.length;_li++){
+   const _rawLine=_strictRawLines[_li].trim();
+   if(!_rawLine)continue;
+   if(/^\d\s*d\s*[nm](?:\s|$)/i.test(_rawLine) || /^\d\s*d\s*[nm]\s*$/i.test(_rawLine)){
+     return {rows:[],errors:['Dòng '+(_li+1)+': Mã đài không hợp lệ: '+_rawLine+'. Dùng 2dmn, 3dmn, 2dmt hoặc 3dmt.']};
+   }
+   if(/[.,:;]\s*[.,:;]\s*$/.test(_rawLine) || /[.,:;]\s*,\s*[.,:;]?\s*$/.test(_rawLine)){
+     return {rows:[],errors:['Dòng '+(_li+1)+': Dư dấu phân cách ở cuối: '+_rawLine]};
+   }
+ }
  // Chỉ chuẩn hoá trên bản sao; DÒ SAI/OK không được tự sửa nội dung gốc.
  // Telegram text can contain invisible Unicode and non-breaking spaces.
  // Sanitize only the parsing copy so Telegram and manual typing follow the same path.

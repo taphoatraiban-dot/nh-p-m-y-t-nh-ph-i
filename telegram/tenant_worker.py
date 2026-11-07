@@ -205,12 +205,16 @@ async def main(path):
                 for chat_id, name in discovered_private.items():
                     if chat_id not in known:
                         groups.append({"chat_id":chat_id,"group_name":name})
-                # The ingest endpoint rejects payloads containing over 300 chats.
-                # Preserve group sync first when a Telegram account has many contacts.
+                # The ingest endpoint accepts at most 300 chat metadata entries.
+                # Send the whole metadata list in bounded batches; group metadata
+                # goes first, so private contacts cannot starve existing groups.
                 if len(groups) > 300:
                     group_chats = [g for g in groups if not g["group_name"].startswith("Cá nhân: ")]
                     private_chats = [g for g in groups if g["group_name"].startswith("Cá nhân: ")]
-                    groups = (group_chats + private_chats)[:300]
+                    groups = group_chats + private_chats
+                for start in range(300, len(groups), 300):
+                    await publish(groups[start:start + 300], [])
+                groups = groups[:300]
                 if queue_file.exists() and queue_file.stat().st_size:
                     # Never truncate: a concurrent Telegram event may append during upload.
                     # Durable offset is committed only after successful acknowledgement.

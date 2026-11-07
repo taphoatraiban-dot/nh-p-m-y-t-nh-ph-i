@@ -78,3 +78,14 @@ test('LOCK: hyphen half-point DA never becomes zero',()=>{
   assert.ok(gross(x)>0,head);
  }
 });
+
+test('LOCK: punctuation between 0 and 5 in DA stake means half point',()=>{
+ const variants=['0-.5','0-5','0/5','0:5','0;5','0(5','0)5','0"5',"0'5",'0_5','0\\5','0|5','0~5','0?5','0!5','0,5','0.5','0,.5','0-/:;()".,?!\x27_\\|~5'];
+ for(const v of variants){
+  const x=parse('2dmn\n78798086da'+v+'.');
+  assert.deepEqual(x.errors,[],v);
+  assert.ok(x.rows.length>0,v);
+  assert.ok(x.rows.every(r=>r.points===0.5),v);
+  assert.ok(gross(x)>0,v);
+ }
+});

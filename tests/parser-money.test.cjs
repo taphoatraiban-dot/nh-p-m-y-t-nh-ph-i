@@ -101,3 +101,13 @@ test('LOCK: leading zero 05 means half point, never five',()=>{
  const normal=parse('2dmn\n687879da5.');
  assert.ok(normal.rows.every(r=>r.points===5));
 });
+
+test('LOCK: colon between DA and B is equivalent to dot',()=>{
+ const prefix='2dmn\n1213.345689.9987.7778798990da1';
+ const expected=parse(prefix+'.b5.');
+ const actual=parse(prefix+':b5.');
+ assert.deepEqual(actual.errors,expected.errors);
+ assert.ok(actual.rows.length>0);
+ assert.equal(actual.rows.length,expected.rows.length);
+ assert.equal(gross(actual),gross(expected));
+});

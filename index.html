@@ -3870,7 +3870,10 @@ function parseBets(){
    // Leading zero on a two-digit stake is a decimal half point: da05 = da0,5.
    // Apply only to exact 05, never to 050, 005, or other values.
    .replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)05(?=n?(?:[.\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5');
- const _hyphenHalfPointSafe=_halfPointSafe;
+ // Colon between two complete bet functions is a separator, just like a dot.
+ // Example: 1213.345689.9987.7778798990da1:b5. -> ...da1.b5.
+ const _betSeparatorSafe=_halfPointSafe.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d+(?:[,.]\d+)?n?)[ \t]*:[ \t]*(?=(?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d)/gim,'$1.');
+ const _hyphenHalfPointSafe=_betSeparatorSafe;
  const _terminalSafeInput=_hyphenHalfPointSafe.split('\n').map(line=>{
    const m=line.match(/^(.*(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?)([\s.,;:!?/\-\[\]{}#%^*+=_\\|~<>$¥€•'’"]+)$/i);
    return m ? m[1]+'.' : line;

@@ -131,6 +131,10 @@ async def main(path):
                                private_chat_allowed(cfg,event.chat_id))
             if not event.message.edit_date or not (group_allowed or private_allowed):
                 return
+            if private_allowed:
+                sender = await event.get_chat()
+                if sender is None or getattr(sender, "bot", False):
+                    return
             m={"chat_id":event.chat_id,"message_id":event.id,
                "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
                "edited_at":event.message.edit_date.isoformat(),"sender_name":private_direction(event.out) if event.is_private else ""}

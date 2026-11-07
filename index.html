@@ -3872,7 +3872,9 @@ function parseBets(){
    .replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)05(?=n?(?:[.\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5');
  // Colon between two complete bet functions is a separator, just like a dot.
  // Example: 1213.345689.9987.7778798990da1:b5. -> ...da1.b5.
- const _betSeparatorSafe=_halfPointSafe.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d+(?:[,.]\d+)?n?)[ \t]*:[ \t]*(?=(?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d)/gim,'$1.');
+ // All user-approved punctuation marks act as a period between completed wager functions.
+ // Decimal points/commas inside stakes remain untouched (0,5 is still 0.5).
+ const _betSeparatorSafe=_halfPointSafe.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d+(?:[,.]\d+)?n?)[ \t]*[,.?!\-/:;"'_\\|~•]+[ \t]*(?=(?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d)/gim,'$1.');
  const _hyphenHalfPointSafe=_betSeparatorSafe;
  const _terminalSafeInput=_hyphenHalfPointSafe.split('\n').map(line=>{
    const m=line.match(/^(.*(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?)([\s.,;:!?/\-\[\]{}#%^*+=_\\|~<>$¥€•'’"]+)$/i);

@@ -53,6 +53,13 @@ class TelegramPrivatePolicyTests(unittest.TestCase):
         self.assertIn("if private_allowed:", source)
         self.assertIn('getattr(sender, "bot", False)', source)
 
+    def test_polling_and_event_sender_labels_match(self):
+        worker = next(node for node in TREE.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "main")
+        poll = next(node for node in ast.walk(worker) if isinstance(node, ast.AsyncFunctionDef) and node.name == "poll_private")
+        source = ast.get_source_segment(SOURCE, poll)
+        self.assertIn('"sender_name": private_direction(msg.out)', source)
+        self.assertNotIn('private_direction(msg.out) +', source)
+
     def test_both_directions(self):
         self.assertEqual(NAMESPACE["private_direction"](True), "Đã gửi")
         self.assertEqual(NAMESPACE["private_direction"](False), "Đã nhận")

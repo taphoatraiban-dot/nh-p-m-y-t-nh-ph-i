@@ -103,10 +103,10 @@ async def main(path):
         @client.on(events.NewMessage())
         async def receive(event):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
-            private_allowed = (event.is_private and not event.out and
+            private_allowed = (event.is_private and
                                (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
             if private_allowed:
-                sender=await event.get_sender()
+                sender=await event.get_chat()
                 if sender is None or getattr(sender,"bot",False):
                     return
                 name=(" ".join(filter(None,[getattr(sender,"first_name",None),getattr(sender,"last_name",None)]))).strip()
@@ -114,19 +114,19 @@ async def main(path):
             if event.raw_text and (group_allowed or private_allowed):
                 m={"chat_id":event.chat_id,"message_id":event.id,
                    "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-                   "sender_name":""}
+                   "sender_name":("Đã gửi" if event.out else "Đã nhận") if event.is_private else ""}
                 with queue_file.open("a",encoding="utf-8") as handle:
                     handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         @client.on(events.MessageEdited())
         async def receive_edit(event):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
-            private_allowed = (event.is_private and not event.out and
+            private_allowed = (event.is_private and
                                (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
             if not event.message.edit_date or not (group_allowed or private_allowed):
                 return
             m={"chat_id":event.chat_id,"message_id":event.id,
                "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-               "edited_at":event.message.edit_date.isoformat(),"sender_name":""}
+               "edited_at":event.message.edit_date.isoformat(),"sender_name":("Đã gửi" if event.out else "Đã nhận") if event.is_private else ""}
             with queue_file.open("a",encoding="utf-8") as handle:
                 handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         # Track last processed private message by chat, surviving worker restarts.
@@ -158,11 +158,11 @@ async def main(path):
                 if current_id <= last_id:
                     continue
                 async for msg in client.iter_messages(dialog.entity, min_id=last_id, reverse=True):
-                    if msg.out or not msg.raw_text:
+                    if not msg.raw_text:
                         continue
                     m = {"chat_id": chat_id, "message_id": int(msg.id),
                          "message_text": msg.raw_text, "message_date": msg.date.isoformat(),
-                         "sender_name": dialog.name or ""}
+                         "sender_name": ("Đã gửi" if msg.out else "Đã nhận") + " · " + (dialog.name or "")}
                     with queue_file.open("a", encoding="utf-8") as handle:
                         handle.write(json.dumps(m, ensure_ascii=False) + "\n")
                 watermarks[key] = current_id

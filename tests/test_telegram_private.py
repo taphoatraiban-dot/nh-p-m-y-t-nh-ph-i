@@ -29,6 +29,23 @@ class TelegramPrivatePolicyTests(unittest.TestCase):
         cfg = {"receive_all_private": True, "allowed_private_chat_ids": set()}
         self.assertTrue(NAMESPACE["private_chat_allowed"](cfg, 456))
 
+    def test_handlers_include_outgoing_private(self):
+        # Both handlers must accept private messages regardless of event.out.
+        worker = next(node for node in TREE.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "main")
+        handlers = {node.name: node for node in ast.walk(worker) if isinstance(node, ast.AsyncFunctionDef)}
+        for name in ("receive", "receive_edit"):
+            source = ast.get_source_segment(SOURCE, handlers[name])
+            self.assertIn("private_chat_allowed(cfg,event.chat_id)", source)
+            self.assertNotIn("not event.out", source)
+            self.assertIn("private_direction(event.out)", source)
+
+    def test_group_allowlist_unchanged(self):
+        worker = next(node for node in TREE.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "main")
+        handlers = {node.name: node for node in ast.walk(worker) if isinstance(node, ast.AsyncFunctionDef)}
+        for name in ("receive", "receive_edit"):
+            source = ast.get_source_segment(SOURCE, handlers[name])
+            self.assertIn('int(event.chat_id) in cfg["allowed_chat_ids"]', source)
+
     def test_both_directions(self):
         self.assertEqual(NAMESPACE["private_direction"](True), "Đã gửi")
         self.assertEqual(NAMESPACE["private_direction"](False), "Đã nhận")

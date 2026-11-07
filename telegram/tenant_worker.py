@@ -175,7 +175,7 @@ async def main(path):
                         continue
                     m = {"chat_id": chat_id, "message_id": int(msg.id),
                          "message_text": msg.raw_text, "message_date": msg.date.isoformat(),
-                         "sender_name": private_direction(msg.out) + " · " + (dialog.name or "")}
+                         "sender_name": private_direction(msg.out)}
                     with queue_file.open("a", encoding="utf-8") as handle:
                         handle.write(json.dumps(m, ensure_ascii=False) + "\n")
                 watermarks[key] = current_id

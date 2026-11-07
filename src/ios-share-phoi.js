@@ -52,7 +52,8 @@
     for(const section of sections){
       for(const item of section.rows){
         const amount=parseAmount(item.amount);
-        const signature=JSON.stringify([String(item.number||item.content||''),String(item.type||''),String(item.points||'')]);
+        const drawGroup=String(item.groupCode||item.stationGroup||item.drawGroup||item.group||'').trim().toLowerCase();
+        const signature=JSON.stringify([drawGroup,String(item.number||item.content||''),String(item.type||''),String(item.points||'')]);
         const candidates=grouped.get(signature)||[];
         let group=amount===null?null:candidates.find(g=>!g.names.includes(section.name));
         if(!group){

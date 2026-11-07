@@ -201,16 +201,16 @@ async def main(path):
                     if is_allowed_group or is_allowed_private:
                         prefix="Cá nhân: " if is_allowed_private else ""
                         groups.append({"chat_id":dialog.id,"group_name":prefix+dialog.name})
+                known={int(g["chat_id"]) for g in groups}
+                for chat_id, name in discovered_private.items():
+                    if chat_id not in known:
+                        groups.append({"chat_id":chat_id,"group_name":name})
                 # The ingest endpoint rejects payloads containing over 300 chats.
                 # Preserve group sync first when a Telegram account has many contacts.
                 if len(groups) > 300:
                     group_chats = [g for g in groups if not g["group_name"].startswith("Cá nhân: ")]
                     private_chats = [g for g in groups if g["group_name"].startswith("Cá nhân: ")]
                     groups = (group_chats + private_chats)[:300]
-                known={int(g["chat_id"]) for g in groups}
-                for chat_id, name in discovered_private.items():
-                    if chat_id not in known:
-                        groups.append({"chat_id":chat_id,"group_name":name})
                 if queue_file.exists() and queue_file.stat().st_size:
                     # Never truncate: a concurrent Telegram event may append during upload.
                     # Durable offset is committed only after successful acknowledgement.

@@ -3850,7 +3850,7 @@ function parseBets(){
  // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
  // Accept decorative terminal punctuation after a complete wager function, only in parser copy.
  // Do not touch punctuation between numbers/functions, decimals, or the original textarea.
- const _rawInput=String($('bets')?.value||'').replace(/\r\n?/g,'\n');
+ const _rawInput=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').filter(line=>!/^[\s.]+$/.test(line)).join('\n');
  // LOCK 07/11: a hyphen in DA explicitly separates two-digit numbers.
  // Never silently split a malformed six-digit segment into three pairs.
  const _badDaGroups=[];

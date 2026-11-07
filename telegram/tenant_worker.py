@@ -129,7 +129,8 @@ async def main(path):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
             private_allowed = (event.is_private and
                                private_chat_allowed(cfg,event.chat_id))
-            if not event.message.edit_date or not (group_allowed or private_allowed):
+            # Ignore non-text edits; ingest requires message_text to be a string.
+            if not event.message.edit_date or not event.raw_text or not (group_allowed or private_allowed):
                 return
             if private_allowed:
                 sender = await event.get_chat()

@@ -111,3 +111,14 @@ test('LOCK: colon between DA and B is equivalent to dot',()=>{
  assert.equal(actual.rows.length,expected.rows.length);
  assert.equal(gross(actual),gross(expected));
 });
+
+test('LOCK: all approved punctuation separates completed DA and B wagers',()=>{
+ const prefix='2dmn\n1213.345689.9987.7778798990da1';
+ const expected=parse(prefix+'.b5.');
+ for(const sep of [',','.','?','!','-','/',':',';','"','_','\\','|','~','•']){
+  const actual=parse(prefix+sep+'b5.');
+  assert.deepEqual(actual.errors,expected.errors,sep);
+  assert.equal(actual.rows.length,expected.rows.length,sep);
+  assert.equal(gross(actual),gross(expected),sep);
+ }
+});

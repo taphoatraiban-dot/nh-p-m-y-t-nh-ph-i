@@ -39,9 +39,9 @@
     // Compact adjacent stations with the same itemized bets. Keep station names
     // and add the already-calculated amounts; never recalculate betting prices.
     const parseAmount=(value)=>{
-      const raw=String(value??'').trim().replace(/\\s/g,'').replace(/k$/i,'');
-      if(!/^-?\\d+(?:[.,]\\d+)*$/.test(raw))return null;
-      const normalized=raw.replace(/[.,](?=\\d{3}(?:[.,]|$))/g,'').replace(',','.');
+      const raw=String(value??'').trim().replace(/\s/g,'').replace(/k$/i,'');
+      if(!/^-?\d+(?:[.,]\d+)*$/.test(raw))return null;
+      const normalized=raw.replace(/[.,](?=\d{3}(?:[.,]|$))/g,'').replace(',','.');
       const amount=Number(normalized);
       return Number.isFinite(amount)?amount:null;
     };

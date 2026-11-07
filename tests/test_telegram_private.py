@@ -64,8 +64,9 @@ class TelegramPrivatePolicyTests(unittest.TestCase):
         worker = next(node for node in TREE.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "main")
         source = ast.get_source_segment(SOURCE, worker)
         self.assertIn("range(300, len(groups), 300)", source)
-        self.assertIn("await publish(groups[start:start + 300], [])", source)
+        self.assertIn("extra_group_batches = [groups[start:start + 300]", source)
         self.assertIn("groups = groups[:300]", source)
+        self.assertIn("await publish(extra_groups, [])", source)
 
     def test_both_directions(self):
         self.assertEqual(NAMESPACE["private_direction"](True), "Đã gửi")

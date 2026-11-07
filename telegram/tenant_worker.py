@@ -243,8 +243,20 @@ async def main(path):
                             for _ in range(100):
                                 line=stream.readline()
                                 if not line:break
-                                try:batch.append(json.loads(line.decode("utf-8")))
-                                except (ValueError,UnicodeError):continue
+                                try:
+                                    item = json.loads(line.decode("utf-8"))
+                                    # A valid JSON line can still be invalid for the
+                                    # ingest API; reject it before batching good mail.
+                                    if not isinstance(item, dict):
+                                        continue
+                                    if not (isinstance(item.get("chat_id"), int)
+                                            and isinstance(item.get("message_id"), int)
+                                            and isinstance(item.get("message_text"), str)
+                                            and isinstance(item.get("message_date"), str)):
+                                        continue
+                                    batch.append(item)
+                                except (ValueError, UnicodeError):
+                                    continue
                             if not batch:
                                 # Even malformed queue lines must not cause endless
                                 # retries at the same durable offset.

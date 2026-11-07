@@ -3304,6 +3304,7 @@ function stationToken(t, dateValue){
  const lockedPairAliases={
   btvt:['N','Bến Tre','Vũng Tàu'],
   dtcm:['N','Đồng Tháp','Cà Mau'],
+  tphg:['N','TP.HCM','Hậu Giang'],
   ctstr:['N','Cần Thơ','Sóc Trăng'],
   vlbd:['N','Vĩnh Long','Bình Dương'],
   tgkg:['N','Tiền Giang','Kiên Giang'],
@@ -4258,7 +4259,7 @@ function parseBets(){
     q={region:"T",stations:2,label:"2 Đài MT",fixedStations:pair,crossProvinces:pair,cross2:true};
   }
   if(!q){
-    const mPrefix=s.match(/^\s*(khktum|ctstr|huepy|btvt|dtcm|vlbd|tgkg|dnqn|khkt|hn|hm|mb|bt|btre|bentre|vl|vlong|vinhlong|vlongbduong|vinhlongbduong|vlongbd|bduongvlong|bduongtvinh|binhduongtravinh|bdtvinh|tvinhbduong|tvinhvlong|travinhvlong|travinvinhlong|vlongtvinh|tninh|tayninh|agiang|angiang|ag|tgiangkgiang|kgiangdlat|dlattgiang|ktumkhoa|khoaktum|huekhoa|khoahue|tpholan|tphobphuoc|tphobp|tpbp|lanbphuoc|labphuoc|labp|bphuochgiang|bphuochg|bphg|bphuochaugiang|tpho|tp|tphcm|hcm|hochiminh|la|longan|bd|bduong|binhduong|bphuoc|bp|binhphuoc|hgiang|hg|haugiang|gl|glai|gialai|dnai|cthosoctrang|canthosoctrang|cthost|ctho|st|sot|dthap|dongthap|dt|cmau|c\s*mau|camau|dthapcmau|dongthapcamau|dtcmau|dnang|danang|da-nang|dng|dnong|daknong|dak-nong|dak\s*nong|dno|qngai|quangngai|quang-ngai|quang\s*ngai|qng|gialai|glai|gia-lai|gia\s*lai|gl|py|pyen|phuyen|phu-yen|phu\s*yen|dlac|daklak|dak-lak|dak\s*lak|dacl|dlak|dl|qnam|quangnam|quang-nam|quang\s*nam|bdi|bdinh|binhdinh|binh-dinh|binh\s*dinh|qtri|quangtri|quang-tri|quang\s*tri|qt|qbinh|quangbinh|quang-binh|quang\s*binh|qb|btthuan|bthuan|binhthuan|binh-thuan|binh\s*thuan|bth|nthu|ninhthuan|ninh-thuan|ninh\s*thuan|nthuan|nt|kh|khoa|khanhhoa|khanh-hoa|khanh\s*hoa|tg|tgiang|tiengiang|kg|kgiang|kiengiang|dlat|dalat|kt|ktum|kontum|kon\s*tum|hue|thua\s*thien\s*hue)(?=\s|[^a-z0-9]|\d)/i);
+    const mPrefix=s.match(/^\s*(khktum|ctstr|huepy|btvt|dtcm|vlbd|tgkg|dnqn|khkt|hn|hm|mb|bt|btre|bentre|vl|vlong|vinhlong|vlongbduong|vinhlongbduong|vlongbd|bduongvlong|bduongtvinh|binhduongtravinh|bdtvinh|tvinhbduong|tvinhvlong|travinhvlong|travinvinhlong|vlongtvinh|tninh|tayninh|agiang|angiang|ag|tgiangkgiang|kgiangdlat|dlattgiang|ktumkhoa|khoaktum|huekhoa|khoahue|tpholan|tphobphuoc|tphobp|tphg|tpbp|lanbphuoc|labphuoc|labp|bphuochgiang|bphuochg|bphg|bphuochaugiang|tpho|tp|tphcm|hcm|hochiminh|la|longan|bd|bduong|binhduong|bphuoc|bp|binhphuoc|hgiang|hg|haugiang|gl|glai|gialai|dnai|cthosoctrang|canthosoctrang|cthost|ctho|st|sot|dthap|dongthap|dt|cmau|c\s*mau|camau|dthapcmau|dongthapcamau|dtcmau|dnang|danang|da-nang|dng|dnong|daknong|dak-nong|dak\s*nong|dno|qngai|quangngai|quang-ngai|quang\s*ngai|qng|gialai|glai|gia-lai|gia\s*lai|gl|py|pyen|phuyen|phu-yen|phu\s*yen|dlac|daklak|dak-lak|dak\s*lak|dacl|dlak|dl|qnam|quangnam|quang-nam|quang\s*nam|bdi|bdinh|binhdinh|binh-dinh|binh\s*dinh|qtri|quangtri|quang-tri|quang\s*tri|qt|qbinh|quangbinh|quang-binh|quang\s*binh|qb|btthuan|bthuan|binhthuan|binh-thuan|binh\s*thuan|bth|nthu|ninhthuan|ninh-thuan|ninh\s*thuan|nthuan|nt|kh|khoa|khanhhoa|khanh-hoa|khanh\s*hoa|tg|tgiang|tiengiang|kg|kgiang|kiengiang|dlat|dalat|kt|ktum|kontum|kon\s*tum|hue|thua\s*thien\s*hue)(?=\s|[^a-z0-9]|\d)/i);
     if(mPrefix){
       tok=mPrefix[1];
       q=stationToken(tok,stationDateForLine);

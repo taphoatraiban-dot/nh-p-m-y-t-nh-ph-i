@@ -52,6 +52,13 @@ def read_config(path):
         raise ValueError("Invalid tenant sync key")
     return data, session_path
 
+def private_chat_allowed(cfg, chat_id):
+    """Private messages require explicit per-tenant consent; bots are filtered separately."""
+    return bool(cfg.get("receive_all_private", False) or int(chat_id) in cfg["allowed_private_chat_ids"])
+
+def private_direction(outgoing):
+    return "Đã gửi" if outgoing else "Đã nhận"
+
 def ingest(cfg, groups, messages):
     payload = json.dumps({"groups": groups, "messages": messages}, ensure_ascii=False).encode()
     request = urllib.request.Request(
@@ -104,7 +111,7 @@ async def main(path):
         async def receive(event):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
             private_allowed = (event.is_private and
-                               (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
+                               private_chat_allowed(cfg,event.chat_id))
             if private_allowed:
                 sender=await event.get_chat()
                 if sender is None or getattr(sender,"bot",False):
@@ -114,19 +121,19 @@ async def main(path):
             if event.raw_text and (group_allowed or private_allowed):
                 m={"chat_id":event.chat_id,"message_id":event.id,
                    "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-                   "sender_name":("Đã gửi" if event.out else "Đã nhận") if event.is_private else ""}
+                   "sender_name":private_direction(event.out) if event.is_private else ""}
                 with queue_file.open("a",encoding="utf-8") as handle:
                     handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         @client.on(events.MessageEdited())
         async def receive_edit(event):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
             private_allowed = (event.is_private and
-                               (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
+                               private_chat_allowed(cfg,event.chat_id))
             if not event.message.edit_date or not (group_allowed or private_allowed):
                 return
             m={"chat_id":event.chat_id,"message_id":event.id,
                "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-               "edited_at":event.message.edit_date.isoformat(),"sender_name":("Đã gửi" if event.out else "Đã nhận") if event.is_private else ""}
+               "edited_at":event.message.edit_date.isoformat(),"sender_name":private_direction(event.out) if event.is_private else ""}
             with queue_file.open("a",encoding="utf-8") as handle:
                 handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         # Track last processed private message by chat, surviving worker restarts.
@@ -144,7 +151,7 @@ async def main(path):
                 if not dialog.is_user or getattr(dialog.entity, "bot", False):
                     continue
                 chat_id = int(dialog.id)
-                if not (cfg.get("receive_all_private",False) or chat_id in cfg["allowed_private_chat_ids"]):
+                if not private_chat_allowed(cfg,chat_id):
                     continue
                 key = str(chat_id)
                 latest = await client.get_messages(dialog.entity, limit=1)
@@ -164,7 +171,7 @@ async def main(path):
                         continue
                     m = {"chat_id": chat_id, "message_id": int(msg.id),
                          "message_text": msg.raw_text, "message_date": msg.date.isoformat(),
-                         "sender_name": ("Đã gửi" if msg.out else "Đã nhận") + " · " + (dialog.name or "")}
+                         "sender_name": private_direction(msg.out) + " · " + (dialog.name or "")}
                     with queue_file.open("a", encoding="utf-8") as handle:
                         handle.write(json.dumps(m, ensure_ascii=False) + "\n")
                 watermarks[key] = current_id
@@ -185,7 +192,7 @@ async def main(path):
                 async for dialog in client.iter_dialogs():
                     is_allowed_group = dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]
                     is_allowed_private = (dialog.is_user and
-                        (cfg.get("receive_all_private",False) or int(dialog.id) in cfg["allowed_private_chat_ids"]) and
+                        private_chat_allowed(cfg,dialog.id) and
                         not getattr(dialog.entity,"bot",False))
                     if is_allowed_group or is_allowed_private:
                         prefix="Cá nhân: " if is_allowed_private else ""

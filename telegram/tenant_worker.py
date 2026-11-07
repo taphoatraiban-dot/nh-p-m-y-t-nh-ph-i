@@ -168,7 +168,13 @@ async def main(path):
                     watermarks[key] = current_id
                     changed = True
                     continue
-                last_id = int(watermarks[key])
+                try:
+                    last_id = int(watermarks[key])
+                except (TypeError, ValueError):
+                    # Recover a damaged per-chat cursor without importing history.
+                    watermarks[key] = current_id
+                    changed = True
+                    continue
                 if current_id <= last_id:
                     continue
                 async for msg in client.iter_messages(dialog.entity, min_id=last_id, reverse=True):

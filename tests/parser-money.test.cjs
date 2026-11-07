@@ -122,3 +122,11 @@ test('LOCK: all approved punctuation separates completed DA and B wagers',()=>{
   assert.equal(gross(actual),gross(expected),sep);
  }
 });
+
+test('LOCK: shared B applies to every DA pair across all compact groups and later line',()=>{
+ const x=parse('2dmn\n1213.345689.9987.7778798990da1.b5.\n123.789b1.xc20.');
+ assert.deepEqual(x.errors,[]);
+ const byType=(type)=>x.rows.filter(r=>String(r.type||r.label||'').toLowerCase().includes(type)).reduce((sum,r)=>sum+r.gross,0);
+ assert.equal(gross(x),3468);
+ assert.equal(x.rows.filter(r=>r.gross===180).length,0);
+});

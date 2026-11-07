@@ -137,13 +137,15 @@ async def main(path):
         except (OSError, ValueError):
             watermarks = {}
         async def poll_private():
-            if not cfg.get("receive_all_private", False):
+            if not (cfg.get("receive_all_private", False) or cfg["allowed_private_chat_ids"]):
                 return
             changed = False
             async for dialog in client.iter_dialogs():
                 if not dialog.is_user or getattr(dialog.entity, "bot", False):
                     continue
                 chat_id = int(dialog.id)
+                if not (cfg.get("receive_all_private",False) or chat_id in cfg["allowed_private_chat_ids"]):
+                    continue
                 key = str(chat_id)
                 latest = await client.get_messages(dialog.entity, limit=1)
                 if not latest:
@@ -183,7 +185,7 @@ async def main(path):
                 async for dialog in client.iter_dialogs():
                     is_allowed_group = dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]
                     is_allowed_private = (dialog.is_user and
-                        int(dialog.id) in cfg["allowed_private_chat_ids"] and
+                        (cfg.get("receive_all_private",False) or int(dialog.id) in cfg["allowed_private_chat_ids"]) and
                         not getattr(dialog.entity,"bot",False))
                     if is_allowed_group or is_allowed_private:
                         prefix="Cá nhân: " if is_allowed_private else ""

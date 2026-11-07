@@ -40,9 +40,9 @@
     // occur between them. A station can contribute at most once per group;
     // repeated wagers for the same station remain separate.
     const parseAmount=(value)=>{
-      const raw=String(value??'').trim().replace(/\\s/g,'').replace(/k$/i,'');
-      if(!/^-?\\d+(?:[.,]\\d+)*$/.test(raw))return null;
-      const normalized=raw.replace(/[.,](?=\\d{3}(?:[.,]|$))/g,'').replace(',','.');
+      const raw=String(value??'').trim().replace(/\s/g,'').replace(/k$/i,'');
+      if(!/^-?\d+(?:[.,]\d+)*$/.test(raw))return null;
+      const normalized=raw.replace(/[.,](?=\d{3}(?:[.,]|$))/g,'').replace(',','.');
       const n=Number(normalized);
       return Number.isFinite(n)?n:null;
     };

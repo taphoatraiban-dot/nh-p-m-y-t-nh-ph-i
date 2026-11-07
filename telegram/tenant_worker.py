@@ -254,8 +254,11 @@ async def main(path):
                                             and isinstance(item.get("message_text"), str)
                                             and isinstance(item.get("message_date"), str)):
                                         continue
+                                    # JS Number.isSafeInteger is used by the ingest
+                                    # endpoint for both identifiers.
                                     if (len(item["message_text"]) > 20000
-                                            or item["message_id"] <= 0):
+                                            or not (-9007199254740991 <= item["chat_id"] <= 9007199254740991)
+                                            or not (1 <= item["message_id"] <= 9007199254740991)):
                                         continue
                                     try:
                                         datetime.fromisoformat(item["message_date"].replace("Z", "+00:00"))

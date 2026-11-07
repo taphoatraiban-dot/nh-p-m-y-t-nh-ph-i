@@ -3943,7 +3943,7 @@ function parseBets(){
  // punctuation or no separator. Only known station codes are accepted.
  // The original textarea is never changed.
  const _stationJoinedSafe=_stationSafeInput.split('\n').map(line=>{
-   const m=line.match(/^(\s*)([a-z]{2,24})[^a-z0-9]*(\d{4,}(?:[.,+/-]\d{2,})*\s*da\s*\d+(?:[,.]\d+)?n?\.?)\s*$/i);
+   const m=line.match(/^(\s*)([a-z]{2,24})[^a-z0-9]*(\d{2,}(?:[.,+/-]\d{2,})*\s*da\s*\d+(?:[,.]\d+)?n?\.?)\s*$/i);
    if(!m || !stationToken(m[2],$('date')?.value||''))return line;
    return m[1]+m[2]+'\n'+m[3];
  }).join('\n');

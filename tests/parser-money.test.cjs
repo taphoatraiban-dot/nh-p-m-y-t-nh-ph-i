@@ -48,3 +48,23 @@ test('explicit repeated digits permutation counted once',()=>{
 test('DA followed by B retains pair semantics',()=>{
  const r=parse('hn\n1234da1.b2.');assert.deepEqual(r.errors,[]);assert.equal(gross(r),54+2*27*2);
 });
+
+test('LOCK: malformed hyphenated DA length blocks entire phoi',()=>{
+ const x=parse('hg\n76b5.\n78-798086da0,.5');
+ assert.equal(x.rows.length,0);
+ assert.ok(x.errors.some(e=>e.includes('Sai độ dài số ĐÁ')));
+});
+test('LOCK: forgiving half-point punctuation still counts DA',()=>{
+ for(const stake of ['0,5','0,.5','0.,5','0,,5','0.5']){
+  const x=parse('hg\n78-79da'+stake+'.');
+  assert.deepEqual(x.errors,[],stake);
+  assert.equal(x.rows.length,1,stake);
+  assert.equal(x.rows[0].points,0.5,stake);
+ }
+});
+test('LOCK: valid hyphen-separated DA keeps full stake',()=>{
+ const x=parse('hg\n78-79-80-86da0,.5.');
+ assert.deepEqual(x.errors,[]);
+ assert.equal(x.rows.length,1);
+ assert.equal(x.rows[0].points,0.5);
+});

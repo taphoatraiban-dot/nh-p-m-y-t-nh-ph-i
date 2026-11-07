@@ -26,7 +26,7 @@
     const items=(Array.isArray(data.items)?data.items:[]).filter(item=>!/(?:số dư|so du|balance|chuyển dư|chuyen du)/i.test([item.station,item.region,item.type,item.number,item.content].join(' ')));
     const W=WIDTH,L=PAD,R=WIDTH-PAD;
     const col=[L,L+157,L+281,L+379,R];
-    const rowH=66,headerH=60,groupH=60;
+    const rowH=66,headerH=60,groupH=84;
     const sections=[];
     for(const item of items){
       const name=String(item.station||item.region||'KHÁC');
@@ -36,37 +36,36 @@
       const raw=String(item.amount||'').replace(/[^0-9,.-]/g,'').replace(/[.,](?=\d{3}(?:\D|$))/g,'').replace(',','.');
       section.total+=Number(raw)||0;
     }
-    // Compact adjacent stations with the same itemized bets. Keep station names
-    // and add the already-calculated amounts; never recalculate betting prices.
+    // Group identical bet rows across stations even when other station groups
+    // occur between them. A station can contribute at most once per group;
+    // repeated wagers for the same station remain separate.
     const parseAmount=(value)=>{
       const raw=String(value??'').trim().replace(/\s/g,'').replace(/k$/i,'');
       if(!/^-?\d+(?:[.,]\d+)*$/.test(raw))return null;
       const normalized=raw.replace(/[.,](?=\d{3}(?:[.,]|$))/g,'').replace(',','.');
-      const amount=Number(normalized);
-      return Number.isFinite(amount)?amount:null;
+      const n=Number(normalized);
+      return Number.isFinite(n)?n:null;
     };
+    const formatAmount=n=>Number.isInteger(n)?n.toLocaleString('vi-VN')+'k':String(n).replace('.',',')+'k';
     const compact=[];
-    for(const original of sections){
-      const previous=compact[compact.length-1];
-      const sameRows=previous&&previous.rows.length===original.rows.length&&
-        previous.rows.every((row,i)=>{
-          const next=original.rows[i];
-          return String(row.number||row.content||'')===String(next.number||next.content||'')&&
-            String(row.type||'')===String(next.type||'')&&
-            String(row.points||'')===String(next.points||'')&&
-            parseAmount(row.amount)!==null&&parseAmount(next.amount)!==null;
-        });
-      if(!sameRows){
-        compact.push({name:original.name,names:[original.name],rows:original.rows.map(row=>({...row})),total:original.total});
-        continue;
+    const grouped=new Map();
+    for(const section of sections){
+      for(const item of section.rows){
+        const amount=parseAmount(item.amount);
+        const signature=JSON.stringify([String(item.number||item.content||''),String(item.type||''),String(item.points||'')]);
+        const candidates=grouped.get(signature)||[];
+        let group=amount===null?null:candidates.find(g=>!g.names.includes(section.name));
+        if(!group){
+          group={name:section.name,names:[section.name],rows:[{...item}],total:amount===null?0:amount};
+          compact.push(group);
+          if(amount!==null){candidates.push(group);grouped.set(signature,candidates);}
+        }else{
+          group.names.push(section.name);
+          group.name=group.names.join(' + ');
+          group.total+=amount;
+          group.rows[0].amount=formatAmount(group.total);
+        }
       }
-      previous.names.push(original.name);
-      previous.name=previous.names.join(' + ');
-      previous.total+=original.total;
-      previous.rows.forEach((row,i)=>{
-        const amount=parseAmount(row.amount)+parseAmount(original.rows[i].amount);
-        row.amount=Number.isInteger(amount)?amount.toLocaleString('vi-VN')+'k':String(amount).replace('.',',')+'k';
-      });
     }
     const qr=data.qrMatrix;
     const valid=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length);
@@ -99,7 +98,13 @@
     compact.forEach(g=>{
       ctx.fillStyle='#eee';ctx.fillRect(L,y,R-L,groupH);ctx.fillStyle='#000';
       ln(L,y,R,y);ln(L,y+groupH,R,y+groupH);ln(L,y,L,y+groupH);ln(R,y,R,y+groupH);
-      txt(g.name,W/2,y+groupH/2,31,'center',R-L-12);y+=groupH;
+      const names=g.names||[g.name];
+      if(names.length>2){
+        const mid=Math.ceil(names.length/2);
+        txt(names.slice(0,mid).join(' + '),W/2,y+26,27,'center',R-L-12);
+        txt(names.slice(mid).join(' + '),W/2,y+59,27,'center',R-L-12);
+      }else txt(g.name,W/2,y+groupH/2,31,'center',R-L-12);
+      y+=groupH;
       cells(['SỐ','LOẠI','ĐIỂM','TIỀN THU'],headerH);
       g.rows.forEach(item=>cells([item.number||item.content||'',item.type||'',item.points||'',item.amount||''],rowH));
       ln(L,y,R,y);ln(L,y+rowH,R,y+rowH);ln(L,y,L,y+rowH);ln(col[3],y,col[3],y+rowH);ln(R,y,R,y+rowH);

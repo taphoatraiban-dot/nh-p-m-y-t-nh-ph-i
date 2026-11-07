@@ -13178,7 +13178,7 @@ function detect(m){
  if([mn,mt,mb].filter(Boolean).length!==1)return "OTHER";
  return mn?"MN":mt?"MT":"MB";
 }
-function visible(){return data.messages.filter(m=>(!groups.value||String(m.chat_id)===groups.value)&&(!region.value||detect(m)===region.value));}
+function visible(){const allowed=new Set(data.groups.filter(g=>g.enabled!==false && (isPrivateChat(g)===(chatMode==="private"))).map(g=>String(g.chat_id)));return data.messages.filter(m=>allowed.has(String(m.chat_id))&&String(m.chat_id)===groups.value&&(!region.value||detect(m)===region.value));}
 function selectedVisible(){return visible().filter(m=>selected.has(key(m)));}
 function updateCount(){count.textContent=selectedVisible().length+"/"+visible().length+" tin đã chọn";}
 function render(){

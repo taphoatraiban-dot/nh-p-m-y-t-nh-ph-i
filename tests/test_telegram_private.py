@@ -46,6 +46,13 @@ class TelegramPrivatePolicyTests(unittest.TestCase):
             source = ast.get_source_segment(SOURCE, handlers[name])
             self.assertIn('int(event.chat_id) in cfg["allowed_chat_ids"]', source)
 
+    def test_private_bot_edits_are_filtered(self):
+        worker = next(node for node in TREE.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "main")
+        handler = next(node for node in ast.walk(worker) if isinstance(node, ast.AsyncFunctionDef) and node.name == "receive_edit")
+        source = ast.get_source_segment(SOURCE, handler)
+        self.assertIn("if private_allowed:", source)
+        self.assertIn('getattr(sender, "bot", False)', source)
+
     def test_both_directions(self):
         self.assertEqual(NAMESPACE["private_direction"](True), "Đã gửi")
         self.assertEqual(NAMESPACE["private_direction"](False), "Đã nhận")

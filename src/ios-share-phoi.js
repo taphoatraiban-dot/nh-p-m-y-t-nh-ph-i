@@ -26,7 +26,7 @@
     const items=(Array.isArray(data.items)?data.items:[]).filter(item=>!/(?:số dư|so du|balance|chuyển dư|chuyen du)/i.test([item.station,item.region,item.type,item.number,item.content].join(' ')));
     const W=WIDTH,L=PAD,R=WIDTH-PAD;
     const col=[L,L+157,L+281,L+379,R];
-    const rowH=66,headerH=60,groupH=60;
+    const rowH=66,headerH=60,groupH=84;
     const sections=[];
     for(const item of items){
       const name=String(item.station||item.region||'KHÁC');
@@ -98,7 +98,13 @@
     compact.forEach(g=>{
       ctx.fillStyle='#eee';ctx.fillRect(L,y,R-L,groupH);ctx.fillStyle='#000';
       ln(L,y,R,y);ln(L,y+groupH,R,y+groupH);ln(L,y,L,y+groupH);ln(R,y,R,y+groupH);
-      txt(g.name,W/2,y+groupH/2,31,'center',R-L-12);y+=groupH;
+      const names=g.names||[g.name];
+      if(names.length>2){
+        const mid=Math.ceil(names.length/2);
+        txt(names.slice(0,mid).join(' + '),W/2,y+26,27,'center',R-L-12);
+        txt(names.slice(mid).join(' + '),W/2,y+59,27,'center',R-L-12);
+      }else txt(g.name,W/2,y+groupH/2,31,'center',R-L-12);
+      y+=groupH;
       cells(['SỐ','LOẠI','ĐIỂM','TIỀN THU'],headerH);
       g.rows.forEach(item=>cells([item.number||item.content||'',item.type||'',item.points||'',item.amount||''],rowH));
       ln(L,y,R,y);ln(L,y+rowH,R,y+rowH);ln(L,y,L,y+rowH);ln(col[3],y,col[3],y+rowH);ln(R,y,R,y+rowH);

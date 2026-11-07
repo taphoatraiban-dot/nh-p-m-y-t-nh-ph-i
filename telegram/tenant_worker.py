@@ -228,7 +228,15 @@ async def main(path):
                                 if not line:break
                                 try:batch.append(json.loads(line.decode("utf-8")))
                                 except (ValueError,UnicodeError):continue
-                            if not batch:break
+                            if not batch:
+                                # Even malformed queue lines must not cause endless
+                                # retries at the same durable offset.
+                                next_offset = stream.tell()
+                                if next_offset > offset:
+                                    temp = cursor_file.with_suffix(".tmp")
+                                    temp.write_text(str(next_offset))
+                                    os.replace(temp, cursor_file)
+                                break
                             await publish(groups,batch)
                             last_group_heartbeat=asyncio.get_running_loop().time()
                             next_offset=stream.tell()

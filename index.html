@@ -3866,7 +3866,7 @@ function parseBets(){
  const _halfPointSafe=_rawInput.replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)0[,.]{2,}5(?=n?(?:[.\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5');
  // LOCK: 0-5 after a wager code is a half-point stake, not a DA-number separator.
  // Preserve the original text; only normalize the parsing copy.
- const _hyphenHalfPointSafe=_halfPointSafe.replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \\t]*)0[ \\t]*-[ \\t]*5(?=n?(?:[.\\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5');
+ const _hyphenHalfPointSafe=_halfPointSafe.replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)0[ \t]*-[ \t]*5(?=n?(?:[.\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5');
  const _terminalSafeInput=_hyphenHalfPointSafe.split('\n').map(line=>{
    const m=line.match(/^(.*(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?)([\s.,;:!?/\-\[\]{}#%^*+=_\\|~<>$¥€•'’"]+)$/i);
    return m ? m[1]+'.' : line;

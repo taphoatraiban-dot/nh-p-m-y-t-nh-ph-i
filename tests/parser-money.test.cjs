@@ -89,3 +89,15 @@ test('LOCK: punctuation between 0 and 5 in DA stake means half point',()=>{
   assert.ok(gross(x)>0,v);
  }
 });
+
+test('LOCK: leading zero 05 means half point, never five',()=>{
+ for(const head of ['2dmn','2dmt','hn']){
+  const x=parse(head+'\n687879da05.');
+  assert.deepEqual(x.errors,[],head);
+  assert.ok(x.rows.length>0,head);
+  assert.ok(x.rows.every(r=>r.points===0.5),head);
+  assert.ok(gross(x)>0,head);
+ }
+ const normal=parse('2dmn\n687879da5.');
+ assert.ok(normal.rows.every(r=>r.points===5));
+});

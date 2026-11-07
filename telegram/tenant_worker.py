@@ -249,10 +249,19 @@ async def main(path):
                                     # ingest API; reject it before batching good mail.
                                     if not isinstance(item, dict):
                                         continue
-                                    if not (isinstance(item.get("chat_id"), int)
-                                            and isinstance(item.get("message_id"), int)
+                                    if not (type(item.get("chat_id")) is int
+                                            and type(item.get("message_id")) is int
                                             and isinstance(item.get("message_text"), str)
                                             and isinstance(item.get("message_date"), str)):
+                                        continue
+                                    if (len(item["message_text"]) > 20000
+                                            or item["message_id"] <= 0):
+                                        continue
+                                    try:
+                                        datetime.fromisoformat(item["message_date"].replace("Z", "+00:00"))
+                                        if item.get("edited_at") is not None:
+                                            datetime.fromisoformat(item["edited_at"].replace("Z", "+00:00"))
+                                    except (ValueError, AttributeError, TypeError):
                                         continue
                                     batch.append(item)
                                 except (ValueError, UnicodeError):

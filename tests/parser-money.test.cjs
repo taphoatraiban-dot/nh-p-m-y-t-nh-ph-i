@@ -68,3 +68,13 @@ test('LOCK: valid hyphen-separated DA keeps full stake',()=>{
  assert.equal(x.rows.length,1);
  assert.equal(x.rows[0].points,0.5);
 });
+
+test('LOCK: hyphen half-point DA never becomes zero',()=>{
+ for(const head of ['2dmn','hg','2dmt','hn']){
+  const x=parse(head+'\n78798086da0-5.');
+  assert.deepEqual(x.errors,[],head);
+  assert.ok(x.rows.length>0,head);
+  assert.ok(x.rows.every(r=>r.points===0.5),head);
+  assert.ok(gross(x)>0,head);
+ }
+});

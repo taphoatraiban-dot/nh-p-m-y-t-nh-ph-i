@@ -1,0 +1,27 @@
+name: Commercial unit tests
+on:
+  pull_request:
+    paths:
+      - 'commercial/**'
+      - 'supabase/migrations/2026110100*_stage_*.sql'
+      - '.github/workflows/commercial-tests.yml'
+  push:
+    branches:
+      - feature/subscription-commercial-only-20261101
+    paths:
+      - 'commercial/**'
+      - 'supabase/migrations/2026110100*_stage_*.sql'
+      - '.github/workflows/commercial-tests.yml'
+permissions:
+  contents: read
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test commercial modules without database credentials
+        run: node --test commercial/*.test.mjs

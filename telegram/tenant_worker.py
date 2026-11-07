@@ -52,6 +52,13 @@ def read_config(path):
         raise ValueError("Invalid tenant sync key")
     return data, session_path
 
+def private_chat_allowed(cfg, chat_id):
+    """Private messages require explicit per-tenant consent; bots are filtered separately."""
+    return bool(cfg.get("receive_all_private", False) or int(chat_id) in cfg["allowed_private_chat_ids"])
+
+def private_direction(outgoing):
+    return "Đã gửi" if outgoing else "Đã nhận"
+
 def ingest(cfg, groups, messages):
     payload = json.dumps({"groups": groups, "messages": messages}, ensure_ascii=False).encode()
     request = urllib.request.Request(
@@ -103,10 +110,10 @@ async def main(path):
         @client.on(events.NewMessage())
         async def receive(event):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
-            private_allowed = (event.is_private and not event.out and
-                               (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
+            private_allowed = (event.is_private and
+                               private_chat_allowed(cfg,event.chat_id))
             if private_allowed:
-                sender=await event.get_sender()
+                sender=await event.get_chat()
                 if sender is None or getattr(sender,"bot",False):
                     return
                 name=(" ".join(filter(None,[getattr(sender,"first_name",None),getattr(sender,"last_name",None)]))).strip()
@@ -114,19 +121,24 @@ async def main(path):
             if event.raw_text and (group_allowed or private_allowed):
                 m={"chat_id":event.chat_id,"message_id":event.id,
                    "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-                   "sender_name":""}
+                   "sender_name":private_direction(event.out) if event.is_private else ""}
                 with queue_file.open("a",encoding="utf-8") as handle:
                     handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         @client.on(events.MessageEdited())
         async def receive_edit(event):
             group_allowed = event.is_group and int(event.chat_id) in cfg["allowed_chat_ids"]
-            private_allowed = (event.is_private and not event.out and
-                               (cfg.get("receive_all_private",False) or int(event.chat_id) in cfg["allowed_private_chat_ids"]))
-            if not event.message.edit_date or not (group_allowed or private_allowed):
+            private_allowed = (event.is_private and
+                               private_chat_allowed(cfg,event.chat_id))
+            # Ignore non-text edits; ingest requires message_text to be a string.
+            if not event.message.edit_date or not event.raw_text or not (group_allowed or private_allowed):
                 return
+            if private_allowed:
+                sender = await event.get_chat()
+                if sender is None or getattr(sender, "bot", False):
+                    return
             m={"chat_id":event.chat_id,"message_id":event.id,
                "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-               "edited_at":event.message.edit_date.isoformat(),"sender_name":""}
+               "edited_at":event.message.edit_date.isoformat(),"sender_name":private_direction(event.out) if event.is_private else ""}
             with queue_file.open("a",encoding="utf-8") as handle:
                 handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         # Track last processed private message by chat, surviving worker restarts.
@@ -137,13 +149,15 @@ async def main(path):
         except (OSError, ValueError):
             watermarks = {}
         async def poll_private():
-            if not cfg.get("receive_all_private", False):
+            if not (cfg.get("receive_all_private", False) or cfg["allowed_private_chat_ids"]):
                 return
             changed = False
             async for dialog in client.iter_dialogs():
                 if not dialog.is_user or getattr(dialog.entity, "bot", False):
                     continue
                 chat_id = int(dialog.id)
+                if not private_chat_allowed(cfg,chat_id):
+                    continue
                 key = str(chat_id)
                 latest = await client.get_messages(dialog.entity, limit=1)
                 if not latest:
@@ -154,15 +168,21 @@ async def main(path):
                     watermarks[key] = current_id
                     changed = True
                     continue
-                last_id = int(watermarks[key])
+                try:
+                    last_id = int(watermarks[key])
+                except (TypeError, ValueError):
+                    # Recover a damaged per-chat cursor without importing history.
+                    watermarks[key] = current_id
+                    changed = True
+                    continue
                 if current_id <= last_id:
                     continue
                 async for msg in client.iter_messages(dialog.entity, min_id=last_id, reverse=True):
-                    if msg.out or not msg.raw_text:
+                    if not msg.raw_text:
                         continue
                     m = {"chat_id": chat_id, "message_id": int(msg.id),
                          "message_text": msg.raw_text, "message_date": msg.date.isoformat(),
-                         "sender_name": dialog.name or ""}
+                         "sender_name": private_direction(msg.out)}
                     with queue_file.open("a", encoding="utf-8") as handle:
                         handle.write(json.dumps(m, ensure_ascii=False) + "\n")
                 watermarks[key] = current_id
@@ -183,7 +203,7 @@ async def main(path):
                 async for dialog in client.iter_dialogs():
                     is_allowed_group = dialog.is_group and int(dialog.id) in cfg["allowed_chat_ids"]
                     is_allowed_private = (dialog.is_user and
-                        int(dialog.id) in cfg["allowed_private_chat_ids"] and
+                        private_chat_allowed(cfg,dialog.id) and
                         not getattr(dialog.entity,"bot",False))
                     if is_allowed_group or is_allowed_private:
                         prefix="Cá nhân: " if is_allowed_private else ""
@@ -192,26 +212,80 @@ async def main(path):
                 for chat_id, name in discovered_private.items():
                     if chat_id not in known:
                         groups.append({"chat_id":chat_id,"group_name":name})
+                # The ingest endpoint accepts at most 300 chat metadata entries.
+                # Send the whole metadata list in bounded batches; group metadata
+                # goes first, so private contacts cannot starve existing groups.
+                if len(groups) > 300:
+                    group_chats = [g for g in groups if not g["group_name"].startswith("Cá nhân: ")]
+                    private_chats = [g for g in groups if g["group_name"].startswith("Cá nhân: ")]
+                    groups = group_chats + private_chats
+                # Publish the first chunk with the message batch. Publish extra
+                # metadata chunks only after the queue has been acknowledged, so
+                # a failure on an unrelated contact cannot block pending messages.
+                extra_group_batches = [groups[start:start + 300]
+                                       for start in range(300, len(groups), 300)]
+                groups = groups[:300]
                 if queue_file.exists() and queue_file.stat().st_size:
                     # Never truncate: a concurrent Telegram event may append during upload.
                     # Durable offset is committed only after successful acknowledgement.
-                    offset=int(cursor_file.read_text()) if cursor_file.exists() else 0
+                    try:
+                        offset = int(cursor_file.read_text()) if cursor_file.exists() else 0
+                    except (OSError, ValueError):
+                        # Replay rather than silently lose queued messages when the
+                        # cursor file is damaged; server upsert deduplicates by ID.
+                        offset = 0
+                    if offset < 0 or offset > queue_file.stat().st_size:
+                        offset = 0
                     with queue_file.open("rb") as stream:
-                        stream.seek(min(offset,queue_file.stat().st_size))
+                        stream.seek(offset)
                         while True:
                             batch=[]
                             for _ in range(100):
                                 line=stream.readline()
                                 if not line:break
-                                try:batch.append(json.loads(line.decode("utf-8")))
-                                except (ValueError,UnicodeError):continue
-                            if not batch:break
+                                try:
+                                    item = json.loads(line.decode("utf-8"))
+                                    # A valid JSON line can still be invalid for the
+                                    # ingest API; reject it before batching good mail.
+                                    if not isinstance(item, dict):
+                                        continue
+                                    if not (type(item.get("chat_id")) is int
+                                            and type(item.get("message_id")) is int
+                                            and isinstance(item.get("message_text"), str)
+                                            and isinstance(item.get("message_date"), str)):
+                                        continue
+                                    # JS Number.isSafeInteger is used by the ingest
+                                    # endpoint for both identifiers.
+                                    if (len(item["message_text"]) > 20000
+                                            or not (-9007199254740991 <= item["chat_id"] <= 9007199254740991)
+                                            or not (1 <= item["message_id"] <= 9007199254740991)):
+                                        continue
+                                    try:
+                                        datetime.fromisoformat(item["message_date"].replace("Z", "+00:00"))
+                                        if item.get("edited_at") is not None:
+                                            datetime.fromisoformat(item["edited_at"].replace("Z", "+00:00"))
+                                    except (ValueError, AttributeError, TypeError):
+                                        continue
+                                    batch.append(item)
+                                except (ValueError, UnicodeError):
+                                    continue
+                            if not batch:
+                                # Even malformed queue lines must not cause endless
+                                # retries at the same durable offset.
+                                next_offset = stream.tell()
+                                if next_offset > offset:
+                                    temp = cursor_file.with_suffix(".tmp")
+                                    temp.write_text(str(next_offset))
+                                    os.replace(temp, cursor_file)
+                                break
                             await publish(groups,batch)
                             last_group_heartbeat=asyncio.get_running_loop().time()
                             next_offset=stream.tell()
                             temp=cursor_file.with_suffix(".tmp")
                             temp.write_text(str(next_offset))
                             os.replace(temp,cursor_file)
+                for extra_groups in extra_group_batches:
+                    await publish(extra_groups, [])
                 if asyncio.get_running_loop().time()-last_group_heartbeat>=120:
                     await publish(groups,[])
                     last_group_heartbeat=asyncio.get_running_loop().time()

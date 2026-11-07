@@ -13114,6 +13114,16 @@ panel.innerHTML='<summary style="font-weight:700">📨 Tin Telegram từ tài kh
 target.parentNode.insertBefore(panel,target);
 const status=panel.querySelector("#tgMemberStatus"),groups=panel.querySelector("#tgMemberGroup"),list=panel.querySelector("#tgMemberMessages"),setup=panel.querySelector("#tgMemberSetup");
 let data={groups:[],messages:[]},busy=false;
+// Independent tabs for group and private conversations. Existing group ingestion is unchanged.
+let chatMode="group";
+const chatTabs=document.createElement("div");chatTabs.id="tgMemberChatTabs";chatTabs.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0";
+const tabGroup=document.createElement("button"),tabPrivate=document.createElement("button");
+for(const [btn,label,mode] of [[tabGroup,"👥 Nhóm","group"],[tabPrivate,"👤 Cá nhân","private"]]){
+ btn.type="button";btn.className="soft";btn.textContent=label;btn.onclick=()=>{chatMode=mode;selected.clear();render();};chatTabs.append(btn);
+}
+const groupPicker=panel.querySelector("#tgMemberGroup");groupPicker.parentNode.before(chatTabs);
+const isPrivateChat=g=>String(g.group_name||"").startsWith("Cá nhân: ");
+
 // Hiển thị ô tên nhóm trực tiếp; danh sách đóng sau khi chọn trên iPhone.
 groups.style.cssText="display:block!important;visibility:visible!important;opacity:1!important;flex:1 1 160px;min-width:0;width:100%;max-width:100%;height:42px;font-size:14px;background:#fff;color:#17212f;border:1px solid #cbd5e1;border-radius:9px;padding:6px 8px";
 async function call(action,body){
@@ -13168,26 +13178,28 @@ function detect(m){
  if([mn,mt,mb].filter(Boolean).length!==1)return "OTHER";
  return mn?"MN":mt?"MT":"MB";
 }
-function visible(){return data.messages.filter(m=>(!groups.value||String(m.chat_id)===groups.value)&&(!region.value||detect(m)===region.value));}
+function visible(){const allowed=new Set(data.groups.filter(g=>g.enabled!==false && (isPrivateChat(g)===(chatMode==="private"))).map(g=>String(g.chat_id)));return data.messages.filter(m=>allowed.has(String(m.chat_id))&&String(m.chat_id)===groups.value&&(!region.value||detect(m)===region.value));}
 function selectedVisible(){return visible().filter(m=>selected.has(key(m)));}
 function updateCount(){count.textContent=selectedVisible().length+"/"+visible().length+" tin đã chọn";}
 function render(){
  const current=groups.value;
+ tabGroup.style.fontWeight=chatMode==="group"?"700":"400";tabPrivate.style.fontWeight=chatMode==="private"?"700":"400";
+ tabGroup.style.borderColor=chatMode==="group"?"#2563eb":"#cbd5e1";tabPrivate.style.borderColor=chatMode==="private"?"#2563eb":"#cbd5e1";
  groups.replaceChildren();
- for(const g of data.groups.filter(g=>g.enabled!==false))groups.add(new Option(g.group_name,String(g.chat_id)));
+ for(const g of data.groups.filter(g=>g.enabled!==false && (isPrivateChat(g)===(chatMode==="private"))))groups.add(new Option(g.group_name,String(g.chat_id)));
  restoreChatSelect.replaceChildren();
- for(const g of data.groups.filter(g=>g.enabled===false))restoreChatSelect.add(new Option(g.group_name,String(g.chat_id)));
+ for(const g of data.groups.filter(g=>g.enabled===false && (isPrivateChat(g)===(chatMode==="private"))))restoreChatSelect.add(new Option(g.group_name,String(g.chat_id)));
  restoreChatSelect.style.display="none";
  restoreChatBtn.style.display="none";
  hideChatBtn.disabled=!groups.options.length;
- if(!data.groups.length)groups.add(new Option("Chưa có nhóm",""));
+ if(!groups.options.length)groups.add(new Option(chatMode==="private"?"Chưa có tin nhắn cá nhân":"Chưa có nhóm",""));
  else groups.value=Array.from(groups.options).some(o=>o.value===current)?current:(Array.from(groups.options).find(o=>data.messages.some(m=>String(m.chat_id)===o.value))?.value||groups.options[0]?.value||"");
 
  const seen=new Set(data.messages.map(key));
  for(const id of selected)if(!seen.has(id))selected.delete(id);
  list.replaceChildren();
  const shown=visible();
- if(!shown.length)list.textContent="Không có tin thuộc nhóm / miền đang chọn.";
+ if(!shown.length)list.textContent=chatMode==="private"?"Chưa có tin nhắn cá nhân trong mục này.":"Không có tin thuộc nhóm / miền đang chọn.";
  const names=new Map(data.groups.map(g=>[String(g.chat_id),g.group_name]));
  const daySections=new Map();
  for(const m of shown){
@@ -13196,7 +13208,7 @@ function render(){
   const check=document.createElement("input");check.type="checkbox";check.checked=selected.has(key(m));check.setAttribute("aria-label","Chọn tin Telegram");check.style.cssText="width:18px;height:18px;flex-shrink:0;margin:3px 0";
   check.onchange=()=>{if(check.checked)selected.add(key(m));else selected.delete(key(m));updateCount()};
   const title=document.createElement("div");title.style.cssText="font-size:12px;font-weight:700;color:#475569;flex:1";
-  title.textContent=new Date(m.message_date).toLocaleString("vi-VN")+" · "+({MN:"MN",MT:"MT",MB:"MB",OTHER:"Chưa rõ miền"}[detect(m)]);
+  title.textContent=(chatMode==="private"?(m.sender_name||"Tin nhắn")+" · ":"")+new Date(m.message_date).toLocaleString("vi-VN")+" · "+({MN:"MN",MT:"MT",MB:"MB",OTHER:"Chưa rõ miền"}[detect(m)]);
   const copyBtn=document.createElement("button");copyBtn.type="button";copyBtn.className="soft";copyBtn.textContent="Copy";copyBtn.onclick=()=>copyText(m.message_text);
   const importBtn=document.createElement("button");importBtn.type="button";importBtn.className="soft";importBtn.textContent="Nhập";importBtn.onclick=()=>importMessages([m]);
   const delBtn=document.createElement("button");delBtn.type="button";delBtn.className="soft";delBtn.textContent="Xóa";delBtn.style.color="#b91c1c";delBtn.onclick=()=>hideMessages([m]);
@@ -13271,7 +13283,7 @@ if(p.telegram_id){
     if(logoutStatus&&logoutStatus.getAttribute("role")==="status")logout.after(logoutStatus);
   }
 }
-status.textContent=(fresh.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+fresh.groups.length+" nhóm · "+fresh.messages.length+" tin trong 48 giờ · Tự cập nhật";
+status.textContent=(fresh.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+fresh.groups.filter(g=>!String(g.group_name||"").startsWith("Cá nhân: ")).length+" nhóm · "+fresh.groups.filter(g=>String(g.group_name||"").startsWith("Cá nhân: ")).length+" cá nhân · "+fresh.messages.length+" tin trong 48 giờ · Tự cập nhật";
   if(signature!==lastInboxSignature){
    const scroll=list.scrollTop;
    data=fresh;lastInboxSignature=signature;render();

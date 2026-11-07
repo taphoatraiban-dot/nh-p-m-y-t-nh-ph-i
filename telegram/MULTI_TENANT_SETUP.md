@@ -27,3 +27,16 @@ Kiểm thử trước khi bật: khách A/B nhận nhóm riêng, không đọc c
 8. **Chưa có hệ thống tự phục vụ OTP trên website**, chưa có daemon tự tạo phiên sau khi khách bấm nút, chưa nối điều kiện giấy phép vào ingest. Không quảng cáo tính năng tự động cho tất cả khách trước khi ba phần này được triển khai và kiểm thử.
 
 Không gửi số điện thoại Telegram, session, API hash, secret hay mã OTP vào issue, commit, chat công khai.
+
+## Thử nghiệm riêng mục tin nhắn cá nhân (PR #43)
+
+Phần nhóm đang hoạt động không thay đổi. Worker chỉ đọc tin nhắn riêng khi chủ tài khoản Telegram chủ động bật cấu hình cho tenant của mình:
+
+- Đồng bộ toàn bộ hội thoại riêng (không gồm bot/Secret Chat): đặt `"receive_all_private": true` trong JSON cấu hình tenant; giữ nguyên `allowed_chat_ids` của nhóm.
+- Chỉ đồng bộ một số người: đặt `"receive_all_private": false` và điền Telegram user ID vào `"allowed_private_chat_ids": [123456789]`.
+- **Không đưa** `api_hash`, `sync_key`, session hay OTP lên GitHub. Không bật đồng bộ tin riêng của khách khi chưa có sự đồng ý của chủ tài khoản.
+- Sau khi sao lưu cấu hình và hàng đợi, kiểm tra cú pháp JSON, kiểm tra quyền file 0600 rồi mới khởi động lại **đúng tenant thử nghiệm**. Không restart worker nhóm hoặc toàn bộ VPS.
+- Từ một tài khoản Telegram khác, gửi một tin riêng tới tài khoản thử nghiệm, sau đó gửi một tin trả lời từ tài khoản thử nghiệm. Kiểm tra hai tin xuất hiện trong tab **Cá nhân** với nhãn **Đã nhận** và **Đã gửi**, đúng hội thoại, không lẫn vào **Nhóm**.
+- Kiểm tra gửi liên tiếp, sửa tin, mất mạng/tự nối lại, khởi động lại tenant, chọn/xóa/nhập phơi và tránh tin trùng. Kiểm tra dữ liệu chỉ hiển thị trong tài khoản được cấp quyền.
+- Lần đầu chạy chỉ ghi nhận mốc tin mới nhất của mỗi hội thoại, **không tự nhập lịch sử cũ**. Tin mới sau khi bật cấu hình mới được đồng bộ.
+- Trước khi đưa production: cần có kết quả kiểm thử thật trên VPS, kiểm tra backend Supabase và xác nhận người dùng có quyền đồng bộ tin riêng. PR không tự triển khai VPS.

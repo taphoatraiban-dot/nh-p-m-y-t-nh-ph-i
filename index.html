@@ -3857,16 +3857,22 @@ function parseBets(){
    const re=/([0-9]+(?:[ \t]*-[ \t]*[0-9]+)+)[ \t]*(?:da|đá|đa)[ \t]*[0-9]+(?:[,.]+[0-9]+)?n?/giu;
    for(const m of line.matchAll(re)){
      const parts=m[1].split(/[ \t]*-[ \t]*/);
-     if(!parts.every(p=>p.length===2)){
+     // LOCK: 17-1819-20da1.5 is one DA function (17,18,19,20).
+     // Hyphen groups may contain consecutive pairs; only odd-length groups are invalid.
+     if(!parts.every(p=>p.length>=2 && p.length%2===0)){
        _badDaGroups.push('Dòng '+(index+1)+': Sai độ dài số ĐÁ: '+m[1]+'. Mỗi số ngăn bằng dấu - phải đúng 2 chữ số. Không tính tiền.');
      }
    }
  });
  if(_badDaGroups.length)return {rows:[],errors:_badDaGroups};
+ // LOCK DA: hyphens join two-digit numbers into ONE function, not separate bets.
+ // Keep the raw receipt unchanged. Convert decimal-dot stakes to comma only on parser copy.
+ const _daHyphenSafe=_rawInput.replace(/(\d{2,}(?:[ \t]*-[ \t]*\d{2,})+)[ \t]*(da|đá|đa)[ \t]*(\d+)[.](\d+)(?=[.;\s]|$)/gim,
+   (_m,nums,type,whole,fraction)=>nums.replace(/[ \t-]/g,'')+type+whole+','+fraction);
  // Accept the explicitly agreed half-point punctuation variants on parsing copy only.
  // LOCK: punctuation-only separators between 0 and 5 in a wager stake mean 0,5.
  // Only normalize the parser copy, never the customer's original text.
- const _halfPointSafe=_rawInput
+ const _halfPointSafe=_daHyphenSafe
    .replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)0[ \t]*[-/:;()".,?!'_\\|~]+[ \t]*5(?=n?(?:[.\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5')
    // Leading zero on a two-digit stake is a decimal half point: da05 = da0,5.
    // Apply only to exact 05, never to 050, 005, or other values.

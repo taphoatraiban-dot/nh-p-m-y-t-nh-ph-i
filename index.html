@@ -4204,6 +4204,20 @@ function parseBets(){
    }
    text=lines.join('\n');
  }
+ // LOCK: a multi-group DA followed by shared B must retain the entire group.
+ // Legacy Telegram normalizers may split it into DA lines, leaving B on the last pair only.
+ // Restore only the matching original station block, preserving all subsequent wager lines.
+ {
+   const source=_raw2057.replace(/\r/g,'').split('\n');
+   const originalGroup=/^\s*((?:\d{4,}\s*\.\s*)+\d{4,})\s*da\s*\d+(?:[,.]\d+)?n?\s*\.\s*b\s*\d+(?:[,.]\d+)?n?\s*\.?\s*$/i;
+   const header=/^(?:[234]dm[nt]|hn|mb)$/i;
+   if(source.length>=3 && header.test(source[0].trim()) && originalGroup.test(source[1].trim())
+     && source.slice(2).every(line=>line.trim() && !header.test(line.trim()))){
+     // The original line is handled by the existing shared-function parser,
+     // which applies B to every two-digit pair in every DA group.
+     text=source.map(line=>line.trim()).join('\n');
+   }
+ }
  for(let line of text.split("\n")){
   let s=line.trim(); if(!s) continue;
   // Nếu người dùng ghi rõ ngày đầu dòng (CN/T2...T7), ngày đó được ưu tiên cho 3DMN/2DMN.

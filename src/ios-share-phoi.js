@@ -67,12 +67,29 @@
         }
       }
     }
+    // Merge display sections that have the exact same set of stations.
+    // Keep individual bet rows (including different types and negative amounts)
+    // and preserve their first-seen order. Never combine different station sets.
+    const displayGroups=[];
+    const displayGroupByStations=new Map();
+    for(const group of compact){
+      const stations=[...new Set(group.names.map(name=>String(name).trim()))];
+      const key=JSON.stringify([...stations].sort());
+      let target=displayGroupByStations.get(key);
+      if(!target){
+        target={name:group.name,names:stations,rows:[],total:0};
+        displayGroupByStations.set(key,target);
+        displayGroups.push(target);
+      }
+      target.rows.push(...group.rows);
+      target.total+=group.total;
+    }
     const qr=data.qrMatrix;
     const valid=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length);
     const unit=valid?Math.max(1,Math.floor(150/qr.length)):0;
     const size=valid?unit*qr.length:0;
     const headerBottom=valid?Math.max(205,106+size+42):205;
-    const height=headerBottom+compact.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+105;
+    const height=headerBottom+displayGroups.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+105;
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=height;
     const ctx=canvas.getContext('2d');
@@ -95,7 +112,7 @@
       values.forEach((v,i)=>txt(v,(col[i]+col[i+1])/2,y+h/2,i===3?27:29,'center',col[i+1]-col[i]-9));
       y+=h;
     };
-    compact.forEach(g=>{
+    displayGroups.forEach(g=>{
       ctx.fillStyle='#eee';ctx.fillRect(L,y,R-L,groupH);ctx.fillStyle='#000';
       ln(L,y,R,y);ln(L,y+groupH,R,y+groupH);ln(L,y,L,y+groupH);ln(R,y,R,y+groupH);
       const names=g.names||[g.name];
@@ -113,7 +130,7 @@
       y+=rowH;
     });
     txt(data.totalLabel||'TỔNG THU',L,y+40,34,'left');
-    txt(compact.reduce((sum,g)=>sum+g.total,0).toLocaleString('vi-VN')+'k',R,y+40,36,'right');y+=90;
+    txt(displayGroups.reduce((sum,g)=>sum+g.total,0).toLocaleString('vi-VN')+'k',R,y+40,36,'right');y+=90;
     return canvas;
   }
   function renderTable(data,doc){

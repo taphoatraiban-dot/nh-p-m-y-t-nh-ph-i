@@ -3866,9 +3866,17 @@ function parseBets(){
    }
  });
  if(_badDaGroups.length)return {rows:[],errors:_badDaGroups};
+ // LOCK: a line may contain several independent DA pairs, with apostrophe
+ // as decimal comma and spaces between completed functions.
+ // Only rewrite the parser copy, preserving the customer's original receipt.
+ const _multiDaSafe=_rawInput.split('\n').map(line=>{
+   if(!/^(?:\s*\d{2,}(?:\s*-\s*\d{2,})\s*da\s*\d+['’]\d+\s*){2,}$/i.test(line))return line;
+   return line.replace(/(\d{2,}(?:\s*-\s*\d{2,})+)\s*da\s*(\d+)['’](\d+)/gi,
+     (_m,nums,whole,frac)=>nums.replace(/[\s-]/g,'')+'da'+whole+','+frac+'.');
+ }).join('\n');
  // LOCK DA: hyphens join two-digit numbers into ONE function, not separate bets.
  // Keep the raw receipt unchanged. Convert decimal-dot stakes to comma only on parser copy.
- const _daHyphenSafe=_rawInput.replace(/(\d{2,}(?:[ \t]*-[ \t]*\d{2,})+)[ \t]*(da|đá|đa)[ \t]*(\d+)[.](\d+)(?=[.;\s]|$)/gim,
+ const _daHyphenSafe=_multiDaSafe.replace(/(\d{2,}(?:[ \t]*-[ \t]*\d{2,})+)[ \t]*(da|đá|đa)[ \t]*(\d+)[.](\d+)(?=[.;\s]|$)/gim,
    (_m,nums,type,whole,fraction)=>nums.replace(/[ \t-]/g,'')+type+whole+','+fraction);
  // Accept the explicitly agreed half-point punctuation variants on parsing copy only.
  // LOCK: punctuation-only separators between 0 and 5 in a wager stake mean 0,5.

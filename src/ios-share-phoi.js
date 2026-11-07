@@ -52,7 +52,8 @@
     for(const section of sections){
       for(const item of section.rows){
         const amount=parseAmount(item.amount);
-        const signature=JSON.stringify([String(item.number||item.content||''),String(item.type||''),String(item.points||'')]);
+        const drawGroup=String(item.groupCode||item.stationGroup||item.drawGroup||item.group||'').trim().toLowerCase();
+        const signature=JSON.stringify([drawGroup,String(item.number||item.content||''),String(item.type||''),String(item.points||'')]);
         const candidates=grouped.get(signature)||[];
         let group=amount===null?null:candidates.find(g=>!g.names.includes(section.name));
         if(!group){
@@ -74,10 +75,19 @@
     const displayGroupByStations=new Map();
     for(const group of compact){
       const stations=[...new Set(group.names.map(name=>String(name).trim()))];
-      const key=JSON.stringify([...stations].sort());
+      // Prefer the original draw group (2dmn/3dmn/4dmn, etc.) when
+      // supplied by the receipt producer. This keeps different bets in one
+      // table even if their individual station labels differ.
+      const groupCodes=group.rows.map(item=>String(
+        item.groupCode||item.stationGroup||item.drawGroup||item.group||''
+      ).trim().toLowerCase()).filter(Boolean);
+      const code=groupCodes.length&&groupCodes.every(x=>x===groupCodes[0])
+        &&/^(?:[234]dmn|[234]dmt|[234]dn|hn)$/.test(groupCodes[0])
+        ?groupCodes[0]:null;
+      const key=code?'group:'+code:'stations:'+JSON.stringify([...stations].sort());
       let target=displayGroupByStations.get(key);
       if(!target){
-        target={name:group.name,names:stations,rows:[],total:0};
+        target={name:code?code.toUpperCase():group.name,names:code?[code.toUpperCase()]:stations,rows:[],total:0};
         displayGroupByStations.set(key,target);
         displayGroups.push(target);
       }

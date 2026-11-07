@@ -29,3 +29,24 @@ test('invalid amount is not combined',()=>{
   const r=receipt([row('TP.HCM','chưa tính'),row('Long An','14k')]);
   assert.equal(r.labels.filter(x=>x==='SỐ').length,2);
 });
+
+test('2dmn and 4dmn print as two tables even with interleaved different bets',()=>{
+  const items=[
+    {...row('TP.HCM','10k','11'),groupCode:'2dmn'},
+    {...row('Bình Phước','20k','22'),groupCode:'4dmn'},
+    {...row('Long An','30k','33'),groupCode:'2dmn'},
+    {...row('Hậu Giang','40k','44'),groupCode:'4dmn'}
+  ];
+  const r=receipt(items);
+  assert.equal(r.labels.filter(x=>x==='SỐ').length,2);
+  for(const number of ['11','22','33','44'])assert(r.labels.includes(number));
+  assert(r.labels.includes('100k'));
+});
+test('identical numbers in 2dmn and 4dmn remain separate',()=>{
+  const r=receipt([
+    {...row('TP.HCM','10k','11'),groupCode:'2dmn'},
+    {...row('TP.HCM','20k','11'),groupCode:'4dmn'}
+  ]);
+  assert.equal(r.labels.filter(x=>x==='SỐ').length,2);
+  assert(r.labels.includes('30k'));
+});

@@ -228,9 +228,16 @@ async def main(path):
                 if queue_file.exists() and queue_file.stat().st_size:
                     # Never truncate: a concurrent Telegram event may append during upload.
                     # Durable offset is committed only after successful acknowledgement.
-                    offset=int(cursor_file.read_text()) if cursor_file.exists() else 0
+                    try:
+                        offset = int(cursor_file.read_text()) if cursor_file.exists() else 0
+                    except (OSError, ValueError):
+                        # Replay rather than silently lose queued messages when the
+                        # cursor file is damaged; server upsert deduplicates by ID.
+                        offset = 0
+                    if offset < 0 or offset > queue_file.stat().st_size:
+                        offset = 0
                     with queue_file.open("rb") as stream:
-                        stream.seek(min(offset,queue_file.stat().st_size))
+                        stream.seek(offset)
                         while True:
                             batch=[]
                             for _ in range(100):

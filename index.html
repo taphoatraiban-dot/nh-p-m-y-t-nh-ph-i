@@ -3863,7 +3863,7 @@ function parseBets(){
  });
  if(_badDaGroups.length)return {rows:[],errors:_badDaGroups};
  // Accept the explicitly agreed half-point punctuation variants on parsing copy only.
- const _halfPointSafe=_rawInput.replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)0[,.]{2,}5(?=n?(?:[.\s;]|$))/gim,'$1$20,5');
+ const _halfPointSafe=_rawInput.replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)0[,.]{2,}5(?=n?(?:[.\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5');
  const _terminalSafeInput=_halfPointSafe.split('\n').map(line=>{
    const m=line.match(/^(.*(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?)([\s.,;:!?/\-\[\]{}#%^*+=_\\|~<>$¥€•'’"]+)$/i);
    return m ? m[1]+'.' : line;

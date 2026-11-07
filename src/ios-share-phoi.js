@@ -36,12 +36,44 @@
       const raw=String(item.amount||'').replace(/[^0-9,.-]/g,'').replace(/[.,](?=\d{3}(?:\D|$))/g,'').replace(',','.');
       section.total+=Number(raw)||0;
     }
+    // Compact adjacent stations with the same itemized bets. Keep station names
+    // and add the already-calculated amounts; never recalculate betting prices.
+    const parseAmount=(value)=>{
+      const raw=String(value??'').trim().replace(/\s/g,'').replace(/k$/i,'');
+      if(!/^-?\d+(?:[.,]\d+)*$/.test(raw))return null;
+      const normalized=raw.replace(/[.,](?=\d{3}(?:[.,]|$))/g,'').replace(',','.');
+      const amount=Number(normalized);
+      return Number.isFinite(amount)?amount:null;
+    };
+    const compact=[];
+    for(const original of sections){
+      const previous=compact[compact.length-1];
+      const sameRows=previous&&previous.rows.length===original.rows.length&&
+        previous.rows.every((row,i)=>{
+          const next=original.rows[i];
+          return String(row.number||row.content||'')===String(next.number||next.content||'')&&
+            String(row.type||'')===String(next.type||'')&&
+            String(row.points||'')===String(next.points||'')&&
+            parseAmount(row.amount)!==null&&parseAmount(next.amount)!==null;
+        });
+      if(!sameRows){
+        compact.push({name:original.name,names:[original.name],rows:original.rows.map(row=>({...row})),total:original.total});
+        continue;
+      }
+      previous.names.push(original.name);
+      previous.name=previous.names.join(' + ');
+      previous.total+=original.total;
+      previous.rows.forEach((row,i)=>{
+        const amount=parseAmount(row.amount)+parseAmount(original.rows[i].amount);
+        row.amount=Number.isInteger(amount)?amount.toLocaleString('vi-VN')+'k':String(amount).replace('.',',')+'k';
+      });
+    }
     const qr=data.qrMatrix;
     const valid=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length);
     const unit=valid?Math.max(1,Math.floor(150/qr.length)):0;
     const size=valid?unit*qr.length:0;
     const headerBottom=valid?Math.max(205,106+size+42):205;
-    const height=headerBottom+sections.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+105;
+    const height=headerBottom+compact.reduce((n,g)=>n+groupH+headerH+(g.rows.length+1)*rowH,0)+105;
     if(height>MAX_HEIGHT)throw Error('Phiếu quá dài để in một lần.');
     const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=height;
     const ctx=canvas.getContext('2d');
@@ -64,7 +96,7 @@
       values.forEach((v,i)=>txt(v,(col[i]+col[i+1])/2,y+h/2,i===3?27:29,'center',col[i+1]-col[i]-9));
       y+=h;
     };
-    sections.forEach(g=>{
+    compact.forEach(g=>{
       ctx.fillStyle='#eee';ctx.fillRect(L,y,R-L,groupH);ctx.fillStyle='#000';
       ln(L,y,R,y);ln(L,y+groupH,R,y+groupH);ln(L,y,L,y+groupH);ln(R,y,R,y+groupH);
       txt(g.name,W/2,y+groupH/2,31,'center',R-L-12);y+=groupH;
@@ -76,7 +108,7 @@
       y+=rowH;
     });
     txt(data.totalLabel||'TỔNG THU',L,y+40,34,'left');
-    txt(sections.reduce((sum,g)=>sum+g.total,0).toLocaleString('vi-VN')+'k',R,y+40,36,'right');y+=90;
+    txt(compact.reduce((sum,g)=>sum+g.total,0).toLocaleString('vi-VN')+'k',R,y+40,36,'right');y+=90;
     return canvas;
   }
   function renderTable(data,doc){

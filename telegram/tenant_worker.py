@@ -212,8 +212,11 @@ async def main(path):
                     group_chats = [g for g in groups if not g["group_name"].startswith("Cá nhân: ")]
                     private_chats = [g for g in groups if g["group_name"].startswith("Cá nhân: ")]
                     groups = group_chats + private_chats
-                for start in range(300, len(groups), 300):
-                    await publish(groups[start:start + 300], [])
+                # Publish the first chunk with the message batch. Publish extra
+                # metadata chunks only after the queue has been acknowledged, so
+                # a failure on an unrelated contact cannot block pending messages.
+                extra_group_batches = [groups[start:start + 300]
+                                       for start in range(300, len(groups), 300)]
                 groups = groups[:300]
                 if queue_file.exists() and queue_file.stat().st_size:
                     # Never truncate: a concurrent Telegram event may append during upload.
@@ -243,6 +246,8 @@ async def main(path):
                             temp=cursor_file.with_suffix(".tmp")
                             temp.write_text(str(next_offset))
                             os.replace(temp,cursor_file)
+                for extra_groups in extra_group_batches:
+                    await publish(extra_groups, [])
                 if asyncio.get_running_loop().time()-last_group_heartbeat>=120:
                     await publish(groups,[])
                     last_group_heartbeat=asyncio.get_running_loop().time()

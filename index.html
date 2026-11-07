@@ -3848,7 +3848,23 @@ function parseBets(){
  // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
  // Accept decorative terminal punctuation after a complete wager function, only in parser copy.
  // Do not touch punctuation between numbers/functions, decimals, or the original textarea.
- const _terminalSafeInput=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').map(line=>{
+ const _rawInput=String($('bets')?.value||'').replace(/\r\n?/g,'\n');
+ // LOCK 07/11: a hyphen in DA explicitly separates two-digit numbers.
+ // Never silently split a malformed six-digit segment into three pairs.
+ const _badDaGroups=[];
+ _rawInput.split('\n').forEach((line,index)=>{
+   const re=/([0-9]+(?:[ \t]*-[ \t]*[0-9]+)+)[ \t]*(?:da|đá|đa)[ \t]*[0-9]+(?:[,.]+[0-9]+)?n?/giu;
+   for(const m of line.matchAll(re)){
+     const parts=m[1].split(/[ \t]*-[ \t]*/);
+     if(!parts.every(p=>p.length===2)){
+       _badDaGroups.push('Dòng '+(index+1)+': Sai độ dài số ĐÁ: '+m[1]+'. Mỗi số ngăn bằng dấu - phải đúng 2 chữ số. Không tính tiền.');
+     }
+   }
+ });
+ if(_badDaGroups.length)return {rows:[],errors:_badDaGroups};
+ // Accept the explicitly agreed half-point punctuation variants on parsing copy only.
+ const _halfPointSafe=_rawInput.replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)0[,.]{2,}5(?=n?(?:[.\s;]|$))/gim,'$1$20,5');
+ const _terminalSafeInput=_halfPointSafe.split('\n').map(line=>{
    const m=line.match(/^(.*(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?)([\s.,;:!?/\-\[\]{}#%^*+=_\\|~<>$¥€•'’"]+)$/i);
    return m ? m[1]+'.' : line;
  }).join('\n');

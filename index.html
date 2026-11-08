@@ -3855,7 +3855,10 @@ function parseBets(){
    // Normalize parser copy only; preserve the original input and printed slip.
    .replace(/đa(?=\s*\d)/gi,'da')
    // The currency symbol ₫ is frequently pasted in place of Vietnamese đ.
-   .replace(/₫a(?=\s*\d)/gi,'da');
+   .replace(/₫a(?=\s*\d)/gi,'da')
+   // Accept a full, unaccented Khánh Hòa station header as one station token.
+   // Parser copy only: never modify the text shown to the customer.
+   .replace(/(^|\n)[ \t]*khanh[ \t]+hoa[ \t]*(?=\n|$)/gim,'$1khanhhoa');
  // LOCK 07/11: a hyphen in DA explicitly separates two-digit numbers.
  // Never silently split a malformed six-digit segment into three pairs.
  const _badDaGroups=[];

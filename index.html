@@ -3887,6 +3887,9 @@ function parseBets(){
  // LOCK: punctuation-only separators between 0 and 5 in a wager stake mean 0,5.
  // Only normalize the parser copy, never the customer's original text.
  const _halfPointSafe=_daHyphenSafe
+   // A stray separator immediately after a wager type is not a decimal point.
+   // Example: 887xc.5. => 887xc5. Only remove it when a whole-number stake follows.
+   .replace(/(bdao|xcdao|xdao|xc|dd|da|b)[ \t]*[.][ \t]*(\d+)(?=n?(?:[.\s;]|$))/gim,(_m,type,points)=>type+points)
    .replace(/(bdao|xcdao|xdao|xc|dd|da|b)([ \t]*)0[ \t]*[-/:;()".,?!'_\\|~]+[ \t]*5(?=n?(?:[.\s;]|$))/gim,(_m,type,spaces)=>type+spaces+'0,5')
    // Leading zero on a two-digit stake is a decimal half point: da05 = da0,5.
    // Apply only to exact 05, never to 050, 005, or other values.

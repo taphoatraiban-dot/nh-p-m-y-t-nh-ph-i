@@ -3858,7 +3858,16 @@ function parseBets(){
    .replace(/₫a(?=\s*\d)/gi,'da')
    // Accept a full, unaccented Khánh Hòa station header as one station token.
    // Parser copy only: never modify the text shown to the customer.
-   .replace(/(^|\n)[ \t]*khanh[ \t]+hoa[ \t]*(?=\n|$)/gim,'$1khanhhoa');
+   .replace(/(^|\n)[ \t]*khanh[ \t]+hoa[ \t]*(?=\n|$)/gim,'$1khanhhoa')
+   // Full station names: normalize accents, whitespace and punctuation only for header-only lines.
+   // Never collapse arbitrary wager lines or guess unknown station names.
+   .split('\n').map(line=>{
+     const clean=String(line).trim().toLowerCase().replace(/[đ₫]/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+     const fullNames=new Set(('ha noi|mien bac|ho chi minh|thanh pho ho chi minh|long an|binh phuoc|hau giang|dong nai|can tho|soc trang|ben tre|vung tau|bac lieu|tra vinh|tay ninh|an giang|dong thap|ca mau|vinh long|binh duong|tien giang|kien giang|da lat|binh thuan|da nang|quang ngai|dak nong|gia lai|phu yen|dak lak|quang nam|binh dinh|quang tri|ninh thuan|quang binh|khanh hoa|kon tum|thua thien hue').split('|').map(x=>x.replace(/[^a-z0-9]/g,'')));
+     if(!fullNames.has(clean))return line;
+     const aliases={hanoi:'hn',mienbac:'hn',hochiminh:'hcm',thanhphohochiminh:'hcm',daklak:'dlak',dalat:'dlat'};
+     return aliases[clean]||clean;
+   }).join('\n');
  // LOCK 07/11: a hyphen in DA explicitly separates two-digit numbers.
  // Never silently split a malformed six-digit segment into three pairs.
  const _badDaGroups=[];

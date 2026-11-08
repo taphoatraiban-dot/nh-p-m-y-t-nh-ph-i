@@ -14632,4 +14632,30 @@ document.addEventListener("click",e=>{if(e.target?.id==="checkPhoi"||e.target?.i
 inspect();
 })();
 </script>
+
+<style id="cuncun-desktop-phoi-entry-style">
+#desktopPhoiEntry{display:none!important}
+@media screen{
+#desktopPhoiEntry{display:inline-flex!important;align-items:center;justify-content:center;flex-shrink:0;margin:0;padding:7px 12px;border:1px solid #ffffff88;border-radius:7px;background:#fff;color:#b91c1c;font:800 12px/1.4 system-ui,-apple-system,sans-serif;white-space:nowrap;cursor:pointer}
+#desktopPhoiEntry:focus-visible{outline:3px solid #facc15;outline-offset:2px}
+}
+</style>
+<script id="cuncun-desktop-phoi-entry">
+(function(){
+ 'use strict';
+ // iPadOS can report MacIntel; leave all iOS devices exactly as before.
+ var ua=navigator.userAgent||'',platform=navigator.platform||'';
+ if(/iPhone|iPad|iPod|Android/i.test(ua)||(/Mac/i.test(platform)&&navigator.maxTouchPoints>1))return;
+ if(!/Mac|Win/i.test(platform))return;
+ var bar=document.querySelector('#publicCover .lottery-public-bar');
+ if(!bar||document.getElementById('desktopPhoiEntry'))return;
+ var button=document.createElement('button');
+ button.id='desktopPhoiEntry';button.type='button';button.textContent='TÍNH PHƠI';
+ button.addEventListener('click',function(){
+  if(document.body.classList.contains('app-unlocked'))return;
+  if(typeof window.hidePublicCoverForAuth==='function')window.hidePublicCoverForAuth();
+ });
+ bar.insertBefore(button,bar.querySelector('.lottery-public-external'));
+})();
+</script>
 </html>

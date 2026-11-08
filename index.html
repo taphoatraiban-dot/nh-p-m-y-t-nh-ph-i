@@ -3458,7 +3458,7 @@ function stationToken(t, dateValue){
  if(["qngai","quangngai","quang-ngai","quang ngai","qng","qng"].includes(t))return{region:"T",stations:1,label:"Quảng Ngãi"};
  if(["gialai","glai","gia-lai","gia lai","gl","glai"].includes(t))return{region:"T",stations:1,label:"Gia Lai"};
  if(["py","pyen","phuyen","phu-yen","phu yen","phuyen"].includes(t))return{region:"T",stations:1,label:"Phú Yên"};
- if(["dlac","daklak","dak-lak","dak lak","dacl","dl","dlak"].includes(t))return{region:"T",stations:1,label:"Đắk Lắk"};
+ if(["dlac","daklak","dak-lak","dak lak","dacl","dlak"].includes(t))return{region:"T",stations:1,label:"Đắk Lắk"};
  if(["qnam","quangnam","quang-nam","quang nam","qnam"].includes(t))return{region:"T",stations:1,label:"Quảng Nam"};
  if(["bdinh","bdi","binhdinh","binh-dinh","binh dinh","bdinh"].includes(t))return{region:"T",stations:1,label:"Bình Định"};
  if(["qtri","quangtri","quang-tri","quang tri","qt","qtri"].includes(t))return{region:"T",stations:1,label:"Quảng Trị"};
@@ -3471,7 +3471,7 @@ function stationToken(t, dateValue){
  if(["kh","khanhhoa","khoa","khanh-hoa","khanh hoa","khoa"].includes(t))return{region:"T",stations:1,label:"Khánh Hòa"};
  if(["tg","tgiang","tiengiang"].includes(t))return{region:"N",stations:1,label:"Tiền Giang"};
  if(["kg","kgiang","kiengiang"].includes(t))return{region:"N",stations:1,label:"Kiên Giang"};
- if(["dlat","dalat","da-lat"].includes(t))return{region:"N",stations:1,label:"Đà Lạt"};
+ if(["dl","dlat","dalat","da-lat"].includes(t))return{region:"N",stations:1,label:"Đà Lạt"};
  if(["ktum","kontum","kon-tum","kon tum","kt","ktum"].includes(t))return{region:"T",stations:1,label:"Kon Tum"};
  if(["hue","thua thien hue","thua-thien-hue","tthue","tth"].includes(t))return{region:"T",stations:1,label:"Thừa Thiên Huế"};
  return null;
@@ -5562,7 +5562,7 @@ function provinceMatches(label, draw){
   if(q.includes("da nang") || q==="dnang") return n.includes("da nang");
   if(q.includes("quang ngai") || q==="qngai") return n.includes("quang ngai");
   if(q.includes("dak nong") || q==="dnong") return n.includes("dak nong") || n.includes("dac nong");
-  if(["dak lak","dac lac","daklak","daclac","dlac","dlak","dl"].includes(q.replace(/\s+/g,"")) || q.includes("dak lak") || q.includes("dac lac")) return /da[ck]\s*la[ck]/.test(n);
+  if(["dak lak","dac lac","daklak","daclac","dlac","dlak"].includes(q.replace(/\s+/g,"")) || q.includes("dak lak") || q.includes("dac lac")) return /da[ck]\s*la[ck]/.test(n);
   if(q.includes("khanh hoa")) return n.includes("khanh hoa");
   if(q.includes("soc trang")) return n.includes("soc trang");
   return n.includes(q) || q.includes(n);
@@ -5628,7 +5628,7 @@ function stationAliasMatch(label,draw){
     binhphuoc:['binhphuoc','bphuoc','bp','xsbp'],
     haugiang:['haugiang','hgiang','hg','xshg'],
     daknong:['daknong','dacnong','dnong','dno','xsdno','xsdaknong'],
-    daklak:['daklak','daklac','dacklak','dacklac','daclak','daclac','dlac','dlak','dl','xsdlk','xsdaklak','xsdaclak']
+    daklak:['daklak','daklac','dacklak','dacklac','daclak','daclac','dlac','dlak','xsdlk','xsdaklak','xsdaclak']
   };
   let key=q;
   for(const [k,vals] of Object.entries(aliases)) if(vals.includes(q) || vals.some(v=>q.includes(v))) {key=k;break;}
@@ -6403,7 +6403,7 @@ function stationDisplayName(v){
     binhdinh:'Bình Định',bdinh:'Bình Định',
     phuyen:'Phú Yên',py:'Phú Yên',
     khanhhoa:'Khánh Hòa',kh:'Khánh Hòa',
-    daklak:'Đắk Lắk',daklac:'Đắk Lắk',daclac:'Đắk Lắk',daclak:'Đắk Lắk',dlac:'Đắk Lắk',dlak:'Đắk Lắk',dl:'Đắk Lắk',
+    daklak:'Đắk Lắk',daklac:'Đắk Lắk',daclac:'Đắk Lắk',daclak:'Đắk Lắk',dlac:'Đắk Lắk',dlak:'Đắk Lắk',dl:'Đà Lạt',dlat:'Đà Lạt',dalat:'Đà Lạt',
     gialai:'Gia Lai',glai:'Gia Lai',
     kontum:'Kon Tum',kt:'Kon Tum',
     hanoi:'Hà Nội',hn:'Hà Nội',mb:'Miền Bắc'

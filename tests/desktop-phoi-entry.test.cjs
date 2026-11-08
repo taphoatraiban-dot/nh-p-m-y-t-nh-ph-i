@@ -12,7 +12,7 @@ function setup(navigator,{unlocked=false}={}){
 }
 for(const [name,navigator] of Object.entries({Mac:{platform:'MacIntel',userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X)',maxTouchPoints:0},Windows:{platform:'Win32',userAgent:'Mozilla/5.0 (Windows NT 10.0)',maxTouchPoints:10}})){
  test(name+' mouse entry uses existing authentication and never bypasses it',()=>{
-  const s=setup(navigator);assert.equal(s.inserted.length,1);assert.equal(s.inserted[0].textContent,'TÍNH PHƠI');assert.equal(s.inserted[0].type,'button');
+  const s=setup(navigator);assert.equal(s.inserted.length,1);assert.equal(s.inserted[0].textContent,'CUNCUN.ICU');assert.equal(s.inserted[0].type,'button');
   s.inserted[0].click();assert.equal(s.opened(),1);s.run();assert.equal(s.inserted.length,1);
   const unlocked=setup(navigator,{unlocked:true});unlocked.inserted[0].click();assert.equal(unlocked.opened(),0);
  });

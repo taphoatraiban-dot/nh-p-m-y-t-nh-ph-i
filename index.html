@@ -3853,7 +3853,9 @@ function parseBets(){
  const _rawInput=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').filter(line=>!/^\s*[^\p{L}\p{N}]*\s*$/u.test(line)).join('\n')
    // Vietnamese shorthand "đa1" (without acute accent) means DA, not an unknown wager.
    // Normalize parser copy only; preserve the original input and printed slip.
-   .replace(/đa(?=\s*\d)/gi,'da');
+   .replace(/đa(?=\s*\d)/gi,'da')
+   // The currency symbol ₫ is frequently pasted in place of Vietnamese đ.
+   .replace(/₫a(?=\s*\d)/gi,'da');
  // LOCK 07/11: a hyphen in DA explicitly separates two-digit numbers.
  // Never silently split a malformed six-digit segment into three pairs.
  const _badDaGroups=[];

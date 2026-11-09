@@ -71,6 +71,16 @@ Deno.serve(async req=>{
    if(!job||job.chat_id!==b.chat_id||job.message_text!==b.text)return out({error:"Mã gửi đã được dùng cho nội dung khác"},409);
    return out({success:true,job});
   }
+  if(action==="hide"){
+   if(!Number.isSafeInteger(b.chat_id)||!Array.isArray(b.message_ids)||b.message_ids.length<1||b.message_ids.length>200||!b.message_ids.every((id:unknown)=>Number.isSafeInteger(id)&&Number(id)>0))return out({error:"Danh sách tin cần xóa không hợp lệ"},400);
+   const ids=[...new Set(b.message_ids as number[])];
+   const chat=checked(await db.from("telegram_member_groups").select("chat_id,enabled").eq("user_id",uid).eq("chat_id",b.chat_id).maybeSingle());
+   if(!chat||chat.enabled===false)return out({error:"Hội thoại chưa được cấp quyền"},403);
+   const existing=checked(await db.from("telegram_member_messages").select("message_id").eq("user_id",uid).eq("chat_id",b.chat_id).in("message_id",ids));
+   if(existing.length!==ids.length)return out({error:"Có tin không tồn tại trong hội thoại"},404);
+   checked(await db.from("telegram_member_hidden").upsert(ids.map(id=>({user_id:uid,chat_id:b.chat_id,message_id:id})),{onConflict:"user_id,chat_id,message_id",ignoreDuplicates:true}));
+   return out({success:true,hidden:ids.length});
+  }
   if(action!=="read")return out({error:"Bad action"},400);
   const groups=checked(await db.from("telegram_member_groups").select("chat_id,group_name,enabled,last_seen_at").eq("user_id",uid).neq("enabled",false).order("group_name"));
   let messages:any[]=[];

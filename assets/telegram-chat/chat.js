@@ -119,7 +119,7 @@ function init(){
   }
   if(!list.children.length)list.textContent='Chưa có hội thoại được đồng bộ.';
   el('Heading').textContent=groups.find(g=>g.chat_id===chatId)?.group_name||'Chọn hội thoại';
-  el('Send').disabled=sending||chatId===null;view();
+  el('Send').disabled=sending;view();
   const root=el('Messages'),atBottom=root.scrollHeight-root.clientHeight-root.scrollTop<45,oldScroll=root.scrollTop;
   root.replaceChildren();
   const sentIds=new Set(jobs.filter(j=>j.chat_id===chatId&&j.state==='sent').map(j=>j.message_id));
@@ -178,12 +178,13 @@ function init(){
   el('Unlock').disabled=true;const version=epoch;
   try{const x=await api('unlock',{pin,create:!hasPin});if(version!==epoch)return;ticket=x.ticket;expires=Date.now()+x.expires_in*1000;el('Pin').value='';el('Confirm').value='';el('Gate').hidden=true;el('Unlocked').hidden=false;await load();}catch(err){fail(err);}finally{el('Unlock').disabled=false;}
  };
- async function sendTelegram(e){if(e)e.preventDefault();if(sending)return;if(chatId===null||!ticket){status('Hãy mở khóa và chọn hội thoại trước khi gửi.');return;}const text=el('Text').value;if(!text.trim()){status('Hãy nhập nội dung tin nhắn.');return;}
+ async function sendTelegram(e){if(e){e.preventDefault();e.stopPropagation();}status('Đang kiểm tra yêu cầu gửi Telegram…');if(sending){status('Tin trước đang gửi, vui lòng đợi phản hồi.');return;}if(chatId===null||!ticket){status('Hãy mở khóa và chọn hội thoại trước khi gửi.');return;}const text=el('Text').value;if(!text.trim()){status('Hãy nhập nội dung tin nhắn.');return;}
   // Keep UUID after a lost response so pressing Send retries the same job.
   if(!pending.has(chatId)||pending.get(chatId).text!==text)pending.set(chatId,{id:crypto.randomUUID(),chat_id:chatId,text});
-  const job=pending.get(chatId),version=epoch,proof=ticket;sending=true;el('Send').disabled=true;
-  try{const x=await api('send',job);if(ticket!==proof)return;if(chatId===job.chat_id&&el('Text').value===text)el('Text').value='';if(drafts.get(job.chat_id)===text)drafts.delete(job.chat_id);pending.delete(job.chat_id);if(version!==epoch)return;status(x.job.state==='sent'?'Đã gửi':'Đã xếp hàng gửi. Chờ xác nhận từ Telegram.');await load();}catch(err){if(version===epoch)fail(err);}finally{sending=false;el('Send').disabled=chatId===null;}
+  const job=pending.get(chatId),version=epoch,proof=ticket;sending=true;el('Send').disabled=true;status('Đang gửi tới máy chủ Telegram…');
+  try{const x=await api('send',job);if(ticket!==proof)return;if(chatId===job.chat_id&&el('Text').value===text)el('Text').value='';if(drafts.get(job.chat_id)===text)drafts.delete(job.chat_id);pending.delete(job.chat_id);if(version!==epoch)return;status(x.job.state==='sent'?'Đã gửi':'Đã xếp hàng gửi. Chờ xác nhận từ Telegram.');await load();}catch(err){if(version===epoch)fail(err);}finally{sending=false;el('Send').disabled=false;}
  }
+ el('Send').disabled=false;
  el('Send').addEventListener('click',sendTelegram);
  el('Compose').addEventListener('submit',sendTelegram);
  el('Sound').onclick=async()=>{try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();sound=!sound;try{localStorage.setItem('ott_chat_sound:'+userId,sound?'on':'off');}catch{}el('Sound').textContent=sound?'Tắt âm báo':'Bật âm báo';el('Sound').setAttribute('aria-pressed',String(sound));if(sound)beep();}catch{status('Trình duyệt chưa cho phép âm thanh. Hãy thử lại.');}};

@@ -63,3 +63,7 @@
  #ottChatUnlocked>.ott-chat-row{gap:3px}
  #ottChat #ottChatNotification{font-size:11px;padding:5px}
 }
+
+/* Hide the legacy iPhone push-permission guidance above Telegram Chat controls. */
+#ottChatPush,#ottChatPushHelp,#ottChatNotifyHelp,#ottChatNotificationHelp{display:none!important}
+#ottChat>p:not(#ottChatStatus),#ottChatUnlocked>p:not(#ottChatStatus){display:none!important}

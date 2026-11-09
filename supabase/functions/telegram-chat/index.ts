@@ -83,16 +83,16 @@ Deno.serve(async req=>{
   }
   if(action!=="read")return out({error:"Bad action"},400);
   const groups=checked(await db.from("telegram_member_groups").select("chat_id,group_name,enabled,last_seen_at").eq("user_id",uid).neq("enabled",false).order("group_name"));
-  let messages:any[]=[];
+  let messages:any[]=[];let hiddenIds=new Set<number>();
   if(b.chat_id!==undefined){
    if(!Number.isSafeInteger(b.chat_id)||!groups.some((g:any)=>g.chat_id===b.chat_id))return out({error:"Hội thoại chưa được cấp quyền"},403);
    messages=checked(await db.from("telegram_member_messages").select("chat_id,message_id,message_text,sender_name,message_date,edited_at").eq("user_id",uid).eq("chat_id",b.chat_id).order("message_date",{ascending:false}).order("message_id",{ascending:false}).limit(200));
    const hidden=checked(await db.from("telegram_member_hidden").select("message_id").eq("user_id",uid).eq("chat_id",b.chat_id));
-   const ids=new Set(hidden.map((m:any)=>m.message_id));messages=messages.filter(m=>!ids.has(m.message_id)).reverse();
+   hiddenIds=new Set(hidden.map((m:any)=>m.message_id));messages=messages.filter(m=>!hiddenIds.has(m.message_id)).reverse();
   }
   const jobs=checked(await db.from("telegram_chat_outbox").select("id,chat_id,message_text,state,message_id,error,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(100));
   const notices=checked(await db.from("telegram_member_messages").select("chat_id,message_id,sender_name").eq("user_id",uid).gte("message_date",new Date(Date.now()-48*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000));
   const allowed=new Set(groups.map((g:any)=>g.chat_id));
-  return out({success:true,groups,messages,jobs,notices:notices.filter((m:any)=>allowed.has(m.chat_id))});
+  return out({success:true,groups,messages,jobs:jobs.filter((j:any)=>j.chat_id!==b.chat_id||!hiddenIds.has(j.message_id)),notices:notices.filter((m:any)=>allowed.has(m.chat_id)&&(m.chat_id!==b.chat_id||!hiddenIds.has(m.message_id)))});
  }catch{ return out({error:"Không thể xử lý Telegram Chat"},500); }
 });

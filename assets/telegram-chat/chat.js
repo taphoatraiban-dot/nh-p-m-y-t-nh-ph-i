@@ -5,11 +5,23 @@ function init(){
  const anchor=document.getElementById('tgMemberInbox')||document.getElementById('tgForwardInbox');
  if(!anchor||document.getElementById('ottChat'))return;
  const panel=document.createElement('details');panel.id='ottChat';
- panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div><div id="ottChatHeading">Chọn hội thoại</div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin để xóa</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="submit">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
+ panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div><div id="ottChatHeading">Chọn hội thoại</div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin để xóa</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="submit">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
  anchor.after(panel);
+ const host=document.getElementById('appCard');
+ if(host){
+  const launch=document.createElement('button');launch.id='ottChatOpen';launch.type='button';launch.textContent='💬 Telegram Chat';launch.setAttribute('aria-controls','ottChat');
+  launch.onclick=()=>{
+   if(!document.body.classList.contains('app-unlocked'))return;
+   const drawer=document.getElementById('appDrawer');if(drawer?.contains(panel)){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.getElementById('drawerBackdrop')?.classList.add('open');}
+   for(let parent=panel.parentElement;parent&&parent!==host;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
+   panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  host.prepend(launch);
+ }
+
  const el=id=>panel.querySelector('#ottChat'+id),status=t=>{el('Status').textContent=t;};
  let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
- let selecting=false;const selected=new Set();
+ let selecting=false,deleting=false;const selected=new Set();
  const pending=new Map();
  const drafts=new Map();
  async function api(action,body={},proof=ticket){
@@ -22,7 +34,7 @@ function init(){
  }
  function lock(revoke=true){
   const previous=ticket;if(revoke&&previous)api('lock',{},previous).catch(()=>{});
-  epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;drafts.clear();pending.clear();selected.clear();selecting=false;updateDeleteTools();
+  el('DeleteConfirm').hidden=true;epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;drafts.clear();pending.clear();selected.clear();selecting=false;updateDeleteTools();
   el('Text').value='';el('Pin').value='';el('Confirm').value='';el('Messages').replaceChildren();el('Conversations').replaceChildren();
   el('Unlocked').hidden=true;el('Gate').hidden=false;status('Chat đã khóa. Nhập PIN để mở lại.');
  }
@@ -33,14 +45,14 @@ function init(){
  function beep(){if(!sound||!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);o.frequency.value=880;g.gain.setValueAtTime(.32,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.start();o.stop(audio.currentTime+.18);}catch{}}
  function modeGroups(){return groups.filter(g=>el('Mode').value==='all'||(String(g.group_name).startsWith('Cá nhân: ')?'private':'group')===el('Mode').value);}
  function updateDeleteTools(){
-  el('Select').hidden=selecting;el('Delete').hidden=!selecting;el('Cancel').hidden=!selecting;
-  el('Delete').textContent='Xóa tin đã chọn ('+selected.size+')';el('Delete').disabled=!selected.size;
+  el('Select').disabled=chatId===null||deleting;el('Select').hidden=selecting;el('Delete').hidden=!selecting;el('Cancel').hidden=!selecting;
+  el('Delete').textContent='Xóa tin đã chọn ('+selected.size+')';el('Delete').disabled=deleting||!selected.size;el('Cancel').disabled=deleting;
  }
  function draw(){
-  const list=el('Conversations');list.replaceChildren();
+  updateDeleteTools();const list=el('Conversations');list.replaceChildren();
   for(const g of modeGroups()){
    const b=document.createElement('button');b.type='button';b.textContent=g.group_name;b.setAttribute('aria-pressed',String(g.chat_id===chatId));
-   b.onclick=()=>{if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=g.chat_id;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};list.append(b);
+   b.onclick=()=>{if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};list.append(b);
   }
   if(!list.children.length)list.textContent='Chưa có hội thoại được đồng bộ.';
   el('Heading').textContent=groups.find(g=>g.chat_id===chatId)?.group_name||'Chọn hội thoại';
@@ -65,7 +77,7 @@ function init(){
     const check=document.createElement('input');check.type='checkbox';check.checked=selected.has(m.message_id);
     check.setAttribute('aria-label','Chọn tin nhắn để xóa');
     check.onchange=()=>{if(check.checked)selected.add(m.message_id);else selected.delete(m.message_id);updateDeleteTools();};
-    label.append(check,document.createTextNode(' Chọn'));item.prepend(label);
+    check.disabled=deleting;label.append(check,document.createTextNode(' Chọn tin'));item.dataset.messageId=String(m.message_id);item.prepend(label);
    }
    item.append(meta,p,b);root.append(item);
   }
@@ -73,7 +85,7 @@ function init(){
   root.scrollTop=atBottom?root.scrollHeight:oldScroll;
  }
  async function load(){
-  if(!ticket||busy||document.hidden||!panel.open)return;
+  if(!ticket||busy||deleting||!el('DeleteConfirm').hidden||document.hidden||!panel.open)return;
   if(Date.now()>=expires){lock();return;}
   busy=true;const version=epoch;
   try{
@@ -100,17 +112,26 @@ function init(){
  };
  el('Sound').onclick=async()=>{try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();sound=!sound;try{localStorage.setItem('ott_chat_sound:'+userId,sound?'on':'off');}catch{}el('Sound').textContent=sound?'Tắt âm báo':'Bật âm báo';el('Sound').setAttribute('aria-pressed',String(sound));if(sound)beep();}catch{status('Trình duyệt chưa cho phép âm thanh. Hãy thử lại.');}};
  el('Select').onclick=()=>{if(chatId===null){status('Hãy chọn hội thoại trước');return;}selecting=true;selected.clear();updateDeleteTools();draw();};
- el('Cancel').onclick=()=>{selecting=false;selected.clear();updateDeleteTools();draw();};
- el('Delete').onclick=async()=>{
-  if(!chatId||!selected.size||!ticket)return;
-  const ids=[...selected],target=chatId;
-  if(!window.confirm('Ẩn '+ids.length+' tin khỏi CUNCUN? Tin gốc trên Telegram không bị xóa.'))return;
-  el('Delete').disabled=true;
-  try{await api('hide',{chat_id:target,message_ids:ids});if(chatId===target){selecting=false;selected.clear();updateDeleteTools();}await load();status('Đã ẩn '+ids.length+' tin khỏi CUNCUN. Telegram gốc không thay đổi.');}
-  catch(e){fail(e);updateDeleteTools();}
+ el('Cancel').onclick=()=>{el('DeleteConfirm').hidden=true;selecting=false;selected.clear();updateDeleteTools();draw();};
+ el('Delete').onclick=()=>{
+  if(chatId===null||!selected.size||!ticket||deleting)return;
+  el('DeleteQuestion').textContent='Ẩn '+selected.size+' tin khỏi CUNCUN? Tin gốc trên Telegram vẫn giữ nguyên.';
+  el('DeleteConfirm').hidden=false;el('Keep').focus();
+ };
+ el('Keep').onclick=()=>{el('DeleteConfirm').hidden=true;el('Delete').focus();};
+ el('ConfirmDelete').onclick=async()=>{
+  if(chatId===null||!selected.size||!ticket||deleting)return;
+  const ids=[...selected],target=chatId,proof=ticket;deleting=true;epoch++;el('DeleteConfirm').hidden=true;updateDeleteTools();el('ConfirmDelete').disabled=true;
+  try{
+   await api('hide',{chat_id:target,message_ids:ids});
+   if(ticket!==proof)return;
+   epoch++;if(chatId===target){const hidden=new Set(ids);messages=messages.filter(m=>!hidden.has(m.message_id));jobs=jobs.filter(j=>j.chat_id!==target||!hidden.has(j.message_id));selecting=false;selected.clear();draw();}
+   status('Đã ẩn '+ids.length+' tin khỏi CUNCUN. Telegram gốc không thay đổi.');
+  }catch(e){if(ticket===proof)fail(e);}
+  finally{deleting=false;el('ConfirmDelete').disabled=false;updateDeleteTools();}
  };
  el('Lock').onclick=()=>{lock();gate();};el('Refresh').onclick=load;
- el('Mode').onchange=()=>{if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};
+ el('Mode').onchange=()=>{if(deleting)return;el('DeleteConfirm').hidden=true;if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};
  panel.addEventListener('toggle',()=>{if(panel.open){if(ticket)load();else gate();}else lock();});
  sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(userId&&session?.user.id!==userId)){lock(false);userId='';}});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});

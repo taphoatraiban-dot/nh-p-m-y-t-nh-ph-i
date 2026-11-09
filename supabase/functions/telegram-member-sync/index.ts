@@ -26,8 +26,28 @@ if(action==="ingest"){
   const id=`${item.chat_id}:${item.message_id}`,prev=unique.get(id);
   if(!prev||(item.edited_at&&(!prev.edited_at||Date.parse(item.edited_at)>Date.parse(prev.edited_at))))unique.set(id,item);
  }
+ // Media is accepted only from the authenticated tenant worker and only
+ // for paths inside its own private Storage namespace.
+ for(const m of valid){
+  if(typeof m.media_path==="string"&&m.media_path.startsWith(userId+"/")&&
+     /^image\/(jpeg|png|webp)$/.test(m.media_mime||"")){
+   const id=`${m.chat_id}:${m.message_id}`,item=unique.get(id);
+   if(item){item.media_path=m.media_path;item.media_mime=m.media_mime;}
+  }
+ }
  const msgs=[...unique.values()];
- if(msgs.length){const {error}=await db.rpc("telegram_member_upsert_messages",{p_user_id:userId,p_messages:msgs});if(error)throw error;}
+ if(msgs.length){
+  const {error}=await db.rpc("telegram_member_upsert_messages",{p_user_id:userId,p_messages:msgs});
+  if(error)throw error;
+  const media=msgs.filter((m:any)=>m.media_path);
+  if(media.length){
+   const rows=media.map((m:any)=>({user_id:userId,chat_id:m.chat_id,message_id:m.message_id,
+    message_text:m.message_text,sender_name:m.sender_name,message_date:m.message_date,
+    edited_at:m.edited_at,media_path:m.media_path,media_mime:m.media_mime}));
+   const {error:mediaError}=await db.from("telegram_member_messages").upsert(rows,{onConflict:"user_id,chat_id,message_id"});
+   if(mediaError)throw mediaError;
+  }
+ }
  return out({success:true,groups:groups.length,messages:msgs.length});
 }
 const bearer=req.headers.get("authorization")||"";

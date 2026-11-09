@@ -32,6 +32,20 @@ function init(){
  let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
  let selecting=false,deleting=false;const selected=new Set();
  const pending=new Map();
+ const photoUrls=new Map(); // Avoid re-signing each photo every 1-second refresh.
+ function photoUrl(path,proof){
+  const old=photoUrls.get(path);
+  if(old&&old.expires>Date.now())return old.promise;
+  const promise=api('image-url',{media_path:path},proof).then(x=>{
+   if(ticket!==proof)throw Error('Chat locked');
+   const item=photoUrls.get(path);
+   if(item&&item.promise===promise)item.expires=Date.now()+45000;
+   return x.url;
+  }).catch(e=>{if(photoUrls.get(path)?.promise===promise)photoUrls.delete(path);throw e;});
+  photoUrls.set(path,{promise,expires:Date.now()+15000});
+  return promise;
+ }
+
  const drafts=new Map();
  const readKeys=new Map();let latestNotices=[];
  function readStoreKey(id){return 'ott_chat_read:'+userId+':'+id;}
@@ -48,7 +62,7 @@ function init(){
  }
  function lock(revoke=true){
   const previous=ticket;if(revoke&&previous)api('lock',{},previous).catch(()=>{});
-  el('DeleteConfirm').hidden=true;epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;latestNotices=[];readKeys.clear();drafts.clear();pending.clear();selected.clear();selecting=false;updateDeleteTools();
+  el('DeleteConfirm').hidden=true;epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;latestNotices=[];readKeys.clear();drafts.clear();pending.clear();photoUrls.clear();selected.clear();selecting=false;updateDeleteTools();
   view();el('Text').value='';el('Pin').value='';el('Confirm').value='';el('Messages').replaceChildren();el('Conversations').replaceChildren();
   el('Unlocked').hidden=true;el('Gate').hidden=false;status('Chat đã khóa. Nhập PIN để mở lại.');
  }
@@ -98,8 +112,8 @@ function init(){
    if(m.media_path){
     const photo=document.createElement('img');photo.alt='Ảnh Telegram';photo.loading='lazy';photo.style.cssText='display:block;max-width:100%;max-height:320px;object-fit:contain;border-radius:8px;margin:8px 0';
     const path=m.media_path,proof=ticket;
-    api('image-url',{media_path:path},proof).then(result=>{
-     if(ticket===proof&&item.isConnected&&result.url)photo.src=result.url;
+    photoUrl(path,proof).then(url=>{
+     if(ticket===proof&&item.isConnected&&url)photo.src=url;
     }).catch(()=>{if(item.isConnected)photo.alt='Ảnh đã hết hạn hoặc không thể tải';});
     item.append(photo);
    }

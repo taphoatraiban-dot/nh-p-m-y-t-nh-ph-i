@@ -1,8 +1,8 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{JSDOM}=require('jsdom');
 const code=fs.readFileSync(path.join(__dirname,'../../assets/telegram-chat/notifications.js'),'utf8'),tick=()=>new Promise(r=>setTimeout(r,10));
-async function setup(){
+async function setup(options={}){
  const d=new JSDOM('<details id="ottChat" open><summary>Chat</summary><div id="ottChatUnlocked"></div></details>',{url:'https://cuncun.icu',runScripts:'outside-only',pretendToBeVisual:true});const w=d.window,calls=[],preferences=[];
- Object.defineProperty(w,'isSecureContext',{value:true});w.PushManager=class{};w.Notification={permission:'granted',requestPermission:async()=> 'granted'};
+ Object.defineProperty(w,'isSecureContext',{value:true});if(options.ios)Object.defineProperty(w.navigator,'userAgent',{value:'iPhone'});if(options.standalone)Object.defineProperty(w.navigator,'standalone',{value:true});w.PushManager=class{};w.Notification={permission:options.permission||'granted',requestPermission:()=>{if(options.throwPermission)throw Error('Quyền thông báo chưa sẵn sàng');return Promise.resolve('granted');}};
  const sub={endpoint:'https://fcm.googleapis.com/test',toJSON:()=>({endpoint:'https://fcm.googleapis.com/test',keys:{}}),unsubscribe:async()=>calls.push({unsubscribe:true})};
  const reg={active:{scriptURL:'https://cuncun.icu/ott-notifications-sw.js',postMessage:(data,ports)=>{preferences.push(data);ports?.[0]?.peer.onmessage();}},pushManager:{getSubscription:async()=>sub}};
  Object.defineProperty(w.navigator,'serviceWorker',{value:{getRegistration:async()=>reg,register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});
@@ -13,3 +13,8 @@ async function setup(){
 }
 test('leaving the app keeps background notifications enabled',async()=>{const s=await setup();try{assert.equal(s.button.getAttribute('aria-pressed'),'true');s.w.dispatchEvent(new s.w.Event('pagehide'));assert.equal(s.preferences.at(-1).enabled,true);assert.equal(s.preferences.at(-1).foreground,false);assert(!s.calls.some(c=>c.action==='disable'));}finally{s.d.window.close();}});
 test('explicit off disables server registration and unsubscribes only this device',async()=>{const s=await setup();try{s.button.click();await tick();assert(s.calls.some(c=>c.action==='disable'));assert(s.calls.some(c=>c.unsubscribe));assert.equal(s.button.getAttribute('aria-pressed'),'false');}finally{s.d.window.close();}});
+
+test('a tap from ordinary iPhone Safari shows installation instructions visibly',async()=>{const s=await setup({ios:true});try{s.button.click();await tick();const dialog=s.w.document.getElementById('ottPushHelp');assert(dialog);assert(dialog.textContent.includes('Thêm vào Màn hình chính'));assert.equal(s.button.disabled,false);}finally{s.d.window.close();}});
+test('a denied iPhone permission shows settings instructions without pretending to enable',async()=>{const s=await setup({ios:true,standalone:true,permission:'denied'});try{s.button.click();await tick();assert(s.w.document.getElementById('ottPushHelp').textContent.includes('Cài đặt'));assert.equal(s.button.getAttribute('aria-pressed'),'false');}finally{s.d.window.close();}});
+test('a synchronous permission error is visible and does not leave the button disabled',async()=>{const s=await setup({permission:'default',throwPermission:true});try{s.button.click();await tick();assert(s.w.document.getElementById('ottPushHelp'));assert.equal(s.button.disabled,false);}finally{s.d.window.close();}});
+test('notification control still responds after a legacy script clones the button',async()=>{const s=await setup();try{const fresh=s.button.cloneNode(true);s.button.replaceWith(fresh);fresh.click();await tick();assert(s.calls.some(c=>c.action==='disable'));assert.equal(fresh.disabled,false);}finally{s.d.window.close();}});

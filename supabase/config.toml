@@ -1,0 +1,4 @@
+# Worker claim/ack use per-account sync keys, not user JWTs.
+# The handler validates sync-key hashes; user actions require getUser + Chat PIN.
+[functions.telegram-chat]
+verify_jwt = false

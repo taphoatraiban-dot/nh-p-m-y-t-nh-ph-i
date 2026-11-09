@@ -1,0 +1,44 @@
+name: Telegram Chat authentication guard
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/config.toml'
+      - 'supabase/functions/telegram-chat/**'
+      - 'scripts/*telegram-chat*'
+      - 'tests/chat/**'
+      - '.github/workflows/telegram-chat-auth-guard.yml'
+  pull_request:
+    paths:
+      - 'supabase/config.toml'
+      - 'supabase/functions/telegram-chat/**'
+      - 'scripts/*telegram-chat*'
+      - 'tests/chat/**'
+      - '.github/workflows/telegram-chat-auth-guard.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  authentication:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Reject incompatible worker gateway configuration
+        run: |
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+          cfg=tomllib.loads(Path('supabase/config.toml').read_text())
+          assert cfg['functions']['telegram-chat']['verify_jwt'] is False, 'JWT gateway blocks sync-key workers'
+          PY
+      - name: Test worker keys, user login and PIN protection
+        run: node --test tests/chat/worker-auth.test.cjs tests/chat/endpoint.test.cjs tests/chat/hide-endpoint.test.cjs tests/chat/gateway-guard.test.cjs
+      - name: Check live gateway without credentials or queue changes
+        if: github.event_name != 'pull_request'
+        run: node scripts/check-telegram-chat-gateway.cjs

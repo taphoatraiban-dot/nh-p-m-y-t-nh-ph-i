@@ -73,3 +73,12 @@
 #ottChatConversations .ott-chat-swipe-row>button:first-child{position:relative;z-index:2;width:100%;margin:0;transition:transform .16s ease;touch-action:pan-y;background:#f1f5f9}
 #ottChatConversations .ott-chat-swipe-row.swiped>button:first-child{transform:translateX(-76px)}
 #ottChatConversations .ott-chat-swipe-delete{position:absolute;right:0;top:0;bottom:0;width:76px;min-height:0;margin:0;border:0;border-radius:0;background:#dc2626;color:#fff;font-weight:800}
+
+/* Compact chat message actions and batch selection. */
+#ottChatMessages .ott-chat-import{font-size:11px!important;font-weight:600!important;padding:4px 7px!important;min-height:27px!important;max-width:100%;width:auto!important;border-radius:7px!important;margin:3px 0 0!important;white-space:normal}
+#ottChatMessages .ott-chat-import[hidden]{display:none!important}
+#ottChatDeleteTools{display:flex;flex-wrap:wrap;gap:5px}
+#ottChatDeleteTools button{flex:1 1 auto;min-width:0;font-size:12px!important;padding:6px 9px!important;min-height:34px!important}
+#ottChatDeleteTools button[hidden]{display:none!important}
+#ottChatMessages .ott-chat-select{font-size:12px;display:inline-flex;align-items:center;gap:3px;margin:0 0 4px}
+#ottChatMessages .ott-chat-select input{width:17px;height:17px}

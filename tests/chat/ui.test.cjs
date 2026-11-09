@@ -85,3 +85,9 @@ test('deployed Chat URLs match content hashes and canonical source',()=>{
 test('direct desktop Chat entry opens drawer but still requires PIN',async()=>{
  const s=await setup();try{const launch=s.w.document.getElementById('ottChatOpen');assert(launch);s.el('').open=false;await tick();s.el('').scrollIntoView=()=>{};launch.click();assert(!s.w.document.getElementById('appDrawer').classList.contains('open'));s.w.document.body.classList.add('app-unlocked');launch.click();await tick();assert(s.w.document.getElementById('appDrawer').classList.contains('open'));assert.equal(s.w.document.getElementById('appDrawer').getAttribute('aria-hidden'),'false');assert(s.el('').open);assert(s.el('Unlocked').hidden);assert(!s.calls.some(c=>c.action==='read'));}finally{s.d.window.close();}
 });
+
+test('legacy swipe hint cleanup cannot hide the application container and Chat entry',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../../index.html'),'utf8'),script=html.match(/<script id="tsh-wheel-one-item-fix-js">([\s\S]*?)<\/script>/)[1];
+ const d=new JSDOM('<div class="wrap"><section id="appCard"><button id="ottChatOpen">Chat</button><p>☝ VUỐT TỪ MÉP TRÁI VÀO ĐỂ MỞ MENU</p></section></div>',{runScripts:'outside-only'});
+ try{d.window.eval(script);d.window.dispatchEvent(new d.window.Event('DOMContentLoaded'));assert(!d.window.document.querySelector('.wrap').classList.contains('tsh-swipe-tip-hide'));assert(!d.window.document.getElementById('appCard').classList.contains('tsh-swipe-tip-hide'));assert(d.window.document.querySelector('p').classList.contains('tsh-swipe-tip-hide'));}finally{d.window.close();}
+});

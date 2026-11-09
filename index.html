@@ -9988,7 +9988,7 @@ window.addEventListener('DOMContentLoaded',function(){
    // bỏ câu vuốt mép
    [...document.querySelectorAll('*')].filter(e=>N(e.textContent)==='☝ VUỐT TỪ MÉP TRÁI VÀO ĐỂ MỞ MENU' ||
      N(e.textContent).includes('VUỐT TỪ MÉP TRÁI VÀO ĐỂ MỞ MENU')).forEach(e=>{
-       if(e.children.length===0 || e.tagName==='DIV' || e.tagName==='P') e.classList.add('tsh-swipe-tip-hide');
+       if(e.children.length===0 && !e.matches('script,style')) e.classList.add('tsh-swipe-tip-hide');
    });
 
    // Scan QR đưa vào hàng nút nếu hàng đã tồn tại

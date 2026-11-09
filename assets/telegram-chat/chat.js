@@ -79,11 +79,38 @@ function init(){
   el('Select').disabled=chatId===null||deleting;el('Select').hidden=selecting;el('Delete').hidden=!selecting;el('Cancel').hidden=!selecting;
   el('Delete').textContent='Xóa tin đã chọn ('+selected.size+')';el('Delete').disabled=deleting||!selected.size;el('Cancel').disabled=deleting;
  }
+ async function clearConversation(target,name){
+  if(deleting||!ticket)return;
+  deleting=true;const proof=ticket;
+  try{
+   await api('clear-chat',{chat_id:target});
+   if(ticket!==proof)return;
+   if(chatId===target){chatId=null;messages=[];selected.clear();selecting=false;el('Text').value='';}
+   jobs=jobs.filter(j=>j.chat_id!==target);
+   epoch++;draw();await load();
+   status('Đã xóa tin nhắn của '+name+' khỏi CUNCUN. Telegram gốc không thay đổi.');
+  }catch(e){if(ticket===proof)fail(e);}
+  finally{deleting=false;updateDeleteTools();}
+ }
  function draw(){
   updateDeleteTools();const list=el('Conversations');list.replaceChildren();
   for(const g of modeGroups()){
    const b=document.createElement('button');b.type='button';b.textContent=g.group_name;const unread=unreadCount(g.chat_id);if(unread){const badge=document.createElement('span');badge.className='ott-chat-unread';badge.textContent=String(unread);badge.setAttribute('aria-label',unread+' tin chưa đọc');b.append(' ',badge);}b.setAttribute('aria-pressed',String(g.chat_id===chatId));
-   b.onclick=()=>{if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;markRead(chatId);epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};list.append(b);
+   const wrap=document.createElement('div');wrap.className='ott-chat-swipe-row';
+   const remove=document.createElement('button');remove.type='button';remove.className='ott-chat-swipe-delete';remove.textContent='Xóa';
+   remove.setAttribute('aria-label','Xóa toàn bộ tin của '+g.group_name);
+   remove.onclick=()=>{wrap.classList.remove('swiped');if(deleting)return;
+    if(!confirm('Xóa toàn bộ tin nhắn của '+g.group_name+' khỏi CUNCUN? Telegram gốc không thay đổi.'))return;
+    clearConversation(g.chat_id,g.group_name);
+   };
+   let startX=0,startY=0,swiping=false,suppress=false;
+   b.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;swiping=false;},{passive:true});
+   b.addEventListener('touchend',e=>{if(!e.changedTouches.length)return;
+    const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
+    if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.3){swiping=true;suppress=true;wrap.classList.toggle('swiped',dx<0);}
+   },{passive:true});
+   b.onclick=()=>{if(suppress){suppress=false;return;}if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;markRead(chatId);epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};
+   wrap.append(b,remove);list.append(wrap);
   }
   if(!list.children.length)list.textContent='Chưa có hội thoại được đồng bộ.';
   el('Heading').textContent=groups.find(g=>g.chat_id===chatId)?.group_name||'Chọn hội thoại';

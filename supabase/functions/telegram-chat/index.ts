@@ -86,7 +86,7 @@ Deno.serve(async req=>{
   }
   if(action==="send"){
    if(!permission.worker_seen_at||Date.parse(permission.worker_seen_at)<Date.now()-120000)return out({error:"Bộ gửi Chat đang ngoại tuyến. Thử lại sau."},409);
-   if(!uuid(b.id)||!Number.isSafeInteger(b.chat_id)||typeof b.text!=="string"||!b.text.trim()||b.text.length>4096)return out({error:"Tin nhắn không hợp lệ (tối đa 4096 ký tự)"},400);
+   if(!uuid(b.id)||!Number.isSafeInteger(b.chat_id)||typeof b.text!=="string"||(!b.text.trim()&&!b.media_path)||b.text.length>4096)return out({error:"Tin nhắn không hợp lệ (tối đa 4096 ký tự)"},400);
    const chat=checked(await db.from("telegram_member_groups").select("chat_id,enabled,last_seen_at").eq("user_id",uid).eq("chat_id",b.chat_id).maybeSingle());
    if(!chat||chat.enabled===false)return out({error:"Hội thoại chưa được cấp quyền"},403);
    if(!chat.last_seen_at||Date.parse(chat.last_seen_at)<Date.now()-180000)return out({error:"VPS đang ngoại tuyến. Thử lại khi đồng bộ hoạt động."},409);

@@ -91,3 +91,18 @@ test('legacy swipe hint cleanup cannot hide the application container and Chat e
  const d=new JSDOM('<div class="wrap"><section id="appCard"><button id="ottChatOpen">Chat</button><p>☝ VUỐT TỪ MÉP TRÁI VÀO ĐỂ MỞ MENU</p></section></div>',{runScripts:'outside-only'});
  try{d.window.eval(script);d.window.dispatchEvent(new d.window.Event('DOMContentLoaded'));assert(!d.window.document.querySelector('.wrap').classList.contains('tsh-swipe-tip-hide'));assert(!d.window.document.getElementById('appCard').classList.contains('tsh-swipe-tip-hide'));assert(d.window.document.querySelector('p').classList.contains('tsh-swipe-tip-hide'));}finally{d.window.close();}
 });
+
+
+test('conversation search initializes without ReferenceError and filters groups',async()=>{
+ const s=await setup();try{
+  await s.unlock();
+  assert.equal(s.el('Conversations').children.length,2);
+  s.el('Search').value='B';
+  s.el('Search').dispatchEvent(new s.w.Event('input',{bubbles:true}));
+  assert.equal(s.el('Conversations').children.length,1);
+  assert.match(s.el('Conversations').textContent,/Cá nhân: B/);
+  s.el('Search').value='';
+  s.el('Search').dispatchEvent(new s.w.Event('input',{bubbles:true}));
+  assert.equal(s.el('Conversations').children.length,2);
+ }finally{s.d.window.close();}
+});

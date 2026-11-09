@@ -9,6 +9,29 @@ if(!["GET","POST"].includes(req.method))return out({error:"Method not allowed"},
 const action=new URL(req.url).searchParams.get("action")||"read";
 try {
 let userId="";
+if(action==="upload-media"){
+ const uid=req.headers.get("x-sync-user")||"",key=req.headers.get("x-sync-key")||"";
+ if(!/^[0-9a-f-]{36}$/i.test(uid)||key.length<40)return out({error:"Unauthorized"},401);
+ const {data:k}=await db.from("telegram_member_sync_keys").select("secret_hash").eq("user_id",uid).maybeSingle();
+ if(!k||await hash(key)!==k.secret_hash)return out({error:"Unauthorized"},401);
+ const b=await req.json();
+ if(!Number.isSafeInteger(b.chat_id)||!Number.isSafeInteger(b.message_id)||typeof b.data!=="string"||
+ b.data.length>14000000||!["image/jpeg","image/png","image/webp"].includes(b.mime))
+  return out({error:"Invalid media"},400);
+ let bytes:Uint8Array;
+ try{bytes=Uint8Array.from(atob(b.data),x=>x.charCodeAt(0));}
+ catch{return out({error:"Invalid base64"},400);}
+ if(!bytes.length||bytes.length>10485760)return out({error:"Media too large"},413);
+ const jpeg=bytes.length>4&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255&&bytes.at(-2)===255&&bytes.at(-1)===217;
+ const png=bytes.length>=24&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v);
+ const webp=bytes.length>=16&&[82,73,70,70].every((v,i)=>bytes[i]===v)&&[87,69,66,80].every((v,i)=>bytes[i+8]===v)&&new DataView(bytes.buffer).getUint32(4,true)+8===bytes.length;
+ if(!(b.mime==="image/jpeg"&&jpeg||b.mime==="image/png"&&png||b.mime==="image/webp"&&webp))return out({error:"Invalid image signature"},400);
+ const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[b.mime as "image/jpeg"|"image/png"|"image/webp"];
+ const path=uid+"/"+b.chat_id+"-"+b.message_id+"."+ext;
+ const {error}=await db.storage.from("telegram-chat-media").upload(path,bytes,{contentType:b.mime,upsert:true});
+ if(error)throw error;
+ return out({success:true,media_path:path,media_mime:b.mime});
+}
 if(action==="ingest"){
  userId=req.headers.get("x-sync-user")||"";
  const key=req.headers.get("x-sync-key")||"";

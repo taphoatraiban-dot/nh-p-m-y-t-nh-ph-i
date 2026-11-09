@@ -64,3 +64,20 @@
  #ottChatCompose{gap:4px;padding:4px 0}
  #ottChat #ottChatImage{width:88px;font-size:11px;padding:5px}
 }
+
+/* Compact controls requested for iPhone. */
+#ottChatUnlocked>.ott-chat-row{justify-content:flex-end;flex-wrap:nowrap}
+#ottChatUnlocked>.ott-chat-row>#ottChatMode{margin-right:auto}
+#ottChat #ottChatRefresh{flex:0 0 38px;min-width:38px;min-height:38px;padding:0;font-size:26px;line-height:1;border:1px solid #cbd5e1;background:#f8fafc}
+#ottChat #ottChatNotification{flex:0 0 auto;min-height:38px;padding:5px 9px;font-size:12px;font-weight:700;border:1px solid #cbd5e1;background:#eff6ff;white-space:nowrap}
+#ottChatTabs{display:none!important}
+#ottChatStatus:empty{display:none!important}
+#ottChatMenu{order:4}
+#ottChat #ottChatNotification{order:3}
+#ottChat #ottChatRefresh{order:2}
+@media(max-width:620px){
+ #ottChatUnlocked>.ott-chat-row{gap:4px}
+ #ottChatUnlocked>.ott-chat-row>#ottChatMode{font-size:13px;min-width:0}
+ #ottChat #ottChatNotification{font-size:11px;padding:5px 7px}
+ #ottChatMenu>summary{min-width:36px;min-height:38px}
+}

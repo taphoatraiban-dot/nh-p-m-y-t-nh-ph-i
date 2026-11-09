@@ -14,9 +14,10 @@ function init(){
    if(!e.target.closest?.('#ottChatOpen'))return;
    e.preventDefault();e.stopPropagation();
    if(!document.body.classList.contains('app-unlocked'))return;
-   const drawer=document.getElementById('appDrawer');if(drawer?.contains(panel)){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.getElementById('drawerBackdrop')?.classList.add('open');}
-   for(let parent=panel.parentElement;parent&&parent!==host;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
-   panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'});
+   const currentPanel=document.getElementById('ottChat'),currentHost=document.getElementById('appCard');if(!currentPanel)return;
+   const drawer=document.getElementById('appDrawer');if(drawer){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.getElementById('drawerBackdrop')?.classList.add('open');}
+   for(let parent=currentPanel.parentElement;parent&&parent!==currentHost;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
+   currentPanel.open=true;currentPanel.scrollIntoView({behavior:'smooth',block:'center'});
   },true);
   host.prepend(launch);
  }

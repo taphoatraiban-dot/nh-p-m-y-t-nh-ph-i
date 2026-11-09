@@ -71,6 +71,14 @@ Deno.serve(async req=>{
    if(!job||job.chat_id!==b.chat_id||job.message_text!==b.text)return out({error:"Mã gửi đã được dùng cho nội dung khác"},409);
    return out({success:true,job});
   }
+  if(action==="clear-chat"){
+   if(!Number.isSafeInteger(b.chat_id))return out({error:"Hội thoại không hợp lệ"},400);
+   const chat=checked(await db.from("telegram_member_groups").select("chat_id,enabled").eq("user_id",uid).eq("chat_id",b.chat_id).maybeSingle());
+   if(!chat||chat.enabled===false)return out({error:"Hội thoại chưa được cấp quyền"},403);
+   const {data,error}=await db.rpc("clear_telegram_chat",{p_user_id:uid,p_chat_id:b.chat_id});
+   if(error)return out({error:error.message},409);
+   return out({success:true,cleared_at:data});
+  }
   if(action==="hide"){
    if(!Number.isSafeInteger(b.chat_id)||!Array.isArray(b.message_ids)||b.message_ids.length<1||b.message_ids.length>200||!b.message_ids.every((id:unknown)=>Number.isSafeInteger(id)&&Number(id)>0))return out({error:"Danh sách tin cần xóa không hợp lệ"},400);
    const ids=[...new Set(b.message_ids as number[])];
@@ -83,14 +91,17 @@ Deno.serve(async req=>{
   }
   if(action!=="read")return out({error:"Bad action"},400);
   const groups=checked(await db.from("telegram_member_groups").select("chat_id,group_name,enabled,last_seen_at").eq("user_id",uid).neq("enabled",false).order("group_name"));
+  const clearRows=checked(await db.from("telegram_chat_cleared").select("chat_id,cleared_at").eq("user_id",uid));
+  const cleared=new Map(clearRows.map((r:any)=>[String(r.chat_id),Date.parse(r.cleared_at)]));
   let messages:any[]=[];let hiddenIds=new Set<number>();
   if(b.chat_id!==undefined){
    if(!Number.isSafeInteger(b.chat_id)||!groups.some((g:any)=>g.chat_id===b.chat_id))return out({error:"Hội thoại chưa được cấp quyền"},403);
    messages=checked(await db.from("telegram_member_messages").select("chat_id,message_id,message_text,sender_name,message_date,edited_at").eq("user_id",uid).eq("chat_id",b.chat_id).order("message_date",{ascending:false}).order("message_id",{ascending:false}).limit(200));
    const hidden=checked(await db.from("telegram_member_hidden").select("message_id").eq("user_id",uid).eq("chat_id",b.chat_id));
-   hiddenIds=new Set(hidden.map((m:any)=>m.message_id));messages=messages.filter(m=>!hiddenIds.has(m.message_id)).reverse();
+   hiddenIds=new Set(hidden.map((m:any)=>m.message_id));messages=messages.filter(m=>!hiddenIds.has(m.message_id)&&Date.parse(m.message_date)>(cleared.get(String(m.chat_id))||0)).reverse();
   }
   let jobs=checked(await db.from("telegram_chat_outbox").select("id,chat_id,message_text,state,message_id,error,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(100));
+  jobs=jobs.filter((j:any)=>Date.parse(j.created_at)>(cleared.get(String(j.chat_id))||0));
   // Initial reads also carry outbox jobs for other chats. Exclude hidden copies
   // before returning them, so switching chats cannot briefly resurrect a message.
   const jobIds=[...new Set(jobs.map((j:any)=>j.message_id).filter((id:any)=>Number.isSafeInteger(id)))];

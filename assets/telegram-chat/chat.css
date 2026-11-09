@@ -6,3 +6,28 @@
 #ottChatDeleteTools{gap:6px;margin:6px 0}#ottChat #ottChatDeleteTools button{font-size:13px;min-height:44px;padding:7px 10px;touch-action:manipulation;width:auto}#ottChatDelete,#ottChatConfirmDelete{background:#fff1f2;color:#991b1b;border:1px solid #fecaca}#ottChat .ott-chat-select{display:flex;align-items:center;gap:7px;min-height:44px;cursor:pointer;font-size:14px}#ottChat .ott-chat-select input{width:22px;height:22px;margin:0;flex:none}#ottChatDeleteConfirm{position:fixed;inset:0;z-index:2147483646;background:rgba(15,23,42,.94);color:#fff;padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box}#ottChatDeleteConfirm p{max-width:360px;line-height:1.6}#ottChat #ottChatDeleteConfirm button{min-height:44px;font-size:15px}#ottChat #ottChatKeep{background:#fff;color:#17212f}
 
 #ottChatOpen{min-height:44px;margin:6px 0;padding:8px 12px;border:1px solid #93c5fd;border-radius:9px;background:#eff6ff;color:#1e40af;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation}
+
+/* Compact messenger-style conversation list and dedicated thread view. */
+#ottChatSearchWrap{margin:8px 0}#ottChatSearch{width:100%;background:#f8fafc}
+#ottChatTabs{display:flex;gap:6px;margin:7px 0}#ottChatTabs button{flex:1;background:#eef2f7;border:1px solid #d4dce7;font-weight:700}
+#ottChatTabs button[aria-pressed=true]{background:#dbeafe;border-color:#2683c6;color:#075985}
+#ottChatBack{background:#e0f2fe;color:#075985;border:1px solid #bae6fd}
+#ottChatConversations button{padding:13px 12px;min-height:52px;border-radius:12px;background:#fff;margin:3px 0;border:0;border-bottom:1px solid #e2e8f0;font-weight:600}
+#ottChatConversations button:hover,#ottChatConversations button:focus-visible{background:#eff6ff}
+#ottChatThread{min-width:0}
+#ottChatHeading{overflow-wrap:anywhere}
+#ottChatMessages .ott-chat-message{max-width:86%;width:fit-content;background:#fff;border:0;box-shadow:0 1px 2px #00000012;padding:10px 12px;border-radius:14px}
+#ottChatMessages .ott-chat-message[data-outgoing=true]{background:#dcfce7;margin-left:auto}
+#ottChatMessages .ott-chat-message>button{font-size:12px;min-height:30px;padding:4px 8px}
+@media(max-width:620px){
+ #ottChatBody{display:block}
+ #ottChatConversations{max-height:55vh;overflow:auto}
+ #ottChatThread{display:none}
+ #ottChat.ott-chat-thread-open #ottChatConversations{display:none}
+ #ottChat.ott-chat-thread-open #ottChatThread{display:block}
+ #ottChat.ott-chat-thread-open #ottChatSearchWrap{display:none}
+ #ottChatMessages{max-height:48vh;min-height:220px}
+ #ottChat #ottChatText{height:48px;min-height:48px}
+ #ottChatCompose{position:sticky;bottom:0;background:#fff;padding:6px 0}
+}
+@media(min-width:621px){#ottChatBack{display:none}}

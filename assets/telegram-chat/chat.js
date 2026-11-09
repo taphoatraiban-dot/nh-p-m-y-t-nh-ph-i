@@ -30,7 +30,6 @@ function init(){
 
  const el=id=>panel.querySelector('#ottChat'+id),status=t=>{el('Status').textContent=t;};
  let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
- let searchText='';
  let selecting=false,deleting=false;const selected=new Set();
  const pending=new Map();
  const drafts=new Map();
@@ -53,7 +52,7 @@ function init(){
  function resumeSound(){if(!sound)return;try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();audio.resume().catch(()=>{});}catch{}}
  document.addEventListener('pointerdown',resumeSound);document.addEventListener('keydown',resumeSound);
  function beep(){if(!sound||!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);o.frequency.value=880;g.gain.setValueAtTime(.32,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.start();o.stop(audio.currentTime+.18);}catch{}}
- function modeGroups(){return groups.filter(g=>(el('Mode').value==='all'||(String(g.group_name).startsWith('Cá nhân: ')?'private':'group')===el('Mode').value)&&String(g.group_name).toLocaleLowerCase('vi').includes(searchText));}
+ function modeGroups(){return groups.filter(g=>(el('Mode').value==='all'||(String(g.group_name).startsWith('Cá nhân: ')?'private':'group')===el('Mode').value)&&String(g.group_name).toLocaleLowerCase('vi').includes((el('Search')?.value||'').toLocaleLowerCase('vi').trim()));}
  function view(){panel.classList.toggle('ott-chat-thread-open',chatId!==null);el('SearchWrap').hidden=chatId!==null;el('Back').hidden=chatId===null;for(const b of el('Tabs').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.mode===el('Mode').value));}
  function updateDeleteTools(){
   el('Select').disabled=chatId===null||deleting;el('Select').hidden=selecting;el('Delete').hidden=!selecting;el('Cancel').hidden=!selecting;
@@ -142,7 +141,7 @@ function init(){
   finally{deleting=false;el('ConfirmDelete').disabled=false;updateDeleteTools();}
  };
  el('Lock').onclick=()=>{lock();gate();};el('Refresh').onclick=load;
- el('Search').oninput=()=>{searchText=el('Search').value.toLocaleLowerCase('vi').trim();draw();};
+ el('Search').oninput=()=>draw();
  for(const b of el('Tabs').querySelectorAll('button'))b.onclick=()=>{el('Mode').value=b.dataset.mode;el('Mode').onchange();};
  el('Back').onclick=()=>{if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};
  el('Mode').onchange=()=>{if(deleting)return;el('DeleteConfirm').hidden=true;if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};

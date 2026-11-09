@@ -59,6 +59,28 @@ Deno.serve(async req=>{
   if(action==="lock"){
    checked(await db.from("telegram_chat_pins").update({ticket_hash:null,expires_at:null}).eq("user_id",uid).eq("ticket_hash",pin.ticket_hash));return out({success:true});
   }
+  if(action==="upload-image"){
+   if(!Number.isSafeInteger(b.chat_id)||typeof b.mime!=="string"||!["image/jpeg","image/png","image/webp"].includes(b.mime)||typeof b.data!=="string"||b.data.length>14000000)return out({error:"Ảnh không hợp lệ hoặc vượt quá 10 MB"},400);
+   const chat=checked(await db.from("telegram_member_groups").select("chat_id,enabled").eq("user_id",uid).eq("chat_id",b.chat_id).maybeSingle());
+   if(!chat||chat.enabled===false)return out({error:"Hội thoại chưa được cấp quyền"},403);
+   const decoded=Uint8Array.from(atob(b.data),x=>x.charCodeAt(0));
+   if(!decoded.length||decoded.length>10485760)return out({error:"Ảnh vượt quá 10 MB"},400);
+   const jpeg=decoded.length>=4&&decoded[0]===255&&decoded[1]===216&&decoded[2]===255&&decoded[decoded.length-2]===255&&decoded[decoded.length-1]===217;
+   const png=decoded.length>=24&&[137,80,78,71,13,10,26,10].every((v,i)=>decoded[i]===v);
+   const webp=decoded.length>=16&&[82,73,70,70].every((v,i)=>decoded[i]===v)&&[87,69,66,80].every((v,i)=>decoded[i+8]===v)&&new DataView(decoded.buffer).getUint32(4,true)+8===decoded.length;
+   if(!(b.mime==="image/jpeg"&&jpeg||b.mime==="image/png"&&png||b.mime==="image/webp"&&webp))return out({error:"Dữ liệu ảnh không khớp định dạng"},400);
+   const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[b.mime as "image/jpeg"|"image/png"|"image/webp"];
+   const path=uid+"/"+crypto.randomUUID()+"."+ext;
+   const {error:uploadError}=await db.storage.from("telegram-chat-media").upload(path,decoded,{contentType:b.mime,upsert:false});
+   if(uploadError)throw uploadError;
+   return out({success:true,media_path:path,media_mime:b.mime});
+  }
+  if(action==="image-url"){
+   if(typeof b.media_path!=="string"||!b.media_path.startsWith(uid+"/")||b.media_path.includes(".."))return out({error:"Đường dẫn ảnh không hợp lệ"},403);
+   const {data,error:signError}=await db.storage.from("telegram-chat-media").createSignedUrl(b.media_path,60);
+   if(signError||!data?.signedUrl)return out({error:"Không tìm thấy ảnh"},404);
+   return out({success:true,url:data.signedUrl,expires_in:60});
+  }
   if(action==="send"){
    if(!permission.worker_seen_at||Date.parse(permission.worker_seen_at)<Date.now()-120000)return out({error:"Bộ gửi Chat đang ngoại tuyến. Thử lại sau."},409);
    if(!uuid(b.id)||!Number.isSafeInteger(b.chat_id)||typeof b.text!=="string"||!b.text.trim()||b.text.length>4096)return out({error:"Tin nhắn không hợp lệ (tối đa 4096 ký tự)"},400);

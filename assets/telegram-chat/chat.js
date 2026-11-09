@@ -33,6 +33,11 @@ function init(){
  let selecting=false,deleting=false;const selected=new Set();
  const pending=new Map();
  const drafts=new Map();
+ const readKeys=new Map();let latestNotices=[];
+ function readStoreKey(id){return 'ott_chat_read:'+userId+':'+id;}
+ function readCursor(id){if(!readKeys.has(id)){let n=0;try{n=Number(localStorage.getItem(readStoreKey(id)))||0;}catch{}readKeys.set(id,n);}return readKeys.get(id)||0;}
+ function markRead(id){if(id===null||!userId)return;const max=latestNotices.filter(m=>String(m.chat_id)===String(id)).reduce((n,m)=>Math.max(n,Number(m.message_id)||0),readCursor(id));readKeys.set(id,max);try{localStorage.setItem(readStoreKey(id),String(max));}catch{}}
+ function unreadCount(id){const cursor=readCursor(id);return latestNotices.filter(m=>String(m.chat_id)===String(id)&&Number(m.message_id)>cursor&&m.sender_name!=='Đã gửi').length;}
  async function api(action,body={},proof=ticket){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)throw Object.assign(Error('Cần đăng nhập phần mềm'),{status:401});
@@ -43,7 +48,7 @@ function init(){
  }
  function lock(revoke=true){
   const previous=ticket;if(revoke&&previous)api('lock',{},previous).catch(()=>{});
-  el('DeleteConfirm').hidden=true;epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;drafts.clear();pending.clear();selected.clear();selecting=false;updateDeleteTools();
+  el('DeleteConfirm').hidden=true;epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;latestNotices=[];readKeys.clear();drafts.clear();pending.clear();selected.clear();selecting=false;updateDeleteTools();
   view();el('Text').value='';el('Pin').value='';el('Confirm').value='';el('Messages').replaceChildren();el('Conversations').replaceChildren();
   el('Unlocked').hidden=true;el('Gate').hidden=false;status('Chat đã khóa. Nhập PIN để mở lại.');
  }
@@ -61,8 +66,8 @@ function init(){
  function draw(){
   updateDeleteTools();const list=el('Conversations');list.replaceChildren();
   for(const g of modeGroups()){
-   const b=document.createElement('button');b.type='button';b.textContent=g.group_name;b.setAttribute('aria-pressed',String(g.chat_id===chatId));
-   b.onclick=()=>{if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};list.append(b);
+   const b=document.createElement('button');b.type='button';b.textContent=g.group_name;const unread=unreadCount(g.chat_id);if(unread){const badge=document.createElement('span');badge.className='ott-chat-unread';badge.textContent=String(unread);badge.setAttribute('aria-label',unread+' tin chưa đọc');b.append(' ',badge);}b.setAttribute('aria-pressed',String(g.chat_id===chatId));
+   b.onclick=()=>{if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;markRead(chatId);epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};list.append(b);
   }
   if(!list.children.length)list.textContent='Chưa có hội thoại được đồng bộ.';
   el('Heading').textContent=groups.find(g=>g.chat_id===chatId)?.group_name||'Chọn hội thoại';
@@ -102,11 +107,11 @@ function init(){
    const fresh=await api('read',chatId===null?{}:{chat_id:chatId});if(version!==epoch||!ticket)return;
    groups=fresh.groups;jobs=fresh.jobs;messages=fresh.messages;
    if(chatId!==null&&!groups.some(g=>g.chat_id===chatId)){chatId=null;messages=[];}
-   const signals=fresh.notices||[];
+   const signals=fresh.notices||[];latestNotices=signals;if(chatId!==null)markRead(chatId);
    if(baseline&&signals.some(m=>!seen.has(m.chat_id+':'+m.message_id)&&m.sender_name!=='Đã gửi'&&!jobs.some(j=>j.state==='sent'&&j.chat_id===m.chat_id&&j.message_id===m.message_id)))beep();
    for(const m of signals)seen.add(m.chat_id+':'+m.message_id);baseline=true;
    if(seen.size>5000)seen=new Set(signals.map(m=>m.chat_id+':'+m.message_id));
-   draw();status('Đã cập nhật · Tự làm mới mỗi 3 giây · Khóa sau 10 phút.');
+   draw();status('Đã cập nhật · Tự làm mới mỗi 1 giây · Khóa sau 10 phút.');
   }catch(e){if(version===epoch)fail(e);}finally{busy=false;}
  }
  async function gate(){const version=epoch;try{const x=await api('status');if(version!==epoch)return;hasPin=x.has_pin;el('Confirm').hidden=hasPin;el('Unlock').textContent=hasPin?'Mở Chat':'Tạo PIN & mở Chat';status(hasPin?'Nhập PIN Chat 4 số.':'Tạo PIN Chat 4 số và nhập lại để xác nhận.');}catch(e){fail(e);}}
@@ -148,7 +153,7 @@ function init(){
  panel.addEventListener('toggle',()=>{if(panel.open){if(ticket)load();else gate();}else lock();});
  sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(userId&&session?.user.id!==userId)){lock(false);userId='';}});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
- window.addEventListener('pagehide',()=>lock());setInterval(()=>{if(ticket&&Date.now()>=expires)lock();else load();},3000);
+ window.addEventListener('pagehide',()=>lock());setInterval(()=>{if(ticket&&Date.now()>=expires)lock();else load();},1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

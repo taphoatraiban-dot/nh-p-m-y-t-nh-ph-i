@@ -18,7 +18,7 @@ self.addEventListener('push',e=>e.waitUntil((async()=>{
  const foreground=state.foreground&&Date.now()-state.foregroundAt<15000&&windows.some(w=>w.visibilityState==='visible');
  await self.registration.showNotification('ÔNG THẦN TÀI',{
   body:'Có tin nhắn Telegram mới. Mở phần mềm để xem.',icon:'/assets/telegram-chat/icon-192.png',badge:'/assets/telegram-chat/icon.svg',
-  tag,renotify:false,silent:!!foreground,vibrate:[200,100,200],data:{url:'/?openChat=1'}
+  tag,renotify:false,silent:!!foreground,...(foreground?{}:{vibrate:[200,100,200]}),data:{url:'/?openChat=1'}
  });
  await saved('seen',tag,Date.now());
 })()));

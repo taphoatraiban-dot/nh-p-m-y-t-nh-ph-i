@@ -12,6 +12,7 @@ The Telegram session MUST be authorized interactively beforehand under this tena
 own account. Never share session files, API credentials or sync keys between tenants.
 """
 import argparse
+import base64
 import asyncio
 import json
 import os
@@ -71,6 +72,30 @@ def ingest(cfg, groups, messages):
             raise RuntimeError("Ingest rejected")
         return result
 
+async def incoming_photo(client, cfg, message, chat_id):
+    """Store small Telegram photos privately before queueing message metadata."""
+    if not cfg.get("telegram_chat_enabled", False) or not getattr(message, "photo", None):
+        return {}
+    raw = await client.download_media(message, file=bytes)
+    if not isinstance(raw, bytes) or not raw or len(raw) > 10 * 1024 * 1024:
+        return {}
+    # Telegram photo objects are normally JPEG; verify actual bytes.
+    if not (raw.startswith(b"\\xff\\xd8\\xff") and raw.endswith(b"\\xff\\xd9")):
+        return {}
+    endpoint = cfg.get("member_sync_endpoint", ENDPOINT).split("?")[0] + "?action=upload-media"
+    body = json.dumps({"chat_id":int(chat_id),"message_id":int(message.id),
+        "mime":"image/jpeg","data":base64.b64encode(raw).decode("ascii")}).encode()
+    request = urllib.request.Request(endpoint,body,method="POST",
+        headers={"Content-Type":"application/json","x-sync-user":cfg["user_id"],
+                 "x-sync-key":cfg["sync_key"]})
+    def upload():
+        with urllib.request.urlopen(request, timeout=60) as response:
+            result=json.load(response)
+        if not result.get("success"):
+            raise RuntimeError("Incoming photo upload rejected")
+        return {"media_path":result["media_path"],"media_mime":result["media_mime"]}
+    return await asyncio.to_thread(upload)
+
 def publish_profile(cfg, me):
     name=" ".join(filter(None,[getattr(me,"first_name",None),getattr(me,"last_name",None)])).strip()
     payload=json.dumps({
@@ -121,10 +146,18 @@ async def main(path):
                     return
                 name=(" ".join(filter(None,[getattr(sender,"first_name",None),getattr(sender,"last_name",None)]))).strip()
                 discovered_private[int(event.chat_id)] = "Cá nhân: "+(name or getattr(sender,"username",None) or str(event.chat_id))
-            if event.raw_text and (group_allowed or private_allowed):
+            if (event.raw_text or event.message.photo) and (group_allowed or private_allowed):
                 m={"chat_id":event.chat_id,"message_id":event.id,
-                   "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
+                   "message_text":event.raw_text or "","message_date":event.message.date.isoformat(),
                    "sender_name":private_direction(event.out) if event.is_private or (cfg.get("telegram_chat_enabled", False) is True and event.out) else ""}
+                if event.message.photo:
+                    try:
+                        m.update(await incoming_photo(client,cfg,event.message,event.chat_id))
+                    except Exception as exc:
+                        print("Incoming Telegram photo:",type(exc).__name__,flush=True)
+                        # Never queue a media-only placeholder without its file.
+                        if not m["message_text"]:
+                            return
                 with queue_file.open("a",encoding="utf-8") as handle:
                     handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         @client.on(events.MessageEdited())

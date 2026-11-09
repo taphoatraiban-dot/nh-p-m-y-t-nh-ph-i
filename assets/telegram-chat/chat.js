@@ -6,6 +6,14 @@ function init(){
  if(!anchor||document.getElementById('ottChat'))return;
  const panel=document.createElement('details');panel.id='ottChat';
  panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatSearchWrap"><input id="ottChatSearch" type="search" placeholder="Tìm người hoặc nhóm…" aria-label="Tìm hội thoại"><div id="ottChatTabs" class="ott-chat-row"><button type="button" data-mode="private">Cá nhân</button><button type="button" data-mode="group">Nhóm</button><button type="button" data-mode="all">Tất cả</button></div></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div id="ottChatThread"><div class="ott-chat-row"><button id="ottChatBack" type="button">← Trở lại</button><strong id="ottChatHeading">Chọn hội thoại</strong></div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin để xóa</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><input id="ottChatImage" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Chọn ảnh Telegram"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="submit">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
+ const controls=panel.querySelector('#ottChatUnlocked>.ott-chat-row');
+ if(controls){
+  const menu=document.createElement('details');menu.id='ottChatMenu';
+  const toggle=document.createElement('summary');toggle.textContent='⋯';toggle.setAttribute('aria-label','Tùy chọn Chat');
+  menu.append(toggle);
+  for(const id of ['ottChatSound','ottChatRefresh','ottChatLock'])menu.append(panel.querySelector('#'+id));
+  controls.append(menu);
+ }
  anchor.after(panel);
  const host=document.getElementById('appCard');
  if(host){
@@ -108,6 +116,11 @@ function init(){
     check.onchange=()=>{if(check.checked)selected.add(m.message_id);else selected.delete(m.message_id);updateDeleteTools();};
     check.disabled=deleting;label.append(check,document.createTextNode(' Chọn tin'));item.dataset.messageId=String(m.message_id);item.prepend(label);
    }
+   b.hidden=true;b.classList.add('ott-chat-import');
+   item.addEventListener('click',event=>{
+    if(event.target.closest('button,input,label'))return;
+    b.hidden=!b.hidden;
+   });
    item.append(meta,p,b);
    if(m.media_path){
     const photo=document.createElement('img');photo.alt='Ảnh Telegram';photo.loading='lazy';photo.style.cssText='display:block;max-width:100%;max-height:320px;object-fit:contain;border-radius:8px;margin:8px 0';

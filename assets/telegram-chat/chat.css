@@ -82,3 +82,10 @@
 #ottChatDeleteTools button[hidden]{display:none!important}
 #ottChatMessages .ott-chat-select{font-size:12px;display:inline-flex;align-items:center;gap:3px;margin:0 0 4px}
 #ottChatMessages .ott-chat-select input{width:17px;height:17px}
+
+/* Show the two batch actions immediately on an open conversation. */
+#ottChatDeleteTools{display:flex;flex-wrap:wrap;gap:5px}
+#ottChatDeleteTools #ottChatSelectAll:not([hidden]),
+#ottChatDeleteTools #ottChatCopy:not([hidden]){display:inline-flex;align-items:center;justify-content:center}
+#ottChatDeleteTools #ottChatSelectAll[hidden],
+#ottChatDeleteTools #ottChatCopy[hidden]{display:none!important}

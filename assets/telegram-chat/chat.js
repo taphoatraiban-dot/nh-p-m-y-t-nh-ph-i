@@ -30,6 +30,7 @@ function init(){
 
  const el=id=>panel.querySelector('#ottChat'+id),status=t=>{el('Status').textContent=t;};
  let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
+ let searchText='';
  let selecting=false,deleting=false;const selected=new Set();
  const pending=new Map();
  const drafts=new Map();

@@ -81,7 +81,7 @@ async def process_jobs(client, cfg, session_dir, request=chat_request):
                 else:
                     ack = {'id': job_id, 'state': 'sent', 'message_id': int(message_id),
                         'message_date': (date or datetime.now(timezone.utc)).isoformat()}
-            except RPCError as exc:
+            except (RPCError, ValueError, KeyError) as exc:
                 # A duplicate random ID may mean the earlier send succeeded before a crash.
                 ack = {'id': job_id, 'state': 'failed', 'error':
                     'RECEIPT_UNCERTAIN' if type(exc).__name__ == 'RandomIdDuplicateError' else type(exc).__name__}

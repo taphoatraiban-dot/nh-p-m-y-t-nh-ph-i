@@ -77,6 +77,9 @@ Deno.serve(async req=>{
   }
   if(action==="image-url"){
    if(typeof b.media_path!=="string"||!b.media_path.startsWith(uid+"/")||b.media_path.includes(".."))return out({error:"Đường dẫn ảnh không hợp lệ"},403);
+   const linkedMessage=checked(await db.from("telegram_member_messages").select("message_id").eq("user_id",uid).eq("media_path",b.media_path).gte("message_date",new Date(Date.now()-48*3600000).toISOString()).limit(1));
+   const linkedJob=checked(await db.from("telegram_chat_outbox").select("id").eq("user_id",uid).eq("media_path",b.media_path).gte("created_at",new Date(Date.now()-48*3600000).toISOString()).limit(1));
+   if(!linkedMessage.length&&!linkedJob.length)return out({error:"Ảnh chưa thuộc tin nhắn hợp lệ hoặc đã hết hạn"},403);
    const {data,error:signError}=await db.storage.from("telegram-chat-media").createSignedUrl(b.media_path,60);
    if(signError||!data?.signedUrl)return out({error:"Không tìm thấy ảnh"},404);
    return out({success:true,url:data.signedUrl,expires_in:60});

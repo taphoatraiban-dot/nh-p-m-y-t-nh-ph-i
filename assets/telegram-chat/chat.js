@@ -49,6 +49,7 @@ function init(){
  let selecting=false,deleting=false;const selected=new Set();
  const pending=new Map();
  const drafts=new Map();
+ const expandedImports=new Set();
  const readKeys=new Map();let latestNotices=[];
  function readStoreKey(id){return 'ott_chat_read:'+userId+':'+id;}
  function readCursor(id){if(!readKeys.has(id)){let n=0;try{n=Number(localStorage.getItem(readStoreKey(id)))||0;}catch{}readKeys.set(id,n);}return readKeys.get(id)||0;}
@@ -131,8 +132,12 @@ function init(){
    const p=document.createElement('p');p.textContent=m.text;
    const b=document.createElement('button');b.type='button';b.textContent='↳ Nhập phơi';b.title='Đưa nội dung tin nhắn vào ô nhập phơi thủ công';b.setAttribute('aria-label','Đưa vào nhập phơi thủ công');b.onclick=()=>{
     const box=document.getElementById('bets');if(!box){status('Không tìm thấy ô nhập phơi');return;}
+    if(!m.text||!m.text.trim()){status('Tin nhắn này không có nội dung chữ để nhập phơi.');return;}
     box.value=(box.value.trim()?box.value.replace(/\s*$/,'')+'\n':'')+m.text;
-    box.dispatchEvent(new CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true}}));box.focus();box.scrollIntoView({behavior:'smooth',block:'center'});status('Đã đưa tin vào ô nhập phơi. Kiểm tra trước khi tính tiền.');
+    box.dispatchEvent(new CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true}}));
+    box.dispatchEvent(new Event('change',{bubbles:true}));
+    expandedImports.delete(importKey);b.hidden=true;
+    box.focus();box.scrollIntoView({behavior:'smooth',block:'center'});status('Đã đưa tin vào ô nhập phơi. Kiểm tra trước khi tính tiền.');
    };
    if(selecting&&Number.isSafeInteger(m.message_id)&&messages.some(x=>x.message_id===m.message_id)){
     const label=document.createElement('label');label.className='ott-chat-select';
@@ -141,8 +146,13 @@ function init(){
     check.onchange=()=>{if(check.checked)selected.add(m.message_id);else selected.delete(m.message_id);updateDeleteTools();};
     check.disabled=deleting;label.append(check,document.createTextNode(' Chọn tin'));item.dataset.messageId=String(m.message_id);item.prepend(label);
    }
-   b.hidden=true;b.classList.add('ott-chat-import');
-   item.addEventListener('click',event=>{if(event.target.closest('button,input,label'))return;b.hidden=!b.hidden;});
+   const importKey=String(chatId)+':'+String(m.message_id??m.id??m.date??m.text);
+   b.hidden=!expandedImports.has(importKey);b.classList.add('ott-chat-import');
+   item.addEventListener('click',event=>{
+    if(event.target.closest('button,input,label')||selecting)return;
+    if(expandedImports.has(importKey)){expandedImports.delete(importKey);b.hidden=true;}
+    else{expandedImports.add(importKey);b.hidden=false;}
+   });
    item.append(meta,p,b);root.append(item);
   }
   if(!rows.length)root.textContent=chatId===null?'Chọn một hội thoại để xem tin.':'Chưa có tin nhắn trong hội thoại.';

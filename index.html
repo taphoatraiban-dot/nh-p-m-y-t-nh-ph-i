@@ -7560,8 +7560,9 @@ $('bets').addEventListener('beforeinput',function(e){
     clearTimeout(__phoiInputTimer);
   }
 });
-$('bets').addEventListener('input',function(){
+$('bets').addEventListener('input',function(e){
   clearTimeout(__phoiInputTimer);
+  if(e.detail?.ottChatManualImport){__phoiPasting=false;return;}
   // Khi iPhone đang dán: chỉ chờ, tuyệt đối không chuẩn hóa/parse giữa chừng.
   if(__phoiPasting){
     __phoiInputTimer=setTimeout(()=>{
@@ -14658,4 +14659,8 @@ inspect();
  bar.insertBefore(button,bar.querySelector('.lottery-public-external'));
 })();
 </script>
+
+<!-- Isolated Telegram Chat experiment -->
+<link rel="stylesheet" href="assets/telegram-chat/chat.css">
+<script src="assets/telegram-chat/chat.js"></script>
 </html>

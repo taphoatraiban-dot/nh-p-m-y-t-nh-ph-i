@@ -68,6 +68,12 @@ class TelegramPrivatePolicyTests(unittest.TestCase):
         self.assertIn("groups = groups[:300]", source)
         self.assertIn("await publish(extra_groups, [])", source)
 
+    def test_all_private_excludes_authentication_and_nonprivate_chats(self):
+        cfg = {"receive_all_private": True, "allowed_private_chat_ids": set()}
+        for chat_id in (777000, 42777, 0, -123):
+            self.assertFalse(NAMESPACE["private_chat_allowed"](cfg, chat_id))
+        self.assertTrue(NAMESPACE["private_chat_allowed"](cfg, 123))
+
     def test_both_directions(self):
         self.assertEqual(NAMESPACE["private_direction"](True), "Đã gửi")
         self.assertEqual(NAMESPACE["private_direction"](False), "Đã nhận")

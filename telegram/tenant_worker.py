@@ -54,7 +54,7 @@ def read_config(path):
 
 def private_chat_allowed(cfg, chat_id):
     """Private messages require explicit per-tenant consent; bots are filtered separately."""
-    return bool(cfg.get("receive_all_private", False) or int(chat_id) in cfg["allowed_private_chat_ids"])
+    return int(chat_id) > 0 and int(chat_id) not in (777000, 42777) and bool(cfg.get("receive_all_private", False) or int(chat_id) in cfg["allowed_private_chat_ids"])
 
 def private_direction(outgoing):
     return "Đã gửi" if outgoing else "Đã nhận"
@@ -62,7 +62,7 @@ def private_direction(outgoing):
 def ingest(cfg, groups, messages):
     payload = json.dumps({"groups": groups, "messages": messages}, ensure_ascii=False).encode()
     request = urllib.request.Request(
-        ENDPOINT, payload, method="POST",
+        cfg.get("member_sync_endpoint", ENDPOINT), payload, method="POST",
         headers={"Content-Type":"application/json",
                  "x-sync-user":cfg["user_id"], "x-sync-key":cfg["sync_key"]})
     with urllib.request.urlopen(request, timeout=25) as response:
@@ -80,7 +80,7 @@ def publish_profile(cfg, me):
         "telegram_id":str(me.id)
     }).encode("utf-8")
     request=urllib.request.Request(
-        ENDPOINT.replace("action=ingest","action=profile"),payload,method="POST",
+        cfg.get("member_sync_endpoint", ENDPOINT).replace("action=ingest","action=profile"),payload,method="POST",
         headers={"Content-Type":"application/json","x-sync-user":cfg["user_id"],"x-sync-key":cfg["sync_key"]})
     with urllib.request.urlopen(request,timeout=25) as response:
         result=json.load(response)
@@ -98,6 +98,9 @@ async def main(path):
     async with TelegramClient(str(session), int(cfg["api_id"]), cfg["api_hash"]) as client:
         if not await client.is_user_authorized():
             raise RuntimeError("Tenant Telegram session not authorized; provision separately")
+        if cfg.get("telegram_chat_enabled", False) is True:
+            from chat_outbox import run_chat_outbox
+            chat_task = asyncio.create_task(run_chat_outbox(client, cfg, session.parent))
         me=await client.get_me()
         if me is None:
             raise RuntimeError("Cannot resolve Telegram account")
@@ -121,7 +124,7 @@ async def main(path):
             if event.raw_text and (group_allowed or private_allowed):
                 m={"chat_id":event.chat_id,"message_id":event.id,
                    "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-                   "sender_name":private_direction(event.out) if event.is_private else ""}
+                   "sender_name":private_direction(event.out) if event.is_private or (cfg.get("telegram_chat_enabled", False) is True and event.out) else ""}
                 with queue_file.open("a",encoding="utf-8") as handle:
                     handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         @client.on(events.MessageEdited())
@@ -138,7 +141,7 @@ async def main(path):
                     return
             m={"chat_id":event.chat_id,"message_id":event.id,
                "message_text":event.raw_text,"message_date":event.message.date.isoformat(),
-               "edited_at":event.message.edit_date.isoformat(),"sender_name":private_direction(event.out) if event.is_private else ""}
+               "edited_at":event.message.edit_date.isoformat(),"sender_name":private_direction(event.out) if event.is_private or (cfg.get("telegram_chat_enabled", False) is True and event.out) else ""}
             with queue_file.open("a",encoding="utf-8") as handle:
                 handle.write(json.dumps(m,ensure_ascii=False)+"\n")
         # Track last processed private message by chat, surviving worker restarts.

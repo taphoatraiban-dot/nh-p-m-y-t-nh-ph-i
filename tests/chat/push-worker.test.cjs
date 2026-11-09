@@ -1,0 +1,12 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const source=fs.readFileSync(path.join(__dirname,'../../ott-notifications-sw.js'),'utf8');
+function setup(){const stores=new Map(),handlers={},notifications=[],opened=[];
+ const db={objectStoreNames:{contains:k=>stores.has(k)},createObjectStore:k=>stores.set(k,new Map()),close(){},transaction(name){const tx={objectStore:()=>({get(key){const r={};queueMicrotask(()=>{r.result=stores.get(name).get(key);r.onsuccess?.();queueMicrotask(()=>tx.oncomplete?.());});return r;},put(value,key){const r={};queueMicrotask(()=>{stores.get(name).set(key,value);r.onsuccess?.();queueMicrotask(()=>tx.oncomplete?.());});return r;}})};return tx;}};
+ const indexedDB={open(){const r={};queueMicrotask(()=>{r.result=db;r.onupgradeneeded?.();r.onsuccess?.();});return r;}};
+ const self={addEventListener:(name,fn)=>handlers[name]=fn,skipWaiting(){},location:{origin:'https://cuncun.icu'},clients:{claim(){},matchAll:async()=>[],openWindow:async url=>opened.push(url)},registration:{showNotification:async(title,options)=>notifications.push({title,...options})}};
+ vm.runInNewContext(source,{self,indexedDB,URL,Date,Promise});
+ async function event(name,extra){let promise;handlers[name]({...extra,waitUntil:p=>promise=p});await promise;}
+ return{event,notifications,opened};
+}
+test('background push works with no open windows, hides content and suppresses duplicate delivery',async()=>{const s=setup();await s.event('message',{data:{type:'OTT_NOTIFICATION_PREFS',enabled:true,foreground:false},ports:[]});const push={data:{json:()=>({tag:'test-id',body:'private content',url:'https://evil.test'})}};await s.event('push',push);await s.event('push',push);assert.equal(s.notifications.length,1);assert.equal(s.notifications[0].silent,false);assert(!s.notifications[0].body.includes('private content'));await s.event('notificationclick',{notification:{close(){},data:{url:'https://evil.test'}}});assert.equal(s.opened[0],'/?openChat=1');});
+test('explicitly disabled device does not show a stale notification',async()=>{const s=setup();await s.event('message',{data:{type:'OTT_NOTIFICATION_PREFS',enabled:false},ports:[]});await s.event('push',{data:{json:()=>({tag:'test'})}});assert.equal(s.notifications.length,0);});

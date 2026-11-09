@@ -8,14 +8,14 @@ function init(){
  panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div><div id="ottChatHeading">Chọn hội thoại</div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="submit">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
  anchor.after(panel);
  const el=id=>panel.querySelector('#ottChat'+id),status=t=>{el('Status').textContent=t;};
- let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=false;
+ let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
  const pending=new Map();
  const drafts=new Map();
  async function api(action,body={},proof=ticket){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)throw Object.assign(Error('Cần đăng nhập phần mềm'),{status:401});
   if(userId&&session.user.id!==userId){lock(false);throw Error('Tài khoản đã thay đổi');}
-  userId=session.user.id;
+  userId=session.user.id;restoreSound(userId);
   const res=await fetch(SUPABASE_URL+'/functions/v1/telegram-chat?action='+action,{method:'POST',headers:{Authorization:'Bearer '+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json','x-chat-ticket':proof},body:JSON.stringify(body)});
   const data=await res.json();if(!res.ok||!data.success)throw Object.assign(Error(data.error||'Không thể kết nối Chat'),{status:res.status});return data;
  }
@@ -26,6 +26,9 @@ function init(){
   el('Unlocked').hidden=true;el('Gate').hidden=false;status('Chat đã khóa. Nhập PIN để mở lại.');
  }
  function fail(e){if([401,403,423].includes(e.status))lock(false);status(e.message||'Không thể kết nối Chat');}
+ function restoreSound(uid){try{sound=localStorage.getItem('ott_chat_sound:'+uid)!=='off';}catch{}el('Sound').textContent=sound?'Tắt âm báo':'Bật âm báo';el('Sound').setAttribute('aria-pressed',String(sound));}
+ function resumeSound(){if(!sound)return;try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();audio.resume().catch(()=>{});}catch{}}
+ document.addEventListener('pointerdown',resumeSound);document.addEventListener('keydown',resumeSound);
  function beep(){if(!sound||!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);o.frequency.value=880;g.gain.setValueAtTime(.32,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.start();o.stop(audio.currentTime+.18);}catch{}}
  function modeGroups(){return groups.filter(g=>el('Mode').value==='all'||(String(g.group_name).startsWith('Cá nhân: ')?'private':'group')===el('Mode').value);}
  function draw(){
@@ -83,7 +86,7 @@ function init(){
   const job=pending.get(chatId),version=epoch,proof=ticket;sending=true;el('Send').disabled=true;
   try{const x=await api('send',job);if(ticket!==proof)return;if(chatId===job.chat_id&&el('Text').value===text)el('Text').value='';if(drafts.get(job.chat_id)===text)drafts.delete(job.chat_id);pending.delete(job.chat_id);if(version!==epoch)return;status(x.job.state==='sent'?'Đã gửi':'Đã xếp hàng gửi. Chờ xác nhận từ Telegram.');await load();}catch(err){if(version===epoch)fail(err);}finally{sending=false;el('Send').disabled=chatId===null;}
  };
- el('Sound').onclick=async()=>{try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();sound=!sound;el('Sound').textContent=sound?'Tắt âm báo':'Bật âm báo';el('Sound').setAttribute('aria-pressed',String(sound));if(sound)beep();}catch{status('Trình duyệt chưa cho phép âm thanh. Hãy thử lại.');}};
+ el('Sound').onclick=async()=>{try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();sound=!sound;try{localStorage.setItem('ott_chat_sound:'+userId,sound?'on':'off');}catch{}el('Sound').textContent=sound?'Tắt âm báo':'Bật âm báo';el('Sound').setAttribute('aria-pressed',String(sound));if(sound)beep();}catch{status('Trình duyệt chưa cho phép âm thanh. Hãy thử lại.');}};
  el('Lock').onclick=()=>{lock();gate();};el('Refresh').onclick=load;
  el('Mode').onchange=()=>{if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;epoch++;messages=[];el('Text').value='';draw();load();};
  panel.addEventListener('toggle',()=>{if(panel.open){if(ticket)load();else gate();}else lock();});

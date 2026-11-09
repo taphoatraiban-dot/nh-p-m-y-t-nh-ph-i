@@ -4,7 +4,7 @@ const source=fs.readFileSync(path.join(__dirname,'../../assets/telegram-chat/cha
 const tick=()=>new Promise(r=>setTimeout(r,5));
 async function setup(options={}){
  const d=new JSDOM('<div id="tgMemberInbox"></div><textarea id="bets">Phơi đang nhập</textarea>',{url:'https://example.test',runScripts:'outside-only',pretendToBeVisual:true});
- const w=d.window,calls=[];let authChange;let groups=[{chat_id:-123,group_name:'Nhóm A'},{chat_id:456,group_name:'Cá nhân: B'}],signals=[];
+ const w=d.window,calls=[];if(options.soundPref)w.localStorage.setItem('ott_chat_sound:user-a',options.soundPref);let authChange;let groups=[{chat_id:-123,group_name:'Nhóm A'},{chat_id:456,group_name:'Cá nhân: B'}],signals=[];
  w.document.getElementById('bets').scrollIntoView=()=>{};
  w.sb={auth:{getSession:async()=>({data:{session:{access_token:'jwt',user:{id:'user-a'}}}}),onAuthStateChange:cb=>{authChange=cb;}}};w.SUPABASE_URL='https://test';w.SUPABASE_PUBLISHABLE_KEY='public';
  w.AudioContext=class{currentTime=0;destination={};async resume(){}createGain(){return{connect(){},gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}}}}createOscillator(){return{connect(){},frequency:{},start(){calls.push({beep:true});},stop(){}}}};
@@ -35,7 +35,7 @@ test('lock and signout clear loaded content and drafts',async()=>{
  const s=await setup();try{await s.unlock();s.el('Conversations').firstChild.click();await tick();s.el('Text').value='Riêng tư';s.authChange();assert(s.el('Unlocked').hidden);assert.equal(s.el('Messages').textContent,'');assert.equal(s.el('Text').value,'');}finally{s.d.window.close();}
 });
 test('sound is opt-in and does not alert on initial history or outgoing messages',async()=>{
- const s=await setup();try{s.signals([{chat_id:-123,message_id:1,sender_name:'Đã nhận'}]);await s.unlock();assert(!s.calls.some(c=>c.beep));s.el('Sound').click();await tick();let n=s.calls.filter(c=>c.beep).length;s.el('Refresh').click();await tick();assert.equal(s.calls.filter(c=>c.beep).length,n);s.signals([{chat_id:-123,message_id:2,sender_name:'Đã nhận'}]);s.el('Refresh').click();await tick();assert.equal(s.calls.filter(c=>c.beep).length,n+1);s.el('Refresh').click();await tick();assert.equal(s.calls.filter(c=>c.beep).length,n+1);}finally{s.d.window.close();}
+ const s=await setup({soundPref:'off'});try{s.signals([{chat_id:-123,message_id:1,sender_name:'Đã nhận'}]);await s.unlock();assert(!s.calls.some(c=>c.beep));s.el('Sound').click();await tick();let n=s.calls.filter(c=>c.beep).length;s.el('Refresh').click();await tick();assert.equal(s.calls.filter(c=>c.beep).length,n);s.signals([{chat_id:-123,message_id:2,sender_name:'Đã nhận'}]);s.el('Refresh').click();await tick();assert.equal(s.calls.filter(c=>c.beep).length,n+1);s.el('Refresh').click();await tick();assert.equal(s.calls.filter(c=>c.beep).length,n+1);}finally{s.d.window.close();}
 });
 
 test('Chat assets are loaded once outside the legacy print document string',()=>{
@@ -61,4 +61,8 @@ test('access revoked while reading clears previously loaded Chat content',async(
 test('an uncertain Telegram receipt tells the user to check the original before resending',async()=>{
  const s=await setup({jobs:[{id:'test',chat_id:-123,message_text:'Tin chưa xác nhận',state:'failed',error:'RECEIPT_UNCERTAIN',created_at:'2026-11-09T06:00:00Z'}]});
  try{await s.unlock();s.el('Conversations').firstChild.click();await tick();assert(s.el('Messages').textContent.includes('kiểm tra tin gốc trên Telegram trước khi gửi lại'));assert(!s.el('Messages').textContent.includes('RECEIPT_UNCERTAIN'));}finally{s.d.window.close();}
+});
+
+test('sound preference remains enabled until explicitly switched off',async()=>{
+ const s=await setup();try{await s.unlock();assert.equal(s.el('Sound').textContent,'Tắt âm báo');s.el('Sound').click();await tick();assert.equal(s.w.localStorage.getItem('ott_chat_sound:user-a'),'off');s.el('Refresh').click();await tick();assert.equal(s.el('Sound').textContent,'Bật âm báo');s.el('Sound').click();await tick();assert.equal(s.w.localStorage.getItem('ott_chat_sound:user-a'),'on');}finally{s.d.window.close();}
 });

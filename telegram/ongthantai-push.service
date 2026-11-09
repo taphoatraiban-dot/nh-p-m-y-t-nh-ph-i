@@ -1,0 +1,23 @@
+[Unit]
+Description=Ong Than Tai background Telegram notifications
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+DynamicUser=yes
+StateDirectory=ongthantai-push
+StateDirectoryMode=0700
+WorkingDirectory=/opt/ongthantai-push
+ExecStart=/opt/ongthantai-push/venv/bin/python -u /opt/ongthantai-push/push_dispatcher.py
+EnvironmentFile=/etc/ongthantai-push/dispatcher.env
+LoadCredential=vapid.pem:/etc/ongthantai-push/vapid-private.pem
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+MemoryMax=128M
+CPUQuota=25%
+[Install]
+WantedBy=multi-user.target

@@ -2295,7 +2295,27 @@ function showLogin(){
 }
 
 async function doLogout(){
-  await forceLogout("Đã đăng xuất.");
+  // Explicit logout is NOT the 90-second PIN lock: end the Supabase session.
+  authBootEpoch++;
+  stopIdleLogout();
+  showLogin();
+  const buttons=[$("logoutBelowPhoi"),$("logoutBtn2")].filter(Boolean);
+  buttons.forEach(button=>button.disabled=true);
+  try{
+    const {error}=await sb.auth.signOut({scope:"local"});
+    if(error)throw error;
+    // Clear remembered identity and credentials, but preserve app/customer data and PIN setup.
+    localStorage.removeItem(LOGIN_EMAIL_KEY);
+    if($("email"))$("email").value="";
+    if($("password"))$("password").value="";
+    if($("pinInput"))$("pinInput").value="";
+    if($("pinEmail"))$("pinEmail").value="";
+    showFullLogin();
+    loginStatus("Đã đăng xuất hoàn toàn. Nhập lại tài khoản và mật khẩu để đăng nhập.","");
+  }catch(error){
+    showLogin();
+    loginStatus("Chưa thể xác nhận đăng xuất phiên. Kiểm tra kết nối rồi thử lại: "+(error?.message||"Lỗi không xác định"),"err");
+  }finally{buttons.forEach(button=>button.disabled=false);}
 }
 let cuncunLoginInFlight=null;
 function performLogin(){

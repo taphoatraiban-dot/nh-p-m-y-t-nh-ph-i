@@ -90,7 +90,14 @@ Deno.serve(async req=>{
    const hidden=checked(await db.from("telegram_member_hidden").select("message_id").eq("user_id",uid).eq("chat_id",b.chat_id));
    hiddenIds=new Set(hidden.map((m:any)=>m.message_id));messages=messages.filter(m=>!hiddenIds.has(m.message_id)).reverse();
   }
-  const jobs=checked(await db.from("telegram_chat_outbox").select("id,chat_id,message_text,state,message_id,error,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(100));
+  let jobs=checked(await db.from("telegram_chat_outbox").select("id,chat_id,message_text,state,message_id,error,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(100));
+  // Initial reads also carry outbox jobs for other chats. Exclude hidden copies
+  // before returning them, so switching chats cannot briefly resurrect a message.
+  const jobIds=[...new Set(jobs.map((j:any)=>j.message_id).filter((id:any)=>Number.isSafeInteger(id)))];
+  if(jobIds.length){
+   const hiddenJobs=checked(await db.from("telegram_member_hidden").select("chat_id,message_id").eq("user_id",uid).in("message_id",jobIds));
+   const hiddenKeys=new Set(hiddenJobs.map((h:any)=>h.chat_id+":"+h.message_id));jobs=jobs.filter((j:any)=>!hiddenKeys.has(j.chat_id+":"+j.message_id));
+  }
   const notices=checked(await db.from("telegram_member_messages").select("chat_id,message_id,sender_name").eq("user_id",uid).gte("message_date",new Date(Date.now()-48*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000));
   const allowed=new Set(groups.map((g:any)=>g.chat_id));
   return out({success:true,groups,messages,jobs:jobs.filter((j:any)=>j.chat_id!==b.chat_id||!hiddenIds.has(j.message_id)),notices:notices.filter((m:any)=>allowed.has(m.chat_id)&&(m.chat_id!==b.chat_id||!hiddenIds.has(m.message_id)))});

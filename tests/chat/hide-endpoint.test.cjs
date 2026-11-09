@@ -18,5 +18,5 @@ test('hide validates all messages and account scope, deduplicates and never dele
 });
 test('read after hide suppresses received messages and sent outbox copies, including repeated reads',async()=>{
  const s=await setup();assert.equal((await s.call('read',{chat_id:-123})).body.messages.length,2);await s.call('hide',{chat_id:-123,message_ids:[1]});for(let i=0;i<2;i++){const r=await s.call('read',{chat_id:-123});assert.equal(r.status,200);assert.deepEqual(r.body.messages.map(m=>m.message_id),[2]);assert.equal(r.body.jobs.length,0);assert(!r.body.notices.some(m=>m.message_id===1));}
- await s.call('hide',{chat_id:-123,message_ids:[1]});assert.equal(s.hidden.length,1);
+ await s.call('hide',{chat_id:-123,message_ids:[1]});assert.equal(s.hidden.length,1);assert.equal((await s.call('read',{})).body.jobs.length,0);
 });

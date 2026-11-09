@@ -26,7 +26,7 @@ function init(){
   el('Unlocked').hidden=true;el('Gate').hidden=false;status('Chat đã khóa. Nhập PIN để mở lại.');
  }
  function fail(e){if([401,403,423].includes(e.status))lock(false);status(e.message||'Không thể kết nối Chat');}
- function beep(){if(!sound||!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);o.frequency.value=880;g.gain.setValueAtTime(.08,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.start();o.stop(audio.currentTime+.18);}catch{}}
+ function beep(){if(!sound||!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);o.frequency.value=880;g.gain.setValueAtTime(.32,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.start();o.stop(audio.currentTime+.18);}catch{}}
  function modeGroups(){return groups.filter(g=>el('Mode').value==='all'||(String(g.group_name).startsWith('Cá nhân: ')?'private':'group')===el('Mode').value);}
  function draw(){
   const list=el('Conversations');list.replaceChildren();

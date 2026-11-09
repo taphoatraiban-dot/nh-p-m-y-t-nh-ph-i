@@ -40,8 +40,8 @@ test('sound is opt-in and does not alert on initial history or outgoing messages
 
 test('Chat assets are loaded once outside the legacy print document string',()=>{
  const html=fs.readFileSync(path.join(__dirname,'../../index.html'),'utf8');
- assert.equal(html.split('src="assets/telegram-chat/chat.js"').length-1,1);
- assert(html.lastIndexOf('src="assets/telegram-chat/chat.js"')>html.lastIndexOf('w.document.close'));
+ assert.equal((html.match(/src="assets\/telegram-chat\/chat\.js(?:\?[^"]*)?"/g)||[]).length,1);
+ assert(html.lastIndexOf('src="assets/telegram-chat/chat.js')>html.lastIndexOf('w.document.close'));
 });
 
 test('confirmed send clears only its own draft after changing conversation',async()=>{

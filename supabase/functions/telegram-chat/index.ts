@@ -29,7 +29,7 @@ Deno.serve(async req=>{
    if(job.state!=="sending")return out({error:"Job not claimed"},409);
    if(b.state==="sent"){
     if(!Number.isSafeInteger(b.message_id)||b.message_id<1||typeof b.message_date!=="string"||isNaN(Date.parse(b.message_date)))return out({error:"Invalid Telegram receipt"},400);
-    checked(await db.rpc("telegram_member_upsert_messages",{p_user_id:uid,p_messages:[{chat_id:job.chat_id,message_id:b.message_id,message_text:job.message_text,sender_name:"Đã gửi",message_date:b.message_date,edited_at:null}]}));
+    checked(await db.rpc("telegram_member_upsert_messages",{p_user_id:uid,p_messages:[{chat_id:job.chat_id,message_id:b.message_id,message_text:job.message_text,media_path:job.media_path,media_mime:job.media_mime,sender_name:"Đã gửi",message_date:b.message_date,edited_at:null}]}));
    }
    checked(await db.from("telegram_chat_outbox").update({state:b.state,message_id:b.state==="sent"?b.message_id:null,error:b.state==="failed"?String(b.error||"Gửi thất bại").slice(0,160):null}).eq("user_id",uid).eq("id",b.id).eq("state","sending"));
    return out({success:true});
@@ -90,10 +90,16 @@ Deno.serve(async req=>{
    const chat=checked(await db.from("telegram_member_groups").select("chat_id,enabled,last_seen_at").eq("user_id",uid).eq("chat_id",b.chat_id).maybeSingle());
    if(!chat||chat.enabled===false)return out({error:"Hội thoại chưa được cấp quyền"},403);
    if(!chat.last_seen_at||Date.parse(chat.last_seen_at)<Date.now()-180000)return out({error:"VPS đang ngoại tuyến. Thử lại khi đồng bộ hoạt động."},409);
+   const hasImage=typeof b.media_path==="string"&&b.media_path.length>0;
+   if(hasImage){
+    if(!b.media_path.startsWith(uid+"/")||b.media_path.includes("..")||typeof b.media_mime!=="string"||!["image/jpeg","image/png","image/webp"].includes(b.media_mime))return out({error:"Ảnh đính kèm không hợp lệ"},400);
+    const {data:object,error:objectError}=await db.storage.from("telegram-chat-media").info(b.media_path);
+    if(objectError||!object||object.contentType!==b.media_mime)return out({error:"Không tìm thấy ảnh đính kèm hợp lệ"},404);
+   }
    // Duplicate request UUID cannot overwrite or send the text twice.
-   checked(await db.from("telegram_chat_outbox").upsert({id:b.id,user_id:uid,chat_id:b.chat_id,message_text:b.text},{onConflict:"id",ignoreDuplicates:true}));
-   const job=checked(await db.from("telegram_chat_outbox").select("id,chat_id,message_text,state").eq("user_id",uid).eq("id",b.id).maybeSingle());
-   if(!job||job.chat_id!==b.chat_id||job.message_text!==b.text)return out({error:"Mã gửi đã được dùng cho nội dung khác"},409);
+   checked(await db.from("telegram_chat_outbox").upsert({id:b.id,user_id:uid,chat_id:b.chat_id,message_text:b.text,media_path:hasImage?b.media_path:null,media_mime:hasImage?b.media_mime:null},{onConflict:"id",ignoreDuplicates:true}));
+   const job=checked(await db.from("telegram_chat_outbox").select("id,chat_id,message_text,media_path,media_mime,state").eq("user_id",uid).eq("id",b.id).maybeSingle());
+   if(!job||job.chat_id!==b.chat_id||job.message_text!==b.text||job.media_path!==(hasImage?b.media_path:null))return out({error:"Mã gửi đã được dùng cho nội dung khác"},409);
    return out({success:true,job});
   }
   if(action==="hide"){

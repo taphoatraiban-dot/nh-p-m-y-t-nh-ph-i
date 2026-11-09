@@ -33,3 +33,34 @@
 @media(min-width:621px){#ottChatBack{display:none}}
 
 #ottChatConversations .ott-chat-unread{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;margin-left:8px;border-radius:999px;background:#e11d48;color:#fff;font-size:12px;font-weight:700;line-height:1}
+
+/* iPhone compact chat: retain every existing action without permanent toolbars. */
+#ottChatUnlocked>.ott-chat-row{display:flex;align-items:center;gap:6px;margin:4px 0}
+#ottChatUnlocked>.ott-chat-row>#ottChatMode{flex:1;min-width:0;padding:7px 9px}
+#ottChatMenu{position:relative;flex:0 0 auto}
+#ottChatMenu>summary{list-style:none;display:flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;font-size:23px;font-weight:700;cursor:pointer}
+#ottChatMenu>summary::-webkit-details-marker{display:none}
+#ottChatMenu[open]{z-index:12}
+#ottChatMenu>button{display:none}
+#ottChatMenu[open]>button{display:block;width:100%;text-align:left;white-space:nowrap;margin:4px 0}
+#ottChatMenu[open]{position:relative;min-width:135px}
+#ottChat .ott-chat-import[hidden]{display:none!important}
+#ottChatMessages .ott-chat-message{cursor:pointer}
+#ottChatMessages .ott-chat-message>button.ott-chat-import{font-size:12px;min-height:34px;padding:5px 8px;max-width:100%;white-space:normal}
+@media(max-width:620px){
+ #ottChat{padding:6px;margin:4px 0}
+ #ottChat summary{font-size:15px}
+ #ottChatStatus{font-size:11px;margin:3px 0}
+ #ottChatSearchWrap{margin:3px 0}
+ #ottChatThread>.ott-chat-row:first-child{margin:3px 0}
+ #ottChat #ottChatBack{padding:5px 8px;min-height:36px;font-size:13px}
+ #ottChatHeading{font-size:15px}
+ #ottChatDeleteTools{margin:2px 0}
+ #ottChat #ottChatDeleteTools button{min-height:32px;padding:4px 8px;font-size:12px}
+ #ottChatMessages{max-height:58vh;min-height:250px;padding:3px}
+ #ottChatMessages .ott-chat-message{padding:7px 9px;margin:4px 0;max-width:88%;font-size:14px}
+ #ottChatMessages .ott-chat-message p{margin:3px 0}
+ #ottChatMessages .ott-chat-message small{font-size:11px}
+ #ottChatCompose{gap:4px;padding:4px 0}
+ #ottChat #ottChatImage{width:88px;font-size:11px;padding:5px}
+}

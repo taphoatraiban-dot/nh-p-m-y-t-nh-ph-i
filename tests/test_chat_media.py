@@ -8,6 +8,10 @@ class ChatMediaTests(unittest.TestCase):
         sample = b"\xff\xd8\xff" + b"test"
         self.assertEqual(decode_image(base64.b64encode(sample).decode(), "image/jpeg"), sample)
 
+    def test_reject_truncated_jpeg(self):
+        with self.assertRaises(ValueError):
+            decode_image(base64.b64encode(bytes([0xff, 0xd8, 0xff])).decode(), "image/jpeg")
+
     def test_reject_mime_spoof(self):
         with self.assertRaises(ValueError):
             decode_image(base64.b64encode(b"not an image").decode(), "image/png")

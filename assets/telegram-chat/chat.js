@@ -5,7 +5,7 @@ function init(){
  const anchor=document.getElementById('tgMemberInbox')||document.getElementById('tgForwardInbox');
  if(!anchor||document.getElementById('ottChat'))return;
  const panel=document.createElement('details');panel.id='ottChat';
- panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatSearchWrap"><input id="ottChatSearch" type="search" placeholder="Tìm người hoặc nhóm…" aria-label="Tìm hội thoại"><div id="ottChatTabs" class="ott-chat-row"><button type="button" data-mode="private">Cá nhân</button><button type="button" data-mode="group">Nhóm</button><button type="button" data-mode="all">Tất cả</button></div></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div id="ottChatThread"><div class="ott-chat-row"><button id="ottChatBack" type="button">← Trở lại</button><strong id="ottChatHeading">Chọn hội thoại</strong></div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin để xóa</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="submit">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
+ panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatSearchWrap"><input id="ottChatSearch" type="search" placeholder="Tìm người hoặc nhóm…" aria-label="Tìm hội thoại"><div id="ottChatTabs" class="ott-chat-row"><button type="button" data-mode="private">Cá nhân</button><button type="button" data-mode="group">Nhóm</button><button type="button" data-mode="all">Tất cả</button></div></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div id="ottChatThread"><div class="ott-chat-row"><button id="ottChatBack" type="button">← Trở lại</button><strong id="ottChatHeading">Chọn hội thoại</strong></div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin để xóa</button><button type="button" id="ottChatSelectAll" hidden>Chọn tất cả</button><button type="button" id="ottChatCopy" hidden>Sao chép (0)</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="submit">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
  const controls=panel.querySelector('#ottChatUnlocked>.ott-chat-row');
  if(controls){
   const refresh=panel.querySelector('#ottChatRefresh');
@@ -76,7 +76,11 @@ function init(){
  function modeGroups(){return groups.filter(g=>(el('Mode').value==='all'||(String(g.group_name).startsWith('Cá nhân: ')?'private':'group')===el('Mode').value)&&String(g.group_name).toLocaleLowerCase('vi').includes((el('Search')?.value||'').toLocaleLowerCase('vi').trim()));}
  function view(){panel.classList.toggle('ott-chat-thread-open',chatId!==null);el('SearchWrap').hidden=chatId!==null;el('Back').hidden=chatId===null;for(const b of el('Tabs').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.mode===el('Mode').value));}
  function updateDeleteTools(){
-  el('Select').disabled=chatId===null||deleting;el('Select').hidden=selecting;el('Delete').hidden=!selecting;el('Cancel').hidden=!selecting;
+  el('Select').disabled=chatId===null||deleting;el('Select').hidden=selecting;el('Delete').hidden=!selecting;el('Cancel').hidden=!selecting;el('SelectAll').hidden=!selecting;el('Copy').hidden=!selecting;
+  const available=messages.filter(m=>Number.isSafeInteger(m.message_id));
+  const all=available.length>0&&available.every(m=>selected.has(m.message_id));
+  el('SelectAll').textContent=all?'Bỏ chọn tất cả':'Chọn tất cả';el('SelectAll').disabled=deleting||!available.length;
+  el('Copy').textContent='Sao chép ('+selected.size+')';el('Copy').disabled=deleting||!selected.size;
   el('Delete').textContent='Xóa tin đã chọn ('+selected.size+')';el('Delete').disabled=deleting||!selected.size;el('Cancel').disabled=deleting;
  }
  async function clearConversation(target,name){
@@ -125,7 +129,7 @@ function init(){
    const item=document.createElement('article');item.className='ott-chat-message';item.dataset.outgoing=String(m.out||m.sender_name==='Đã gửi');
    const meta=document.createElement('small');meta.textContent=m.state+' · '+new Date(m.date).toLocaleString('vi-VN')+(m.edited_at?' · Đã sửa':'');
    const p=document.createElement('p');p.textContent=m.text;
-   const b=document.createElement('button');b.type='button';b.textContent='Đưa vào nhập phơi thủ công';b.onclick=()=>{
+   const b=document.createElement('button');b.type='button';b.textContent='↳ Nhập phơi';b.title='Đưa nội dung tin nhắn vào ô nhập phơi thủ công';b.setAttribute('aria-label','Đưa vào nhập phơi thủ công');b.onclick=()=>{
     const box=document.getElementById('bets');if(!box){status('Không tìm thấy ô nhập phơi');return;}
     box.value=(box.value.trim()?box.value.replace(/\s*$/,'')+'\n':'')+m.text;
     box.dispatchEvent(new CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true}}));box.focus();box.scrollIntoView({behavior:'smooth',block:'center'});status('Đã đưa tin vào ô nhập phơi. Kiểm tra trước khi tính tiền.');
@@ -172,6 +176,18 @@ function init(){
  };
  el('Sound').onclick=async()=>{try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();sound=!sound;try{localStorage.setItem('ott_chat_sound:'+userId,sound?'on':'off');}catch{}el('Sound').textContent=sound?'Tắt âm báo':'Bật âm báo';el('Sound').setAttribute('aria-pressed',String(sound));if(sound)beep();}catch{status('Trình duyệt chưa cho phép âm thanh. Hãy thử lại.');}};
  el('Select').onclick=()=>{if(chatId===null){status('Hãy chọn hội thoại trước');return;}selecting=true;selected.clear();updateDeleteTools();draw();};
+ el('SelectAll').onclick=()=>{
+  const available=messages.filter(m=>Number.isSafeInteger(m.message_id));
+  const all=available.length>0&&available.every(m=>selected.has(m.message_id));
+  if(all)selected.clear();else for(const m of available)selected.add(m.message_id);
+  draw();
+ };
+ el('Copy').onclick=async()=>{
+  const text=messages.filter(m=>selected.has(m.message_id)).map(m=>m.message_text||'').filter(Boolean).join('\n\n');
+  if(!text){status('Không có nội dung chữ để sao chép.');return;}
+  try{await navigator.clipboard.writeText(text);status('Đã sao chép '+selected.size+' tin nhắn.');}
+  catch(e){status('Không thể sao chép tự động. Hãy mở CUNCUN trong Safari và cho phép sao chép.');}
+ };
  el('Cancel').onclick=()=>{el('DeleteConfirm').hidden=true;selecting=false;selected.clear();updateDeleteTools();draw();};
  el('Delete').onclick=()=>{
   if(chatId===null||!selected.size||!ticket||deleting)return;

@@ -41,6 +41,15 @@ Deno.serve(async req=>{
    if(b.state==="sent"){
     if(!Number.isSafeInteger(b.message_id)||b.message_id<1||typeof b.message_date!=="string"||isNaN(Date.parse(b.message_date)))return out({error:"Invalid Telegram receipt"},400);
     checked(await db.rpc("telegram_member_upsert_messages",{p_user_id:uid,p_messages:[{chat_id:job.chat_id,message_id:b.message_id,message_text:job.message_text,media_path:job.media_path,media_mime:job.media_mime,sender_name:"Đã gửi",message_date:b.message_date,edited_at:null}]}));
+    // Legacy RPC deliberately ignores media-only messages and does not persist
+    // attachment columns. Store the media receipt explicitly after Telegram ack.
+    if(job.media_path){
+     checked(await db.from("telegram_member_messages").upsert({
+      user_id:uid,chat_id:job.chat_id,message_id:b.message_id,
+      message_text:job.message_text||"",sender_name:"Đã gửi",
+      message_date:b.message_date,media_path:job.media_path,media_mime:job.media_mime
+     },{onConflict:"user_id,chat_id,message_id"}));
+    }
    }
    checked(await db.from("telegram_chat_outbox").update({state:b.state,message_id:b.state==="sent"?b.message_id:null,error:b.state==="failed"?String(b.error||"Gửi thất bại").slice(0,160):null}).eq("user_id",uid).eq("id",b.id).eq("state","sending"));
    return out({success:true});

@@ -15,13 +15,24 @@ Deno.serve(async req=>{
  if(Deno.env.get("TELEGRAM_CHAT_ENABLED")==="false")return out({error:"Telegram Chat thử nghiệm chưa bật trên máy chủ"},503);
  try{
   const b=await req.json();const action=new URL(req.url).searchParams.get("action")||"read";
-  if(action==="claim"||action==="ack"){
+  if(action==="claim"||action==="ack"||action==="worker-image"){
    const uid=req.headers.get("x-sync-user")||"",key=req.headers.get("x-sync-key")||"";
    if(!uuid(uid)||key.length<40)return out({error:"Unauthorized"},401);
    const k=checked(await db.from("telegram_member_sync_keys").select("secret_hash").eq("user_id",uid).maybeSingle());
    if(!k||await hash(key)!==k.secret_hash)return out({error:"Unauthorized"},401);
    if(!await access(uid))return out({error:"Tài khoản chưa được bật Chat thử nghiệm"},403);
    if(action==="claim")return out({success:true,jobs:checked(await db.rpc("telegram_chat_claim",{p_user:uid}))});
+   if(action==="worker-image"){
+    if(!uuid(b.id))return out({error:"Invalid job ID"},400);
+    const job=checked(await db.from("telegram_chat_outbox").select("id,media_path,media_mime,state").eq("user_id",uid).eq("id",b.id).maybeSingle());
+    if(!job||job.state!=="sending"||!job.media_path||!job.media_path.startsWith(uid+"/"))return out({error:"Image job not claimed"},403);
+    const {data:blob,error:downloadError}=await db.storage.from("telegram-chat-media").download(job.media_path);
+    if(downloadError||!blob||blob.size>10485760)return out({error:"Image unavailable"},404);
+    const bytes=new Uint8Array(await blob.arrayBuffer());
+    let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+    return out({success:true,mime:job.media_mime,data:btoa(binary)});
+   }
+
    if(!uuid(b.id)||!["sent","failed"].includes(b.state))return out({error:"Invalid acknowledgement"},400);
    const job=checked(await db.from("telegram_chat_outbox").select("*").eq("user_id",uid).eq("id",b.id).maybeSingle());
    if(!job)return out({error:"Unknown job"},404);

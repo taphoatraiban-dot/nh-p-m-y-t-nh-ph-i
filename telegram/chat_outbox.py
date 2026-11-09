@@ -1,5 +1,7 @@
 """Opt-in chat sender. No session, key, or business calculations are shared."""
 import asyncio
+import base64
+import io
 import hashlib
 import json
 import os
@@ -48,8 +50,22 @@ async def process_jobs(client, cfg, session_dir, request=chat_request):
         else:
             try:
                 entity = await client.get_input_entity(int(job['chat_id']))
-                result = await client(SendMessageRequest(peer=entity, message=job['message_text'],
-                    random_id=random_id(job_id), no_webpage=True))
+                if job.get('media_path'):
+                    payload = await asyncio.to_thread(request, cfg, 'worker-image', {'id': job_id})
+                    image_bytes = base64.b64decode(payload['data'], validate=True)
+                    if not image_bytes or len(image_bytes) > 10 * 1024 * 1024:
+                        raise ValueError('Invalid photo payload')
+                    ext = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'}.get(payload.get('mime'))
+                    if not ext:
+                        raise ValueError('Unsupported photo MIME')
+                    attachment = io.BytesIO(image_bytes)
+                    attachment.name = 'cuncun-photo.' + ext
+                    # Telegram send_file does not expose the same stable random_id
+                    # path as SendMessageRequest. A lost receipt is reconciled manually.
+                    result = await client.send_file(entity, attachment, caption=job.get('message_text') or '')
+                else:
+                    result = await client(SendMessageRequest(peer=entity, message=job['message_text'],
+                        random_id=random_id(job_id), no_webpage=True))
                 message_id = getattr(result, 'id', None)
                 date = getattr(result, 'date', None)
                 for update in getattr(result, 'updates', []):

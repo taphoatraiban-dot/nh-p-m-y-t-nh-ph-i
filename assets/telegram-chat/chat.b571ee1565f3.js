@@ -7,6 +7,18 @@ function init(){
  const panel=document.createElement('details');panel.id='ottChat';
  panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div><div id="ottChatHeading">Chọn hội thoại</div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin để xóa</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="submit">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
  anchor.after(panel);
+ const host=document.getElementById('appCard');
+ if(host){
+  const launch=document.createElement('button');launch.id='ottChatOpen';launch.type='button';launch.textContent='💬 Telegram Chat';launch.setAttribute('aria-controls','ottChat');
+  launch.onclick=()=>{
+   if(!document.body.classList.contains('app-unlocked'))return;
+   const drawer=document.getElementById('appDrawer');if(drawer?.contains(panel)){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.getElementById('drawerBackdrop')?.classList.add('open');}
+   for(let parent=panel.parentElement;parent&&parent!==host;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
+   panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  host.prepend(launch);
+ }
+
  const el=id=>panel.querySelector('#ottChat'+id),status=t=>{el('Status').textContent=t;};
  let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
  let selecting=false,deleting=false;const selected=new Set();

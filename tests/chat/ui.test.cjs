@@ -3,7 +3,7 @@ const {JSDOM}=require('jsdom');
 const source=fs.readFileSync(path.join(__dirname,'../../assets/telegram-chat/chat.js'),'utf8');
 const tick=()=>new Promise(r=>setTimeout(r,5));
 async function setup(options={}){
- const d=new JSDOM('<div id="tgMemberInbox"></div><textarea id="bets">Phơi đang nhập</textarea>',{url:'https://example.test',runScripts:'outside-only',pretendToBeVisual:true});
+ const d=new JSDOM('<section id="appCard"><aside id="appDrawer" aria-hidden="true"><div id="tgMemberInbox"></div></aside><div id="drawerBackdrop"></div></section><textarea id="bets">Phơi đang nhập</textarea>',{url:'https://example.test',runScripts:'outside-only',pretendToBeVisual:true});
  const w=d.window,calls=[];if(options.soundPref)w.localStorage.setItem('ott_chat_sound:user-a',options.soundPref);const hidden=options.hidden||new Set();let authChange;let groups=[{chat_id:-123,group_name:'Nhóm A'},{chat_id:456,group_name:'Cá nhân: B'}],signals=[];
  w.document.getElementById('bets').scrollIntoView=()=>{};
  w.sb={auth:{getSession:async()=>({data:{session:{access_token:'jwt',user:{id:'user-a'}}}}),onAuthStateChange:cb=>{authChange=cb;}}};w.SUPABASE_URL='https://test';w.SUPABASE_PUBLISHABLE_KEY='public';
@@ -80,4 +80,8 @@ test('hide failure preserves selection; locking clears confirmation and content'
 test('deployed Chat URLs match content hashes and canonical source',()=>{
  const crypto=require('node:crypto'),html=fs.readFileSync(path.join(__dirname,'../../index.html'),'utf8');
  for(const ext of ['js','css']){const source=fs.readFileSync(path.join(__dirname,'../../assets/telegram-chat/chat.'+ext));const hash=crypto.createHash('sha256').update(source).digest('hex').slice(0,12),name='assets/telegram-chat/chat.'+hash+'.'+ext;assert(html.includes(name));assert.deepEqual(fs.readFileSync(path.join(__dirname,'../../',name)),source);}
+});
+
+test('direct desktop Chat entry opens drawer but still requires PIN',async()=>{
+ const s=await setup();try{const launch=s.w.document.getElementById('ottChatOpen');assert(launch);s.el('').open=false;await tick();s.el('').scrollIntoView=()=>{};launch.click();assert(!s.w.document.getElementById('appDrawer').classList.contains('open'));s.w.document.body.classList.add('app-unlocked');launch.click();await tick();assert(s.w.document.getElementById('appDrawer').classList.contains('open'));assert.equal(s.w.document.getElementById('appDrawer').getAttribute('aria-hidden'),'false');assert(s.el('').open);assert(s.el('Unlocked').hidden);assert(!s.calls.some(c=>c.action==='read'));}finally{s.d.window.close();}
 });

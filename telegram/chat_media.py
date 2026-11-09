@@ -23,8 +23,8 @@ def decode_image(payload, mime):
     if not raw or len(raw) > MAX_IMAGE_BYTES:
         raise ValueError("Image too large or empty")
     signatures = {
-        "image/jpeg": raw.startswith(b"\\xff\\xd8\\xff"),
-        "image/png": raw.startswith(b"\\x89PNG\\r\\n\\x1a\\n"),
+        "image/jpeg": raw.startswith(bytes([0xff, 0xd8, 0xff])),
+        "image/png": raw.startswith(bytes([0x89,80,78,71,13,10,26,10])),
         "image/webp": raw.startswith(b"RIFF") and raw[8:12] == b"WEBP",
     }
     if not signatures[mime]:

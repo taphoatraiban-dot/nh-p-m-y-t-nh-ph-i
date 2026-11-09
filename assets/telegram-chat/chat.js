@@ -94,7 +94,16 @@ function init(){
     check.onchange=()=>{if(check.checked)selected.add(m.message_id);else selected.delete(m.message_id);updateDeleteTools();};
     check.disabled=deleting;label.append(check,document.createTextNode(' Chọn tin'));item.dataset.messageId=String(m.message_id);item.prepend(label);
    }
-   item.append(meta,p,b);root.append(item);
+   item.append(meta,p,b);
+   if(m.media_path){
+    const photo=document.createElement('img');photo.alt='Ảnh Telegram';photo.loading='lazy';photo.style.cssText='display:block;max-width:100%;max-height:320px;object-fit:contain;border-radius:8px;margin:8px 0';
+    const path=m.media_path,proof=ticket;
+    api('image-url',{media_path:path},proof).then(result=>{
+     if(ticket===proof&&item.isConnected&&result.url)photo.src=result.url;
+    }).catch(()=>{if(item.isConnected)photo.alt='Ảnh đã hết hạn hoặc không thể tải';});
+    item.append(photo);
+   }
+   root.append(item);
   }
   if(!rows.length)root.textContent=chatId===null?'Chọn một hội thoại để xem tin.':'Chưa có tin nhắn trong hội thoại.';
   root.scrollTop=atBottom?root.scrollHeight:oldScroll;

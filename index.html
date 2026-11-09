@@ -12766,7 +12766,7 @@ body.app-unlocked #drawerEdge::after{
 body:not(.app-unlocked) #drawerEdge,body.app-unlocked:has(#appDrawer.open) #drawerEdge{
  display:none!important;pointer-events:none!important;
 }
-body.app-unlocked #appDrawer{width:min(52vw,260px)!important;max-width:260px!important}
+body.app-unlocked #appDrawer{width:100vw!important;max-width:none!important;min-width:100vw!important}
 body.app-unlocked #drawerClose{display:flex!important;visibility:visible!important;pointer-events:auto!important}
 </style>
 <script id="cuncun-menu-swipe-handle-final-js">
@@ -12807,8 +12807,10 @@ body.app-unlocked #drawerClose{display:flex!important;visibility:visible!importa
 <style id="cuncun-menu-typography-opacity-final-1710">
 /* Phuc hoi be rong menu de 2 cot khong ep chu thanh cot doc. */
 body.app-unlocked #appDrawer{
-  width:min(88vw,430px)!important;
-  max-width:430px!important;
+  width:100vw!important;
+  max-width:none!important;
+  min-width:100vw!important;
+  left:0!important;right:0!important;
   box-sizing:border-box!important;
 }
 #appDrawer .cuncun-group{

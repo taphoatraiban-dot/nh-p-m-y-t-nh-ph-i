@@ -5,6 +5,7 @@ The caller must authenticate before requesting short-lived signed URLs.
 """
 import base64
 import binascii
+import struct
 
 ALLOWED_MIME = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -27,6 +28,12 @@ def decode_image(payload, mime):
         "image/png": raw.startswith(bytes([0x89,80,78,71,13,10,26,10])),
         "image/webp": raw.startswith(b"RIFF") and raw[8:12] == b"WEBP",
     }
+    if mime == "image/png" and len(raw) < 24:
+        raise ValueError("Truncated PNG")
+    if mime == "image/webp" and (len(raw) < 16 or struct.unpack("<I", raw[4:8])[0] + 8 != len(raw)):
+        raise ValueError("Invalid WebP container length")
+    if mime == "image/jpeg" and (len(raw) < 5 or not raw.endswith(bytes([0xff, 0xd9]))):
+        raise ValueError("Truncated JPEG")
     if not signatures[mime]:
         raise ValueError("Image content does not match MIME type")
     return raw

@@ -10,12 +10,14 @@ function init(){
  const host=document.getElementById('appCard');
  if(host){
   const launch=document.createElement('button');launch.id='ottChatOpen';launch.type='button';launch.textContent='💬 Telegram Chat';launch.setAttribute('aria-controls','ottChat');
-  launch.onclick=()=>{
+  document.addEventListener('click',e=>{
+   if(!e.target.closest?.('#ottChatOpen'))return;
+   e.preventDefault();e.stopPropagation();
    if(!document.body.classList.contains('app-unlocked'))return;
    const drawer=document.getElementById('appDrawer');if(drawer?.contains(panel)){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.getElementById('drawerBackdrop')?.classList.add('open');}
    for(let parent=panel.parentElement;parent&&parent!==host;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
    panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'});
-  };
+  },true);
   host.prepend(launch);
  }
 

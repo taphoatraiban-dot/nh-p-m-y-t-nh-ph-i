@@ -66,3 +66,10 @@ test('launcher is registered only once and follows Telegram assets',()=>{
  assert.equal(index.match(/assets\/zalo-chat\/launcher\.js/g)?.length,1);
  assert.ok(index.indexOf('assets/zalo-chat/launcher.js')>index.indexOf('assets/telegram-chat/chat.'));
 });
+
+test('mobile demo constrains height and scrolls messages independently',()=>{
+ assert.match(demo,/\.app\{height:100dvh;min-height:0;overflow:hidden\}/);
+ assert.match(demo,/\.messages\{min-height:0;overflow-y:auto;overscroll-behavior:contain\}/);
+ assert.match(launcher,/frame\.style\.minHeight='0'/);
+ assert.doesNotMatch(launcher,/frame\.style\.minHeight='540px'/);
+});

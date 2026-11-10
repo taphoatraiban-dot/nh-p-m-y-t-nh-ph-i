@@ -222,3 +222,11 @@ test('concurrent calculator edit during append confirmation aborts Zalo transfer
  assert.equal(t.bets.value,'new bets from another action');
  assert.equal(t.bets.events.length,0);
 });
+
+test('Zalo input composer is visible immediately on mobile',()=>{
+ const t=setup();const panel=t.nodes.find(n=>n.tag==='details');
+ const field=t.nodes.find(n=>n.tag==='textarea');
+ assert.equal(panel.open,true);
+ assert.match(field.placeholder,/Nhập tin/);
+ assert.equal(field.maxLength,12000);
+});

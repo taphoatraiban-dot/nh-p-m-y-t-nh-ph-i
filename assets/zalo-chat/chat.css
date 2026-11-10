@@ -1,0 +1,93 @@
+#zalo{border:1px solid #cbd5e1;border-radius:12px;margin:10px 0;padding:12px;background:#fff;color:#17212f}#zalo summary{font-weight:800;cursor:pointer}#zalo [hidden]{display:none!important}.zalo-chat-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:9px 0}.zalo-chat-row>*{min-width:0}#zalo input,#zalo textarea,#zalo select{box-sizing:border-box;max-width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}#zalo button{min-height:40px;border-radius:8px;padding:8px 12px;cursor:pointer}#zaloBody{display:grid;grid-template-columns:minmax(150px,1fr) minmax(0,3fr);gap:10px}#zaloConversations{max-height:480px;overflow:auto}#zaloConversations button{display:block;width:100%;text-align:left;margin:4px 0;overflow-wrap:anywhere;background:#f1f5f9;border:1px solid #cbd5e1}#zaloConversations button[aria-pressed=true]{background:#dbeafe;border-color:#2563eb}#zaloMessages{min-height:120px;max-height:380px;overflow:auto;padding:5px;background:#f8fafc;border-radius:8px}.zalo-chat-message{border:1px solid #e2e8f0;background:white;border-radius:9px;padding:9px;margin:6px 0;overflow-wrap:anywhere}.zalo-chat-message[data-outgoing=true]{background:#dcfce7;margin-left:20px}.zalo-chat-message p{white-space:pre-wrap;margin:6px 0}.zalo-chat-message small{color:#475569}#zalo #zaloText{flex:1 1 0;min-width:0;width:0;height:44px;min-height:44px;max-height:88px;padding:7px 9px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;resize:vertical}#zaloCompose{display:flex;align-items:flex-end;gap:6px;margin-top:6px}#zaloCompose>.zalo-chat-row{flex:0 0 auto;margin:0}#zaloCompose small{display:none}#zalo #zaloSend{width:auto;min-width:0;font-size:13px;padding:6px 9px}#zaloStatus{font-size:13px;white-space:pre-wrap}#zaloHeading{font-weight:700;margin:5px 0}@media(max-width:620px){#zaloBody{grid-template-columns:1fr}#zaloConversations{max-height:145px}#zalo{padding:8px}}
+@media print{#zalo{display:none!important}}
+
+#zaloDeleteTools{margin:4px 0}#zaloDelete{background:#dc2626;color:#fff;border:1px solid #b91c1c}#zaloCancel{background:#f1f5f9}#zalo .zalo-chat-select{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:#334155;margin-right:8px}#zalo .zalo-chat-select input{width:20px;height:20px;accent-color:#2563eb}#zalo .zalo-chat-message:has(.zalo-chat-select input:checked){border-color:#2563eb;background:#eff6ff}@media(max-width:620px){#zaloDeleteTools button{flex:1 1 auto}#zaloMessages{max-height:330px}}
+
+#zaloDeleteTools{gap:6px;margin:6px 0}#zalo #zaloDeleteTools button{font-size:13px;min-height:44px;padding:7px 10px;touch-action:manipulation;width:auto}#zaloDelete,#zaloConfirmDelete{background:#fff1f2;color:#991b1b;border:1px solid #fecaca}#zalo .zalo-chat-select{display:flex;align-items:center;gap:7px;min-height:44px;cursor:pointer;font-size:14px}#zalo .zalo-chat-select input{width:22px;height:22px;margin:0;flex:none}#zaloDeleteConfirm{position:fixed;inset:0;z-index:2147483646;background:rgba(15,23,42,.94);color:#fff;padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box}#zaloDeleteConfirm p{max-width:360px;line-height:1.6}#zalo #zaloDeleteConfirm button{min-height:44px;font-size:15px}#zalo #zaloKeep{background:#fff;color:#17212f}
+
+#zaloOpen{min-height:44px;margin:6px 0;padding:8px 12px;border:1px solid #93c5fd;border-radius:9px;background:#eff6ff;color:#1e40af;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation}
+
+/* Compact messenger-style conversation list and dedicated thread view. */
+#zaloSearchWrap{margin:8px 0}#zaloSearch{width:100%;background:#f8fafc}
+#zaloTabs{display:flex;gap:6px;margin:7px 0}#zaloTabs button{flex:1;background:#eef2f7;border:1px solid #d4dce7;font-weight:700}
+#zaloTabs button[aria-pressed=true]{background:#dbeafe;border-color:#2683c6;color:#075985}
+#zaloBack{background:#e0f2fe;color:#075985;border:1px solid #bae6fd}
+#zaloConversations button{padding:13px 12px;min-height:52px;border-radius:12px;background:#fff;margin:3px 0;border:0;border-bottom:1px solid #e2e8f0;font-weight:600}
+#zaloConversations button:hover,#zaloConversations button:focus-visible{background:#eff6ff}
+#zaloThread{min-width:0}
+#zaloHeading{overflow-wrap:anywhere}
+#zaloMessages .zalo-chat-message{max-width:86%;width:fit-content;background:#fff;border:0;box-shadow:0 1px 2px #00000012;padding:10px 12px;border-radius:14px}
+#zaloMessages .zalo-chat-message[data-outgoing=true]{background:#dcfce7;margin-left:auto}
+#zaloMessages .zalo-chat-message>button{font-size:12px;min-height:30px;padding:4px 8px}
+@media(max-width:620px){
+ #zaloBody{display:block}
+ #zaloConversations{max-height:55vh;overflow:auto}
+ #zaloThread{display:none}
+ #zalo.zalo-chat-thread-open #zaloConversations{display:none}
+ #zalo.zalo-chat-thread-open #zaloThread{display:block}
+ #zalo.zalo-chat-thread-open #zaloSearchWrap{display:none}
+ #zaloMessages{max-height:48vh;min-height:220px}
+ #zalo #zaloText{height:48px;min-height:48px}
+ #zaloCompose{position:sticky;bottom:0;background:#fff;padding:6px 0}
+}
+@media(min-width:621px){#zaloBack{display:none}}
+
+#zaloConversations .zalo-chat-unread{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;margin-left:8px;border-radius:999px;background:#e11d48;color:#fff;font-size:12px;font-weight:700;line-height:1}
+
+/* Compact production Telegram Chat on mobile. */
+#zaloUnlocked>.zalo-chat-row{display:flex;flex-wrap:nowrap;gap:5px;margin:4px 0;align-items:center}
+#zaloUnlocked>.zalo-chat-row>#zaloMode{flex:1;min-width:0;padding:7px;font-size:13px}
+#zalo #zaloRefresh{min-width:38px;min-height:38px;padding:0;font-size:25px;line-height:1}
+#zalo #zaloNotification{min-height:38px;padding:5px 8px;font-size:12px;white-space:nowrap}
+#zaloMenu{position:relative}
+#zaloMenu>summary{list-style:none;min-width:38px;min-height:38px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:9px;font-size:23px;cursor:pointer}
+#zaloMenu>summary::-webkit-details-marker{display:none}
+#zaloMenu>button{display:none}
+#zaloMenu[open]>button{display:block;white-space:nowrap;width:100%;margin:4px 0}
+#zaloMenu[open]{min-width:115px;z-index:5}
+#zaloTabs{display:none!important}
+#zaloStatus:empty{display:none!important}
+#zalo #zaloNotification{order:3}
+#zaloMenu{order:4}
+#zalo .zalo-chat-import[hidden]{display:none!important}
+@media(max-width:620px){
+ #zalo{padding:6px;margin:4px 0}
+ #zalo #zaloStatus{font-size:11px;margin:2px 0}
+ #zalo #zaloSearchWrap{margin:3px 0}
+ #zalo #zaloDeleteTools{margin:2px 0}
+ #zalo #zaloDeleteTools button{min-height:34px;font-size:12px;padding:4px 7px}
+ #zaloMessages{max-height:58vh;min-height:230px;padding:3px}
+ #zaloMessages .zalo-chat-message{padding:7px 9px;margin:4px 0;font-size:14px}
+ #zaloMessages .zalo-chat-message p{margin:3px 0}
+ #zaloMessages .zalo-chat-message small{font-size:11px}
+ #zaloUnlocked>.zalo-chat-row{gap:3px}
+ #zalo #zaloNotification{font-size:11px;padding:5px}
+}
+
+/* Hide the legacy iPhone push-permission guidance above Telegram Chat controls. */
+#zaloPush,#zaloPushHelp,#zaloNotifyHelp,#zaloNotificationHelp{display:none!important}
+#zalo>p:not(#zaloStatus),#zaloUnlocked>p:not(#zaloStatus){display:none!important}
+
+/* iOS swipe-left conversation action. */
+#zaloConversations .zalo-chat-swipe-row{position:relative;overflow:hidden;margin:3px 0;border-radius:12px;background:#dc2626}
+#zaloConversations .zalo-chat-swipe-row>button:first-child{position:relative;z-index:2;width:100%;margin:0;transition:transform .16s ease;touch-action:pan-y;background:#f1f5f9}
+#zaloConversations .zalo-chat-swipe-row.swiped>button:first-child{transform:translateX(-76px)}
+#zaloConversations .zalo-chat-swipe-delete{position:absolute;right:0;top:0;bottom:0;width:76px;min-height:0;margin:0;border:0;border-radius:0;background:#dc2626;color:#fff;font-weight:800}
+
+/* Compact chat message actions and batch selection. */
+#zaloMessages .zalo-chat-import{font-size:11px!important;font-weight:600!important;padding:4px 7px!important;min-height:27px!important;max-width:100%;width:auto!important;border-radius:7px!important;margin:3px 0 0!important;white-space:normal}
+#zaloMessages .zalo-chat-import[hidden]{display:none!important}
+#zaloDeleteTools{display:flex;flex-wrap:wrap;gap:5px}
+#zaloDeleteTools button{flex:1 1 auto;min-width:0;font-size:12px!important;padding:6px 9px!important;min-height:34px!important}
+#zaloDeleteTools button[hidden]{display:none!important}
+#zaloMessages .zalo-chat-select{font-size:12px;display:inline-flex;align-items:center;gap:3px;margin:0 0 4px}
+#zaloMessages .zalo-chat-select input{width:17px;height:17px}
+
+/* Show the two batch actions immediately on an open conversation. */
+#zaloDeleteTools{display:flex;flex-wrap:wrap;gap:5px}
+#zaloDeleteTools #zaloSelectAll:not([hidden]),
+#zaloDeleteTools #zaloCopy:not([hidden]){display:inline-flex;align-items:center;justify-content:center}
+#zaloDeleteTools #zaloSelectAll[hidden],
+#zaloDeleteTools #zaloCopy[hidden]{display:none!important}
+
+#zaloChat{border:1px solid #cbd5e1;border-radius:12px;padding:10px;margin:10px 0;background:#fff}#zaloChat [hidden]{display:none!important}#zaloChat input,#zaloChat select,#zaloChat textarea{box-sizing:border-box;max-width:100%;font-size:16px;padding:10px}#zaloChat button{min-height:44px;padding:8px;border-radius:9px}#zaloSearch,#zaloText{width:100%}#zaloText{min-height:100px}#zaloNew,.zalo-tools{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}#zaloMessages article{background:white;border-radius:14px;padding:10px;margin:8px 0;overflow-wrap:anywhere}#zaloMessages p{white-space:pre-wrap}#zaloMessages input{width:22px;height:22px}#zaloChat label{display:block}#zaloThread{min-width:0}#zaloChatOpen{min-height:44px}#zaloConfirm{border:2px solid #dc2626;padding:12px}@media(max-width:620px){#zaloChat.zalo-thread-open #zaloConversations{display:none}#zaloChat #zaloThread:not([hidden]){display:block}}@media print{#zaloChat,#zaloChatOpen{display:none!important}}

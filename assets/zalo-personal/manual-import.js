@@ -42,7 +42,9 @@
    const existing=bets.value.trim();
    if(existing&&!global.confirm('Ô nhập đã có nội dung. Chọn OK để nối thêm tin Zalo; Hủy để giữ nguyên.'))return;
    bets.value=(existing?bets.value.replace(/\s*$/,'')+'\n':'')+value;
-   bets.dispatchEvent(new global.Event('input',{bubbles:true}));
+   // Match the existing Telegram manual-import event contract so calculator listeners
+   // can distinguish a user-confirmed chat paste from ordinary typing.
+   bets.dispatchEvent(new global.CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true,zaloManualImport:true}}));
    bets.dispatchEvent(new global.Event('change',{bubbles:true}));
    reset();field.value='';title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';

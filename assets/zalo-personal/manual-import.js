@@ -15,7 +15,9 @@
   const field=doc.createElement('textarea');field.rows=5;field.maxLength=12000;
   field.placeholder='Sao chép nội dung trong Zalo rồi dán vào đây';field.setAttribute('aria-label','Nội dung Zalo sao chép');
   field.style.cssText='box-sizing:border-box;width:100%;font:16px/1.5 system-ui;padding:12px;border:1px solid #b8c9de;border-radius:12px;background:#f7faff;color:#17212f;resize:vertical';
-  const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;padding:12px;border-radius:12px;background:#e8f4ff;border:1px solid #c8e5ff;font:15px/1.5 system-ui';
+  const counter=doc.createElement('p');counter.style.cssText='font:12px system-ui;color:#64748b;text-align:right;margin:4px 0 8px';counter.textContent='0 / 12.000 ký tự';
+  const updateCounter=()=>{counter.textContent=field.value.length.toLocaleString('vi-VN')+' / 12.000 ký tự'};
+    const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;padding:12px;border-radius:12px;background:#e8f4ff;border:1px solid #c8e5ff;font:15px/1.5 system-ui';
   const paste=doc.createElement('button');paste.type='button';paste.textContent='Dán từ bộ nhớ tạm';
   paste.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
   const review=doc.createElement('button');review.type='button';review.textContent='Xem trước';review.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
@@ -33,18 +35,18 @@
   const clearOnLock=()=>{
    if(isUnlocked())return;
    clipboardGeneration++;
-   field.value='';reset();title.open=false;
+   field.value='';updateCounter();reset();title.open=false;
    status.textContent='CUNCUN đã khóa. Nội dung Zalo tạm thời đã được xóa để bảo vệ riêng tư.';
   };
   if(typeof global.MutationObserver==='function'&&doc.body){
    const observer=new global.MutationObserver(clearOnLock);
    observer.observe(doc.body,{attributes:true,attributeFilter:['class']});
   }
-  field.addEventListener('input',()=>{clipboardGeneration++;reset();if(!isUnlocked())clearOnLock();});
+  field.addEventListener('input',()=>{clipboardGeneration++;reset();updateCounter();if(!isUnlocked())clearOnLock();});
   // Treat leaving the page as a privacy boundary; never retain a Zalo draft across navigation.
   if(typeof global.addEventListener==='function'){
    global.addEventListener('pagehide',()=>{
-    clipboardGeneration++;field.value='';reset();title.open=false;
+    clipboardGeneration++;field.value='';updateCounter();reset();title.open=false;
    });
   }
   paste.addEventListener('click',async()=>{
@@ -63,13 +65,13 @@
     if(text.length>field.maxLength){
      status.textContent='Tin quá dài (trên 12.000 ký tự). Hãy chia thành nhiều lần dán để tránh mất nội dung.';return;
     }
-    field.value=text;reset();status.textContent='Đã dán nội dung. Hãy bấm Xem trước và kiểm tra bảng giá trước khi chuyển.';field.focus();
+    field.value=text;updateCounter();reset();status.textContent='Đã dán nội dung. Hãy bấm Xem trước và kiểm tra bảng giá trước khi chuyển.';field.focus();
    }catch(err){if(generation!==clipboardGeneration)return;status.textContent='Không đọc được bộ nhớ tạm. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();}
   });
   clear.addEventListener('click',()=>{
    if(!field.value&&!preview.textContent)return;
    if(!global.confirm('Xóa nội dung đang dán từ Zalo? Ô nhập phơi CUNCUN sẽ không bị thay đổi.'))return;
-   clipboardGeneration++;field.value='';reset();status.textContent='Đã xóa nội dung dán Zalo. Ô nhập phơi vẫn giữ nguyên.';
+   clipboardGeneration++;field.value='';updateCounter();reset();status.textContent='Đã xóa nội dung dán Zalo. Ô nhập phơi vẫn giữ nguyên.';
   });
   review.addEventListener('click',()=>{
    if(!isUnlocked()){clearOnLock();return;}
@@ -102,10 +104,10 @@
    // can distinguish a user-confirmed chat paste from ordinary typing.
    bets.dispatchEvent(new global.CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true,zaloManualImport:true}}));
    bets.dispatchEvent(new global.Event('change',{bubbles:true}));
-   clipboardGeneration++;reset();field.value='';title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
+   clipboardGeneration++;reset();field.value='';updateCounter();title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
-  for(const el of [note,field,paste,review,clear,preview,reminder,consent,transfer,status])title.append(el);
+  for(const el of [note,field,counter,paste,review,clear,preview,reminder,consent,transfer,status])title.append(el);
   root.append(title);host.append(root);return root;
  }
  global.CuncunZaloManualImport=Object.freeze({mount});

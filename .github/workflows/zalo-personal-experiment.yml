@@ -1,0 +1,23 @@
+name: Zalo personal manual import (experiment)
+on:
+  push:
+    branches:
+      - experiment/zalo-chat-ui
+    paths:
+      - 'assets/zalo-personal/**'
+      - 'assets/telegram-chat/chat.js'
+      - 'tests/zalo-personal/**'
+      - '.github/workflows/zalo-personal-experiment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run isolated Zalo manual import tests
+        run: node --test tests/zalo-personal/manual-import.test.cjs

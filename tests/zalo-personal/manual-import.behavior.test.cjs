@@ -214,3 +214,11 @@ test('stale clipboard completion does not overwrite clear confirmation',async()=
  assert.match(status.textContent,/Đã xóa nội dung dán Zalo/);
  assert.equal(field.value,'');
 });
+
+test('concurrent calculator edit during append confirmation aborts Zalo transfer',()=>{
+ const t=setup();t.bets.value='old bets';
+ t.context.confirm=()=>{t.bets.value='new bets from another action';return true;};
+ prepare(t,'2dmn\n12b1.').transfer.fire('click');
+ assert.equal(t.bets.value,'new bets from another action');
+ assert.equal(t.bets.events.length,0);
+});

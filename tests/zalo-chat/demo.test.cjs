@@ -19,3 +19,14 @@ test('demo does not auto-send or auto-print',()=>{
  assert.doesNotMatch(demo,/fetch\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|sessionStorage/);
  assert.doesNotMatch(launcher,/fetch\(|XMLHttpRequest|WebSocket|sendBeacon/);
 });
+
+test('inline demo JavaScript parses without syntax errors',()=>{
+ const vm=require('node:vm');
+ const scripts=[...demo.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)];
+ assert.ok(scripts.length>0,'demo must contain inline script');
+ for(const script of scripts)assert.doesNotThrow(()=>new vm.Script(script[1]));
+});
+test('isolated demo cannot directly access CUNCUN bet input',()=>{
+ assert.doesNotMatch(demo,/window\\.parent\\.document|parent\\.document/);
+ assert.match(demo,/id="import" disabled/);
+});

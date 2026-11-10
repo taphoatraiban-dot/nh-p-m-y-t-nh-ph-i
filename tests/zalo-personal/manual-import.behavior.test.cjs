@@ -177,3 +177,16 @@ test('pending clipboard read cannot restore text after pagehide',async()=>{
  assert.equal(t.nodes.find(n=>n.tag==='textarea').value,'');
  assert.equal(t.bets.value,'');
 });
+
+test('review action invalidates a pending clipboard read',async()=>{
+ const t=setup();let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ const field=t.nodes.find(n=>n.tag==='textarea');
+ field.value='reviewed text';
+ const pending=t.find('Dán từ bộ nhớ tạm').fire('click');
+ t.find('Xem trước').fire('click');
+ resolve('late clipboard');await pending;
+ assert.equal(field.value,'reviewed text');
+ assert.equal(t.nodes.find(n=>n.tag==='pre').textContent,'reviewed text');
+ assert.equal(t.bets.value,'');
+});

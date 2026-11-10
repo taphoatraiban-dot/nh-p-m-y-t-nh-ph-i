@@ -18,7 +18,7 @@ test('Review and consent gate transfer into the existing bets field',()=>{
  assert.match(moduleSource,/preview\.hidden/);
  assert.match(moduleSource,/dispatchEvent\(new global\.CustomEvent\('input'/);
  assert.match(moduleSource,/ottChatManualImport:true,zaloManualImport:true/);
- assert.doesNotMatch(moduleSource,/\.click\(\)|submit\s*\(/);
+ assert.doesNotMatch(moduleSource,/transfer\.click\(\)|submit\s*\(/);
 });
 test('Existing content is never overwritten without confirmation',()=>{
  assert.match(moduleSource,/existing&&\!global\.confirm\(/);

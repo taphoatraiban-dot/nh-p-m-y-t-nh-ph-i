@@ -52,3 +52,10 @@ test('Clear Zalo draft requires confirmation and does not edit CUNCUN bets',()=>
  assert.match(moduleSource,/clipboardGeneration\+\+;field\.value='';updateCounter\(\);reset\(\)/);
  assert.match(moduleSource,/Ô nhập phơi vẫn giữ nguyên/);
 });
+
+test('keyboard review shortcut never sends or calculates automatically',()=>{
+ assert.match(moduleSource,/event\.ctrlKey\|\|event\.metaKey/);
+ assert.match(moduleSource,/event\.key==='Enter'/);
+ assert.match(moduleSource,/event\.preventDefault\(\);review\.click\(\)/);
+ assert.doesNotMatch(moduleSource,/fetch\s*\(|XMLHttpRequest|WebSocket/);
+});

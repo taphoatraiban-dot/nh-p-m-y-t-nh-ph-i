@@ -15,7 +15,12 @@
   const field=doc.createElement('textarea');field.rows=5;field.maxLength=12000;
   field.placeholder='Nhập tin hoặc sao chép từ Zalo rồi dán vào đây…';field.setAttribute('aria-label','Nội dung Zalo sao chép');
   field.style.cssText='box-sizing:border-box;width:100%;font:16px/1.5 system-ui;padding:12px;border:1px solid #b8c9de;border-radius:12px;background:#f7faff;color:#17212f;resize:vertical';
-  const counter=doc.createElement('p');counter.style.cssText='font:12px system-ui;color:#64748b;text-align:right;margin:4px 0 8px';counter.textContent='0 / 12.000 ký tự';
+  // A chat-like composition area without pretending to sync real Zalo conversations.
+  const composer=doc.createElement('div');composer.style.cssText='border:1px solid #d6e5f4;border-radius:14px;background:#f1f6fc;padding:10px;margin:10px 0';
+  const composerLabel=doc.createElement('p');composerLabel.textContent='TIN NHẮN NHẬP THỦ CÔNG';composerLabel.style.cssText='font:600 11px system-ui;letter-spacing:.5px;color:#64748b;margin:0 0 8px';
+  composer.append(composerLabel,field);
+  const previewLabel=doc.createElement('p');previewLabel.textContent='XEM TRƯỚC TIN NHẮN';previewLabel.style.cssText='font:600 11px system-ui;letter-spacing:.5px;color:#64748b;margin:12px 0 6px';
+    const counter=doc.createElement('p');counter.style.cssText='font:12px system-ui;color:#64748b;text-align:right;margin:4px 0 8px';counter.textContent='0 / 12.000 ký tự';
   const updateCounter=()=>{counter.textContent=field.value.length.toLocaleString('vi-VN')+' / 12.000 ký tự'};
     const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;padding:12px;border-radius:12px;background:#e8f4ff;border:1px solid #c8e5ff;font:15px/1.5 system-ui';
   const paste=doc.createElement('button');paste.type='button';paste.textContent='Dán từ bộ nhớ tạm';
@@ -30,7 +35,8 @@
   clear.style.cssText='min-height:44px;padding:10px 14px;margin:8px;border-radius:8px;cursor:pointer';
   const status=doc.createElement('p');status.style.cssText='font:13px/1.5 system-ui;color:#475569;margin:8px 0';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   let clipboardGeneration=0;
-  const reset=()=>{preview.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
+  previewLabel.hidden=true;
+  const reset=()=>{preview.hidden=true;previewLabel.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
   const isUnlocked=()=>Boolean(doc.body?.classList?.contains('app-unlocked'));
   const clearOnLock=()=>{
    if(isUnlocked())return;
@@ -80,7 +86,7 @@
    clipboardGeneration++;
    reset();const value=field.value.trim();
    if(!value){status.textContent='Hãy dán nội dung trước';return}
-   preview.textContent=value;preview.hidden=false;check.disabled=false;
+   preview.textContent=value;preview.hidden=false;previewLabel.hidden=false;check.disabled=false;
    status.textContent='Kiểm tra nội dung và bảng giá đang chọn trong CUNCUN trước khi xác nhận';
   });
   check.addEventListener('change',()=>{if(!isUnlocked()){clearOnLock();return;}transfer.disabled=!check.checked||preview.hidden});
@@ -110,7 +116,7 @@
    clipboardGeneration++;reset();field.value='';updateCounter();title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
-  for(const el of [note,field,counter,paste,review,clear,preview,reminder,consent,transfer,status])title.append(el);
+  for(const el of [note,composer,counter,paste,review,clear,previewLabel,preview,reminder,consent,transfer,status])title.append(el);
   root.append(title);host.append(root);return root;
  }
  global.CuncunZaloManualImport=Object.freeze({mount});

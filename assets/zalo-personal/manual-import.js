@@ -27,9 +27,11 @@
   const clear=doc.createElement('button');clear.type='button';clear.textContent='Xóa nội dung dán';
   clear.style.cssText='min-height:44px;padding:10px 14px;margin:8px;border-radius:8px;cursor:pointer';
   const status=doc.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  let clipboardGeneration=0;
   const reset=()=>{preview.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
-  field.addEventListener('input',reset);
+  field.addEventListener('input',()=>{clipboardGeneration++;reset();});
   paste.addEventListener('click',async()=>{
+   const generation=++clipboardGeneration;
    reset();
    if(!global.navigator?.clipboard?.readText){
     status.textContent='Trình duyệt không hỗ trợ dán tự động. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();return;
@@ -37,18 +39,18 @@
    const before=field.value;
    try{
     const text=await global.navigator.clipboard.readText();
-    if(field.value!==before){status.textContent='Ô nhập đã thay đổi trong lúc đọc bộ nhớ tạm. Không ghi đè nội dung mới.';return;}
+    if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi trong lúc đọc bộ nhớ tạm. Không ghi đè thao tác mới.';return;}
     if(!text){status.textContent='Bộ nhớ tạm không có nội dung chữ.';return}
     if(text.length>field.maxLength){
      status.textContent='Tin quá dài (trên 12.000 ký tự). Hãy chia thành nhiều lần dán để tránh mất nội dung.';return;
     }
     field.value=text;reset();status.textContent='Đã dán nội dung. Hãy bấm Xem trước và kiểm tra bảng giá trước khi chuyển.';field.focus();
-   }catch(err){status.textContent='Không đọc được bộ nhớ tạm. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();}
+   }catch(err){if(generation!==clipboardGeneration)return;status.textContent='Không đọc được bộ nhớ tạm. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();}
   });
   clear.addEventListener('click',()=>{
    if(!field.value&&!preview.textContent)return;
    if(!global.confirm('Xóa nội dung đang dán từ Zalo? Ô nhập phơi CUNCUN sẽ không bị thay đổi.'))return;
-   field.value='';reset();status.textContent='Đã xóa nội dung dán Zalo. Ô nhập phơi vẫn giữ nguyên.';
+   clipboardGeneration++;field.value='';reset();status.textContent='Đã xóa nội dung dán Zalo. Ô nhập phơi vẫn giữ nguyên.';
   });
   review.addEventListener('click',()=>{
    reset();const value=field.value.trim();
@@ -75,7 +77,7 @@
    // can distinguish a user-confirmed chat paste from ordinary typing.
    bets.dispatchEvent(new global.CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true,zaloManualImport:true}}));
    bets.dispatchEvent(new global.Event('change',{bubbles:true}));
-   reset();field.value='';title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
+   clipboardGeneration++;reset();field.value='';title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
   for(const el of [note,field,paste,review,clear,preview,reminder,consent,transfer,status])title.append(el);

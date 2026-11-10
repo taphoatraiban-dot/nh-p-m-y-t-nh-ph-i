@@ -103,6 +103,14 @@
     if(text.length>field.maxLength){
      status.textContent='Tin quá dài (trên 12.000 ký tự). Hãy chia thành nhiều lần dán để tránh mất nội dung.';return;
     }
+    if(before.trim()&&before!==text){
+     if(!global.confirm('Ô Zalo đang có tin chưa chuyển. Chọn OK để thay bằng nội dung vừa sao chép; Hủy để giữ tin đang soạn.')){
+      status.textContent='Đã giữ nguyên tin Zalo đang soạn.';return;
+     }
+     // Confirmation may span a lock, a background transition, or a newer edit.
+     if(!isUnlocked()){clearOnLock();return;}
+     if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi trong lúc xác nhận. Không ghi đè tin mới.';return;}
+    }
     field.value=text;updateCounter();reset();status.textContent='Đã dán nội dung. Hãy bấm Xem trước và kiểm tra bảng giá trước khi chuyển.';field.focus();
    }catch(err){if(generation!==clipboardGeneration)return;status.textContent='Không đọc được bộ nhớ tạm. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();}
   });

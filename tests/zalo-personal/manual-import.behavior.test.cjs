@@ -190,3 +190,14 @@ test('review action invalidates a pending clipboard read',async()=>{
  assert.equal(t.nodes.find(n=>n.tag==='pre').textContent,'reviewed text');
  assert.equal(t.bets.value,'');
 });
+
+test('character counter follows typing and clearing draft',()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ const counter=t.nodes.find(n=>n.tag==='p'&&n.textContent==='0 / 12.000 ký tự');
+ assert.ok(counter);
+ field.value='12345';field.fire('input');
+ assert.equal(counter.textContent,'5 / 12.000 ký tự');
+ t.find('Xóa nội dung dán').fire('click');
+ assert.equal(counter.textContent,'0 / 12.000 ký tự');
+ assert.equal(t.bets.value,'');
+});

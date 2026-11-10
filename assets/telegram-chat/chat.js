@@ -7,10 +7,22 @@ function init(){
  if(anchor&&!document.getElementById('cuncunZaloManualHost')){
   const host=document.createElement('div');host.id='cuncunZaloManualHost';
   anchor.parentNode.insertBefore(host,anchor);
-  const script=document.createElement('script');script.src='/assets/zalo-personal/manual-import.js';
-  script.onload=()=>{if(window.CuncunZaloManualImport)window.CuncunZaloManualImport.mount({host});};
-  script.onerror=()=>{host.remove();};
-  document.head.append(script);
+  const mountZalo=()=>{
+   try{
+    if(window.CuncunZaloManualImport?.mount)window.CuncunZaloManualImport.mount({host});
+    else host.textContent='Không thể khởi tạo phần nhập Zalo. Hãy tải lại trang.';
+   }catch(err){
+    host.textContent='Không thể mở phần nhập Zalo. Telegram vẫn hoạt động bình thường.';
+    console.warn('Zalo manual import unavailable:',err);
+   }
+  };
+  if(window.CuncunZaloManualImport?.mount)mountZalo();
+  else{
+   const script=document.createElement('script');script.src='/assets/zalo-personal/manual-import.js';
+   script.onload=mountZalo;
+   script.onerror=()=>{host.textContent='Không tải được phần nhập Zalo. Hãy kiểm tra kết nối và tải lại trang.';};
+   document.head.append(script);
+  }
  }
  if(!anchor||document.getElementById('ottChat'))return;
  const panel=document.createElement('details');panel.id='ottChat';

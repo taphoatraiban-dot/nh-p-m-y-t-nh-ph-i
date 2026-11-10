@@ -17,11 +17,11 @@ function setup(locked=false){
  const doc={body,createElement(tag){const el=new El(tag);nodes.push(el);return el;},createTextNode(t){return t;},getElementById(id){return id==='bets'?bets:null;}};
  let confirmValue=true,confirmCalls=0;
  class Event{constructor(type,opts){this.type=type;Object.assign(this,opts);}}
- const context={document:doc,Event,CustomEvent:Event,MutationObserver:class{constructor(cb){observerCallback=cb;}observe(){}},confirm(){confirmCalls++;return confirmValue;}};
+ const pageListeners={};const context={document:doc,Event,CustomEvent:Event,addEventListener(type,cb){pageListeners[type]=cb;},MutationObserver:class{constructor(cb){observerCallback=cb;}observe(){}},confirm(){confirmCalls++;return confirmValue;}};
  context.window=context;vm.runInNewContext(source,context);
  context.CuncunZaloManualImport.mount({host});
  const find=t=>nodes.find(n=>n.textContent===t);
- return {host,bets,find,nodes,context,lock(){locked=true;observerCallback?.();},lockWithoutObserver(){locked=true;},setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
+ return {host,bets,find,nodes,context,pagehide(){pageListeners.pagehide?.();},lock(){locked=true;observerCallback?.();},lockWithoutObserver(){locked=true;},setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
 }
 function prepare(t,text){const field=t.nodes.find(x=>x.tag==='textarea'),review=t.find('Xem trước'),check=t.nodes.find(x=>x.tag==='input'),transfer=t.find('Đưa vào ô nhập phơi');field.value=text;field.fire('input');review.fire('click');check.checked=true;check.fire('change');return {field,transfer};}
 test('transfers exactly one confirmed message and fires calculator events',()=>{
@@ -160,4 +160,20 @@ test('lock during append confirmation never modifies calculator',()=>{
  assert.equal(t.bets.value,'existing');
  assert.equal(p.field.value,'');
  assert.equal(t.bets.events.length,0);
+});
+
+test('pagehide clears temporary Zalo text without modifying calculator',()=>{
+ const t=setup();t.bets.value='existing bets';const p=prepare(t,'private message');
+ t.pagehide();
+ assert.equal(p.field.value,'');
+ assert.equal(t.bets.value,'existing bets');
+ assert.equal(p.transfer.disabled,true);
+});
+test('pending clipboard read cannot restore text after pagehide',async()=>{
+ const t=setup();let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ const pending=t.find('Dán từ bộ nhớ tạm').fire('click');
+ t.pagehide();resolve('private text');await pending;
+ assert.equal(t.nodes.find(n=>n.tag==='textarea').value,'');
+ assert.equal(t.bets.value,'');
 });

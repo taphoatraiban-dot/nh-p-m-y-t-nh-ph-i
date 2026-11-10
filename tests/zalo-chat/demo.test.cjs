@@ -87,3 +87,8 @@ test('iPhone clipboard failure exposes selectable manual text without external c
  assert.match(demo,/manual\.value=text;manual\.focus\(\);manual\.select\(\)/);
  assert.match(demo,/Sao chép tự động bị chặn/);
 });
+
+test('manual copy text is cleared when thread is rerendered',()=>{
+ assert.match(demo,/function clearManualCopy\(\)\{const field=\$\('manualCopy'\);if\(field\)field\.remove\(\)\}/);
+ assert.match(demo,/function renderThread\(\)\{clearManualCopy\(\)/);
+});

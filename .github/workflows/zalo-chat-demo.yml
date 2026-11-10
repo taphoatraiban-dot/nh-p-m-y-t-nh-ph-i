@@ -1,0 +1,29 @@
+name: Zalo Chat demo safety
+on:
+  push:
+    branches:
+      - experiment/zalo-chat-ui
+  pull_request:
+    paths:
+      - 'assets/zalo-chat/**'
+      - 'experiments/zalo-chat/**'
+      - 'tests/zalo-chat/**'
+      - 'index.html'
+      - '.github/workflows/zalo-chat-demo.yml'
+permissions:
+  contents: read
+jobs:
+  safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check demo JavaScript syntax
+        run: |
+          node --check assets/zalo-chat/launcher.js
+          node --check tests/zalo-chat/demo.test.cjs
+      - name: Run offline demo safety tests
+        run: node --test tests/zalo-chat/demo.test.cjs

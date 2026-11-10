@@ -16,6 +16,8 @@
   field.placeholder='Sao chép nội dung trong Zalo rồi dán vào đây';field.setAttribute('aria-label','Nội dung Zalo sao chép');
   field.style.cssText='box-sizing:border-box;width:100%;font:16px system-ui;padding:9px;border:1px solid #94a3b8;border-radius:8px';
   const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto';
+  const paste=doc.createElement('button');paste.type='button';paste.textContent='Dán từ bộ nhớ tạm';
+  paste.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
   const review=doc.createElement('button');review.type='button';review.textContent='Xem trước';review.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
   const consent=doc.createElement('label');consent.style.cssText='display:block;margin:8px 0';
   const check=doc.createElement('input');check.type='checkbox';check.disabled=true;
@@ -27,6 +29,20 @@
   const status=doc.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const reset=()=>{preview.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
   field.addEventListener('input',reset);
+  paste.addEventListener('click',async()=>{
+   reset();
+   if(!global.navigator?.clipboard?.readText){
+    status.textContent='Trình duyệt không hỗ trợ dán tự động. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();return;
+   }
+   try{
+    const text=await global.navigator.clipboard.readText();
+    if(!text){status.textContent='Bộ nhớ tạm không có nội dung chữ.';return}
+    if(text.length>field.maxLength){
+     status.textContent='Tin quá dài (trên 12.000 ký tự). Hãy chia thành nhiều lần dán để tránh mất nội dung.';return;
+    }
+    field.value=text;reset();status.textContent='Đã dán nội dung. Hãy bấm Xem trước và kiểm tra bảng giá trước khi chuyển.';field.focus();
+   }catch(err){status.textContent='Không đọc được bộ nhớ tạm. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();}
+  });
   clear.addEventListener('click',()=>{
    if(!field.value&&!preview.textContent)return;
    if(!global.confirm('Xóa nội dung đang dán từ Zalo? Ô nhập phơi CUNCUN sẽ không bị thay đổi.'))return;
@@ -60,7 +76,7 @@
    reset();field.value='';title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
-  for(const el of [note,field,review,clear,preview,reminder,consent,transfer,status])title.append(el);
+  for(const el of [note,field,paste,review,clear,preview,reminder,consent,transfer,status])title.append(el);
   root.append(title);host.append(root);return root;
  }
  global.CuncunZaloManualImport=Object.freeze({mount});

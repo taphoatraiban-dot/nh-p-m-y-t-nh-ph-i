@@ -22,9 +22,16 @@
   const reminder=doc.createElement('p');reminder.textContent='Bảng giá và khách hàng phải được kiểm tra trên giao diện CUNCUN trước khi bấm xác nhận. Không tự chọn bảng giá.';reminder.style.cssText='font-size:13px;color:#475569;margin:8px 0';
   consent.append(check,doc.createTextNode(' Tôi đã kiểm tra nội dung và đúng bảng giá trên CUNCUN'));
   const transfer=doc.createElement('button');transfer.type='button';transfer.textContent='Đưa vào ô nhập phơi';transfer.disabled=true;transfer.style.cssText='min-height:44px;padding:10px 14px;border-radius:8px;cursor:pointer';
-  const status=doc.createElement('p');status.setAttribute('role','status');
+  const clear=doc.createElement('button');clear.type='button';clear.textContent='Xóa nội dung dán';
+  clear.style.cssText='min-height:44px;padding:10px 14px;margin:8px;border-radius:8px;cursor:pointer';
+  const status=doc.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const reset=()=>{preview.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
   field.addEventListener('input',reset);
+  clear.addEventListener('click',()=>{
+   if(!field.value&&!preview.textContent)return;
+   if(!global.confirm('Xóa nội dung đang dán từ Zalo? Ô nhập phơi CUNCUN sẽ không bị thay đổi.'))return;
+   field.value='';reset();status.textContent='Đã xóa nội dung dán Zalo. Ô nhập phơi vẫn giữ nguyên.';
+  });
   review.addEventListener('click',()=>{
    reset();const value=field.value.trim();
    if(!value){status.textContent='Hãy dán nội dung trước';return}
@@ -53,7 +60,7 @@
    reset();field.value='';title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
-  for(const el of [note,field,review,preview,reminder,consent,transfer,status])title.append(el);
+  for(const el of [note,field,review,clear,preview,reminder,consent,transfer,status])title.append(el);
   root.append(title);host.append(root);return root;
  }
  global.CuncunZaloManualImport=Object.freeze({mount});

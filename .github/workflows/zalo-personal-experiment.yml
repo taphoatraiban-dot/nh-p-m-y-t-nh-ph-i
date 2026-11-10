@@ -20,4 +20,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run isolated Zalo manual import tests
-        run: node --test tests/zalo-personal/manual-import.test.cjs
+        run: node --test tests/zalo-personal/*.test.cjs

@@ -9,11 +9,11 @@
   if(host.querySelector('[data-zalo-manual]'))return host.querySelector('[data-zalo-manual]');
   const root=doc.createElement('section');root.dataset.zaloManual='true';
   root.style.cssText='border:1px solid #d7e3f4;border-radius:14px;padding:12px;margin:10px 0;background:#fff;color:#17212f;box-shadow:0 2px 12px rgba(20,55,100,.06);max-width:100%;box-sizing:border-box';
-  const title=doc.createElement('details');const summary=doc.createElement('summary');
-  summary.textContent='💬 Zalo cá nhân · Dán tin thủ công';summary.style.cssText='cursor:pointer;font:600 16px system-ui;color:#0866c9;padding:6px 2px;min-height:34px';title.append(summary);
-  const note=doc.createElement('p');note.textContent='Sao chép tin từ Zalo → Dán → Xem trước → Xác nhận → Đưa vào ô phơi. Không kết nối tài khoản Zalo.';note.style.cssText='font:13px/1.5 system-ui;color:#526579;margin:10px 0';
+  const title=doc.createElement('details');title.open=true;const summary=doc.createElement('summary');
+  summary.textContent='💬 Zalo cá nhân · Nhập tin';summary.style.cssText='cursor:pointer;font:600 16px system-ui;color:#0866c9;padding:6px 2px;min-height:34px';title.append(summary);
+  const note=doc.createElement('p');note.textContent='Nhập hoặc sao chép tin từ Zalo → Xem trước → Xác nhận → Đưa vào ô phơi. Đây là nhập thủ công, không đồng bộ tài khoản Zalo.';note.style.cssText='font:13px/1.5 system-ui;color:#526579;margin:10px 0';
   const field=doc.createElement('textarea');field.rows=5;field.maxLength=12000;
-  field.placeholder='Sao chép nội dung trong Zalo rồi dán vào đây';field.setAttribute('aria-label','Nội dung Zalo sao chép');
+  field.placeholder='Nhập tin hoặc sao chép từ Zalo rồi dán vào đây…';field.setAttribute('aria-label','Nội dung Zalo sao chép');
   field.style.cssText='box-sizing:border-box;width:100%;font:16px/1.5 system-ui;padding:12px;border:1px solid #b8c9de;border-radius:12px;background:#f7faff;color:#17212f;resize:vertical';
   const counter=doc.createElement('p');counter.style.cssText='font:12px system-ui;color:#64748b;text-align:right;margin:4px 0 8px';counter.textContent='0 / 12.000 ký tự';
   const updateCounter=()=>{counter.textContent=field.value.length.toLocaleString('vi-VN')+' / 12.000 ký tự'};

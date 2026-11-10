@@ -13,7 +13,7 @@
   summary.textContent='💬 Zalo cá nhân · Nhập tin';summary.style.cssText='cursor:pointer;font:600 16px system-ui;color:#0866c9;padding:6px 2px;min-height:34px';title.append(summary);
   const note=doc.createElement('p');note.textContent='Nhập hoặc sao chép tin từ Zalo → Xem trước → Xác nhận → Đưa vào ô phơi. Đây là nhập thủ công, không đồng bộ tài khoản Zalo.';note.style.cssText='font:13px/1.5 system-ui;color:#526579;margin:10px 0';
   const field=doc.createElement('textarea');field.rows=5;field.maxLength=12000;
-  field.placeholder='Nhập tin hoặc sao chép từ Zalo rồi dán vào đây…';field.setAttribute('aria-label','Nội dung Zalo sao chép');
+  field.placeholder='Nhập tin hoặc sao chép từ Zalo rồi dán vào đây…';field.setAttribute('aria-label','Nội dung Zalo nhập thủ công');field.setAttribute('autocomplete','off');field.setAttribute('autocorrect','off');field.setAttribute('autocapitalize','off');field.setAttribute('spellcheck','false');
   field.style.cssText='box-sizing:border-box;width:100%;font:16px/1.5 system-ui;padding:12px;border:1px solid #b8c9de;border-radius:12px;background:#f7faff;color:#17212f;resize:vertical';
   // A chat-like composition area without pretending to sync real Zalo conversations.
   const composer=doc.createElement('div');composer.style.cssText='border:1px solid #d6e5f4;border-radius:14px;background:#f1f6fc;padding:10px;margin:10px 0';

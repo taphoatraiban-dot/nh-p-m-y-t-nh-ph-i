@@ -102,3 +102,8 @@ test('back and Escape navigation discard temporary manual copy text',()=>{
  assert.match(demo,/\$\('back'\)\.onclick=\(\)=>\{clearManualCopy\(\);app\.classList\.remove\('thread-open'\)/);
  assert.match(demo,/event\.key==='Escape'&&app\.classList\.contains\('thread-open'\)\)\{clearManualCopy\(\)/);
 });
+
+test('mobile safe-area footer and minimum touch targets',()=>{
+ assert.match(demo,/env\(safe-area-inset-bottom\)/);
+ assert.match(demo,/\.back,\.tools button,\.tabs button\{min-height:44px\}/);
+});

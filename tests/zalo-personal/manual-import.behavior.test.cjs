@@ -77,3 +77,27 @@ test('newer clipboard paste wins over an older pending read',async()=>{
  pending[0]('old content');await first;
  assert.equal(field.value,'new content');
 });
+
+test('clipboard permission denial keeps existing draft intact',async()=>{
+ const t=setup();t.context.navigator={clipboard:{readText:async()=>{throw Error('denied')}}};
+ const field=t.nodes.find(x=>x.tag==='textarea');field.value='existing draft';
+ await t.find('Dán từ bộ nhớ tạm').fire('click');
+ assert.equal(field.value,'existing draft');
+ assert.equal(t.bets.value,'');
+});
+test('oversized clipboard text is rejected without truncation',async()=>{
+ const t=setup();t.context.navigator={clipboard:{readText:async()=> 'x'.repeat(12001)}};
+ const field=t.nodes.find(x=>x.tag==='textarea');field.value='existing draft';
+ await t.find('Dán từ bộ nhớ tạm').fire('click');
+ assert.equal(field.value,'existing draft');
+ assert.equal(t.bets.value,'');
+});
+test('manual import mount is idempotent on the same host',()=>{
+ const t=setup();
+ const host=t.nodes.find(n=>n.dataset.zaloManual)?.children[0];
+ assert.ok(host);
+ const count=t.nodes.length;
+ const original=t.context.CuncunZaloManualImport.mount({host:{querySelector:()=>t.nodes.find(n=>n.dataset.zaloManual)}});
+ assert.equal(original.dataset.zaloManual,'true');
+ assert.equal(t.nodes.length,count);
+});

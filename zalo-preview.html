@@ -10,13 +10,14 @@
 main{max-width:640px;margin:auto;padding:16px;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
 h1{font-size:21px;margin:6px 0}p{margin:8px 0}.notice{background:#fff7df;border:1px solid #ead18e;border-radius:12px;padding:10px 12px}
 #bets{width:100%;min-height:135px;border:1px solid #b8c9de;border-radius:12px;padding:12px;font:16px/1.5 system-ui;background:#fff;resize:vertical}
-label{font-weight:600}small{display:block;color:#536579;margin:8px 0}
+label{font-weight:600}.demo-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.demo-actions button{min-height:44px;border:1px solid #b8c9de;background:#fff;border-radius:10px;padding:10px 14px;font:600 14px system-ui;flex:1 1 145px;cursor:pointer}small{display:block;color:#536579;margin:8px 0}
 </style>
 </head>
 <body class="app-unlocked">
 <main>
 <h1>💬 CUNCUN · Zalo cá nhân</h1>
 <p class="notice"><strong>BẢN XEM TRƯỚC THỬ NGHIỆM.</strong> Không kết nối Zalo, không gửi/nhận tin, không đăng nhập, không lưu hoặc in phơi. Chỉ thử nhập và chuyển văn bản trong trình duyệt.</p>
+<div class="demo-actions"><button type="button" id="sample">Thử tin mẫu (không có khách thật)</button><button type="button" id="reset-demo">Xóa dữ liệu thử</button></div>
 <div id="zalo-preview-host"></div>
 <label for="bets">Ô phơi mô phỏng (không phải dữ liệu thật)</label>
 <textarea id="bets" placeholder="Tin được xác nhận sẽ xuất hiện ở đây"></textarea>
@@ -28,6 +29,21 @@ label{font-weight:600}small{display:block;color:#536579;margin:8px 0}
  'use strict';
  if(window.CuncunZaloManualImport){
   window.CuncunZaloManualImport.mount({host:document.getElementById('zalo-preview-host')});
+  const host=document.getElementById('zalo-preview-host');
+  const field=host.querySelector('textarea');
+  document.getElementById('sample').addEventListener('click',()=>{
+   if(!field)return;
+   if(field.value.trim()&&!window.confirm('Thay nội dung đang soạn bằng tin mẫu?'))return;
+   field.value='2dmn\n12.34b1.';
+   field.dispatchEvent(new Event('input',{bubbles:true}));
+   field.focus();
+  });
+  document.getElementById('reset-demo').addEventListener('click',()=>{
+   if(!window.confirm('Xóa nội dung thử nghiệm trong cả hai ô?'))return;
+   const bets=document.getElementById('bets');
+   if(field){field.value='';field.dispatchEvent(new Event('input',{bubbles:true}));}
+   bets.value='';bets.dispatchEvent(new Event('input',{bubbles:true}));
+  });
  }else{
   document.getElementById('zalo-preview-host').textContent='Không tải được mô-đun Zalo. Kiểm tra đường dẫn hoặc cấu hình GitHub Pages.';
  }

@@ -1,0 +1,30 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const moduleSource=fs.readFileSync('assets/zalo-personal/manual-import.js','utf8');
+const telegramSource=fs.readFileSync('assets/telegram-chat/chat.js','utf8');
+
+test('Zalo manual module and Telegram loader parse',()=>{
+ new vm.Script(moduleSource);new vm.Script(telegramSource);
+});
+test('Zalo integration is manual and has no Zalo credentials or network',()=>{
+ assert.doesNotMatch(moduleSource,/fetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|sessionStorage|document\.cookie|zalo\.me\/api/i);
+ assert.match(moduleSource,/Dán tin Zalo cá nhân \(thủ công\)/);
+});
+test('Review and consent gate transfer into the existing bets field',()=>{
+ assert.match(moduleSource,/getElementById\('bets'\)/);
+ assert.match(moduleSource,/check\.checked/);
+ assert.match(moduleSource,/preview\.hidden/);
+ assert.match(moduleSource,/dispatchEvent\(new global\.Event\('input'/);
+ assert.doesNotMatch(moduleSource,/\.click\(\)|submit\s*\(/);
+});
+test('Existing content is never overwritten without confirmation',()=>{
+ assert.match(moduleSource,/existing&&\!global\.confirm\(/);
+ assert.match(moduleSource,/existing\?bets\.value\.replace/);
+});
+test('Telegram chat staging loader mounts the Zalo panel only once',()=>{
+ assert.match(telegramSource,/getElementById\('cuncunZaloManualHost'\)/);
+ assert.match(telegramSource,/assets\/zalo-personal\/manual-import\.js/);
+ assert.match(telegramSource,/CuncunZaloManualImport\.mount\(\{host\}\)/);
+});

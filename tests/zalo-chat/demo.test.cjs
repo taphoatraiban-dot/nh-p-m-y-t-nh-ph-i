@@ -42,3 +42,11 @@ test('DOM observer has a bounded lifetime',()=>{
 test('demo iframe closes when the page is left',()=>{
  assert.match(launcher,/addEventListener\('pagehide',close\)/);
 });
+
+test('deleting demo messages exits selection mode and shows an empty state',()=>{
+ assert.match(demo,/c\.messages=c\.messages\.filter\(m=>!selected\.has\(m\.id\)\);selected\.clear\(\);selecting=false/);
+ assert.match(demo,/Chưa có tin nhắn trong hội thoại mẫu/);
+});
+test('opening a demo conversation clears its unread badge',()=>{
+ assert.match(demo,/chat\.unread=0;current=chat\.id/);
+});

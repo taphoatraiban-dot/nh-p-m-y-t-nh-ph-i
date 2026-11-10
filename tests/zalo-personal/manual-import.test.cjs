@@ -10,7 +10,7 @@ test('Zalo manual module and Telegram loader parse',()=>{
 });
 test('Zalo integration is manual and has no Zalo credentials or network',()=>{
  assert.doesNotMatch(moduleSource,/fetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|sessionStorage|document\.cookie|zalo\.me\/api/i);
- assert.match(moduleSource,/Dán tin Zalo cá nhân \(thủ công\)/);
+ assert.match(moduleSource,/Zalo cá nhân · Dán tin thủ công/);
 });
 test('Review and consent gate transfer into the existing bets field',()=>{
  assert.match(moduleSource,/getElementById\('bets'\)/);
@@ -42,13 +42,13 @@ test('Price table selection remains in existing CUNCUN UI',()=>{
 });
 
 test('Locked CUNCUN cannot receive manually pasted Zalo bets',()=>{
- assert.match(moduleSource,/classList\.contains\('app-unlocked'\)/);
+ assert.match(moduleSource,/classList\?\.contains\('app-unlocked'\)/);
  assert.match(moduleSource,/CUNCUN đang khóa/);
 });
 
 test('Clear Zalo draft requires confirmation and does not edit CUNCUN bets',()=>{
  assert.match(moduleSource,/Xóa nội dung dán/);
  assert.match(moduleSource,/if\(!global\.confirm\('Xóa nội dung đang dán từ Zalo/);
- assert.match(moduleSource,/clipboardGeneration\+\+;field\.value='';reset\(\)/);
+ assert.match(moduleSource,/clipboardGeneration\+\+;field\.value='';updateCounter\(\);reset\(\)/);
  assert.match(moduleSource,/Ô nhập phơi vẫn giữ nguyên/);
 });

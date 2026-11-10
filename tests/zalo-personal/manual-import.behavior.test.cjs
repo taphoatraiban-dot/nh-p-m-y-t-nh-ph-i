@@ -266,3 +266,11 @@ test('oversized programmatic paste cannot be reviewed or transferred',()=>{
  assert.equal(transfer.disabled,true);
  assert.equal(t.bets.value,'');
 });
+
+test('unfinished existing bet blocks append without modifying calculator',()=>{
+ const t=setup();t.bets.value='2dmn\n12b0,5n';
+ prepare(t,'2dmn\n34b1.').transfer.fire('click');
+ assert.equal(t.bets.value,'2dmn\n12b0,5n');
+ assert.equal(t.bets.events.length,0);
+ assert.equal(t.confirmCount(),0);
+});

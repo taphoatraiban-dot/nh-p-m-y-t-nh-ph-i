@@ -153,11 +153,11 @@ test('locked input event clears typed private content',()=>{
  assert.equal(t.bets.value,'');
 });
 test('lock during append confirmation never modifies calculator',()=>{
- const t=setup();t.bets.value='existing';
- const p=prepare(t,'new message');
+ const t=setup();t.bets.value='2dmn\n12b1.';
+ const p=prepare(t,'2dmn\n34b1.');
  t.context.confirm=()=>{t.lockWithoutObserver();return true;};
  p.transfer.fire('click');
- assert.equal(t.bets.value,'existing');
+ assert.equal(t.bets.value,'2dmn\n12b1.');
  assert.equal(p.field.value,'');
  assert.equal(t.bets.events.length,0);
 });
@@ -216,10 +216,10 @@ test('stale clipboard completion does not overwrite clear confirmation',async()=
 });
 
 test('concurrent calculator edit during append confirmation aborts Zalo transfer',()=>{
- const t=setup();t.bets.value='old bets';
- t.context.confirm=()=>{t.bets.value='new bets from another action';return true;};
+ const t=setup();t.bets.value='2dmn\n12b1.';
+ t.context.confirm=()=>{t.bets.value='2dmn\n56b1.';return true;};
  prepare(t,'2dmn\n12b1.').transfer.fire('click');
- assert.equal(t.bets.value,'new bets from another action');
+ assert.equal(t.bets.value,'2dmn\n56b1.');
  assert.equal(t.bets.events.length,0);
 });
 

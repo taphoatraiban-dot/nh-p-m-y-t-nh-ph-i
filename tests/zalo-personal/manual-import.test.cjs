@@ -28,6 +28,8 @@ test('Telegram chat staging loader mounts the Zalo panel only once',()=>{
  assert.match(telegramSource,/getElementById\('cuncunZaloManualHost'\)/);
  assert.match(telegramSource,/assets\/zalo-personal\/manual-import\.js/);
  assert.match(telegramSource,/CuncunZaloManualImport\.mount\(\{host\}\)/);
+ assert.match(telegramSource,/script\.onerror=/);
+ assert.match(telegramSource,/catch\(err\)/);
 });
 
 test('Manual import refuses stale preview content',()=>{

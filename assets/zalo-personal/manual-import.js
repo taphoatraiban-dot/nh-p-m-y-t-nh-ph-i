@@ -29,8 +29,20 @@
   const status=doc.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   let clipboardGeneration=0;
   const reset=()=>{preview.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
+  const isUnlocked=()=>Boolean(doc.body?.classList?.contains('app-unlocked'));
+  const clearOnLock=()=>{
+   if(isUnlocked())return;
+   clipboardGeneration++;
+   field.value='';reset();title.open=false;
+   status.textContent='CUNCUN đã khóa. Nội dung Zalo tạm thời đã được xóa để bảo vệ riêng tư.';
+  };
+  if(typeof global.MutationObserver==='function'&&doc.body){
+   const observer=new global.MutationObserver(clearOnLock);
+   observer.observe(doc.body,{attributes:true,attributeFilter:['class']});
+  }
   field.addEventListener('input',()=>{clipboardGeneration++;reset();});
   paste.addEventListener('click',async()=>{
+   if(!isUnlocked()){clearOnLock();return;}
    const generation=++clipboardGeneration;
    reset();
    if(!global.navigator?.clipboard?.readText){
@@ -39,6 +51,7 @@
    const before=field.value;
    try{
     const text=await global.navigator.clipboard.readText();
+    if(!isUnlocked()){clearOnLock();return;}
     if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi trong lúc đọc bộ nhớ tạm. Không ghi đè thao tác mới.';return;}
     if(!text){status.textContent='Bộ nhớ tạm không có nội dung chữ.';return}
     if(text.length>field.maxLength){
@@ -53,6 +66,7 @@
    clipboardGeneration++;field.value='';reset();status.textContent='Đã xóa nội dung dán Zalo. Ô nhập phơi vẫn giữ nguyên.';
   });
   review.addEventListener('click',()=>{
+   if(!isUnlocked()){clearOnLock();return;}
    reset();const value=field.value.trim();
    if(!value){status.textContent='Hãy dán nội dung trước';return}
    preview.textContent=value;preview.hidden=false;check.disabled=false;
@@ -67,7 +81,7 @@
    // A programmatic edit may bypass the input event; reject stale review text.
    if(field.value.trim()!==value){reset();status.textContent='Nội dung đã thay đổi, hãy xem trước và xác nhận lại';return}
    // Reject imports if the application is locked, even when the panel remains in the DOM.
-   if(doc.body&&doc.body.classList&&!doc.body.classList.contains('app-unlocked')){
+   if(!isUnlocked()){
     status.textContent='CUNCUN đang khóa. Hãy mở khóa phần mềm trước khi nhập phơi.';return;
    }
    const existing=bets.value.trim();

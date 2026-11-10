@@ -98,7 +98,8 @@
    if(!bets||!('value' in bets)){status.textContent='Không tìm thấy ô nhập phơi CUNCUN';return}
    const value=preview.textContent;if(!value)return;
    // A programmatic edit may bypass the input event; reject stale review text.
-   if(field.value.trim()!==value||value.length>field.maxLength){reset();status.textContent='Nội dung đã thay đổi hoặc quá dài, hãy xem trước và xác nhận lại';return}
+   if(value.length>field.maxLength){reset();status.textContent='Nội dung vượt quá 12.000 ký tự. Hãy chia thành nhiều lần.';return}
+   if(field.value.trim()!==value){reset();status.textContent='Nội dung đã thay đổi, hãy xem trước và xác nhận lại';return}
    // Reject imports if the application is locked, even when the panel remains in the DOM.
    if(!isUnlocked()){
     status.textContent='CUNCUN đang khóa. Hãy mở khóa phần mềm trước khi nhập phơi.';return;

@@ -56,3 +56,7 @@ test('demo search and navigation affordances',()=>{
  assert.match(demo,/event\.key==='Escape'/);
  assert.match(demo,/\$\('search'\)\.focus\(\)/);
 });
+
+test('searching resets active conversation and message selection',()=>{
+ assert.match(demo,/\$\('search'\)\.oninput=\(\)=>\{if\(current!==null\)\{current=null;selected\.clear\(\);selecting=false/);
+});

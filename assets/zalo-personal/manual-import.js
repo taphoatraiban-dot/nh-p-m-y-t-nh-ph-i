@@ -40,7 +40,7 @@
    const observer=new global.MutationObserver(clearOnLock);
    observer.observe(doc.body,{attributes:true,attributeFilter:['class']});
   }
-  field.addEventListener('input',()=>{clipboardGeneration++;reset();});
+  field.addEventListener('input',()=>{clipboardGeneration++;reset();if(!isUnlocked())clearOnLock();});
   paste.addEventListener('click',async()=>{
    if(!isUnlocked()){clearOnLock();return;}
    const generation=++clipboardGeneration;
@@ -72,7 +72,7 @@
    preview.textContent=value;preview.hidden=false;check.disabled=false;
    status.textContent='Kiểm tra nội dung và bảng giá đang chọn trong CUNCUN trước khi xác nhận';
   });
-  check.addEventListener('change',()=>{transfer.disabled=!check.checked||preview.hidden});
+  check.addEventListener('change',()=>{if(!isUnlocked()){clearOnLock();return;}transfer.disabled=!check.checked||preview.hidden});
   transfer.addEventListener('click',()=>{
    if(transfer.disabled||preview.hidden||!check.checked)return;
    const bets=doc.getElementById('bets');
@@ -86,6 +86,9 @@
    }
    const existing=bets.value.trim();
    if(existing&&!global.confirm('Ô nhập đã có nội dung. Chọn OK để nối thêm tin Zalo; Hủy để giữ nguyên.'))return;
+   // A native confirmation can outlive a session lock; revalidate before writing.
+   if(!isUnlocked()){clearOnLock();return;}
+   if(field.value.trim()!==value||preview.hidden||!check.checked){reset();status.textContent='Nội dung đã thay đổi. Hãy xác nhận lại.';return;}
    bets.value=(existing?bets.value.replace(/\s*$/,'')+'\n':'')+value;
    // Match the existing Telegram manual-import event contract so calculator listeners
    // can distinguish a user-confirmed chat paste from ordinary typing.

@@ -33,7 +33,18 @@
   const transfer=doc.createElement('button');transfer.type='button';transfer.textContent='Đưa vào ô nhập phơi';transfer.disabled=true;transfer.style.cssText='min-height:44px;padding:10px 14px;border-radius:10px;cursor:pointer;background:#0878d9;color:white;border:0;font-weight:600';
   const clear=doc.createElement('button');clear.type='button';clear.textContent='Xóa nội dung dán';
   clear.style.cssText='min-height:44px;padding:10px 14px;margin:8px;border-radius:8px;cursor:pointer';
-  const status=doc.createElement('p');status.style.cssText='font:13px/1.5 system-ui;color:#475569;margin:8px 0';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  // Keep all actions reachable on narrow iPhone and Android screens.
+  const actions=doc.createElement('div');
+  actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:8px 0';
+  for(const button of [paste,review,clear]){
+   button.style.cssText+=';flex:1 1 135px;margin:0;min-width:0;white-space:normal';
+  }
+  actions.append(paste,review,clear);
+  const transferArea=doc.createElement('div');
+  transferArea.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:10px 0';
+  transfer.style.cssText+=';flex:1 1 180px;min-width:0;white-space:normal';
+  transferArea.append(transfer);
+    const status=doc.createElement('p');status.style.cssText='font:13px/1.5 system-ui;color:#475569;margin:8px 0';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   let clipboardGeneration=0;
   previewLabel.hidden=true;
   const reset=()=>{preview.hidden=true;previewLabel.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
@@ -135,7 +146,7 @@
    clipboardGeneration++;reset();field.value='';updateCounter();title.open=true;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
-  for(const el of [note,composer,counter,paste,review,clear,previewLabel,preview,reminder,consent,transfer,status])title.append(el);
+  for(const el of [note,composer,counter,actions,previewLabel,preview,reminder,consent,transferArea,status])title.append(el);
   root.append(title);host.append(root);return root;
  }
  global.CuncunZaloManualImport=Object.freeze({mount});

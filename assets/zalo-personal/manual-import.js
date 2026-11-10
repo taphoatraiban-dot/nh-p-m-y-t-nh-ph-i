@@ -95,11 +95,13 @@
    if(!isUnlocked()){
     status.textContent='CUNCUN đang khóa. Hãy mở khóa phần mềm trước khi nhập phơi.';return;
    }
-   const existing=bets.value.trim();
+   const originalBets=bets.value;
+   const existing=originalBets.trim();
    if(existing&&!global.confirm('Ô nhập đã có nội dung. Chọn OK để nối thêm tin Zalo; Hủy để giữ nguyên.'))return;
    // A native confirmation can outlive a session lock; revalidate before writing.
    if(!isUnlocked()){clearOnLock();return;}
    if(field.value.trim()!==value||preview.hidden||!check.checked){reset();status.textContent='Nội dung đã thay đổi. Hãy xác nhận lại.';return;}
+   if(bets.value!==originalBets){status.textContent='Ô nhập phơi đã thay đổi trong lúc xác nhận. Hãy kiểm tra lại trước khi chuyển tin Zalo.';return;}
    bets.value=(existing?bets.value.replace(/\s*$/,'')+'\n':'')+value;
    // Match the existing Telegram manual-import event contract so calculator listeners
    // can distinguish a user-confirmed chat paste from ordinary typing.

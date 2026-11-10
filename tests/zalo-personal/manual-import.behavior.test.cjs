@@ -13,15 +13,15 @@ function setup(locked=false){
   focus(){this.focused=true;}
   scrollIntoView(){}
  }
- const host=new El('div'),bets=new El('textarea'),body={classList:{contains:()=>!locked}};
+ let observerCallback;const host=new El('div'),bets=new El('textarea'),body={classList:{contains:()=>!locked}};
  const doc={body,createElement(tag){const el=new El(tag);nodes.push(el);return el;},createTextNode(t){return t;},getElementById(id){return id==='bets'?bets:null;}};
  let confirmValue=true,confirmCalls=0;
  class Event{constructor(type,opts){this.type=type;Object.assign(this,opts);}}
- const context={document:doc,Event,CustomEvent:Event,confirm(){confirmCalls++;return confirmValue;}};
+ const context={document:doc,Event,CustomEvent:Event,MutationObserver:class{constructor(cb){observerCallback=cb;}observe(){}},confirm(){confirmCalls++;return confirmValue;}};
  context.window=context;vm.runInNewContext(source,context);
  context.CuncunZaloManualImport.mount({host});
  const find=t=>nodes.find(n=>n.textContent===t);
- return {host,bets,find,nodes,context,setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
+ return {host,bets,find,nodes,context,lock(){locked=true;observerCallback?.();},setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
 }
 function prepare(t,text){const field=t.nodes.find(x=>x.tag==='textarea'),review=t.find('Xem trước'),check=t.nodes.find(x=>x.tag==='input'),transfer=t.find('Đưa vào ô nhập phơi');field.value=text;field.fire('input');review.fire('click');check.checked=true;check.fire('change');return {field,transfer};}
 test('transfers exactly one confirmed message and fires calculator events',()=>{
@@ -125,5 +125,23 @@ test('typing during clipboard read preserves typed content',async()=>{
  field.value='typed later';field.fire('input');
  resolve('old clipboard');await pending;
  assert.equal(field.value,'typed later');
+ assert.equal(t.bets.value,'');
+});
+
+test('locking clears Zalo draft and preview but preserves calculator bets',()=>{
+ const t=setup();t.bets.value='11b1.';
+ const p=prepare(t,'private Zalo text');
+ t.lock();
+ assert.equal(p.field.value,'');
+ assert.equal(t.bets.value,'11b1.');
+ assert.equal(p.transfer.disabled,true);
+ assert.equal(t.nodes.find(n=>n.tag==='pre').textContent,'');
+});
+test('clipboard resolution after lock never restores private text',async()=>{
+ const t=setup();let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ const pending=t.find('Dán từ bộ nhớ tạm').fire('click');
+ t.lock();resolve('private content');await pending;
+ assert.equal(t.nodes.find(n=>n.tag==='textarea').value,'');
  assert.equal(t.bets.value,'');
 });

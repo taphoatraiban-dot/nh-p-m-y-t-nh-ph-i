@@ -112,6 +112,11 @@
    }
    const originalBets=bets.value;
    const existing=originalBets.trim();
+   // Preserve original text exactly, but avoid silently merging an unfinished bet.
+   if(existing&&!/[.。]\s*$/.test(originalBets)){
+    status.textContent='Ô phơi hiện tại chưa kết thúc bằng dấu chấm. Hãy kiểm tra và hoàn tất phơi cũ trước khi nối tin Zalo.';
+    return;
+   }
    if(existing&&!global.confirm('Ô nhập đã có nội dung. Chọn OK để nối thêm tin Zalo; Hủy để giữ nguyên.'))return;
    // A native confirmation can outlive a session lock; revalidate before writing.
    if(!isUnlocked()){clearOnLock();return;}

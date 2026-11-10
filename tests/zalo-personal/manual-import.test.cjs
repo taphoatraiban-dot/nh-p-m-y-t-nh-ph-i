@@ -38,3 +38,8 @@ test('Price table selection remains in existing CUNCUN UI',()=>{
  assert.match(moduleSource,/Không tự chọn bảng giá/);
  assert.doesNotMatch(moduleSource,/getElementById\('priceTable'\)|\.selectedIndex\s*=/);
 });
+
+test('Locked CUNCUN cannot receive manually pasted Zalo bets',()=>{
+ assert.match(moduleSource,/classList\.contains\('app-unlocked'\)/);
+ assert.match(moduleSource,/CUNCUN đang khóa/);
+});

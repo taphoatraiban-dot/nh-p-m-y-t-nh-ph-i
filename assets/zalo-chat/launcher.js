@@ -47,8 +47,10 @@ function boot(){
  // CUNCUN may render Telegram controls after DOMContentLoaded.
  const observer=new MutationObserver(()=>{if(mount())observer.disconnect()});
  observer.observe(document.body,{childList:true,subtree:true});
- // Stop observing once page has loaded and settled; no permanent DOM watcher.
- window.addEventListener('load',()=>{if(mount())observer.disconnect()},{once:true});
+ // Stop observing after a bounded window to avoid a permanent document-wide watcher.
+ const stop=()=>observer.disconnect();
+ window.setTimeout(stop,15000);
+ window.addEventListener('load',()=>{if(mount())stop()},{once:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

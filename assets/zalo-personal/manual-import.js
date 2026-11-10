@@ -45,7 +45,12 @@
    status.textContent='CUNCUN đã khóa. Nội dung Zalo tạm thời đã được xóa để bảo vệ riêng tư.';
   };
   if(typeof global.MutationObserver==='function'&&doc.body){
-   const observer=new global.MutationObserver(clearOnLock);
+   const observer=new global.MutationObserver(()=>{
+    if(isUnlocked()){
+     // Unlock restores the visible composer, never the cleared private draft.
+     title.open=true;
+    }else clearOnLock();
+   });
    observer.observe(doc.body,{attributes:true,attributeFilter:['class']});
   }
   field.addEventListener('input',()=>{clipboardGeneration++;reset();updateCounter();if(!isUnlocked())clearOnLock();});

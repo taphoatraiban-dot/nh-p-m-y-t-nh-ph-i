@@ -1,5 +1,6 @@
 name: Zalo Chat demo safety
 on:
+  workflow_dispatch:
   push:
     branches:
       - experiment/zalo-chat-ui

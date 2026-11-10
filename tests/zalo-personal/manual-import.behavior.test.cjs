@@ -325,3 +325,31 @@ test('backgrounding app invalidates reviewed Zalo draft without losing text',()=
  p.transfer.fire('click');
  assert.equal(t.bets.value,'2dmn\n12b1.');
 });
+
+test('clipboard paste cancellation preserves unsent Zalo draft',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ field.value='draft message';field.fire('input');
+ t.context.navigator={clipboard:{readText:async()=> 'replacement message'}};
+ t.setConfirm(false);
+ await t.find('Dán từ bộ nhớ tạm').fire('click');
+ assert.equal(field.value,'draft message');
+ assert.equal(t.bets.value,'');
+ assert.equal(t.confirmCount(),1);
+});
+test('confirmed clipboard paste replaces draft only with consent',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ field.value='draft message';field.fire('input');
+ t.context.navigator={clipboard:{readText:async()=> 'replacement message'}};
+ await t.find('Dán từ bộ nhớ tạm').fire('click');
+ assert.equal(field.value,'replacement message');
+ assert.equal(t.confirmCount(),1);
+});
+test('clipboard confirmation cannot overwrite draft after lock',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ field.value='draft message';field.fire('input');
+ t.context.navigator={clipboard:{readText:async()=> 'replacement message'}};
+ t.context.confirm=()=>{t.lockWithoutObserver();return true;};
+ await t.find('Dán từ bộ nhớ tạm').fire('click');
+ assert.equal(field.value,'');
+ assert.equal(t.bets.value,'');
+});

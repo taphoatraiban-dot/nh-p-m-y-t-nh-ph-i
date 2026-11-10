@@ -92,3 +92,8 @@ test('manual copy text is cleared when thread is rerendered',()=>{
  assert.match(demo,/function clearManualCopy\(\)\{const field=\$\('manualCopy'\);if\(field\)field\.remove\(\)\}/);
  assert.match(demo,/function renderThread\(\)\{clearManualCopy\(\)/);
 });
+
+test('successful copy does not leave a stale manual copy box',()=>{
+ assert.match(demo,/const text=selectedText\(\);if\(!text\)return;\s*clearManualCopy\(\);/);
+ assert.match(demo,/await navigator\.clipboard\.writeText\(text\)/);
+});

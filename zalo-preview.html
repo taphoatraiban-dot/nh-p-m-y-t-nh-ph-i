@@ -38,6 +38,14 @@ label{font-weight:600}.demo-actions{display:flex;gap:8px;flex-wrap:wrap;margin:1
    field.dispatchEvent(new Event('input',{bubbles:true}));
    field.focus();
   });
+  // Browser back/forward cache can preserve form fields after leaving the preview.
+  const clearPreviewFields=()=>{
+   if(field){field.value='';field.dispatchEvent(new Event('input',{bubbles:true}));}
+   const bets=document.getElementById('bets');
+   bets.value='';bets.dispatchEvent(new Event('input',{bubbles:true}));
+  };
+  window.addEventListener('pagehide',clearPreviewFields);
+  window.addEventListener('pageshow',event=>{if(event.persisted)clearPreviewFields();});
   document.getElementById('reset-demo').addEventListener('click',()=>{
    if(!window.confirm('Xóa nội dung thử nghiệm trong cả hai ô?'))return;
    const bets=document.getElementById('bets');

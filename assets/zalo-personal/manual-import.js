@@ -127,7 +127,7 @@
    // can distinguish a user-confirmed chat paste from ordinary typing.
    bets.dispatchEvent(new global.CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true,zaloManualImport:true}}));
    bets.dispatchEvent(new global.Event('change',{bubbles:true}));
-   clipboardGeneration++;reset();field.value='';updateCounter();title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
+   clipboardGeneration++;reset();field.value='';updateCounter();title.open=true;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
   for(const el of [note,composer,counter,paste,review,clear,previewLabel,preview,reminder,consent,transfer,status])title.append(el);

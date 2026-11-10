@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>CUNCUN · Xem thử Zalo nhập thủ công</title>
+<style>
+*{box-sizing:border-box}body{font:15px/1.5 system-ui,-apple-system,sans-serif;margin:0;background:#edf3fa;color:#152238}
+main{max-width:640px;margin:auto;padding:16px;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+h1{font-size:21px;margin:6px 0}p{margin:8px 0}.notice{background:#fff7df;border:1px solid #ead18e;border-radius:12px;padding:10px 12px}
+#bets{width:100%;min-height:135px;border:1px solid #b8c9de;border-radius:12px;padding:12px;font:16px/1.5 system-ui;background:#fff;resize:vertical}
+label{font-weight:600}small{display:block;color:#536579;margin:8px 0}
+</style>
+</head>
+<body class="app-unlocked">
+<main>
+<h1>💬 CUNCUN · Zalo cá nhân</h1>
+<p class="notice"><strong>BẢN XEM TRƯỚC THỬ NGHIỆM.</strong> Không kết nối Zalo, không gửi/nhận tin, không đăng nhập, không lưu hoặc in phơi. Chỉ thử nhập và chuyển văn bản trong trình duyệt.</p>
+<div id="zalo-preview-host"></div>
+<label for="bets">Ô phơi mô phỏng (không phải dữ liệu thật)</label>
+<textarea id="bets" placeholder="Tin được xác nhận sẽ xuất hiện ở đây"></textarea>
+<small>Đóng trang sẽ mất nội dung thử nghiệm. Không dán thông tin nhạy cảm hoặc tin khách thật.</small>
+</main>
+<script src="./assets/zalo-personal/manual-import.js"></script>
+<script>
+(function(){
+ 'use strict';
+ if(window.CuncunZaloManualImport){
+  window.CuncunZaloManualImport.mount({host:document.getElementById('zalo-preview-host')});
+ }else{
+  document.getElementById('zalo-preview-host').textContent='Không tải được mô-đun Zalo. Kiểm tra đường dẫn hoặc cấu hình GitHub Pages.';
+ }
+})();
+</script>
+</body>
+</html>

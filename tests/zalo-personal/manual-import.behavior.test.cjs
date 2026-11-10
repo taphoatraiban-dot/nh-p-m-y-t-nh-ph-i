@@ -245,3 +245,15 @@ test('manual chat composer and preview label do not imply Zalo synchronization',
  t.find('Xóa nội dung dán').fire('click');
  assert.equal(previewLabel.hidden,true);
 });
+
+test('clear empty composer cancels a pending clipboard read',async()=>{
+ const t=setup();let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ const pending=t.find('Dán từ bộ nhớ tạm').fire('click');
+ t.find('Xóa nội dung dán').fire('click');
+ resolve('late private Zalo text');await pending;
+ const field=t.nodes.find(n=>n.tag==='textarea');
+ assert.equal(field.value,'');
+ assert.equal(t.bets.value,'');
+ assert.equal(t.confirmCount(),0);
+});

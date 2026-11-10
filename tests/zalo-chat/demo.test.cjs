@@ -36,7 +36,7 @@ test('switching chats and filters clears stale selection',()=>{
  assert.match(demo,/filter=b\.dataset\.filter;current=null;selected\.clear\(\);selecting=false/);
 });
 test('DOM observer has a bounded lifetime',()=>{
- assert.match(launcher,/setTimeout\(stop,15000\)/);
+ assert.match(launcher,/timeoutId=window\.setTimeout\(stop,15000\)/);assert.match(launcher,/window\.clearTimeout\(timeoutId\)/);
 });
 
 test('demo iframe closes when the page is left',()=>{

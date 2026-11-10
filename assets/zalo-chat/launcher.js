@@ -20,6 +20,7 @@ function mount(){
   if(frame)frame.remove();
   button.setAttribute('aria-expanded','false');
   button.textContent='💬 Zalo Chat · Demo';
+  container.style.padding='10px';
  }
  button.addEventListener('click',()=>{
   if(document.getElementById(FRAME_ID)){close();return}
@@ -30,6 +31,11 @@ function mount(){
   frame.setAttribute('referrerpolicy','no-referrer');
   frame.setAttribute('loading','lazy');
   frame.style.cssText='display:block;width:100%;height:min(78dvh,760px);border:1px solid #d7e5f4;border-radius:12px;margin-top:10px;background:white';
+  if(window.matchMedia && window.matchMedia('(max-width: 650px)').matches){
+   frame.style.height='calc(100dvh - 120px)';
+   frame.style.minHeight='540px';
+   container.style.padding='6px';
+  }
   container.append(frame);button.setAttribute('aria-expanded','true');button.textContent='✕ Đóng Zalo Demo';
  });
  document.addEventListener('cuncun:logout',close);

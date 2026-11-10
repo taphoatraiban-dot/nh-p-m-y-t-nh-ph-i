@@ -296,3 +296,16 @@ test('unlock restores an empty visible composer without restoring private draft'
  assert.equal(field.value,'');
  assert.equal(t.bets.value,'');
 });
+
+test('mobile action buttons wrap and remain available inside the panel',()=>{
+ const t=setup();
+ const paste=t.find('Dán từ bộ nhớ tạm'),review=t.find('Xem trước');
+ const clear=t.find('Xóa nội dung dán'),transfer=t.find('Đưa vào ô nhập phơi');
+ const actionBar=t.nodes.find(n=>n.tag==='div'&&n.children.includes(paste));
+ const transferBar=t.nodes.find(n=>n.tag==='div'&&n.children.includes(transfer));
+ assert.ok(actionBar);
+ assert.ok(actionBar.children.includes(review));
+ assert.ok(actionBar.children.includes(clear));
+ assert.ok(actionBar.style.cssText.includes('flex-wrap:wrap'));
+ assert.ok(transferBar.style.cssText.includes('flex-wrap:wrap'));
+});

@@ -30,3 +30,11 @@ test('isolated demo cannot directly access CUNCUN bet input',()=>{
  assert.doesNotMatch(demo,/window\.parent\.document|parent\.document/);
  assert.match(demo,/id="import" disabled/);
 });
+
+test('switching chats and filters clears stale selection',()=>{
+ assert.match(demo,/current=chat\.id;selected\.clear\(\);selecting=false;\$\('select'\)\.textContent='Chọn tin'/);
+ assert.match(demo,/filter=b\.dataset\.filter;current=null;selected\.clear\(\);selecting=false/);
+});
+test('DOM observer has a bounded lifetime',()=>{
+ assert.match(launcher,/setTimeout\(stop,15000\)/);
+});

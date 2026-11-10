@@ -73,6 +73,8 @@
   });
   review.addEventListener('click',()=>{
    if(!isUnlocked()){clearOnLock();return;}
+   // Reviewing is a newer user action: an older clipboard request must not overwrite it.
+   clipboardGeneration++;
    reset();const value=field.value.trim();
    if(!value){status.textContent='Hãy dán nội dung trước';return}
    preview.textContent=value;preview.hidden=false;check.disabled=false;

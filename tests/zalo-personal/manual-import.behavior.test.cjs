@@ -230,3 +230,18 @@ test('Zalo input composer is visible immediately on mobile',()=>{
  assert.match(field.placeholder,/Nhập tin/);
  assert.equal(field.maxLength,12000);
 });
+
+test('manual chat composer and preview label do not imply Zalo synchronization',()=>{
+ const t=setup();
+ const label=t.nodes.find(n=>n.textContent==='TIN NHẮN NHẬP THỦ CÔNG');
+ const previewLabel=t.nodes.find(n=>n.textContent==='XEM TRƯỚC TIN NHẮN');
+ const composer=t.nodes.find(n=>n.tag==='div'&&n.children.includes(label));
+ const field=t.nodes.find(n=>n.tag==='textarea');
+ assert.ok(composer);
+ assert.ok(composer.children.includes(field));
+ assert.equal(previewLabel.hidden,true);
+ prepare(t,'2dmn\n12b1.');
+ assert.equal(previewLabel.hidden,false);
+ t.find('Xóa nội dung dán').fire('click');
+ assert.equal(previewLabel.hidden,true);
+});

@@ -50,7 +50,7 @@ function boot(){
  // Stop observing after a bounded window to avoid a permanent document-wide watcher.
  const stop=()=>observer.disconnect();
  window.setTimeout(stop,15000);
- window.addEventListener('load',()=>{if(mount())stop()},{once:true});
+ // Do not stop at window load: Telegram panel may be mounted asynchronously afterwards.
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

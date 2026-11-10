@@ -39,6 +39,10 @@
    const value=preview.textContent;if(!value)return;
    // A programmatic edit may bypass the input event; reject stale review text.
    if(field.value.trim()!==value){reset();status.textContent='Nội dung đã thay đổi, hãy xem trước và xác nhận lại';return}
+   // Reject imports if the application is locked, even when the panel remains in the DOM.
+   if(doc.body&&doc.body.classList&&!doc.body.classList.contains('app-unlocked')){
+    status.textContent='CUNCUN đang khóa. Hãy mở khóa phần mềm trước khi nhập phơi.';return;
+   }
    const existing=bets.value.trim();
    if(existing&&!global.confirm('Ô nhập đã có nội dung. Chọn OK để nối thêm tin Zalo; Hủy để giữ nguyên.'))return;
    bets.value=(existing?bets.value.replace(/\s*$/,'')+'\n':'')+value;

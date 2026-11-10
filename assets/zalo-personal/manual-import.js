@@ -19,6 +19,7 @@
   const review=doc.createElement('button');review.type='button';review.textContent='Xem trước';
   const consent=doc.createElement('label');consent.style.cssText='display:block;margin:8px 0';
   const check=doc.createElement('input');check.type='checkbox';check.disabled=true;
+  const reminder=doc.createElement('p');reminder.textContent='Bảng giá và khách hàng phải được kiểm tra trên giao diện CUNCUN trước khi bấm xác nhận. Không tự chọn bảng giá.';reminder.style.cssText='font-size:13px;color:#475569;margin:8px 0';
   consent.append(check,doc.createTextNode(' Tôi đã kiểm tra nội dung và đúng bảng giá trên CUNCUN'));
   const transfer=doc.createElement('button');transfer.type='button';transfer.textContent='Đưa vào ô nhập phơi';transfer.disabled=true;
   const status=doc.createElement('p');status.setAttribute('role','status');
@@ -36,6 +37,8 @@
    const bets=doc.getElementById('bets');
    if(!bets||!('value' in bets)){status.textContent='Không tìm thấy ô nhập phơi CUNCUN';return}
    const value=preview.textContent;if(!value)return;
+   // A programmatic edit may bypass the input event; reject stale review text.
+   if(field.value.trim()!==value){reset();status.textContent='Nội dung đã thay đổi, hãy xem trước và xác nhận lại';return}
    const existing=bets.value.trim();
    if(existing&&!global.confirm('Ô nhập đã có nội dung. Chọn OK để nối thêm tin Zalo; Hủy để giữ nguyên.'))return;
    bets.value=(existing?bets.value.replace(/\s*$/,'')+'\n':'')+value;
@@ -44,7 +47,7 @@
    reset();field.value='';bets.focus();
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
-  for(const el of [note,field,review,preview,consent,transfer,status])title.append(el);
+  for(const el of [note,field,review,preview,reminder,consent,transfer,status])title.append(el);
   root.append(title);host.append(root);return root;
  }
  global.CuncunZaloManualImport=Object.freeze({mount});

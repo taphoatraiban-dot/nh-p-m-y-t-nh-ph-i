@@ -47,12 +47,12 @@ function mount(){
 function boot(){
  if(mount())return;
  // CUNCUN may render Telegram controls after DOMContentLoaded.
- const observer=new MutationObserver(()=>{if(mount())observer.disconnect()});
+ let timeoutId;
+ const stop=()=>{observer.disconnect();window.clearTimeout(timeoutId)};
+ const observer=new MutationObserver(()=>{if(mount())stop()});
  observer.observe(document.body,{childList:true,subtree:true});
- // Stop observing after a bounded window to avoid a permanent document-wide watcher.
- const stop=()=>observer.disconnect();
- window.setTimeout(stop,15000);
- // Do not stop at window load: Telegram panel may be mounted asynchronously afterwards.
+ // Bound the observer lifetime; also release the timer if Telegram mounts early.
+ timeoutId=window.setTimeout(stop,15000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

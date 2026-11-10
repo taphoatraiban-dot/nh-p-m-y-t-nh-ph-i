@@ -41,6 +41,12 @@
    observer.observe(doc.body,{attributes:true,attributeFilter:['class']});
   }
   field.addEventListener('input',()=>{clipboardGeneration++;reset();if(!isUnlocked())clearOnLock();});
+  // Treat leaving the page as a privacy boundary; never retain a Zalo draft across navigation.
+  if(typeof global.addEventListener==='function'){
+   global.addEventListener('pagehide',()=>{
+    clipboardGeneration++;field.value='';reset();title.open=false;
+   });
+  }
   paste.addEventListener('click',async()=>{
    if(!isUnlocked()){clearOnLock();return;}
    const generation=++clipboardGeneration;

@@ -16,12 +16,12 @@
   field.placeholder='Sao chép nội dung trong Zalo rồi dán vào đây';field.setAttribute('aria-label','Nội dung Zalo sao chép');
   field.style.cssText='box-sizing:border-box;width:100%;font:16px system-ui;padding:9px;border:1px solid #94a3b8;border-radius:8px';
   const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto';
-  const review=doc.createElement('button');review.type='button';review.textContent='Xem trước';
+  const review=doc.createElement('button');review.type='button';review.textContent='Xem trước';review.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
   const consent=doc.createElement('label');consent.style.cssText='display:block;margin:8px 0';
   const check=doc.createElement('input');check.type='checkbox';check.disabled=true;
   const reminder=doc.createElement('p');reminder.textContent='Bảng giá và khách hàng phải được kiểm tra trên giao diện CUNCUN trước khi bấm xác nhận. Không tự chọn bảng giá.';reminder.style.cssText='font-size:13px;color:#475569;margin:8px 0';
   consent.append(check,doc.createTextNode(' Tôi đã kiểm tra nội dung và đúng bảng giá trên CUNCUN'));
-  const transfer=doc.createElement('button');transfer.type='button';transfer.textContent='Đưa vào ô nhập phơi';transfer.disabled=true;
+  const transfer=doc.createElement('button');transfer.type='button';transfer.textContent='Đưa vào ô nhập phơi';transfer.disabled=true;transfer.style.cssText='min-height:44px;padding:10px 14px;border-radius:8px;cursor:pointer';
   const status=doc.createElement('p');status.setAttribute('role','status');
   const reset=()=>{preview.hidden=true;preview.textContent='';check.checked=false;check.disabled=true;transfer.disabled=true};
   field.addEventListener('input',reset);
@@ -44,7 +44,7 @@
    bets.value=(existing?bets.value.replace(/\s*$/,'')+'\n':'')+value;
    bets.dispatchEvent(new global.Event('input',{bubbles:true}));
    bets.dispatchEvent(new global.Event('change',{bubbles:true}));
-   reset();field.value='';bets.focus();
+   reset();field.value='';title.open=false;bets.focus();if(typeof bets.scrollIntoView==='function')bets.scrollIntoView({behavior:'smooth',block:'center'});
    status.textContent='Đã chuyển vào ô nhập. Hãy kiểm tra kết quả trước khi bấm OK; chưa lưu hoặc in.';
   });
   for(const el of [note,field,review,preview,reminder,consent,transfer,status])title.append(el);

@@ -49,6 +49,12 @@
    observer.observe(doc.body,{attributes:true,attributeFilter:['class']});
   }
   field.addEventListener('input',()=>{clipboardGeneration++;reset();updateCounter();if(!isUnlocked())clearOnLock();});
+  field.addEventListener('keydown',event=>{
+   // Chat-like shortcut on desktop; Enter alone remains a newline for multiline phoi.
+   if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){
+    event.preventDefault();review.click();
+   }
+  });
   // Treat leaving the page as a privacy boundary; never retain a Zalo draft across navigation.
   if(typeof global.addEventListener==='function'){
    global.addEventListener('pagehide',()=>{

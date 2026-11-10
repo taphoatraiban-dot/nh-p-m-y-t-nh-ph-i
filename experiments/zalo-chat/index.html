@@ -36,7 +36,13 @@ $('copy').onclick=async()=>{
   document.body.append(field);field.focus();field.select();
   let copied=false;try{copied=document.execCommand('copy')}catch{}
   field.remove();
-  status(copied?'Đã sao chép tin nhắn mẫu':'Không thể sao chép tự động trong bản demo cách ly');
+  if(copied){status('Đã sao chép tin nhắn mẫu')}else{
+   // Offer an accessible manual fallback when iOS blocks clipboard APIs in sandbox.
+   let manual=$('manualCopy');
+   if(!manual){manual=document.createElement('textarea');manual.id='manualCopy';manual.readOnly=true;manual.setAttribute('aria-label','Nội dung tin nhắn mẫu để sao chép thủ công');manual.style.cssText='display:block;box-sizing:border-box;width:calc(100% - 24px);min-height:90px;margin:8px 12px;padding:10px;border:1px solid #a8bcd0;border-radius:8px';$('status').before(manual)}
+   manual.value=text;manual.focus();manual.select();
+   status('Sao chép tự động bị chặn. Hãy chạm giữ nội dung trong ô để chọn Sao chép.');
+  }
  }
 };
 $('delete').onclick=()=>{if(!confirm('Xóa các tin mẫu đã chọn khỏi giao diện demo?'))return;const c=demo.find(c=>c.id===current);if(!c)return;c.messages=c.messages.filter(m=>!selected.has(m.id));selected.clear();selecting=false;$('select').textContent='Chọn tin';renderThread();renderList();status('Đã xóa bản sao demo; không ảnh hưởng Zalo')};

@@ -21,7 +21,7 @@ function setup(locked=false){
  context.window=context;vm.runInNewContext(source,context);
  context.CuncunZaloManualImport.mount({host});
  const find=t=>nodes.find(n=>n.textContent===t);
- return {bets,find,nodes,context,setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
+ return {host,bets,find,nodes,context,setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
 }
 function prepare(t,text){const field=t.nodes.find(x=>x.tag==='textarea'),review=t.find('Xem trước'),check=t.nodes.find(x=>x.tag==='input'),transfer=t.find('Đưa vào ô nhập phơi');field.value=text;field.fire('input');review.fire('click');check.checked=true;check.fire('change');return {field,transfer};}
 test('transfers exactly one confirmed message and fires calculator events',()=>{
@@ -94,10 +94,10 @@ test('oversized clipboard text is rejected without truncation',async()=>{
 });
 test('manual import mount is idempotent on the same host',()=>{
  const t=setup();
- const host=t.nodes.find(n=>n.dataset.zaloManual)?.children[0];
- assert.ok(host);
  const count=t.nodes.length;
- const original=t.context.CuncunZaloManualImport.mount({host:{querySelector:()=>t.nodes.find(n=>n.dataset.zaloManual)}});
- assert.equal(original.dataset.zaloManual,'true');
+ const first=t.host.children[0];
+ const second=t.context.CuncunZaloManualImport.mount({host:t.host});
+ assert.equal(second,first);
+ assert.equal(t.host.children.length,1);
  assert.equal(t.nodes.length,count);
 });

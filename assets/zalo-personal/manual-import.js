@@ -76,7 +76,8 @@
    }catch(err){if(generation!==clipboardGeneration)return;status.textContent='Không đọc được bộ nhớ tạm. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();}
   });
   clear.addEventListener('click',()=>{
-   if(!field.value&&!preview.textContent)return;
+   // An empty composer may still have a pending clipboard read. Clear must cancel it.
+   if(!field.value&&!preview.textContent){clipboardGeneration++;status.textContent='Đã hủy thao tác dán đang chờ.';return;}
    if(!global.confirm('Xóa nội dung đang dán từ Zalo? Ô nhập phơi CUNCUN sẽ không bị thay đổi.'))return;
    clipboardGeneration++;field.value='';updateCounter();reset();status.textContent='Đã xóa nội dung dán Zalo. Ô nhập phơi vẫn giữ nguyên.';
   });

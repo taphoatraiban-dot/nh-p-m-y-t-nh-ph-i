@@ -27,7 +27,7 @@ function mount(){
   const frame=document.createElement('iframe');frame.id=FRAME_ID;
   frame.title='Zalo Chat giao diện mẫu (không kết nối)';
   frame.src='experiments/zalo-chat/index.html';
-  frame.setAttribute('sandbox','allow-scripts allow-forms');
+  frame.setAttribute('sandbox','allow-scripts');
   frame.setAttribute('referrerpolicy','no-referrer');
   frame.setAttribute('loading','lazy');
   frame.style.cssText='display:block;width:100%;height:min(78dvh,760px);border:1px solid #d7e5f4;border-radius:12px;margin-top:10px;background:white';
@@ -39,6 +39,7 @@ function mount(){
   container.append(frame);button.setAttribute('aria-expanded','true');button.textContent='✕ Đóng Zalo Demo';
  });
  document.addEventListener('cuncun:logout',close);
+ window.addEventListener('pagehide',close);
  container.append(button,status);anchor.insertAdjacentElement('afterend',container);
  return true;
 }

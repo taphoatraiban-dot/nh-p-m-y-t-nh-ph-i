@@ -60,3 +60,9 @@ test('demo search and navigation affordances',()=>{
 test('searching resets active conversation and message selection',()=>{
  assert.match(demo,/\$\('search'\)\.oninput=\(\)=>\{if\(current!==null\)\{current=null;selected\.clear\(\);selecting=false/);
 });
+
+test('launcher is registered only once and follows Telegram assets',()=>{
+ const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ assert.equal(index.match(/assets\/zalo-chat\/launcher\.js/g)?.length,1);
+ assert.ok(index.indexOf('assets/zalo-chat/launcher.js')>index.indexOf('assets/telegram-chat/chat.'));
+});

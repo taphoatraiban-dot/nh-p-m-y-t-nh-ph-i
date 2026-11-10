@@ -23,7 +23,21 @@ $('search').oninput=renderList;$('back').onclick=()=>app.classList.remove('threa
 $('select').onclick=()=>{selecting=!selecting;selected.clear();$('select').textContent=selecting?'Bỏ chọn':'Chọn tin';renderThread()};
 $('all').onclick=()=>{const c=demo.find(c=>c.id===current);if(!c)return;selecting=true;const ids=c.messages.map(m=>m.id);selected=ids.length&&ids.every(id=>selected.has(id))?new Set():new Set(ids);$('select').textContent='Bỏ chọn';renderThread()};
 function selectedText(){const c=demo.find(c=>c.id===current);return c?c.messages.filter(m=>selected.has(m.id)).map(m=>m.text).join('\n'):''}
-$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(selectedText());status('Đã sao chép tin nhắn mẫu')}catch{status('Không thể sao chép tự động; hãy sử dụng trình duyệt hỗ trợ Clipboard')}};
+$('copy').onclick=async()=>{
+ const text=selectedText();if(!text)return;
+ try{
+  if(!navigator.clipboard?.writeText)throw new Error('Clipboard API unavailable');
+  await navigator.clipboard.writeText(text);status('Đã sao chép tin nhắn mẫu');
+ }catch{
+  // Clipboard API is often blocked inside sandboxed frames on iPhone.
+  const field=document.createElement('textarea');field.value=text;
+  field.setAttribute('readonly','');field.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';
+  document.body.append(field);field.focus();field.select();
+  let copied=false;try{copied=document.execCommand('copy')}catch{}
+  field.remove();
+  status(copied?'Đã sao chép tin nhắn mẫu':'Không thể sao chép tự động trong bản demo cách ly');
+ }
+};
 $('delete').onclick=()=>{if(!confirm('Xóa các tin mẫu đã chọn khỏi giao diện demo?'))return;const c=demo.find(c=>c.id===current);if(!c)return;c.messages=c.messages.filter(m=>!selected.has(m.id));selected.clear();renderThread();renderList();status('Đã xóa bản sao demo; không ảnh hưởng Zalo')};
 // Import into the production bets field is intentionally unavailable in this sandboxed demo.
 renderList();updateCount();

@@ -22,7 +22,7 @@
   const previewLabel=doc.createElement('p');previewLabel.textContent='XEM TRƯỚC TIN NHẮN';previewLabel.style.cssText='font:600 11px system-ui;letter-spacing:.5px;color:#64748b;margin:12px 0 6px';
     const counter=doc.createElement('p');counter.style.cssText='font:12px system-ui;color:#64748b;text-align:right;margin:4px 0 8px';counter.textContent='0 / 12.000 ký tự';
   const updateCounter=()=>{counter.textContent=field.value.length.toLocaleString('vi-VN')+' / 12.000 ký tự'};
-    const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;padding:12px;border-radius:12px;background:#e8f4ff;border:1px solid #c8e5ff;font:15px/1.5 system-ui';
+    const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto;padding:12px 14px;border-radius:16px 16px 4px 16px;background:#d9f2e3;border:1px solid #b4dec4;font:15px/1.5 system-ui;color:#153b2b;max-width:90%;margin:8px 0 8px auto;box-sizing:border-box';preview.setAttribute('aria-label','Bong bóng xem trước tin Zalo nhập thủ công');
   const paste=doc.createElement('button');paste.type='button';paste.textContent='Dán từ bộ nhớ tạm';
   paste.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
   const review=doc.createElement('button');review.type='button';review.textContent='Xem trước';review.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';

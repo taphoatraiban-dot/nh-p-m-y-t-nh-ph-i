@@ -73,3 +73,10 @@ test('mobile demo constrains height and scrolls messages independently',()=>{
  assert.match(launcher,/frame\.style\.minHeight='0'/);
  assert.doesNotMatch(launcher,/frame\.style\.minHeight='540px'/);
 });
+
+test('clipboard access is opt-in and iframe remains origin isolated',()=>{
+ assert.match(launcher,/frame\.setAttribute\('allow','clipboard-write'\)/);
+ assert.match(launcher,/frame\.setAttribute\('sandbox','allow-scripts'\)/);
+ assert.doesNotMatch(launcher,/allow-same-origin|allow-top-navigation|allow-popups/);
+ assert.match(demo,/navigator\.clipboard\?\.writeText/);
+});

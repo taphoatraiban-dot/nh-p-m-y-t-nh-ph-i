@@ -274,3 +274,12 @@ test('unfinished existing bet blocks append without modifying calculator',()=>{
  assert.equal(t.bets.events.length,0);
  assert.equal(t.confirmCount(),0);
 });
+
+test('composer stays expanded after a successful transfer',()=>{
+ const t=setup(),p=prepare(t,'2dmn\n12b1.');
+ p.transfer.fire('click');
+ const panel=t.nodes.find(n=>n.tag==='details');
+ assert.equal(panel.open,true);
+ assert.equal(p.field.value,'');
+ assert.equal(t.bets.value,'2dmn\n12b1.');
+});

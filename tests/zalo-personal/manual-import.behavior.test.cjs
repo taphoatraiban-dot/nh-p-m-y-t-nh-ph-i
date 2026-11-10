@@ -101,3 +101,29 @@ test('manual import mount is idempotent on the same host',()=>{
  assert.equal(t.host.children.length,1);
  assert.equal(t.nodes.length,count);
 });
+
+test('successful clipboard paste requires review and consent before transfer',async()=>{
+ const t=setup();t.context.navigator={clipboard:{readText:async()=> '2dmn\\n12.34da1.'}};
+ const field=t.nodes.find(x=>x.tag==='textarea');
+ await t.find('Dán từ bộ nhớ tạm').fire('click');
+ assert.equal(field.value,'2dmn\\n12.34da1.');
+ assert.equal(t.bets.value,'');
+ const transfer=t.find('Đưa vào ô nhập phơi');
+ assert.equal(transfer.disabled,true);
+ t.find('Xem trước').fire('click');
+ assert.equal(transfer.disabled,true);
+ t.nodes.find(x=>x.tag==='input').checked=true;
+ t.nodes.find(x=>x.tag==='input').fire('change');
+ transfer.fire('click');
+ assert.equal(t.bets.value,'2dmn\\n12.34da1.');
+});
+test('typing during clipboard read preserves typed content',async()=>{
+ const t=setup();let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ const field=t.nodes.find(x=>x.tag==='textarea');
+ const pending=t.find('Dán từ bộ nhớ tạm').fire('click');
+ field.value='typed later';field.fire('input');
+ resolve('old clipboard');await pending;
+ assert.equal(field.value,'typed later');
+ assert.equal(t.bets.value,'');
+});

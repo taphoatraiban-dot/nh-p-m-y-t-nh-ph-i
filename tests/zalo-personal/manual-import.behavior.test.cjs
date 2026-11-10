@@ -8,7 +8,7 @@ function setup(locked=false){
   querySelector(sel){return sel==='[data-zalo-manual]'?this.children.find(x=>x.dataset?.zaloManual):null;}
   setAttribute(){}
   addEventListener(name,cb){this.listeners[name]=cb;}
-  fire(name){this.listeners[name]?.();}
+  fire(name){return this.listeners[name]?.();}
   dispatchEvent(e){this.events.push(e);return true;}
   focus(){this.focused=true;}
   scrollIntoView(){}
@@ -21,7 +21,7 @@ function setup(locked=false){
  context.window=context;vm.runInNewContext(source,context);
  context.CuncunZaloManualImport.mount({host});
  const find=t=>nodes.find(n=>n.textContent===t);
- return {bets,find,nodes,setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
+ return {bets,find,nodes,context,setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
 }
 function prepare(t,text){const field=t.nodes.find(x=>x.tag==='textarea'),review=t.find('Xem trước'),check=t.nodes.find(x=>x.tag==='input'),transfer=t.find('Đưa vào ô nhập phơi');field.value=text;field.fire('input');review.fire('click');check.checked=true;check.fire('change');return {field,transfer};}
 test('transfers exactly one confirmed message and fires calculator events',()=>{
@@ -53,4 +53,27 @@ test('clear draft does not touch calculator',()=>{
  const t=setup();t.bets.value='11b1.';const p=prepare(t,'12b1.');
  t.find('Xóa nội dung dán').fire('click');
  assert.equal(p.field.value,'');assert.equal(t.bets.value,'11b1.');
+});
+
+test('pending clipboard read cannot resurrect a cleared draft',async()=>{
+ const t=setup();let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ const field=t.nodes.find(x=>x.tag==='textarea');
+ field.value='original';
+ const pending=t.find('Dán từ bộ nhớ tạm').fire('click');
+ t.find('Xóa nội dung dán').fire('click');
+ resolve('stale clipboard');
+ await pending;
+ assert.equal(field.value,'');
+ assert.equal(t.bets.value,'');
+});
+test('newer clipboard paste wins over an older pending read',async()=>{
+ const t=setup();const pending=[];
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>pending.push(r))}};
+ const field=t.nodes.find(x=>x.tag==='textarea');
+ const first=t.find('Dán từ bộ nhớ tạm').fire('click');
+ const second=t.find('Dán từ bộ nhớ tạm').fire('click');
+ pending[1]('new content');await second;
+ pending[0]('old content');await first;
+ assert.equal(field.value,'new content');
 });

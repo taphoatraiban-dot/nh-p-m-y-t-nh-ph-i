@@ -28,3 +28,10 @@ jobs:
           node --check tests/zalo-chat/demo.test.cjs
       - name: Run offline demo safety tests
         run: node --test tests/zalo-chat/demo.test.cjs
+      - name: Package standalone Zalo demo for manual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuncun-zalo-demo-preview
+          path: experiments/zalo-chat/index.html
+          if-no-files-found: error
+          retention-days: 7

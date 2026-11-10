@@ -21,7 +21,7 @@ function setup(locked=false){
  context.window=context;vm.runInNewContext(source,context);
  context.CuncunZaloManualImport.mount({host});
  const find=t=>nodes.find(n=>n.textContent===t);
- return {host,bets,find,nodes,context,pagehide(){pageListeners.pagehide?.();},lock(){locked=true;observerCallback?.();},lockWithoutObserver(){locked=true;},setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
+ return {host,bets,find,nodes,context,pagehide(){pageListeners.pagehide?.();},lock(){locked=true;observerCallback?.();},unlock(){locked=false;observerCallback?.();},lockWithoutObserver(){locked=true;},setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
 }
 function prepare(t,text){const field=t.nodes.find(x=>x.tag==='textarea'),review=t.find('Xem trước'),check=t.nodes.find(x=>x.tag==='input'),transfer=t.find('Đưa vào ô nhập phơi');field.value=text;field.fire('input');review.fire('click');check.checked=true;check.fire('change');return {field,transfer};}
 test('transfers exactly one confirmed message and fires calculator events',()=>{
@@ -282,4 +282,17 @@ test('composer stays expanded after a successful transfer',()=>{
  assert.equal(panel.open,true);
  assert.equal(p.field.value,'');
  assert.equal(t.bets.value,'2dmn\n12b1.');
+});
+
+test('unlock restores an empty visible composer without restoring private draft',()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ const panel=t.nodes.find(n=>n.tag==='details');
+ field.value='private Zalo message';field.fire('input');
+ t.lock();
+ assert.equal(panel.open,false);
+ assert.equal(field.value,'');
+ t.unlock();
+ assert.equal(panel.open,true);
+ assert.equal(field.value,'');
+ assert.equal(t.bets.value,'');
 });

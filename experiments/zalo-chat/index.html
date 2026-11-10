@@ -27,6 +27,7 @@ $('all').onclick=()=>{const c=demo.find(c=>c.id===current);if(!c)return;selectin
 function selectedText(){const c=demo.find(c=>c.id===current);return c?c.messages.filter(m=>selected.has(m.id)).map(m=>m.text).join('\n'):''}
 $('copy').onclick=async()=>{
  const text=selectedText();if(!text)return;
+ clearManualCopy();
  try{
   if(!navigator.clipboard?.writeText)throw new Error('Clipboard API unavailable');
   await navigator.clipboard.writeText(text);status('Đã sao chép tin nhắn mẫu');

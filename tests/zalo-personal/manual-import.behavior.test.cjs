@@ -201,3 +201,16 @@ test('character counter follows typing and clearing draft',()=>{
  assert.equal(counter.textContent,'0 / 12.000 ký tự');
  assert.equal(t.bets.value,'');
 });
+
+test('stale clipboard completion does not overwrite clear confirmation',async()=>{
+ const t=setup();let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ const field=t.nodes.find(n=>n.tag==='textarea');field.value='draft';
+ const pending=t.find('Dán từ bộ nhớ tạm').fire('click');
+ t.find('Xóa nội dung dán').fire('click');
+ const status=t.nodes.find(n=>n.tag==='p'&&n.textContent.includes('Đã xóa nội dung dán Zalo'));
+ assert.ok(status);
+ resolve('late');await pending;
+ assert.match(status.textContent,/Đã xóa nội dung dán Zalo/);
+ assert.equal(field.value,'');
+});

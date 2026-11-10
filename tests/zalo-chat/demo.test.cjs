@@ -50,3 +50,9 @@ test('deleting demo messages exits selection mode and shows an empty state',()=>
 test('opening a demo conversation clears its unread badge',()=>{
  assert.match(demo,/chat\.unread=0;current=chat\.id/);
 });
+
+test('demo search and navigation affordances',()=>{
+ assert.match(demo,/Không tìm thấy hội thoại mẫu/);
+ assert.match(demo,/event\.key==='Escape'/);
+ assert.match(demo,/\$\('search'\)\.focus\(\)/);
+});

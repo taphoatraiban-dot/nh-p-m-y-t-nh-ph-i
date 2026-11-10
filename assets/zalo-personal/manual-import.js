@@ -86,7 +86,8 @@
    // Reviewing is a newer user action: an older clipboard request must not overwrite it.
    clipboardGeneration++;
    reset();const value=field.value.trim();
-   if(!value){status.textContent='Hãy dán nội dung trước';return}
+   if(!value){status.textContent='Hãy nhập hoặc dán nội dung trước';return}
+   if(value.length>field.maxLength){status.textContent='Nội dung vượt quá 12.000 ký tự. Hãy chia thành nhiều lần để tránh mất tin.';return;}
    preview.textContent=value;preview.hidden=false;previewLabel.hidden=false;check.disabled=false;
    status.textContent='Kiểm tra nội dung và bảng giá đang chọn trong CUNCUN trước khi xác nhận';
   });
@@ -97,7 +98,7 @@
    if(!bets||!('value' in bets)){status.textContent='Không tìm thấy ô nhập phơi CUNCUN';return}
    const value=preview.textContent;if(!value)return;
    // A programmatic edit may bypass the input event; reject stale review text.
-   if(field.value.trim()!==value){reset();status.textContent='Nội dung đã thay đổi, hãy xem trước và xác nhận lại';return}
+   if(field.value.trim()!==value||value.length>field.maxLength){reset();status.textContent='Nội dung đã thay đổi hoặc quá dài, hãy xem trước và xác nhận lại';return}
    // Reject imports if the application is locked, even when the panel remains in the DOM.
    if(!isUnlocked()){
     status.textContent='CUNCUN đang khóa. Hãy mở khóa phần mềm trước khi nhập phơi.';return;

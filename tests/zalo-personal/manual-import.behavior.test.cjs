@@ -257,3 +257,12 @@ test('clear empty composer cancels a pending clipboard read',async()=>{
  assert.equal(t.bets.value,'');
  assert.equal(t.confirmCount(),0);
 });
+
+test('oversized programmatic paste cannot be reviewed or transferred',()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ field.value='1'.repeat(12001);field.fire('input');
+ t.find('Xem trước').fire('click');
+ const transfer=t.find('Đưa vào ô nhập phơi');
+ assert.equal(transfer.disabled,true);
+ assert.equal(t.bets.value,'');
+});

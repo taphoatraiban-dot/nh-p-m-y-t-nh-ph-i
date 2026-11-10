@@ -14,14 +14,14 @@ function setup(locked=false){
   scrollIntoView(){}
  }
  let observerCallback;const host=new El('div'),bets=new El('textarea'),body={classList:{contains:()=>!locked}};
- const doc={body,createElement(tag){const el=new El(tag);nodes.push(el);return el;},createTextNode(t){return t;},getElementById(id){return id==='bets'?bets:null;}};
+ const doc={body,visibilityState:'visible',listeners:{},addEventListener(type,cb){this.listeners[type]=cb;},createElement(tag){const el=new El(tag);nodes.push(el);return el;},createTextNode(t){return t;},getElementById(id){return id==='bets'?bets:null;}};
  let confirmValue=true,confirmCalls=0;
  class Event{constructor(type,opts){this.type=type;Object.assign(this,opts);}}
  const pageListeners={};const context={document:doc,Event,CustomEvent:Event,addEventListener(type,cb){pageListeners[type]=cb;},MutationObserver:class{constructor(cb){observerCallback=cb;}observe(){}},confirm(){confirmCalls++;return confirmValue;}};
  context.window=context;vm.runInNewContext(source,context);
  context.CuncunZaloManualImport.mount({host});
  const find=t=>nodes.find(n=>n.textContent===t);
- return {host,bets,find,nodes,context,pagehide(){pageListeners.pagehide?.();},lock(){locked=true;observerCallback?.();},unlock(){locked=false;observerCallback?.();},lockWithoutObserver(){locked=true;},setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
+ return {host,bets,find,nodes,context,background(){doc.visibilityState='hidden';doc.listeners.visibilitychange?.();},foreground(){doc.visibilityState='visible';doc.listeners.visibilitychange?.();},pagehide(){pageListeners.pagehide?.();},lock(){locked=true;observerCallback?.();},unlock(){locked=false;observerCallback?.();},lockWithoutObserver(){locked=true;},setConfirm(v){confirmValue=v;},confirmCount(){return confirmCalls;}};
 }
 function prepare(t,text){const field=t.nodes.find(x=>x.tag==='textarea'),review=t.find('Xem trước'),check=t.nodes.find(x=>x.tag==='input'),transfer=t.find('Đưa vào ô nhập phơi');field.value=text;field.fire('input');review.fire('click');check.checked=true;check.fire('change');return {field,transfer};}
 test('transfers exactly one confirmed message and fires calculator events',()=>{
@@ -308,4 +308,20 @@ test('mobile action buttons wrap and remain available inside the panel',()=>{
  assert.ok(actionBar.children.includes(clear));
  assert.ok(actionBar.style.cssText.includes('flex-wrap:wrap'));
  assert.ok(transferBar.style.cssText.includes('flex-wrap:wrap'));
+});
+
+test('backgrounding app invalidates reviewed Zalo draft without losing text',()=>{
+ const t=setup(),p=prepare(t,'2dmn\n12b1.');
+ assert.equal(p.transfer.disabled,false);
+ t.background();
+ assert.equal(p.transfer.disabled,true);
+ assert.equal(p.field.value,'2dmn\n12b1.');
+ p.transfer.fire('click');
+ assert.equal(t.bets.value,'');
+ t.foreground();
+ t.find('Xem trước').fire('click');
+ const check=t.nodes.find(n=>n.tag==='input');
+ check.checked=true;check.fire('change');
+ p.transfer.fire('click');
+ assert.equal(t.bets.value,'2dmn\n12b1.');
 });

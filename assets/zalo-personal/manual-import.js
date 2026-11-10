@@ -34,8 +34,10 @@
    if(!global.navigator?.clipboard?.readText){
     status.textContent='Trình duyệt không hỗ trợ dán tự động. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();return;
    }
+   const before=field.value;
    try{
     const text=await global.navigator.clipboard.readText();
+    if(field.value!==before){status.textContent='Ô nhập đã thay đổi trong lúc đọc bộ nhớ tạm. Không ghi đè nội dung mới.';return;}
     if(!text){status.textContent='Bộ nhớ tạm không có nội dung chữ.';return}
     if(text.length>field.maxLength){
      status.textContent='Tin quá dài (trên 12.000 ký tự). Hãy chia thành nhiều lần dán để tránh mất nội dung.';return;

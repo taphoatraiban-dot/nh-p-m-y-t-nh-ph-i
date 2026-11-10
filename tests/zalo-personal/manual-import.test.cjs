@@ -59,3 +59,9 @@ test('keyboard review shortcut never sends or calculates automatically',()=>{
  assert.match(moduleSource,/event\.preventDefault\(\);review\.click\(\)/);
  assert.doesNotMatch(moduleSource,/fetch\s*\(|XMLHttpRequest|WebSocket/);
 });
+
+test('mobile editor disables autocorrection to preserve lottery syntax',()=>{
+ assert.match(moduleSource,/setAttribute\('autocorrect','off'\)/);
+ assert.match(moduleSource,/setAttribute\('autocapitalize','off'\)/);
+ assert.match(moduleSource,/setAttribute\('spellcheck','false'\)/);
+});

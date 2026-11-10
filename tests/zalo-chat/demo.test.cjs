@@ -97,3 +97,8 @@ test('successful copy does not leave a stale manual copy box',()=>{
  assert.match(demo,/const text=selectedText\(\);if\(!text\)return;\s*clearManualCopy\(\);/);
  assert.match(demo,/await navigator\.clipboard\.writeText\(text\)/);
 });
+
+test('back and Escape navigation discard temporary manual copy text',()=>{
+ assert.match(demo,/\$\('back'\)\.onclick=\(\)=>\{clearManualCopy\(\);app\.classList\.remove\('thread-open'\)/);
+ assert.match(demo,/event\.key==='Escape'&&app\.classList\.contains\('thread-open'\)\)\{clearManualCopy\(\)/);
+});

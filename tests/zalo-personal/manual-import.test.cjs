@@ -10,7 +10,7 @@ test('Zalo manual module and Telegram loader parse',()=>{
 });
 test('Zalo integration is manual and has no Zalo credentials or network',()=>{
  assert.doesNotMatch(moduleSource,/fetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|sessionStorage|document\.cookie|zalo\.me\/api/i);
- assert.match(moduleSource,/Zalo cá nhân · Dán tin thủ công/);
+ assert.match(moduleSource,/Zalo cá nhân · Nhập tin/);
 });
 test('Review and consent gate transfer into the existing bets field',()=>{
  assert.match(moduleSource,/getElementById\('bets'\)/);

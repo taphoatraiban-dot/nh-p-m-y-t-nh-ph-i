@@ -60,7 +60,8 @@
    try{
     const text=await global.navigator.clipboard.readText();
     if(!isUnlocked()){clearOnLock();return;}
-    if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi trong lúc đọc bộ nhớ tạm. Không ghi đè thao tác mới.';return;}
+    if(generation!==clipboardGeneration)return;
+    if(field.value!==before){status.textContent='Nội dung đã thay đổi trong lúc đọc bộ nhớ tạm. Không ghi đè thao tác mới.';return;}
     if(!text){status.textContent='Bộ nhớ tạm không có nội dung chữ.';return}
     if(text.length>field.maxLength){
      status.textContent='Tin quá dài (trên 12.000 ký tự). Hãy chia thành nhiều lần dán để tránh mất nội dung.';return;

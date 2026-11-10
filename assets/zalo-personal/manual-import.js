@@ -65,6 +65,15 @@
    observer.observe(doc.body,{attributes:true,attributeFilter:['class']});
   }
   field.addEventListener('input',()=>{clipboardGeneration++;reset();updateCounter();if(!isUnlocked())clearOnLock();});
+  // When switching away and returning on mobile, require a fresh review before transfer.
+  if(typeof doc.addEventListener==='function'){
+   doc.addEventListener('visibilitychange',()=>{
+    if(doc.visibilityState==='hidden'){
+     clipboardGeneration++;reset();
+     status.textContent='Đã tạm khóa xác nhận. Hãy xem trước lại nội dung khi quay về CUNCUN.';
+    }
+   });
+  }
   field.addEventListener('keydown',event=>{
    // Chat-like shortcut on desktop; Enter alone remains a newline for multiline phoi.
    if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){

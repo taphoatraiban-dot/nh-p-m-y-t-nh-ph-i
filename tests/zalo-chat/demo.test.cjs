@@ -80,3 +80,10 @@ test('clipboard access is opt-in and iframe remains origin isolated',()=>{
  assert.doesNotMatch(launcher,/allow-same-origin|allow-top-navigation|allow-popups/);
  assert.match(demo,/navigator\.clipboard\?\.writeText/);
 });
+
+test('iPhone clipboard failure exposes selectable manual text without external calls',()=>{
+ assert.match(demo,/manual\.id='manualCopy'/);
+ assert.match(demo,/manual\.readOnly=true/);
+ assert.match(demo,/manual\.value=text;manual\.focus\(\);manual\.select\(\)/);
+ assert.match(demo,/Sao chép tự động bị chặn/);
+});

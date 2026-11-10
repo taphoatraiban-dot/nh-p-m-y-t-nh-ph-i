@@ -353,3 +353,14 @@ test('clipboard confirmation cannot overwrite draft after lock',async()=>{
  assert.equal(field.value,'');
  assert.equal(t.bets.value,'');
 });
+
+test('chat bubble preview shows untrusted pasted text as text only',()=>{
+ const t=setup(),input='<img src=x onerror=alert(1)>\n2dmn\n12b1.';
+ prepare(t,input);
+ const preview=t.nodes.find(n=>n.tag==='pre');
+ assert.equal(preview.textContent,input);
+ assert.equal(preview.hidden,false);
+ assert.ok(preview.style.cssText.includes('border-radius:16px'));
+ assert.ok(preview.style.cssText.includes('max-width:90%'));
+ assert.equal(t.bets.value,'');
+});

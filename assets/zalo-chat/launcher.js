@@ -33,8 +33,8 @@ function mount(){
   frame.style.cssText='display:block;width:100%;height:min(78dvh,760px);border:1px solid #d7e5f4;border-radius:12px;margin-top:10px;background:white';
   frame.setAttribute('allow','clipboard-write');
   if(window.matchMedia && window.matchMedia('(max-width: 650px)').matches){
-   frame.style.height='calc(100dvh - 120px)';
-   frame.style.minHeight='540px';
+   frame.style.height='max(320px, calc(100dvh - 170px))';
+   frame.style.minHeight='0';
    container.style.padding='6px';
   }
   container.append(frame);button.setAttribute('aria-expanded','true');button.textContent='✕ Đóng Zalo Demo';

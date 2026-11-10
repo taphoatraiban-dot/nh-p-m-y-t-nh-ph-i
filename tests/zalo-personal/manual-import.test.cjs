@@ -43,3 +43,10 @@ test('Locked CUNCUN cannot receive manually pasted Zalo bets',()=>{
  assert.match(moduleSource,/classList\.contains\('app-unlocked'\)/);
  assert.match(moduleSource,/CUNCUN đang khóa/);
 });
+
+test('Clear Zalo draft requires confirmation and does not edit CUNCUN bets',()=>{
+ assert.match(moduleSource,/Xóa nội dung dán/);
+ assert.match(moduleSource,/if\(!global\.confirm\('Xóa nội dung đang dán từ Zalo/);
+ assert.match(moduleSource,/field\.value='';reset\(\)/);
+ assert.match(moduleSource,/Ô nhập phơi vẫn giữ nguyên/);
+});

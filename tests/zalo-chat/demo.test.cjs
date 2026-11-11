@@ -107,3 +107,9 @@ test('mobile safe-area footer and minimum touch targets',()=>{
  assert.match(demo,/env\(safe-area-inset-bottom\)/);
  assert.match(demo,/\.back,\.tools button,\.tabs button\{min-height:44px\}/);
 });
+
+test('Zalo multiline lottery messages keep their line breaks on iPhone',()=>{
+ assert.match(demo,/\.bubble span\{white-space:pre-wrap;overflow-wrap:anywhere\}/);
+ assert.match(demo,/text:'2dmn\\n12\.21b5\.\\n34\.43da1\.'/);
+ assert.match(demo,/\.map\(m=>m\.text\)\.join\('\\n'\)/);
+});

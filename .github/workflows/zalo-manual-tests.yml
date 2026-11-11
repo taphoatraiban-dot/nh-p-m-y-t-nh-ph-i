@@ -1,0 +1,51 @@
+name: Zalo manual import checks
+
+on:
+  push:
+    branches:
+      - experiment/zalo-chat-ui
+    paths:
+      - 'assets/zalo-personal/**'
+      - 'assets/telegram-chat/chat.js'
+      - 'tests/zalo-personal/**'
+      - 'zalo-preview*.html'
+      - '.github/workflows/zalo-manual-tests.yml'
+  pull_request:
+    paths:
+      - 'assets/zalo-personal/**'
+      - 'assets/telegram-chat/chat.js'
+      - 'tests/zalo-personal/**'
+      - 'zalo-preview*.html'
+      - '.github/workflows/zalo-manual-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check assets/zalo-personal/manual-import.js
+          node --check assets/telegram-chat/chat.js
+      - name: Run actual Node tests
+        run: node --test tests/zalo-personal/*.test.cjs
+      - name: Check standalone preview JavaScript
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          for (const file of ['zalo-preview.html', 'zalo-preview-standalone.html']) {
+            const html = fs.readFileSync(file, 'utf8');
+            const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)];
+            if (!scripts.length) throw new Error('No inline JS in ' + file);
+            for (const match of scripts) new vm.Script(match[1], { filename: file });
+            if (!html.includes('id="bets"')) throw new Error('Missing demo input in ' + file);
+          }
+          NODE

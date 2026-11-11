@@ -40,13 +40,13 @@
     // Do this BEFORE cross-station merging; otherwise duplicate rows become
     // separate groups and cannot be shortened on the printed receipt.
     const compactAmount=value=>{
-      const raw=String(value??'').trim().replace(/\\s/g,'').replace(/k$/i,'');
-      if(!/^-?\\d+(?:[.,]\\d+)*$/.test(raw))return null;
-      const n=Number(raw.replace(/[.,](?=\\d{3}(?:[.,]|$))/g,'').replace(',','.'));
+      const raw=String(value??'').trim().replace(/\s/g,'').replace(/k$/i,'');
+      if(!/^-?\d+(?:[.,]\d+)*$/.test(raw))return null;
+      const n=Number(raw.replace(/[.,](?=\d{3}(?:[.,]|$))/g,'').replace(',','.'));
       return Number.isFinite(n)?n:null;
     };
     const compactPoints=value=>{
-      const m=String(value??'').trim().match(/^(\\d+(?:[.,]\\d+)?)(\\s*n)?$/i);
+      const m=String(value??'').trim().match(/^(\d+(?:[.,]\d+)?)(\s*n)?$/i);
       return m?{value:Number(m[1].replace(',','.')),suffix:m[2]?'n':''}:null;
     };
     for(const section of sections){

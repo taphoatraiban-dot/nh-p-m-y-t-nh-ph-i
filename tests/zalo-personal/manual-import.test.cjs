@@ -33,7 +33,7 @@ test('Telegram chat staging loader mounts the Zalo panel only once',()=>{
 });
 
 test('Manual import refuses stale preview content',()=>{
- assert.match(moduleSource,/field\.value\.trim\(\)!==value/);
+ assert.match(moduleSource,/field\.value!==value/);
  assert.match(moduleSource,/Nội dung đã thay đổi, hãy xem trước và xác nhận lại/);
 });
 test('Price table selection remains in existing CUNCUN UI',()=>{

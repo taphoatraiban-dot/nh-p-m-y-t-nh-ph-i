@@ -60,11 +60,18 @@ test('direct receipt compacts identical repeated bets and preserves 161k',()=>{
  items.push(row('Đồng Nai + Cần Thơ','29k','86-68','DA','0.5n'));
  const result=receipt(items);
  for(const n of ['938','468','52','68','86-68'])assert.equal(result.labels.filter(x=>x===n).length,1);
- for(const amount of ['21k','45k','29k','161k','1,5n','3n'])assert(result.labels.includes(amount),amount);
+ for(const amount of ['21k','45k','29k','161k','0.5n ×3','1n ×3'])assert(result.labels.includes(amount),amount);
  assert.equal(result.labels.filter(x=>x==='SỐ').length,2);
 });
 test('same number at different stations is not collapsed without provenance',()=>{
  const result=receipt([row('Đồng Nai','7k','938','Bao 3','0.5n'),row('Cần Thơ','7k','938','Bao 3','0.5n')]);
  assert(result.labels.includes('14k'));
  assert(!result.labels.includes('1n'));
+});
+
+test('different original points never combine into a higher stake',()=>{
+ const result=receipt([row('Đồng Nai','7k','938','Bao 3','0,5n'),row('Đồng Nai','14k','938','Bao 3','1n')]);
+ assert.equal(result.labels.filter(x=>x==='938').length,2);
+ assert(!result.labels.includes('1,5n'));
+ assert(result.labels.includes('21k'));
 });

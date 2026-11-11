@@ -65,3 +65,9 @@ test('mobile editor disables autocorrection to preserve lottery syntax',()=>{
  assert.match(moduleSource,/setAttribute\('autocapitalize','off'\)/);
  assert.match(moduleSource,/setAttribute\('spellcheck','false'\)/);
 });
+
+// Regression: page and Telegram loaders must never create two Zalo import panels.
+test('Zalo panel uses one host when both entry points are present',()=>{
+ assert.match(telegramSource,/getElementById\('zaloPersonalManualImportHost'\)/);
+ assert.match(moduleSource,/if\(host\.querySelector\('\[data-zalo-manual\]'\)\)/);
+});

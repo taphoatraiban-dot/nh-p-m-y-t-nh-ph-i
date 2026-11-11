@@ -127,7 +127,16 @@
     if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi. Không nối tin cũ.';return;}
     if(!next.trim()){status.textContent='Không có tin chữ để nối.';return;}
     // Repeated bets may be intentional: warn, but let the operator confirm.
-    const duplicate=before.trimEnd() && before.trimEnd().split(/\r?\n/).some(line=>line.trim()===next.trim());
+    const normalizedBefore=before.replace(/\r\n/g,'\n').trimEnd();
+    const normalizedNext=next.replace(/\r\n/g,'\n').trim();
+    // Compare complete pasted blocks too: one Zalo message may contain several bet lines.
+    const duplicate=Boolean(normalizedBefore && normalizedNext && (
+     normalizedBefore.split('\n').some(line=>line.trim()===normalizedNext) ||
+     normalizedBefore===normalizedNext ||
+     normalizedBefore.startsWith(normalizedNext+'\n') ||
+     normalizedBefore.endsWith('\n'+normalizedNext) ||
+     normalizedBefore.includes('\n'+normalizedNext+'\n')
+    ));
     if(duplicate){
      if(!global.confirm('Tin này đã xuất hiện trong nội dung. Vẫn nối thêm?')){
       status.textContent='Đã giữ nguyên nội dung, không nối tin trùng.';return;

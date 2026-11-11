@@ -126,7 +126,7 @@
     if(!isUnlocked()){clearOnLock();return;}
     if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi. Không nối tin cũ.';return;}
     if(!next.trim()){status.textContent='Không có tin chữ để nối.';return;}
-    const combined=before.trimEnd()?(before.trimEnd()+'\\n'+next):next;
+    const combined=before.trimEnd()?(before.trimEnd()+'\n'+next):next;
     if(combined.length>field.maxLength){status.textContent='Tổng tin vượt 12.000 ký tự. Hãy chia thành nhiều lần.';return;}
     field.value=combined;updateCounter();reset();status.textContent='Đã nối tin Zalo. Hãy xem trước toàn bộ trước khi chuyển vào phơi.';
    }catch(err){if(generation!==clipboardGeneration)return;status.textContent='Không đọc được bộ nhớ tạm. Hãy dán thủ công vào ô Zalo.';}

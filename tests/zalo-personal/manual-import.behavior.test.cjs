@@ -432,3 +432,25 @@ test('Zalo append does not overwrite newer manual edits',async()=>{
  assert.equal(field.value,'3dmn');
  assert.equal(t.bets.value,'');
 });
+
+test('transfer refuses to merge into unfinished existing phoi',()=>{
+ const t=setup();t.bets.value='2dmn\n12b1';
+ prepare(t,'3dmn\n34b1.').transfer.fire('click');
+ assert.equal(t.bets.value,'2dmn\n12b1');
+ assert.equal(t.bets.events.length,0);
+ assert.equal(t.confirmCount(),0);
+});
+test('transfer rejects changes to existing phoi made during confirmation',()=>{
+ const t=setup();t.bets.value='2dmn\n12b1.';
+ t.context.confirm=()=>{t.bets.value='2dmn\n99b1.';return true;};
+ prepare(t,'3dmn\n34b1.').transfer.fire('click');
+ assert.equal(t.bets.value,'2dmn\n99b1.');
+ assert.equal(t.bets.events.length,0);
+});
+test('transfer requires new review after a background switch',()=>{
+ const t=setup(),p=prepare(t,'2dmn\n12b1.');
+ t.background();t.foreground();
+ p.transfer.fire('click');
+ assert.equal(t.bets.value,'');
+ assert.equal(t.bets.events.length,0);
+});

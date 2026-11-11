@@ -50,3 +50,21 @@ test('identical numbers in 2dmn and 4dmn remain separate',()=>{
   assert.equal(r.labels.filter(x=>x==='SỐ').length,2);
   assert(r.labels.includes('30k'));
 });
+
+test('direct receipt compacts identical repeated bets and preserves 161k',()=>{
+ const items=[];
+ for(let i=0;i<3;i++)items.push(row('Đồng Nai + Cần Thơ + Sóc Trăng','7k','938','Bao 3','0.5n'));
+ for(let i=0;i<3;i++)items.push(row('Đồng Nai + Cần Thơ + Sóc Trăng','7k','468','Bao 3','0.5n'));
+ for(let i=0;i<3;i++)items.push(row('Đồng Nai + Cần Thơ + Sóc Trăng','15k','52','Bao 2','1n'));
+ for(let i=0;i<3;i++)items.push(row('Đồng Nai + Cần Thơ + Sóc Trăng','15k','68','Bao 2','1n'));
+ items.push(row('Đồng Nai + Cần Thơ','29k','86-68','DA','0.5n'));
+ const result=receipt(items);
+ for(const n of ['938','468','52','68','86-68'])assert.equal(result.labels.filter(x=>x===n).length,1);
+ for(const amount of ['21k','45k','29k','161k','1,5n','3n'])assert(result.labels.includes(amount),amount);
+ assert.equal(result.labels.filter(x=>x==='SỐ').length,2);
+});
+test('same number at different stations is not collapsed without provenance',()=>{
+ const result=receipt([row('Đồng Nai','7k','938','Bao 3','0.5n'),row('Cần Thơ','7k','938','Bao 3','0.5n')]);
+ assert(result.labels.includes('14k'));
+ assert(!result.labels.includes('1n'));
+});

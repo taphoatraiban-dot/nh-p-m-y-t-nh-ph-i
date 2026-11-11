@@ -22,6 +22,10 @@ jobs:
         with:
           node-version: '22'
       - name: Syntax check
-        run: node --check assets/zalo-personal/manual-import.js
+        run: |
+          node --check assets/zalo-personal/manual-import.js
+          node --check assets/zalo-chat/launcher.js
+          node --check experiments/zalo-chat/notification-envelope.cjs
+          for file in tests/zalo-personal/*.test.cjs tests/zalo-chat/*.test.cjs; do node --check "$file"; done
       - name: Run Zalo regression tests
         run: node --test tests/zalo-personal/*.test.cjs tests/zalo-chat/*.test.cjs

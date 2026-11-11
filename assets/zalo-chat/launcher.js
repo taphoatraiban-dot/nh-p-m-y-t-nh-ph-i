@@ -48,7 +48,11 @@ function mount(){
  });
  lockObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
  document.addEventListener('cuncun:logout',close);
- window.addEventListener('pagehide',close);
+ // Hide demo conversations whenever the iPhone app goes into the background.
+ document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')close();
+ });
+ window.addEventListener('pagehide',()=>{close();lockObserver.disconnect()});
  container.append(button,status);anchor.insertAdjacentElement('afterend',container);
  return true;
 }

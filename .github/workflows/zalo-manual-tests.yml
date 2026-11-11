@@ -43,7 +43,7 @@ jobs:
           const vm = require('node:vm');
           for (const file of ['zalo-preview.html', 'zalo-preview-standalone.html']) {
             const html = fs.readFileSync(file, 'utf8');
-            const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)];
+            const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
             if (!scripts.length) throw new Error('No inline JS in ' + file);
             for (const match of scripts) new vm.Script(match[1], { filename: file });
             if (!html.includes('id="bets"')) throw new Error('Missing demo input in ' + file);

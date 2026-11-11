@@ -464,3 +464,20 @@ test('append preserves existing trailing blank lines and copied whitespace',asyn
  assert.equal(field.value,'2dmn'+newline+newline+'  12b1.  ');
  assert.equal(t.bets.value,'');
 });
+
+test('review and transfer preserve leading and trailing whitespace exactly',()=>{
+ const t=setup(),newline=String.fromCharCode(10);
+ const input=newline+'2dmn'+newline+'12b1.'+newline+newline;
+ const p=prepare(t,input);
+ assert.equal(t.nodes.find(n=>n.tag==='pre').textContent,input);
+ p.transfer.fire('click');
+ assert.equal(t.bets.value,input);
+ assert.equal(t.bets.events.length,2);
+});
+test('append to existing bets preserves their trailing blank lines',()=>{
+ const t=setup(),newline=String.fromCharCode(10);
+ const original='vtau'+newline+'11b1.'+newline+newline;
+ t.bets.value=original;
+ prepare(t,'2dmn'+newline+'12b1.').transfer.fire('click');
+ assert.equal(t.bets.value,original+'2dmn'+newline+'12b1.');
+});

@@ -23,6 +23,10 @@ function mount(){
   container.style.padding='10px';
  }
  button.addEventListener('click',()=>{
+  // Never expose a chat-like preview while the CUNCUN session is locked.
+  if(!document.body.classList.contains('app-unlocked')){
+   status.textContent=' Mở khóa CUNCUN trước khi xem Zalo';close();return;
+  }
   if(document.getElementById(FRAME_ID)){close();return}
   const frame=document.createElement('iframe');frame.id=FRAME_ID;
   frame.title='Zalo Chat giao diện mẫu (không kết nối)';
@@ -39,6 +43,10 @@ function mount(){
   }
   container.append(frame);button.setAttribute('aria-expanded','true');button.textContent='✕ Đóng Zalo';
  });
+ const lockObserver=new MutationObserver(()=>{
+  if(!document.body.classList.contains('app-unlocked'))close();
+ });
+ lockObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
  document.addEventListener('cuncun:logout',close);
  window.addEventListener('pagehide',close);
  container.append(button,status);anchor.insertAdjacentElement('afterend',container);

@@ -454,3 +454,13 @@ test('transfer requires new review after a background switch',()=>{
  assert.equal(t.bets.value,'');
  assert.equal(t.bets.events.length,0);
 });
+
+test('append preserves existing trailing blank lines and copied whitespace',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ const newline=String.fromCharCode(10);
+ field.value='2dmn'+newline+newline;
+ t.context.navigator={clipboard:{readText:async()=> '  12b1.  '}};
+ await t.find('Nối tin đã sao chép').fire('click');
+ assert.equal(field.value,'2dmn'+newline+newline+'  12b1.  ');
+ assert.equal(t.bets.value,'');
+});

@@ -6183,7 +6183,17 @@ function scanRow(row){
   }
   // DAO XC: dò toàn bộ hoán vị nhưng gộp kết quả vào đúng 1 dòng DAO XC.
   if(row.type==="DAO XC"){
-    const scanNumbers=row.scanNumbers?.length?row.scanNumbers:row.numbers;
+    const scanNumbers=row.scanNumbers?.length?row.scanNumbers:(row.numbers||[]).flatMap(number=>{
+      const digits=String(number);
+      if(!/^[0-9]{3,4}$/.test(digits)) return [digits];
+      const permutations=new Set();
+      const walk=(prefix,remaining)=>{
+        if(!remaining.length){permutations.add(prefix);return;}
+        for(let i=0;i<remaining.length;i++) walk(prefix+remaining[i],remaining.slice(0,i)+remaining.slice(i+1));
+      };
+      walk('',digits);
+      return [...permutations];
+    });
     for(const draw of draws){
       const allHits=[];
       for(const n of scanNumbers){

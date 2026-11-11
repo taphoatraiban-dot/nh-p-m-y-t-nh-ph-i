@@ -40,7 +40,7 @@ test('DOM observer has a bounded lifetime',()=>{
 });
 
 test('demo iframe closes when the page is left',()=>{
- assert.match(launcher,/addEventListener\('pagehide',close\)/);
+ assert.match(launcher,/addEventListener\('pagehide',\(\)=>\{close\(\);lockObserver\.disconnect\(\)\}/);
 });
 
 test('deleting demo messages exits selection mode and shows an empty state',()=>{
@@ -124,4 +124,14 @@ test('Zalo demo closes on iPhone background and releases observer on unload',()=
  assert.match(launcher,/visibilitychange/);
  assert.match(launcher,/visibilityState==='hidden'/);
  assert.match(launcher,/lockObserver\.disconnect\(\)/);
+});
+
+// The live entry point must never present fabricated conversations as an inbox.
+test('live Zalo entry opens only a disconnected status with no fixture data',()=>{
+ const status=fs.readFileSync(path.join(root,'assets/zalo-chat/status.html'),'utf8');
+ assert.match(launcher,/frame\.src='assets\/zalo-chat\/status\.html'/);
+ assert.doesNotMatch(launcher,/experiments\/zalo-chat\/index\.html/);
+ assert.match(status,/Chưa nhận tin nhắn thật/);
+ assert.doesNotMatch(status,/<script|<img|<iframe|<form/i);
+ assert.match(status,/default-src 'none'/);
 });

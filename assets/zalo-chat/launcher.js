@@ -1,4 +1,4 @@
-/* CUNCUN Zalo demo launcher. Opt-in only; no account or network integration. */
+/* Zalo connection status. No account or network integration. */
 (function(){
 'use strict';
 const ID='cuncunZaloDemoLauncher', FRAME_ID='cuncunZaloDemoFrame';
@@ -13,7 +13,7 @@ function mount(){
  button.textContent='💬 Zalo';
  button.setAttribute('aria-controls',FRAME_ID);button.setAttribute('aria-expanded','false');
  button.style.cssText='background:#087cf5;color:#fff;border:0;border-radius:9px;padding:11px 16px;min-height:44px;font:inherit;cursor:pointer';
- const status=document.createElement('span');status.textContent=' Giao diện thử nghiệm · chưa đồng bộ';
+ const status=document.createElement('span');status.textContent=' Chưa kết nối · chưa nhận tin thật';
  status.style.cssText='font-size:12px;color:#536b85;margin-left:8px';
  function close(){
   const frame=document.getElementById(FRAME_ID);
@@ -29,8 +29,8 @@ function mount(){
   }
   if(document.getElementById(FRAME_ID)){close();return}
   const frame=document.createElement('iframe');frame.id=FRAME_ID;
-  frame.title='Zalo Chat giao diện mẫu (không kết nối)';
-  frame.src='experiments/zalo-chat/index.html';
+  frame.title='Trạng thái kết nối Zalo';
+  frame.src='assets/zalo-chat/status.html';
   frame.setAttribute('sandbox','allow-scripts');
   frame.setAttribute('referrerpolicy','no-referrer');
   frame.setAttribute('loading','lazy');

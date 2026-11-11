@@ -9,7 +9,7 @@
   if(host.querySelector('[data-zalo-manual]'))return host.querySelector('[data-zalo-manual]');
   const root=doc.createElement('section');root.dataset.zaloManual='true';
   root.style.cssText='border:1px solid #d7e3f4;border-radius:14px;padding:12px;margin:10px 0;background:#fff;color:#17212f;box-shadow:0 2px 12px rgba(20,55,100,.06);max-width:100%;box-sizing:border-box';
-  const title=doc.createElement('details');title.open=true;const summary=doc.createElement('summary');
+  const title=doc.createElement('details');title.open=false;const summary=doc.createElement('summary');
   summary.textContent='💬 Zalo cá nhân · Nhập tin';summary.style.cssText='cursor:pointer;font:600 16px system-ui;color:#0866c9;padding:6px 2px;min-height:34px';title.append(summary);
   const note=doc.createElement('p');note.textContent='Nhập hoặc sao chép tin từ Zalo → Xem trước → Xác nhận → Đưa vào ô phơi. Đây là nhập thủ công, không đồng bộ tài khoản Zalo.';note.style.cssText='font:13px/1.5 system-ui;color:#526579;margin:10px 0';
   const field=doc.createElement('textarea');field.rows=5;field.maxLength=12000;
@@ -59,7 +59,7 @@
    const observer=new global.MutationObserver(()=>{
     if(isUnlocked()){
      // Unlock restores the visible composer, never the cleared private draft.
-     title.open=true;
+     // Keep the panel collapsed until the operator explicitly opens it.
     }else clearOnLock();
    });
    observer.observe(doc.body,{attributes:true,attributeFilter:['class']});

@@ -1,0 +1,27 @@
+name: Zalo staging tests
+on:
+  push:
+    branches:
+      - experiment/zalo-chat-ui
+    paths:
+      - 'assets/zalo-personal/**'
+      - 'assets/zalo-chat/**'
+      - 'experiments/zalo-chat/**'
+      - 'tests/zalo-personal/**'
+      - 'tests/zalo-chat/**'
+      - '.github/workflows/zalo-staging-tests.yml'
+  workflow_dispatch:
+jobs:
+  zalo-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check assets/zalo-personal/manual-import.js
+      - name: Run Zalo regression tests
+        run: node --test tests/zalo-personal/*.test.cjs tests/zalo-chat/*.test.cjs

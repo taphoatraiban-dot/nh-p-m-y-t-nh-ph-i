@@ -25,6 +25,7 @@
     const preview=doc.createElement('pre');preview.hidden=true;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto;padding:12px 14px;border-radius:16px 16px 4px 16px;background:#d9f2e3;border:1px solid #b4dec4;font:15px/1.5 system-ui;color:#153b2b;max-width:90%;margin:8px 0 8px auto;box-sizing:border-box';preview.setAttribute('aria-label','Bong bóng xem trước tin Zalo nhập thủ công');
   const paste=doc.createElement('button');paste.type='button';paste.textContent='Dán từ bộ nhớ tạm';
   paste.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
+  const appendPaste=doc.createElement('button');appendPaste.type='button';appendPaste.textContent='Nối tin đã sao chép';appendPaste.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
   const review=doc.createElement('button');review.type='button';review.textContent='Xem trước';review.style.cssText='min-height:44px;padding:10px 14px;margin:8px 8px 8px 0;border-radius:8px;cursor:pointer';
   const consent=doc.createElement('label');consent.style.cssText='display:block;margin:8px 0';
   const check=doc.createElement('input');check.type='checkbox';check.disabled=true;
@@ -36,10 +37,10 @@
   // Keep all actions reachable on narrow iPhone and Android screens.
   const actions=doc.createElement('div');
   actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:8px 0';
-  for(const button of [paste,review,clear]){
+  for(const button of [paste,appendPaste,review,clear]){
    button.style.cssText+=';flex:1 1 135px;margin:0;min-width:0;white-space:normal';
   }
-  actions.append(paste,review,clear);
+  actions.append(paste,appendPaste,review,clear);
   const transferArea=doc.createElement('div');
   transferArea.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:10px 0';
   transfer.style.cssText+=';flex:1 1 180px;min-width:0;white-space:normal';
@@ -113,6 +114,22 @@
     }
     field.value=text;updateCounter();reset();status.textContent='Đã dán nội dung. Hãy bấm Xem trước và kiểm tra bảng giá trước khi chuyển.';field.focus();
    }catch(err){if(generation!==clipboardGeneration)return;status.textContent='Không đọc được bộ nhớ tạm. Hãy chạm giữ ô nhập và chọn Dán.';field.focus();}
+  });
+  appendPaste.addEventListener('click',async()=>{
+   if(!isUnlocked()){clearOnLock();return;}
+   const generation=++clipboardGeneration;
+   reset();
+   if(!global.navigator?.clipboard?.readText){status.textContent='Không đọc được bộ nhớ tạm. Hãy dán thủ công vào ô Zalo.';return;}
+   const before=field.value;
+   try{
+    const next=await global.navigator.clipboard.readText();
+    if(!isUnlocked()){clearOnLock();return;}
+    if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi. Không nối tin cũ.';return;}
+    if(!next.trim()){status.textContent='Không có tin chữ để nối.';return;}
+    const combined=before.trimEnd()?(before.trimEnd()+'\\n'+next):next;
+    if(combined.length>field.maxLength){status.textContent='Tổng tin vượt 12.000 ký tự. Hãy chia thành nhiều lần.';return;}
+    field.value=combined;updateCounter();reset();status.textContent='Đã nối tin Zalo. Hãy xem trước toàn bộ trước khi chuyển vào phơi.';
+   }catch(err){if(generation!==clipboardGeneration)return;status.textContent='Không đọc được bộ nhớ tạm. Hãy dán thủ công vào ô Zalo.';}
   });
   clear.addEventListener('click',()=>{
    // An empty composer may still have a pending clipboard read. Clear must cancel it.

@@ -14699,11 +14699,15 @@ inspect();
 <script defer>
 document.addEventListener('DOMContentLoaded',function(){
   var bets=document.getElementById('bets');
-  if(!bets||!window.CuncunZaloManualImport)return;
-  var host=document.createElement('div');
-  host.id='zaloPersonalManualImportHost';
-  bets.parentNode.insertBefore(host,bets);
-  window.CuncunZaloManualImport.mount({host:host,document:document});
+  if(!bets||!bets.parentNode||!window.CuncunZaloManualImport)return;
+  // Reuse the Telegram chat loader's host if it mounted first.
+  var host=document.getElementById('cuncunZaloManualHost')||document.getElementById('zaloPersonalManualImportHost');
+  if(!host){
+    host=document.createElement('div');
+    host.id='zaloPersonalManualImportHost';
+    bets.parentNode.insertBefore(host,bets);
+  }
+  if(!host.querySelector('[data-zalo-manual]'))window.CuncunZaloManualImport.mount({host:host,document:document});
 });
 </script>
 <!-- Zalo Chat: opt-in isolated demo, no account connection -->

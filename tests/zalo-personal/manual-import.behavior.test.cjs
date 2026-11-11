@@ -481,3 +481,12 @@ test('append to existing bets preserves their trailing blank lines',()=>{
  prepare(t,'2dmn'+newline+'12b1.').transfer.fire('click');
  assert.equal(t.bets.value,original+'2dmn'+newline+'12b1.');
 });
+
+test('preview reports number of copied Zalo lines before importing',()=>{
+ const t=setup(),newline=String.fromCharCode(10);
+ prepare(t,'2dmn'+newline+'12b1.'+newline+'34da1.');
+ const status=t.nodes.find(n=>n.tag==='p'&&n.textContent.includes('Đang xem trước'));
+ assert.ok(status);
+ assert.match(status.textContent,/3 dòng/);
+ assert.equal(t.bets.value,'');
+});

@@ -3620,6 +3620,15 @@ function addBet(rows,st,raw,type,p){
    return;
  }
  const ns=type==='da'?daNums(raw):nums(raw);if(!ns.length)return;
+ // Bao is classified by EACH number's original digit length, not by the
+ // preceding number in a chained wager (0686.686b2 => B4 + B3).
+ if(type==='b2'||type==='b3'||type==='b4'){
+   const valid=ns.every(n=>n.length>=2&&n.length<=4);
+   if(valid && (ns.length>1 || ns.some(n=>n.length!==Number(type.slice(1))))){
+     for(const n of ns) addBet(rows,st,n,'b'+n.length,p);
+     return;
+   }
+ }
  const stations=st.stations||1, isB=st.region==="B";
  let gross=0,label=type.toUpperCase();
  const d=ns[0].length;

@@ -109,6 +109,7 @@
         const signature=JSON.stringify([
           String(item.number||item.content||'').trim(),
           String(item.type||'').trim().toLowerCase(),
+          String(item.station||item.region||'').trim().toLowerCase(),
           String(item.groupCode||item.stationGroup||item.drawGroup||item.group||'').trim().toLowerCase()
         ]);
         const candidate=seen.get(signature);

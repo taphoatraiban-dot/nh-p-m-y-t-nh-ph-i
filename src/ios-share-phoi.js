@@ -63,7 +63,7 @@
         if(previous&&amount!==null&&points){
           previous.amount+=amount;previous.count+=1;
           previous.item.amount=String(Number(previous.amount.toFixed(8))).replace('.',',')+'k';
-          previous.item.points=previous.originalPoints+' ×'+previous.count;
+          previous.item.points=previous.originalPoints;
         }else{
           const copy={...item};rows.push(copy);
           if(amount!==null&&points)seen.set(signature,{item:copy,amount,points,originalPoints:String(item.points||'').trim(),count:1});

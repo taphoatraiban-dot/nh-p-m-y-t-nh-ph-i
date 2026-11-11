@@ -127,7 +127,7 @@
     if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi. Không nối tin cũ.';return;}
     if(!next.trim()){status.textContent='Không có tin chữ để nối.';return;}
     // Avoid duplicating the last pasted message when the same clipboard is reused.
-    if(before.trimEnd() && before.trimEnd().endsWith(next.trim())){
+    if(before.trimEnd() && before.trimEnd().split(/\r?\n/).some(line=>line.trim()===next.trim())){
      status.textContent='Tin này đã nằm ở cuối danh sách. Không nối trùng.';return;
     }
     const combined=before.trimEnd()?(before.trimEnd()+'\n'+next):next;

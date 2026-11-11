@@ -164,7 +164,8 @@
    if(!value.trim()){status.textContent='Hãy nhập hoặc dán nội dung trước';return}
    if(value.length>field.maxLength){status.textContent='Nội dung vượt quá 12.000 ký tự. Hãy chia thành nhiều lần để tránh mất tin.';return;}
    preview.textContent=value;preview.hidden=false;previewLabel.hidden=false;check.disabled=false;
-   status.textContent='Kiểm tra nội dung và bảng giá đang chọn trong CUNCUN trước khi xác nhận';
+   const lineCount=value.split(/\r\n|\r|\n/).length;
+   status.textContent='Đang xem trước '+lineCount+' dòng. Kiểm tra đủ số, đài và bảng giá trước khi xác nhận.';
   });
   check.addEventListener('change',()=>{if(!isUnlocked()){clearOnLock();return;}transfer.disabled=!check.checked||preview.hidden});
   transfer.addEventListener('click',()=>{

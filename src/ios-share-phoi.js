@@ -94,6 +94,37 @@
       target.rows.push(...group.rows);
       target.total+=group.total;
     }
+    // Compress repeated rows only within the same display group. Never change
+    // the receipt's source items or its monetary calculation.
+    const compactPoints=(value)=>{
+      const match=String(value??'').trim().match(/^(\\d+(?:[.,]\\d+)?)(\\s*n)?$/i);
+      if(!match)return null;
+      const amount=Number(match[1].replace(',','.'));
+      return Number.isFinite(amount)?{amount,suffix:match[2]?'n':''}:null;
+    };
+    for(const group of displayGroups){
+      const rows=[],seen=new Map();
+      for(const item of group.rows){
+        const amount=parseAmount(item.amount),points=compactPoints(item.points);
+        const signature=JSON.stringify([
+          String(item.number||item.content||'').trim(),
+          String(item.type||'').trim().toLowerCase(),
+          String(item.groupCode||item.stationGroup||item.drawGroup||item.group||'').trim().toLowerCase()
+        ]);
+        const candidate=seen.get(signature);
+        if(candidate&&amount!==null&&points&&candidate.points.suffix===points.suffix){
+          candidate.item.amount=formatAmount(candidate.amount+amount);
+          candidate.item.points=String(Number((candidate.points.amount+points.amount).toFixed(8))).replace('.',',')+candidate.points.suffix;
+          candidate.amount+=amount;
+          candidate.points.amount+=points.amount;
+        }else{
+          const copy={...item};rows.push(copy);
+          if(amount!==null&&points)seen.set(signature,{item:copy,amount,points});
+          else seen.delete(signature);
+        }
+      }
+      group.rows=rows;
+    }
     const qr=data.qrMatrix;
     const valid=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length);
     const unit=valid?Math.max(1,Math.floor(150/qr.length)):0;

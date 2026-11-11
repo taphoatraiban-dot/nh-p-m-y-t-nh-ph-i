@@ -8,18 +8,18 @@ function mount(){
  if(!anchor)return false;
  const container=document.createElement('section');container.id=ID;
  container.setAttribute('aria-label','Zalo Chat thử nghiệm');
- container.style.cssText='margin:10px 0;padding:10px;border:1px solid #cfe0f4;border-radius:12px;background:#f6faff';
+ container.style.cssText='margin:6px 0;padding:8px;border:1px solid #cfe0f4;border-radius:12px;background:#f6faff';
  const button=document.createElement('button');button.type='button';
- button.textContent='💬 Zalo Chat · Demo';
+ button.textContent='💬 Zalo';
  button.setAttribute('aria-controls',FRAME_ID);button.setAttribute('aria-expanded','false');
- button.style.cssText='background:#087cf5;color:#fff;border:0;border-radius:9px;padding:11px 16px;font:inherit;cursor:pointer';
- const status=document.createElement('span');status.textContent=' Chưa kết nối Zalo';
+ button.style.cssText='background:#087cf5;color:#fff;border:0;border-radius:9px;padding:11px 16px;min-height:44px;font:inherit;cursor:pointer';
+ const status=document.createElement('span');status.textContent=' Giao diện thử nghiệm · chưa đồng bộ';
  status.style.cssText='font-size:12px;color:#536b85;margin-left:8px';
  function close(){
   const frame=document.getElementById(FRAME_ID);
   if(frame)frame.remove();
   button.setAttribute('aria-expanded','false');
-  button.textContent='💬 Zalo Chat · Demo';
+  button.textContent='💬 Zalo';
   container.style.padding='10px';
  }
  button.addEventListener('click',()=>{
@@ -37,7 +37,7 @@ function mount(){
    frame.style.minHeight='0';
    container.style.padding='6px';
   }
-  container.append(frame);button.setAttribute('aria-expanded','true');button.textContent='✕ Đóng Zalo Demo';
+  container.append(frame);button.setAttribute('aria-expanded','true');button.textContent='✕ Đóng Zalo';
  });
  document.addEventListener('cuncun:logout',close);
  window.addEventListener('pagehide',close);

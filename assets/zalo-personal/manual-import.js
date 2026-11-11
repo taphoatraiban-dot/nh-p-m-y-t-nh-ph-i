@@ -127,7 +127,7 @@
     if(generation!==clipboardGeneration||field.value!==before){status.textContent='Nội dung đã thay đổi. Không nối tin cũ.';return;}
     if(!next.trim()){status.textContent='Không có tin chữ để nối.';return;}
     // Repeated bets may be intentional: warn, but let the operator confirm.
-    const duplicate=before.trimEnd() && before.trimEnd().split(/\\r?\\n/).some(line=>line.trim()===next.trim());
+    const duplicate=before.trimEnd() && before.trimEnd().split(/\r?\n/).some(line=>line.trim()===next.trim());
     if(duplicate){
      if(!global.confirm('Tin này đã xuất hiện trong nội dung. Vẫn nối thêm?')){
       status.textContent='Đã giữ nguyên nội dung, không nối tin trùng.';return;

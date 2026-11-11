@@ -11,7 +11,7 @@
 <script>
 'use strict';
 // All content below is fabricated UI fixture data; never a real inbox.
-const demo=[{id:1,name:'Khách hàng A',kind:'private',unread:2,messages:[{id:1,text:'Chào, cho mình hỏi thông tin nhé',time:'10:20',mine:false},{id:2,text:'Mình đã nhận tin',time:'10:21',mine:true}]},{id:2,name:'Khách hàng B',kind:'private',unread:0,messages:[{id:3,text:'Mình gửi nội dung sau nhé',time:'09:40',mine:false}]},{id:3,name:'Nhóm khách hàng',kind:'group',unread:1,messages:[{id:4,text:'Chào cả nhóm',time:'08:30',mine:false}]}];
+const demo=[{id:1,name:'Khách hàng A',kind:'private',unread:2,messages:[{id:1,text:'2dmn\n12.21b5.\n34.43da1.',time:'10:20',mine:false},{id:2,text:'Mình đã nhận tin',time:'10:21',mine:true}]},{id:2,name:'Khách hàng B',kind:'private',unread:0,messages:[{id:3,text:'ctho\n49dau50.',time:'09:40',mine:false}]},{id:3,name:'Nhóm khách hàng',kind:'group',unread:1,messages:[{id:4,text:'3dmn\n219.b5.\n0686.686b2.',time:'08:30',mine:false}]}];
 let filter='private',current=null,selecting=false,selected=new Set();
 const $=id=>document.getElementById(id),app=$('app');
 function status(s){$('status').textContent=s}

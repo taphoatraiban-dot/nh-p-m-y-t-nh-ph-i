@@ -113,3 +113,9 @@ test('Zalo multiline lottery messages keep their line breaks on iPhone',()=>{
  assert.match(demo,/text:'2dmn\\n12\.21b5\.\\n34\.43da1\.'/);
  assert.match(demo,/\.map\(m=>m\.text\)\.join\('\\n'\)/);
 });
+
+test('Zalo staging preview is inaccessible when CUNCUN is locked',()=>{
+ assert.match(launcher,/document\.body\.classList\.contains\('app-unlocked'\)/);
+ assert.match(launcher,/attributeFilter:\['class'\]/);
+ assert.match(launcher,/Mở khóa CUNCUN trước khi xem Zalo/);
+});

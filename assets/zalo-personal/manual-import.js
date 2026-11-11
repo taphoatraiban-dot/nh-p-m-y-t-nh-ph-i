@@ -160,8 +160,8 @@
    if(!isUnlocked()){clearOnLock();return;}
    // Reviewing is a newer user action: an older clipboard request must not overwrite it.
    clipboardGeneration++;
-   reset();const value=field.value.trim();
-   if(!value){status.textContent='Hãy nhập hoặc dán nội dung trước';return}
+   reset();const value=field.value;
+   if(!value.trim()){status.textContent='Hãy nhập hoặc dán nội dung trước';return}
    if(value.length>field.maxLength){status.textContent='Nội dung vượt quá 12.000 ký tự. Hãy chia thành nhiều lần để tránh mất tin.';return;}
    preview.textContent=value;preview.hidden=false;previewLabel.hidden=false;check.disabled=false;
    status.textContent='Kiểm tra nội dung và bảng giá đang chọn trong CUNCUN trước khi xác nhận';
@@ -174,7 +174,7 @@
    const value=preview.textContent;if(!value)return;
    // A programmatic edit may bypass the input event; reject stale review text.
    if(value.length>field.maxLength){reset();status.textContent='Nội dung vượt quá 12.000 ký tự. Hãy chia thành nhiều lần.';return}
-   if(field.value.trim()!==value){reset();status.textContent='Nội dung đã thay đổi, hãy xem trước và xác nhận lại';return}
+   if(field.value!==value){reset();status.textContent='Nội dung đã thay đổi, hãy xem trước và xác nhận lại';return}
    // Reject imports if the application is locked, even when the panel remains in the DOM.
    if(!isUnlocked()){
     status.textContent='CUNCUN đang khóa. Hãy mở khóa phần mềm trước khi nhập phơi.';return;
@@ -189,9 +189,9 @@
    if(existing&&!global.confirm('Ô nhập đã có nội dung. Chọn OK để nối thêm tin Zalo; Hủy để giữ nguyên.'))return;
    // A native confirmation can outlive a session lock; revalidate before writing.
    if(!isUnlocked()){clearOnLock();return;}
-   if(field.value.trim()!==value||preview.hidden||!check.checked){reset();status.textContent='Nội dung đã thay đổi. Hãy xác nhận lại.';return;}
+   if(field.value!==value||preview.hidden||!check.checked){reset();status.textContent='Nội dung đã thay đổi. Hãy xác nhận lại.';return;}
    if(bets.value!==originalBets){status.textContent='Ô nhập phơi đã thay đổi trong lúc xác nhận. Hãy kiểm tra lại trước khi chuyển tin Zalo.';return;}
-   bets.value=(existing?bets.value.replace(/\s*$/,'')+'\n':'')+value;
+   bets.value=(existing?originalBets+(originalBets.endsWith('\n')?'':'\n'):'')+value;
    // Match the existing Telegram manual-import event contract so calculator listeners
    // can distinguish a user-confirmed chat paste from ordinary typing.
    bets.dispatchEvent(new global.CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true,zaloManualImport:true}}));

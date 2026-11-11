@@ -4,7 +4,7 @@
 function init(){
  const anchor=document.getElementById('tgMemberInbox')||document.getElementById('tgForwardInbox');
  // Staging-only manual paste UI. No personal Zalo login or API calls.
- if(anchor&&!document.getElementById('cuncunZaloManualHost')){
+ if(anchor&&!document.getElementById('cuncunZaloManualHost')&&!document.getElementById('zaloPersonalManualImportHost')){
   const host=document.createElement('div');host.id='cuncunZaloManualHost';
   anchor.parentNode.insertBefore(host,anchor);
   const mountZalo=()=>{

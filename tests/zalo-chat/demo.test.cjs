@@ -119,3 +119,9 @@ test('Zalo staging preview is inaccessible when CUNCUN is locked',()=>{
  assert.match(launcher,/attributeFilter:\['class'\]/);
  assert.match(launcher,/Mở khóa CUNCUN trước khi xem Zalo/);
 });
+
+test('Zalo demo closes on iPhone background and releases observer on unload',()=>{
+ assert.match(launcher,/visibilitychange/);
+ assert.match(launcher,/visibilityState==='hidden'/);
+ assert.match(launcher,/lockObserver\.disconnect\(\)/);
+});

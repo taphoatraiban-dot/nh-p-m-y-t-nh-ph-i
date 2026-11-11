@@ -58,3 +58,11 @@ jobs:
             }
           }
           NODE
+      - name: Package standalone preview for phone testing
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zalo-preview-iphone
+          path: zalo-preview-standalone.html
+          if-no-files-found: error
+          retention-days: 7

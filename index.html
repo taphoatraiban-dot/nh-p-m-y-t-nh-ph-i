@@ -14694,6 +14694,18 @@ inspect();
 <link rel="stylesheet" href="assets/telegram-chat/chat.ac047123776b.css">
 <script src="assets/telegram-chat/chat.099544b6362c.js"></script>
 <script src="assets/telegram-chat/notifications.js?v=20261109-background2"></script>
+<!-- Zalo personal: safe manual copy/paste into the existing phoi input (staging only) -->
+<script src="assets/zalo-personal/manual-import.js" defer></script>
+<script defer>
+document.addEventListener('DOMContentLoaded',function(){
+  var bets=document.getElementById('bets');
+  if(!bets||!window.CuncunZaloManualImport)return;
+  var host=document.createElement('div');
+  host.id='zaloPersonalManualImportHost';
+  bets.parentNode.insertBefore(host,bets);
+  window.CuncunZaloManualImport.mount({host:host,document:document});
+});
+</script>
 <!-- Zalo Chat: opt-in isolated demo, no account connection -->
 <script src="assets/zalo-chat/launcher.js" defer></script>
 </html>

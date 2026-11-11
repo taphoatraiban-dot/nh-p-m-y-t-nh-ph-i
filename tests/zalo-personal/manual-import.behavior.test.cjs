@@ -368,9 +368,9 @@ test('chat bubble preview shows untrusted pasted text as text only',()=>{
 test('append copied Zalo messages preserves line breaks and requires review',async()=>{
  const t=setup();const field=t.nodes.find(n=>n.tag==='textarea');
  t.context.navigator={clipboard:{readText:async()=> '34.43da1.'}};
- field.value='2dmn\\n12.21b5.';
+ field.value=['2dmn','12.21b5.'].join(String.fromCharCode(10));
  await t.find('Nối tin đã sao chép').fire('click');
- assert.equal(field.value,'2dmn\\n12.21b5.\\n34.43da1.');
+ assert.equal(field.value,['2dmn','12.21b5.','34.43da1.'].join(String.fromCharCode(10)));
  assert.equal(t.bets.value,'');
  assert.equal(t.find('Đưa vào ô nhập phơi').disabled,true);
 });

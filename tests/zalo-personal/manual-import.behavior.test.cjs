@@ -395,3 +395,40 @@ test('confirmed repeated Zalo block is retained for intentional repeated bets',a
  assert.equal(t.confirmCount(),1);
  assert.equal(t.bets.value,'');
 });
+
+test('pending Zalo append cannot restore a cleared draft',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ field.value='2dmn';
+ const pending=t.find('Nối tin đã sao chép').fire('click');
+ t.find('Xóa nội dung dán').fire('click');
+ resolve('12b1.');
+ await pending;
+ assert.equal(field.value,'');
+ assert.equal(t.bets.value,'');
+});
+test('Zalo append is rejected when app locks during clipboard read',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ field.value='2dmn';
+ const pending=t.find('Nối tin đã sao chép').fire('click');
+ t.lock();
+ resolve('12b1.');
+ await pending;
+ assert.equal(field.value,'');
+ assert.equal(t.bets.value,'');
+});
+test('Zalo append does not overwrite newer manual edits',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ let resolve;
+ t.context.navigator={clipboard:{readText:()=>new Promise(r=>{resolve=r;})}};
+ field.value='2dmn';
+ const pending=t.find('Nối tin đã sao chép').fire('click');
+ field.value='3dmn';field.fire('input');
+ resolve('12b1.');
+ await pending;
+ assert.equal(field.value,'3dmn');
+ assert.equal(t.bets.value,'');
+});

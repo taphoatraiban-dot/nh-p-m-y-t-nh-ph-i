@@ -36,6 +36,41 @@
       const raw=String(item.amount||'').replace(/[^0-9,.-]/g,'').replace(/[.,](?=\d{3}(?:\D|$))/g,'').replace(',','.');
       section.total+=Number(raw)||0;
     }
+    // First collapse exact repeated bets within each original station section.
+    // Do this BEFORE cross-station merging; otherwise duplicate rows become
+    // separate groups and cannot be shortened on the printed receipt.
+    const compactAmount=value=>{
+      const raw=String(value??'').trim().replace(/\\s/g,'').replace(/k$/i,'');
+      if(!/^-?\\d+(?:[.,]\\d+)*$/.test(raw))return null;
+      const n=Number(raw.replace(/[.,](?=\\d{3}(?:[.,]|$))/g,'').replace(',','.'));
+      return Number.isFinite(n)?n:null;
+    };
+    const compactPoints=value=>{
+      const m=String(value??'').trim().match(/^(\\d+(?:[.,]\\d+)?)(\\s*n)?$/i);
+      return m?{value:Number(m[1].replace(',','.')),suffix:m[2]?'n':''}:null;
+    };
+    for(const section of sections){
+      const rows=[],seen=new Map();
+      for(const item of section.rows){
+        const amount=compactAmount(item.amount),points=compactPoints(item.points);
+        const signature=JSON.stringify([
+          String(item.number||item.content||'').trim(),
+          String(item.type||'').trim().toLowerCase(),
+          String(item.groupCode||item.stationGroup||item.drawGroup||item.group||'').trim().toLowerCase()
+        ]);
+        const previous=seen.get(signature);
+        if(previous&&amount!==null&&points&&previous.points.suffix===points.suffix){
+          previous.amount+=amount;previous.points.value+=points.value;
+          previous.item.amount=String(Number(previous.amount.toFixed(8))).replace('.',',')+'k';
+          previous.item.points=String(Number(previous.points.value.toFixed(8))).replace('.',',')+points.suffix;
+        }else{
+          const copy={...item};rows.push(copy);
+          if(amount!==null&&points)seen.set(signature,{item:copy,amount,points});
+          else seen.delete(signature);
+        }
+      }
+      section.rows=rows;
+    }
     // Group identical bet rows across stations even when other station groups
     // occur between them. A station can contribute at most once per group;
     // repeated wagers for the same station remain separate.
@@ -93,38 +128,6 @@
       }
       target.rows.push(...group.rows);
       target.total+=group.total;
-    }
-    // Compress repeated rows only within the same display group. Never change
-    // the receipt's source items or its monetary calculation.
-    const compactPoints=(value)=>{
-      const match=String(value??'').trim().match(/^(\\d+(?:[.,]\\d+)?)(\\s*n)?$/i);
-      if(!match)return null;
-      const amount=Number(match[1].replace(',','.'));
-      return Number.isFinite(amount)?{amount,suffix:match[2]?'n':''}:null;
-    };
-    for(const group of displayGroups){
-      const rows=[],seen=new Map();
-      for(const item of group.rows){
-        const amount=parseAmount(item.amount),points=compactPoints(item.points);
-        const signature=JSON.stringify([
-          String(item.number||item.content||'').trim(),
-          String(item.type||'').trim().toLowerCase(),
-          String(item.station||item.region||'').trim().toLowerCase(),
-          String(item.groupCode||item.stationGroup||item.drawGroup||item.group||'').trim().toLowerCase()
-        ]);
-        const candidate=seen.get(signature);
-        if(candidate&&amount!==null&&points&&candidate.points.suffix===points.suffix){
-          candidate.item.amount=formatAmount(candidate.amount+amount);
-          candidate.item.points=String(Number((candidate.points.amount+points.amount).toFixed(8))).replace('.',',')+candidate.points.suffix;
-          candidate.amount+=amount;
-          candidate.points.amount+=points.amount;
-        }else{
-          const copy={...item};rows.push(copy);
-          if(amount!==null&&points)seen.set(signature,{item:copy,amount,points});
-          else seen.delete(signature);
-        }
-      }
-      group.rows=rows;
     }
     const qr=data.qrMatrix;
     const valid=Array.isArray(qr)&&qr.length>=21&&qr.length<=177&&qr.every(row=>Array.isArray(row)&&row.length===qr.length);

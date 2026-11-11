@@ -374,3 +374,24 @@ test('append copied Zalo messages preserves line breaks and requires review',asy
  assert.equal(t.bets.value,'');
  assert.equal(t.find('Đưa vào ô nhập phơi').disabled,true);
 });
+
+test('duplicate multiline Zalo block asks confirmation and can be cancelled',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ const block=['2dmn','12.21b5.','34.43da1.'].join(String.fromCharCode(10));
+ field.value=block;t.setConfirm(false);
+ t.context.navigator={clipboard:{readText:async()=>block}};
+ await t.find('Nối tin đã sao chép').fire('click');
+ assert.equal(field.value,block);
+ assert.equal(t.confirmCount(),1);
+ assert.equal(t.bets.value,'');
+});
+test('confirmed repeated Zalo block is retained for intentional repeated bets',async()=>{
+ const t=setup(),field=t.nodes.find(n=>n.tag==='textarea');
+ const block=['2dmn','12.21b5.'].join(String.fromCharCode(10));
+ field.value=block;
+ t.context.navigator={clipboard:{readText:async()=>block}};
+ await t.find('Nối tin đã sao chép').fire('click');
+ assert.equal(field.value,[block,block].join(String.fromCharCode(10)));
+ assert.equal(t.confirmCount(),1);
+ assert.equal(t.bets.value,'');
+});

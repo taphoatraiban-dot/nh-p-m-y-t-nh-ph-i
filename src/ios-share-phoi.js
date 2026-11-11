@@ -56,16 +56,17 @@
         const signature=JSON.stringify([
           String(item.number||item.content||'').trim(),
           String(item.type||'').trim().toLowerCase(),
+          String(item.points||'').trim().toLowerCase(),
           String(item.groupCode||item.stationGroup||item.drawGroup||item.group||'').trim().toLowerCase()
         ]);
         const previous=seen.get(signature);
-        if(previous&&amount!==null&&points&&previous.points.suffix===points.suffix){
-          previous.amount+=amount;previous.points.value+=points.value;
+        if(previous&&amount!==null&&points){
+          previous.amount+=amount;previous.count+=1;
           previous.item.amount=String(Number(previous.amount.toFixed(8))).replace('.',',')+'k';
-          previous.item.points=String(Number(previous.points.value.toFixed(8))).replace('.',',')+points.suffix;
+          previous.item.points=previous.originalPoints+' ×'+previous.count;
         }else{
           const copy={...item};rows.push(copy);
-          if(amount!==null&&points)seen.set(signature,{item:copy,amount,points});
+          if(amount!==null&&points)seen.set(signature,{item:copy,amount,points,originalPoints:String(item.points||'').trim(),count:1});
           else seen.delete(signature);
         }
       }

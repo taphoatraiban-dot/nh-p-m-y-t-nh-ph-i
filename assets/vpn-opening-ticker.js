@@ -12,12 +12,12 @@
   track.style.cssText='flex:1;overflow:hidden;white-space:nowrap';
   const message=document.createElement('div');
   message.textContent='🔒 Hãy bật VPN 1.1.1.1 (WARP) để tăng cường bảo vệ kết nối khi sử dụng CUNCUN.';
-  message.style.cssText='display:inline-block;padding-left:100%;white-space:nowrap;animation:cuncunVpnScroll 13s linear infinite';
+  message.style.cssText='display:inline-block;white-space:nowrap;will-change:transform;animation:cuncunVpnScroll 11s linear infinite';
   const close=document.createElement('button');
   close.type='button';close.textContent='×';close.setAttribute('aria-label','Đóng thông báo');
   close.style.cssText='flex:none;width:36px;height:36px;border:0;background:transparent;color:white;font-size:26px;cursor:pointer';
   const style=document.createElement('style');
-  style.textContent='@keyframes cuncunVpnScroll{from{transform:translateX(0)}to{transform:translateX(-100%)}}@media(prefers-reduced-motion:reduce){#cuncunVpnTicker div div{animation:none!important;padding-left:8px!important;white-space:normal!important}}';
+  style.textContent='@keyframes cuncunVpnScroll{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}@media(prefers-reduced-motion:reduce){#cuncunVpnTicker div div{animation:none!important;padding-left:8px!important;white-space:normal!important}}';
   close.onclick=()=>{wrap.remove();style.remove();};
   track.appendChild(message);wrap.append(track,close);document.head.appendChild(style);document.body.appendChild(wrap);
   setTimeout(()=>{if(wrap.isConnected){wrap.remove();style.remove();}},18000);

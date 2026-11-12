@@ -12,13 +12,25 @@ function init(){
  connected.style.cssText='font-size:12px;line-height:1.5;padding:6px 10px;margin:4px 0;border-radius:8px;background:#f1f5f9;color:#334155;white-space:pre-line';
  connected.textContent='Telegram: đang kiểm tra tài khoản kết nối…';
  panel.querySelector('summary').after(connected);
- function syncConnectedAccount(){
-  const value=(document.getElementById('tgConnectedAccount')?.textContent||'').trim();
-  const next=value&&value.includes('Telegram đã kết nối')?value:'Telegram: chưa có thông tin tài khoản kết nối từ VPS';
-  if(connected.textContent!==next)connected.textContent=next;
+ let accountBusy=false;
+ async function syncConnectedAccount(){
+  const existing=(document.getElementById('tgConnectedAccount')?.textContent||'').trim();
+  if(existing.includes('Telegram đã kết nối')){connected.textContent=existing;return;}
+  if(accountBusy)return;
+  accountBusy=true;
+  try{
+   const {data:{session}}=await sb.auth.getSession();
+   if(!session){connected.textContent='Telegram: cần đăng nhập CUNCUN';return;}
+   const res=await fetch(SUPABASE_URL+'/functions/v1/telegram-member-sync?action=read',{headers:{Authorization:'Bearer '+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY}});
+   const data=await res.json();
+   if(!res.ok||!data.success)throw Error(data.error||'Không đọc được thông tin kết nối');
+   const p=data.telegram_profile||{};
+   connected.textContent=p.telegram_id?['✅ Telegram đã kết nối','👤 '+(p.display_name||'Tài khoản Telegram')+(p.username?' (@'+p.username+')':''),p.phone?'📱 '+p.phone:''].filter(Boolean).join('\\n'):'Telegram: VPS chưa cung cấp thông tin tài khoản kết nối';
+  }catch(e){connected.textContent='Telegram: '+e.message;}
+  finally{accountBusy=false;}
  }
  syncConnectedAccount();
- setInterval(syncConnectedAccount,3000);
+ setInterval(syncConnectedAccount,10000);
  const controls=panel.querySelector('#ottChatUnlocked>.ott-chat-row');
  if(controls){
   const refresh=panel.querySelector('#ottChatRefresh');

@@ -22,5 +22,21 @@
   track.appendChild(message);wrap.append(track,close);document.head.appendChild(style);document.body.appendChild(wrap);
   setTimeout(()=>{if(wrap.isConnected){wrap.remove();style.remove();}},18000);
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',show,{once:true});else show();
+ // Display only after the PIN lock screen is successfully dismissed.
+ function init(){
+  const pin=document.getElementById('pinCard');
+  const app=document.getElementById('appCard');
+  if(!pin||!app)return;
+  let wasLocked=!pin.classList.contains('hidden');
+  const check=()=>{
+   const locked=!pin.classList.contains('hidden');
+   const unlocked=!app.classList.contains('hidden');
+   if(wasLocked&&!locked&&unlocked)show();
+   wasLocked=locked;
+  };
+  const observer=new MutationObserver(check);
+  observer.observe(pin,{attributes:true,attributeFilter:['class','style','hidden']});
+  observer.observe(app,{attributes:true,attributeFilter:['class','style','hidden']});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

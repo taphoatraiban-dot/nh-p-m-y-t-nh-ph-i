@@ -22,7 +22,20 @@ function init(){
   };
   controls.append(notify);
  }
- anchor.after(panel);
+ // Keep legacy Telegram inbox nodes alive for their existing polling and settings,
+ // but display only the unified Telegram Chat interface.
+ anchor.before(panel);
+ function hideLegacyInbox(){
+  for(const id of ['tgMemberInbox','tgForwardInbox']){
+   const legacy=document.getElementById(id);
+   if(legacy){legacy.hidden=true;legacy.setAttribute('aria-hidden','true');legacy.style.setProperty('display','none','important');}
+  }
+ }
+ const legacyStyle=document.createElement('style');
+ legacyStyle.id='ottChatHideLegacyInbox';
+ legacyStyle.textContent='#tgMemberInbox,#tgForwardInbox{display:none!important}';
+ document.head.append(legacyStyle);
+ hideLegacyInbox();
  const host=document.getElementById('appCard');
  if(host){
   const launch=document.createElement('button');launch.id='ottChatOpen';launch.type='button';launch.textContent='💬 Telegram Chat';launch.setAttribute('aria-controls','ottChat');

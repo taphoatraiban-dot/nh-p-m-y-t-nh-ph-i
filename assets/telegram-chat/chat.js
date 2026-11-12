@@ -25,7 +25,7 @@ function init(){
    const data=await res.json();
    if(!res.ok||!data.success)throw Error(data.error||'Không đọc được thông tin kết nối');
    const p=data.telegram_profile||{};
-   connected.textContent=p.telegram_id?['✅ Telegram đã kết nối','👤 '+(p.display_name||'Tài khoản Telegram')+(p.username?' (@'+p.username+')':''),p.phone?'📱 '+p.phone:''].filter(Boolean).join('\\n'):'Telegram: VPS chưa cung cấp thông tin tài khoản kết nối';
+   connected.textContent=p.telegram_id?['✅ Telegram đã kết nối','👤 '+(p.display_name||'Tài khoản Telegram')+(p.username?' (@'+p.username+')':''),p.phone?'📱 '+p.phone:''].filter(Boolean).join(String.fromCharCode(10)):'Telegram: VPS chưa cung cấp thông tin tài khoản kết nối';
   }catch(e){connected.textContent='Telegram: '+e.message;}
   finally{accountBusy=false;}
  }

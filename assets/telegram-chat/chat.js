@@ -6,6 +6,19 @@ function init(){
  if(!anchor||document.getElementById('ottChat'))return;
  const panel=document.createElement('details');panel.id='ottChat';
  panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatSearchWrap"><input id="ottChatSearch" type="search" placeholder="Tìm người hoặc nhóm…" aria-label="Tìm hội thoại"><div id="ottChatTabs" class="ott-chat-row"><button type="button" data-mode="private">Cá nhân</button><button type="button" data-mode="group">Nhóm</button><button type="button" data-mode="all">Tất cả</button></div></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div id="ottChatThread"><div class="ott-chat-row"><button id="ottChatBack" type="button">← Trở lại</button><strong id="ottChatHeading">Chọn hội thoại</strong></div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin</button><button type="button" id="ottChatSelectAll">Chọn tất cả</button><button type="button" id="ottChatCopy">Sao chép (0)</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="button">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
+ // Mirror the connected VPS Telegram account from the existing authenticated inbox.
+ const connected=document.createElement('div');connected.id='ottChatConnectedAccount';
+ connected.setAttribute('role','status');
+ connected.style.cssText='font-size:12px;line-height:1.5;padding:6px 10px;margin:4px 0;border-radius:8px;background:#f1f5f9;color:#334155;white-space:pre-line';
+ connected.textContent='Telegram: đang kiểm tra tài khoản kết nối…';
+ panel.querySelector('summary').after(connected);
+ function syncConnectedAccount(){
+  const value=(document.getElementById('tgConnectedAccount')?.textContent||'').trim();
+  const next=value&&value.includes('Telegram đã kết nối')?value:'Telegram: chưa có thông tin tài khoản kết nối từ VPS';
+  if(connected.textContent!==next)connected.textContent=next;
+ }
+ syncConnectedAccount();
+ setInterval(syncConnectedAccount,3000);
  const controls=panel.querySelector('#ottChatUnlocked>.ott-chat-row');
  if(controls){
   const refresh=panel.querySelector('#ottChatRefresh');

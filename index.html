@@ -8032,15 +8032,6 @@ function mainDrawsForCross2(row){
    cs.value=b.dataset.customerName; cs.dispatchEvent(new Event('change',{bubbles:true}));
  });
  document.getElementById('addCustomerDrawer')?.addEventListener('click',()=>{
-   // The editor normally lives under the collapsed Price menu: move it to the visible Customers section.
-   const customerSection=document.querySelector('#appDrawer .drawer-section.customers');
-   const customerBody=customerSection?.querySelector(':scope > .drawer-body');
-   if(customerSection)customerSection.classList.add('cuncun-expanded');
-   if(editor&&customerBody){
-    let mount=document.getElementById('drawerCustomerEditorMount');
-    if(!mount){mount=document.createElement('div');mount.id='drawerCustomerEditorMount';mount.className='drawer-editor-mount';customerBody.appendChild(mount);}
-    mount.appendChild(editor);
-   }
    if(editor){editor.classList.add('drawer-editor-open');editor.open=true;}
    const n=document.getElementById('customerName');
    if(n){n.value='';setTimeout(()=>{n.focus();n.scrollIntoView({behavior:'smooth',block:'center'});},80);}
@@ -14642,10 +14633,7 @@ body.app-unlocked #liveSoiBar{display:block!important}
    if(cls&&head.dataset.ccShort!=='1'){
     head.dataset.ccShort='1';
     head.dataset.ccOriginal=head.textContent;
-    // Preserve buttons inside the heading, especially Add Customer.
-    var titleSpan=head.querySelector(':scope > span');
-    if(titleSpan){titleSpan.textContent=labels[cls];}
-    else {var labelNode=Array.from(head.childNodes).find(function(node){return node.nodeType===3&&node.textContent.trim()});if(labelNode)labelNode.textContent=labels[cls]+' ';else head.insertBefore(document.createTextNode(labels[cls]+' '),head.firstChild);}
+    head.textContent=labels[cls];
    }
   });
  }

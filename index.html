@@ -2119,6 +2119,7 @@ async function unlockByPin(){
     if(epoch!==authBootEpoch) return;
     pinMotion("success");
     showApp();
+    window.dispatchEvent(new Event("cuncun:pin-unlocked"));
   }catch(e){
     if(epoch!==authBootEpoch) return;
     // A failed sign-out request must not leave the PIN screen stuck forever.
@@ -14701,7 +14702,7 @@ inspect();
 <style id="ott-hide-duplicate-telegram">#tgMemberInbox,#tgForwardInbox{display:none!important;visibility:hidden!important}</style>
 <script src="assets/telegram-chat/chat.b78a95b70743.js?v=20261112-account4"></script>
 <script src="assets/telegram-chat/notifications.js?v=20261109-background2"></script>
-<script src="assets/vpn-opening-ticker.js?v=20261112-after-pin1"></script>
+<script src="assets/vpn-opening-ticker.js?v=20261112-pin-only2"></script>
 <style id="cuncun-auth-touch-recovery-20261103">
 /* Keep the visible authentication form above invisible swipe/print overlays. */
 body.public-auth-open #loginCard:not(.hidden),

@@ -7,7 +7,7 @@
   wrap.id='cuncunVpnTicker';
   wrap.setAttribute('role','status');
   wrap.setAttribute('aria-label','Thông báo bảo mật');
-  wrap.style.cssText='position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top, 0px) + 8px);z-index:2147483000;display:flex;align-items:center;gap:8px;min-height:38px;background:#103d35;color:#fff;border-radius:11px;box-shadow:0 5px 18px #0003;overflow:hidden;font:600 13px/1.4 system-ui,-apple-system,sans-serif';
+  wrap.style.cssText='position:relative;width:100%;box-sizing:border-box;margin:0 0 10px;display:flex;align-items:center;gap:8px;min-height:38px;background:#103d35;color:#fff;border-radius:11px;box-shadow:0 5px 18px #0003;overflow:hidden;font:600 13px/1.4 system-ui,-apple-system,sans-serif';
   const track=document.createElement('div');
   track.style.cssText='flex:1;overflow:hidden;white-space:nowrap';
   const message=document.createElement('div');
@@ -19,7 +19,7 @@
   const style=document.createElement('style');
   style.textContent='@keyframes cuncunVpnScroll{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}@media(prefers-reduced-motion:reduce){#cuncunVpnTicker div div{animation:none!important;padding-left:8px!important;white-space:normal!important}}';
   close.onclick=()=>{wrap.remove();style.remove();};
-  track.appendChild(message);wrap.append(track,close);document.head.appendChild(style);document.body.appendChild(wrap);
+  track.appendChild(message);wrap.append(track,close);const input=document.querySelector('#appCard .phoi-input-wrap');if(!input)return;document.head.appendChild(style);input.parentNode.insertBefore(wrap,input);
   setTimeout(()=>{if(wrap.isConnected){wrap.remove();style.remove();}},18000);
  }
  // Show only on the explicit successful PIN unlock event.

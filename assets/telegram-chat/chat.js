@@ -46,7 +46,7 @@ function init(){
 
  const el=id=>panel.querySelector('#ottChat'+id),status=t=>{el('Status').textContent=t;};
  let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
- let selecting=false,deleting=false;const selected=new Set();
+ let selecting=false,deleting=false,swipedChatId=null;const selected=new Set();
  const pending=new Map();
  const drafts=new Map();
  const expandedImports=new Set();
@@ -101,10 +101,10 @@ function init(){
   updateDeleteTools();const list=el('Conversations');list.replaceChildren();
   for(const g of modeGroups()){
    const b=document.createElement('button');b.type='button';b.textContent=g.group_name;const unread=unreadCount(g.chat_id);if(unread){const badge=document.createElement('span');badge.className='ott-chat-unread';badge.textContent=String(unread);badge.setAttribute('aria-label',unread+' tin chưa đọc');b.append(' ',badge);}b.setAttribute('aria-pressed',String(g.chat_id===chatId));
-   const wrap=document.createElement('div');wrap.className='ott-chat-swipe-row';
+   const wrap=document.createElement('div');wrap.className='ott-chat-swipe-row';if(swipedChatId===g.chat_id)wrap.classList.add('swiped');
    const remove=document.createElement('button');remove.type='button';remove.className='ott-chat-swipe-delete';remove.textContent='Xóa';
    remove.setAttribute('aria-label','Xóa toàn bộ tin của '+g.group_name);
-   remove.onclick=()=>{wrap.classList.remove('swiped');if(deleting)return;
+   remove.onclick=()=>{swipedChatId=null;wrap.classList.remove('swiped');if(deleting)return;
     if(!confirm('Xóa toàn bộ tin nhắn của '+g.group_name+' khỏi CUNCUN? Telegram gốc không thay đổi.'))return;
     clearConversation(g.chat_id,g.group_name);
    };
@@ -112,7 +112,7 @@ function init(){
    b.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;swiping=false;},{passive:true});
    b.addEventListener('touchend',e=>{if(!e.changedTouches.length)return;
     const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
-    if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.3){swiping=true;suppress=true;wrap.classList.toggle('swiped',dx<0);}
+    if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.3){swiping=true;suppress=true;swipedChatId=dx<0?g.chat_id:null;wrap.classList.toggle('swiped',dx<0);}
    },{passive:true});
    b.onclick=()=>{if(suppress){suppress=false;return;}if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;markRead(chatId);epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};
    wrap.append(b,remove);list.append(wrap);

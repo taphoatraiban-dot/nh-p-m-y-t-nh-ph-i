@@ -63,3 +63,14 @@ test('IN NGAY tự lưu phương thức; CHIA SẺ dự phòng dùng luồng in 
   assert.equal(printClicks,2);
   assert.equal(JSON.parse(saved.get('TSH_PRINTER_LAN_V1')).mode,'share');
 });
+
+
+test('MB inline script stays executable and receipt HTML cannot leak into page',()=>{
+ const mb=html.match(/<script id="mb-module-script">([\\s\\S]*?)<\\/script>/)?.[1];
+ assert.ok(mb,'MB script must exist');
+ assert.doesNotThrow(()=>new vm.Script(mb,{filename:'mb-module-script.js'}));
+ assert.match(mb,/w\\.document\\.write\\('<!doctype html>/);
+ assert.match(mb,/<\\/body><\\/html>'\\);w\\.document\\.close\\(\\)/);
+ assert.doesNotMatch(mb,/<style id="cuncun-auth-touch-recovery/);
+ assert.equal((html.match(/id="cuncun-auth-touch-recovery-20261103"/g)||[]).length,1);
+});

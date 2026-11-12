@@ -14633,7 +14633,10 @@ body.app-unlocked #liveSoiBar{display:block!important}
    if(cls&&head.dataset.ccShort!=='1'){
     head.dataset.ccShort='1';
     head.dataset.ccOriginal=head.textContent;
-    head.textContent=labels[cls];
+    // Preserve buttons inside the heading, especially Add Customer.
+    var titleSpan=head.querySelector(':scope > span');
+    if(titleSpan){titleSpan.textContent=labels[cls];}
+    else {var labelNode=Array.from(head.childNodes).find(function(node){return node.nodeType===3&&node.textContent.trim()});if(labelNode)labelNode.textContent=labels[cls]+' ';else head.insertBefore(document.createTextNode(labels[cls]+' '),head.firstChild);}
    }
   });
  }

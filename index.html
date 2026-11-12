@@ -1448,7 +1448,7 @@ window.openOttGuideImages=open;const original=get("syntaxGuideOpen");if(original
  </div>
 </details>
 
-<details class="compact-section green" id="tgForwardInbox" open style="margin-bottom:9px">
+<details class="compact-section green" id="tgForwardInbox" open hidden aria-hidden="true" style="margin-bottom:9px;display:none!important">
  <summary style="display:list-item!important;font-weight:700;padding:10px">🤖 TIN TELEGRAM TỪ BOT</summary>
  <div class="compact-body" style="padding:12px">
   <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:9px">
@@ -13246,7 +13246,7 @@ window.cuncunConfirmDelete=function(message){
 (function(){
 function init(){
 const target=document.getElementById("tgForwardInbox");if(!target||document.getElementById("tgMemberInbox"))return;
-const panel=document.createElement("details");panel.id="tgMemberInbox";panel.open=true;panel.style.cssText="border:1px solid #cbd5e1;border-radius:10px;margin:8px 0;padding:9px;background:#fff";
+const panel=document.createElement("details");panel.id="tgMemberInbox";panel.open=true;panel.hidden=true;panel.setAttribute("aria-hidden","true");panel.style.cssText="border:1px solid #cbd5e1;border-radius:10px;margin:8px 0;padding:9px;background:#fff;display:none!important";
 panel.innerHTML='<summary style="font-weight:700">📨 Tin Telegram từ tài khoản thành viên</summary><div id="tgMemberStatus" style="font-size:12px;margin:7px 0">Đang kiểm tra kết nối...</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select id="tgMemberGroup" aria-label="Chọn nhóm Telegram" style="flex:1;min-width:130px"><option value="">Chưa có nhóm</option></select><button type="button" class="soft" id="tgMemberReload">Làm mới</button></div><details style="margin:8px 0"><summary style="font-size:12px">Thiết lập đồng bộ VPS</summary><button type="button" class="soft" id="tgMemberKey">Tạo khóa đồng bộ mới</button><p style="font-size:12px">Khóa chỉ hiện một lần. Lưu trên VPS, không gửi qua tin nhắn. Tạo khóa mới sẽ vô hiệu hóa khóa cũ.</p><div id="tgMemberSetup" style="font-size:12px;overflow-wrap:anywhere"></div></details><div id="tgMemberMessages" style="max-height:360px;overflow-y:auto"></div>';
 target.parentNode.insertBefore(panel,target);
 const status=panel.querySelector("#tgMemberStatus"),groups=panel.querySelector("#tgMemberGroup"),list=panel.querySelector("#tgMemberMessages"),setup=panel.querySelector("#tgMemberSetup");

@@ -4477,6 +4477,8 @@ function parseBets(){
   // FIX STRICT 06-10-2026: alias hợp lệ xdui -> xduoi; mọi chữ cược lạ phải CHẶN TOÀN BỘ DÒNG.
   // Ví dụ 71duau20.duoi62,5 => báo đúng duau20, tuyệt đối không bỏ lỗi rồi tính duoi62,5.
   s=s.replace(/xdui(?=\s*\d)/gi,'xduoi').replace(/\bxdui\b/gi,'xduoi');
+  // Treat the common written form "bao lo" / "baolo" as the bare B wager.
+  s=s.replace(/bao\s*l[oô](?=\s*\d)/gi,'b');
   // Normalize bare bao + stake before strict keyword validation (68bao10 -> 68b10).
   // Do not consume bao2 / bao7 / bao8, which are explicit bet type codes.
   s=s.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*bao(?![78])\s*(\d{2,}(?:[,.]\d+)?|\d+[,.]\d+)(?=n?(?:[.;\s]|$))/gi,'$1b$2');

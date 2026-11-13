@@ -1,0 +1,86 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+
+const migration = name => readFileSync(new URL('../supabase/migrations/'+name,import.meta.url),'utf8');
+const names = [
+ '20261101002000_stage_commercial_orders_only.sql',
+ '20261101003000_stage_admin_commercial_rpcs.sql',
+ '20261101004000_stage_admin_commercial_list.sql',
+ '20261101005000_stage_admin_cancel_order.sql'
+];
+
+test('all four commercial migrations remain staged and isolated',()=>{
+ const sql=names.map(migration).join('\n');
+ assert.match(sql,/ott_commercial_orders/);
+ assert.doesNotMatch(sql,/\b(?:drop|truncate)\s+table\s+public\./i);
+ assert.doesNotMatch(sql,/\b(?:update|delete\s+from|insert\s+into)\s+public\.(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|admin_users|profiles)\b/i);
+});
+test('ledger has RLS and direct client access revoked',()=>{
+ const sql=migration(names[0]);
+ assert.match(sql,/enable row level security/i);
+ assert.match(sql,/revoke all on public\.ott_commercial_orders from anon,authenticated/i);
+ assert.match(sql,/check\s*\(\s*\(status='confirmed'/i);
+});
+test('each commercial RPC checks administrator membership',()=>{
+ for(const name of names.slice(1)){
+  const sql=migration(name);
+  assert.match(sql,/from public\.admin_users where user_id=auth\.uid\(\)/i);
+  assert.match(sql,/security definer set search_path = ''/i);
+  assert.match(sql,/revoke all on function public\./i);
+ }
+});
+
+test('payment confirmation only transitions pending orders',()=>{
+ const sql=migration(names[1]);
+ assert.match(sql,/where id=p_order_id and status='pending'/i);
+ assert.match(sql,/set status='confirmed',confirmed_by=auth\.uid\(\),confirmed_at=now\(\)/i);
+});
+test('cancellation only transitions pending orders',()=>{
+ const sql=migration(names[3]);
+ assert.match(sql,/set status='cancelled'/i);
+ assert.match(sql,/where id=p_order_id and status='pending'/i);
+});
+test('server prices are fixed and print package is not for sale',()=>{
+ const sql=migration(names[1]);
+ for(const amount of ['799000','2290000','4390000','7990000']) assert.match(sql,new RegExp('\\b'+amount+'\\b'));
+ assert.match(sql,/p_plan_code is distinct from 'WEB'/i);
+});
+
+test('commercial RPCs never grant execution to anonymous users',()=>{
+ for(const name of names.slice(1)){
+  const sql=migration(name);
+  assert.doesNotMatch(sql,/grant\s+execute\s+on\s+function\s+public\.[^;]+\s+to\s+(?:public|anon)\s*;/i);
+  assert.match(sql,/grant execute on function public\./i);
+  assert.match(sql,/to authenticated;/i);
+ }
+});
+test('commercial RPCs do not call legacy license or device mutators',()=>{
+ const sql=names.slice(1).map(migration).join('\n');
+ assert.doesNotMatch(sql,/\b(?:claim_device|admin_reset_device|admin_activate_license|admin_member_change)\s*\(/i);
+ assert.doesNotMatch(sql,/\b(?:update|delete\s+from|insert\s+into)\s+(?:public\.)?(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|profiles)\b/i);
+});
+
+test('staged migrations do not modify existing license, device, membership or admin tables',()=>{
+ const sql=names.map(migration).join('\n');
+ const legacy='(?:devices|licenses|email_licenses|member_subscriptions|ott_memberships|admin_users|profiles)';
+ assert.doesNotMatch(sql,new RegExp('\\b(?:alter|drop|truncate)\\s+table\\s+(?:if\\s+exists\\s+)?(?:public\\.)?'+legacy+'\\b','i'));
+ assert.doesNotMatch(sql,new RegExp('\\b(?:insert\\s+into|update|delete\\s+from)\\s+(?:public\\.)?'+legacy+'\\b','i'));
+});
+test('commercial migration creates only new commercial functions',()=>{
+ const sql=names.map(migration).join('\n');
+ const declared=[...sql.matchAll(/create\s+or\s+replace\s+function\s+public\.([a-z_]+)\s*\(/gi)].map(m=>m[1]);
+ assert.deepEqual(declared.sort(),['ott_admin_cancel_commercial_order','ott_admin_confirm_commercial_order','ott_admin_create_commercial_order','ott_admin_list_commercial_orders'].sort());
+});
+
+test('server WEB prices match the shared commercial catalog',async()=>{
+ const {PRICES}=await import('./catalog.mjs');
+ const sql=migration(names[1]);
+ const cases=[...sql.matchAll(/when\s+(1|3|6|12)\s+then\s+(\d+)/gi)];
+ assert.equal(cases.length,4,'Exactly four WEB durations must be priced server-side');
+ assert.deepEqual(Object.fromEntries(cases.map(([,months,amount])=>[months,Number(amount)])),PRICES.WEB);
+});
+test('WEB_PRINT cannot be sold through commercial create RPC',()=>{
+ const sql=migration(names[1]);
+ assert.match(sql,/p_plan_code\s+is\s+distinct\s+from\s+'WEB'/i);
+});

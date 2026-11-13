@@ -4037,10 +4037,23 @@ function parseBets(){
  const _stationSafeInput=_telegramSafeInput
    .replace(/(^|\n)[ \t]*(?:s[oó]c[ \t]*tr[aă]ng|soc[ \t]*trang|soctrang|strang)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1strang\n')
    .replace(/(^|\n)[ \t]*(?:ctho|can[ \t]*tho|c[aầ]n[ \t]*th[oơ]|ct)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1ctho\n');
+ // A station's bare dotted number row may inherit the b stake from the
+ // immediately following row only when every explicit b wager there agrees.
+ // This handles grouped slips such as "VL.90.85...52." followed by "...b3".
+ const _stationStakeCarrySafe=_stationSafeInput.split('\n').map((line,index,lines)=>{
+   const bare=line.match(/^(\s*)([a-z]{2,24})\.(\d{2}(?:\.\d{2}){1,})\.?\s*$/i);
+   if(!bare || !stationToken(bare[2],$('date')?.value||''))return line;
+   let nextIndex=index+1;
+   while(nextIndex<lines.length&&!lines[nextIndex].trim())nextIndex++;
+   if(nextIndex>=lines.length)return line;
+   const stakes=[...lines[nextIndex].matchAll(/\d{2,}(?:[.,]\d{2,})*b\s*(\d+(?:[,.]\d+)?)(?:n)?(?=[.;\s]|$)/gi)].map(m=>m[1].replace(',','.'));
+   if(!stakes.length || stakes.some(stake=>stake!==stakes[0]))return line;
+   return bare[1]+bare[2]+'.'+bare[3]+'b'+stakes[0]+'.';
+ }).join('\n');
  // Preserve explicit station prefixes attached to a complete DA wager, with
  // punctuation or no separator. Only known station codes are accepted.
  // The original textarea is never changed.
- const _stationJoinedSafe=_stationSafeInput.split('\n').map(line=>{
+ const _stationJoinedSafe=_stationStakeCarrySafe.split('\n').map(line=>{
    // Protect two explicit, dotted station aliases if earlier normalization
    // joined their separator to the following DA numbers (e.g. Qtri.QB31.71da0,5).
    const pair=line.match(/^(\s*)([a-z]{2,24}\.[a-z]{2,24})\.?(\d{2,}(?:[\s.,+/-]*\d{2,})*\s*da\s*\d+(?:[,.]\d+)?n?\.?)\s*$/i);

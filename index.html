@@ -3584,6 +3584,8 @@ function normalizeBetShorthands(line){
   line=ttSeparateJoinedBets(String(line??""));
 
   // Chuẩn alias trước để không bị hiểu nhầm chữ x trong xdui.
+  // Common shorthand aliases: xiuchu=XC, xd=DAO XC, xddui=XC-đuôi.
+  line=line.replace(/xiuchu(?=\s*\d)/gi,"xc").replace(/xddui(?=\s*\d)/gi,"xduoi").replace(/xd(?=\s*\d)/gi,"xdao");
   line=line.replace(/xdui(?=\s*\d)/gi,"xduoi");
   // Bao lô shorthand: blo / bl followed by points means the ordinary B wager.
   line=line.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*(?:blo|bao\s*l[oô])\s*(\d+(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,"$1b$2");
@@ -4483,6 +4485,8 @@ function parseBets(){
   // FIX STRICT 06-10-2026: alias hợp lệ xdui -> xduoi; mọi chữ cược lạ phải CHẶN TOÀN BỘ DÒNG.
   // Ví dụ 71duau20.duoi62,5 => báo đúng duau20, tuyệt đối không bỏ lỗi rồi tính duoi62,5.
   s=s.replace(/xdui(?=\s*\d)/gi,'xduoi').replace(/\bxdui\b/gi,'xduoi');
+  // Common wager aliases before strict token validation.
+  s=s.replace(/xiuchu(?=\s*\d)/gi,'xc').replace(/xddui(?=\s*\d)/gi,'xduoi').replace(/xd(?=\s*\d)/gi,'xdao');
   // Expand d + stake to DA before strict unknown-token validation.
   s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*d(?=\s*\d)/gi,'$1da');
   // Bao lô aliases: blo5 / bl5 -> b5. Preserve explicit bl2 + stake forms.

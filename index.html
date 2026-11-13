@@ -3918,6 +3918,11 @@ function parseBets(){
    .replace(/đa(?=\s*\d)/gi,'da')
    // The currency symbol ₫ is frequently pasted in place of Vietnamese đ.
    .replace(/₫a(?=\s*\d)/gi,'da')
+   // Accept ₫ typed in place of đ in the named bet abbreviations.
+   .replace(/₫au(?=\s*\d)/gi,'dau')
+   .replace(/₫uoi(?=\s*\d)/gi,'duoi')
+   .replace(/₫ui(?=\s*\d)/gi,'dui')
+   .replace(/₫₫(?=\s*\d)/gi,'dd')
    // Accept a full, unaccented Khánh Hòa station header as one station token.
    // Parser copy only: never modify the text shown to the customer.
    .replace(/(^|\n)[ \t]*khanh[ \t]+hoa[ \t]*(?=\n|$)/gim,'$1khanhhoa')

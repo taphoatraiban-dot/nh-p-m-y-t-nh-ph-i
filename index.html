@@ -3587,7 +3587,7 @@ function normalizeBetShorthands(line){
   line=line.replace(/xdui(?=\s*\d)/gi,"xduoi");
   // Bare "bao" followed by a 2+ digit stake means B at that stake: 68bao20 -> 68b20.
   // Keep the explicit Bao 2 token (bao2) unchanged.
-  line=line.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*bao\s*(\d{2,}(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,"$1b$2");
+  line=line.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*bao(?![78])\s*(\d{2,}(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,"$1b$2");
 
   // x5 / x10... là XC khi nó đứng ngay sau trị số của một hàm cược.
   line=line.replace(

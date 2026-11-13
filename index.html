@@ -3585,7 +3585,7 @@ function normalizeBetShorthands(line){
 
   // Chuẩn alias trước để không bị hiểu nhầm chữ x trong xdui.
   // Common shorthand aliases: xiuchu=XC, xd=DAO XC, xddui=XC-đuôi.
-  line=line.replace(/xiuchu(?=\s*\d)/gi,"xc").replace(/xddui(?=\s*\d)/gi,"xduoi").replace(/xd(?=\s*\d)/gi,"xdao");
+  line=line.replace(/xiuchu(?=\s*\d)/gi,"xc").replace(/xdd(?:ui|uoi)(?=\s*\d)/gi,"xduoi").replace(/xd(?=\s*\d)/gi,"xdao");
   line=line.replace(/xdui(?=\s*\d)/gi,"xduoi");
   // Bao lô shorthand: blo / bl followed by points means the ordinary B wager.
   line=line.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*(?:blo|bao\s*l[oô])\s*(\d+(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,"$1b$2");

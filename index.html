@@ -3585,6 +3585,10 @@ function normalizeBetShorthands(line){
 
   // Chuẩn alias trước để không bị hiểu nhầm chữ x trong xdui.
   line=line.replace(/xdui(?=\s*\d)/gi,"xduoi");
+  // Bao lô shorthand: blo / bl followed by points means the ordinary B wager.
+  line=line.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*(?:blo|bao\s*l[oô])\s*(\d+(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,"$1b$2");
+  line=line.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*bl20(?=n?(?:[.;\s]|$))/gi,"$1b20");
+  line=line.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*bl(?!2(?:\d|[ \t]+\d))\s*(\d+(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,"$1b$2");
   // User shorthand: d + stake means DA (e.g. 6677d5 -> 6677da5).
   line=line.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*d(?=\s*\d)/gi,"$1da");
   // Bare "bao" followed by a 2+ digit stake means B at that stake: 68bao20 -> 68b20.
@@ -4481,6 +4485,10 @@ function parseBets(){
   s=s.replace(/xdui(?=\s*\d)/gi,'xduoi').replace(/\bxdui\b/gi,'xduoi');
   // Expand d + stake to DA before strict unknown-token validation.
   s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*d(?=\s*\d)/gi,'$1da');
+  // Bao lô aliases: blo5 / bl5 -> b5. Preserve explicit bl2 + stake forms.
+  s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*(?:blo|bao\s*l[oô])\s*(\d+(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,'$1b$2');
+  s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*bl20(?=n?(?:[.;\s]|$))/gi,'$1b20');
+  s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*bl(?!2(?:\d|[ \t]+\d))\s*(\d+(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,'$1b$2');
   // Treat the common written form "bao lo" / "baolo" as the bare B wager.
   s=s.replace(/bao\s*l[oô](?=\s*\d)/gi,'b');
   // Normalize bare bao + stake before strict keyword validation (68bao10 -> 68b10).

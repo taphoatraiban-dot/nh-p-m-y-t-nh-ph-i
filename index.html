@@ -4041,6 +4041,10 @@ function parseBets(){
  // punctuation or no separator. Only known station codes are accepted.
  // The original textarea is never changed.
  const _stationJoinedSafe=_stationSafeInput.split('\n').map(line=>{
+   // Protect two explicit, dotted station aliases if earlier normalization
+   // joined their separator to the following DA numbers (e.g. Qtri.QB31.71da0,5).
+   const pair=line.match(/^(\s*)([a-z]{2,24}\.[a-z]{2,24})\.?(\d{2,}(?:[\s.,+/-]*\d{2,})*\s*da\s*\d+(?:[,.]\d+)?n?\.?)\s*$/i);
+   if(pair && stationToken(pair[2],$('date')?.value||''))return pair[1]+pair[2]+'\n'+pair[3];
    const m=line.match(/^(\s*)([a-z]{2,24})[^a-z0-9]*(\d{2,}(?:[\s.,+/-]*\d{2,})*\s*da\s*\d+(?:[,.]\d+)?n?\.?)\s*$/i);
    if(!m || !stationToken(m[2],$('date')?.value||''))return line;
    return m[1]+m[2]+'\n'+m[3];

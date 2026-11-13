@@ -3480,9 +3480,9 @@ function stationToken(t, dateValue){
  if(/^(?:3dmt|3dt|3mt)$/.test(t)) { const s3=weeklyThreeMTStations(dateValue); return {region:"T",stations:3,label:"3 Đài MT",fixedStations:s3,crossProvinces:s3}; }
  if(/^\d+dn$/.test(t))return{region:"N",stations:+t[0],label:+t[0]+" Đài MN"};
  if(["hn","hm","mb","hanoi","ha noi","mienbac","mien-bac","mbac"].includes(t))return{region:"B",stations:1,label:"Hà Nội/Bắc"};
- if(t==="tpho" || t==="tphcm" || t==="hcm" || t==="hochiminh" || t==="tphochiminh")return{region:"N",stations:1,label:"TP.HCM"};
+ if(t==="tpho" || t==="tph" || t==="tphcm" || t==="hcm" || t==="hochiminh" || t==="tphochiminh")return{region:"N",stations:1,label:"TP.HCM"};
  if(t==="la" || t==="longan" || t==="long-an")return{region:"N",stations:1,label:"Long An"};
- if(t==="bphuoc" || t==="bp" || t==="binhphuoc" || t==="binh-phuoc")return{region:"N",stations:1,label:"Bình Phước"};
+ if(t==="bphuoc" || t==="bph" || t==="bp" || t==="binhphuoc" || t==="binh-phuoc")return{region:"N",stations:1,label:"Bình Phước"};
  if(t==="hgiang" || t==="hg" || t==="haugiang" || t==="hau-giang")return{region:"N",stations:1,label:"Hậu Giang"};
  if(t==="dnai")return{region:"N",stations:1,label:"Đồng Nai"};
  if(["bd","bduong","binhduong","binh-duong"].includes(t))return{region:"N",stations:1,label:"Bình Dương"};

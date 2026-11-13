@@ -3587,7 +3587,7 @@ function normalizeBetShorthands(line){
   line=line.replace(/xdui(?=\s*\d)/gi,"xduoi");
   // Bare "bao" followed by a 2+ digit stake means B at that stake: 68bao20 -> 68b20.
   // Keep the explicit Bao 2 token (bao2) unchanged.
-  line=line.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*bao(?![78])\s*(\d{2,}(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,"$1b$2");
+  line=line.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*bao(?![78])\s*(\d{2,}(?:[,.]\d+)?|\d+[,.]\d+)(?=n?(?:[.;\s]|$))/gi,"$1b$2");
 
   // x5 / x10... là XC khi nó đứng ngay sau trị số của một hàm cược.
   line=line.replace(
@@ -4477,6 +4477,9 @@ function parseBets(){
   // FIX STRICT 06-10-2026: alias hợp lệ xdui -> xduoi; mọi chữ cược lạ phải CHẶN TOÀN BỘ DÒNG.
   // Ví dụ 71duau20.duoi62,5 => báo đúng duau20, tuyệt đối không bỏ lỗi rồi tính duoi62,5.
   s=s.replace(/xdui(?=\s*\d)/gi,'xduoi').replace(/\bxdui\b/gi,'xduoi');
+  // Normalize bare bao + stake before strict keyword validation (68bao10 -> 68b10).
+  // Do not consume bao2 / bao7 / bao8, which are explicit bet type codes.
+  s=s.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*bao(?![78])\s*(\d{2,}(?:[,.]\d+)?|\d+[,.]\d+)(?=n?(?:[.;\s]|$))/gi,'$1b$2');
   {
     // Keep trailing n attached to decimal stakes during strict unknown-token validation.
     const alphaRuns=[...s.matchAll(/[A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹĐđ0-9]*(?:[,.]\d+)?n?(?![A-Za-zÀ-ỹĐđ0-9])/g)];

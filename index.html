@@ -3585,7 +3585,7 @@ function normalizeBetShorthands(line){
 
   // Chuẩn alias trước để không bị hiểu nhầm chữ x trong xdui.
   // Common shorthand aliases: xiuchu / xchu = XC, xd = DAO XC, xddui = XC-đuôi.
-  line=line.replace(/xiuchu(?=\s*\d)/gi,"xc").replace(/xchu(?=\s*\d)/gi,"xc").replace(/xddau(?=\s*\d)/gi,"xcdau").replace(/xdd(?:ui|uoi)(?=\s*\d)/gi,"xduoi").replace(/xd(?=\s*\d)/gi,"xdao");
+  line=line.replace(/xiuchuduoi(?=\s*\d)/gi,"xcduoi").replace(/xiuchudau(?=\s*\d)/gi,"xcdau").replace(/xiuchu(?=\s*\d)/gi,"xc").replace(/xchu(?=\s*\d)/gi,"xc").replace(/xddau(?=\s*\d)/gi,"xcdau").replace(/xdd(?:ui|uoi)(?=\s*\d)/gi,"xduoi").replace(/xd(?=\s*\d)/gi,"xdao");
   line=line.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*₫(?=\s*\d)/gi,"$1da");
   line=line.replace(/xdui(?=\s*\d)/gi,"xduoi");
   // Bao lô shorthand: blo / bl followed by points means the ordinary B wager.
@@ -4487,7 +4487,7 @@ function parseBets(){
   // Ví dụ 71duau20.duoi62,5 => báo đúng duau20, tuyệt đối không bỏ lỗi rồi tính duoi62,5.
   s=s.replace(/xdui(?=\s*\d)/gi,'xduoi').replace(/\bxdui\b/gi,'xduoi');
   // Common wager aliases before strict token validation.
-  s=s.replace(/xiuchu(?=\s*\d)/gi,'xc').replace(/xdd(?:ui|uoi)(?=\s*\d)/gi,'xduoi').replace(/xd(?=\s*\d)/gi,'xdao');
+  s=s.replace(/xiuchuduoi(?=\s*\d)/gi,'xcduoi').replace(/xiuchudau(?=\s*\d)/gi,'xcdau').replace(/xiuchu(?=\s*\d)/gi,'xc').replace(/xdd(?:ui|uoi)(?=\s*\d)/gi,'xduoi').replace(/xd(?=\s*\d)/gi,'xdao');
   s=s.replace(/xddau(?=\s*\d)/gi,'xcdau');
   s=s.replace(/xchu(?=\s*\d)/gi,'xc').replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*₫(?=\s*\d)/gi,'$1da');
   // Expand d + stake to DA before strict unknown-token validation.

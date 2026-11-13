@@ -7399,7 +7399,11 @@ function weekdayLabelFromDate(v){
 function stationScheduleMessageForLine(line,dateValue){
   let s=String(line||"").trim(); if(!s)return null;
   s=s.replace(/^(cn|t2|t3|t4|t5|t6|t7)\b[ .:]*/i,"").trim();
-  const tok=(s.split(/\s+/)[0]||"").replace(/[.:,;]+$/g,""); const norm=normalizePhoiToken(tok);
+  const first=(s.split(/\s+/)[0]||"");
+ // Read station aliases attached directly to wager numbers (Qtr.71b5,
+ // Qtri.QB.31.71da0,5), so off-day station checks do not silently skip them.
+ const attached=first.match(/^([a-z]{2,24}(?:\.[a-z]{2,24})?)(?=\.?\d)/i);
+ const tok=(attached?attached[1]:first).replace(/[.:,;]+$/g,""); const norm=normalizePhoiToken(tok);
   if(["2dmn","2dn","2dmt","2dt","2mt","3dmn","3dn","3dmt","3dt","3mt","4dmn","4dn"].includes(norm)) return null;
   const q=stationToken(tok,dateValue); if(!q)return null;
   let stations=[]; if(Array.isArray(q.fixedStations)&&q.fixedStations.length)stations=q.fixedStations.slice(); else if(Array.isArray(q.crossProvinces)&&q.crossProvinces.length)stations=q.crossProvinces.slice(); else if(q.label)stations=[q.label];

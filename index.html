@@ -3919,9 +3919,9 @@ function parseBets(){
    // Never collapse arbitrary wager lines or guess unknown station names.
    .split('\n').map(line=>{
      const clean=String(line).trim().toLowerCase().replace(/[đ₫]/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
-     const fullNames=new Set(('ha noi|mien bac|ho chi minh|thanh pho ho chi minh|long an|binh phuoc|hau giang|dong nai|can tho|soc trang|ben tre|vung tau|bac lieu|tra vinh|tay ninh|an giang|dong thap|ca mau|vinh long|binh duong|tien giang|kien giang|da lat|binh thuan|da nang|quang ngai|dak nong|gia lai|phu yen|dak lak|quang nam|binh dinh|quang tri|ninh thuan|quang binh|khanh hoa|kon tum|thua thien hue').split('|').map(x=>x.replace(/[^a-z0-9]/g,'')));
+     const fullNames=new Set(('ha noi|mien bac|ho chi minh|thanh pho ho chi minh|long an|binh phuoc|hau giang|dong nai|can tho|soc trang|ben tre|vung tau|bac lieu|tra vinh|tay ninh|an giang|dong thap|ca mau|vinh long|binh duong|tien giang|kien giang|da lat|binh thuan|da nang|quang ngai|dak nong|gia lai|phu yen|dak lak|quang nam|binh dinh|quang tri|ninh thuan|quang binh|khanh hoa|kon tum|thua thien hue|2 dai mien nam|2 dai mien trung').split('|').map(x=>x.replace(/[^a-z0-9]/g,'')));
      if(!fullNames.has(clean))return line;
-     const aliases={hanoi:'hn',mienbac:'hn',hochiminh:'hcm',thanhphohochiminh:'hcm',daklak:'dlak',dalat:'dlat'};
+     const aliases={hanoi:'hn',mienbac:'hn',hochiminh:'hcm',thanhphohochiminh:'hcm',daklak:'dlak',dalat:'dlat', '2daimiennam':'2dmn','2daimientrung':'2dmt'};
      return aliases[clean]||clean;
    }).join('\n');
  // LOCK 07/11: a hyphen in DA explicitly separates two-digit numbers.

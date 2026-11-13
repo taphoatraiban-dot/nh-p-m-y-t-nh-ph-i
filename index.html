@@ -3798,7 +3798,7 @@ function normalizeExtendedUserSyntax(s, st){
     const walk=(pre,rest)=>{ if(!rest.length){set.add(pre);return;} for(let i=0;i<rest.length;i++) walk(pre+rest[i],rest.slice(0,i).concat(rest.slice(i+1))); };
     walk('',a); return [...set];
   };
-  out=out.replace(/(\d{3,4})\s*(?:dxcdau|daodau|ddau|xdaudao|xdaodau)\s*(\d+(?:[.,]\d+)?)(n?)/gi,(m,n,p,nf)=>perms(n).join('.')+'xcdau'+p+nf);
+  out=out.replace(/(\d{3,4})\s*(?:dxcdau|daodau|ddau|xdaudao|xdaodau|xddao)\s*(\d+(?:[.,]\d+)?)(n?)/gi,(m,n,p,nf)=>perms(n).join('.')+'xcdau'+p+nf);
   out=out.replace(/(\d{3,4})\s*(?:dxcduoi|daoduoi|daodui|dduoi|ddui|xduidao|xdaoduoi)\s*(\d+(?:[.,]\d+)?)(n?)/gi,(m,n,p,nf)=>perms(n).join('.')+'xcduoi'+p+nf);
   return out;
 }

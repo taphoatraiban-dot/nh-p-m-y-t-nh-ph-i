@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   permissions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,7 +15,7 @@ jobs:
           node-version: 24
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: tests/permissions
-      - run: npx playwright install --with-deps chromium
-        working-directory: tests/permissions
+      - name: Use runner Chrome
+        run: echo "PW_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
       - run: npm test
         working-directory: tests/permissions

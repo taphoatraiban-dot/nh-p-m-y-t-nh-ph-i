@@ -1,0 +1,47 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),{stripTypeScriptTypes}=require('node:module');
+const {JSDOM}=require('jsdom'),{PGlite}=require('@electric-sql/pglite');const root=path.resolve(__dirname,'../..');
+const routes={'telegram-chat':['status','POST',{}],'telegram-member-sync':['rotate-key','POST',{}],'telegram-self-service':['capabilities','GET',{}],'telegram-customer-bots':['','GET',{}],'telegram-tenant':['','GET',{}],'telegram-forward-inbox':['','GET',{}],'telegram-push':['status','POST',{endpoint:'https://fcm.googleapis.com/test'}]};
+async function edge(slug,entitled){let handler;const reads=[],writes=[],checks=[];const db={auth:{getUser:async()=>({data:{user:{id:'11111111-1111-4111-8111-111111111111',user_metadata:{role:'admin',edition:'pro'}}}})},rpc:async(name,args)=>{checks.push({name,args});return {data:name==='telegram_account_entitled'?entitled:[],error:null};},from(table){let single=false;const q={select(){return q},eq(){return q},neq(){return q},or(){return q},order(){return q},gte(){return q},limit(){return q},maybeSingle(){single=true;return q},upsert(x){writes.push({table,x});return q},then(done){reads.push(table);const data=table==='telegram_chat_access'?{enabled:true}:table==='telegram_push_config'?{public_key:'fixture',dispatcher_hash:'fixture'}:single?null:[];return Promise.resolve(done({data,error:null}));}};return q;}};
+const source=stripTypeScriptTypes(fs.readFileSync(path.join(root,'supabase/functions',slug,'index.ts'),'utf8').replace(/^import[^\n]*\n/,''));
+await vm.runInNewContext('(async()=>{'+source+'})()',{createClient:()=>db,Deno:{env:{get:k=>k.startsWith('CF_ACCESS')?'':'fixture'},serve:fn=>handler=fn},crypto,TextEncoder,Response,URL,atob,AbortController,setTimeout,clearTimeout,console});
+const [action,method,body]=routes[slug];const r=await handler(new Request('https://fixture.test/?action='+action,{method,headers:{authorization:'Bearer fixture','content-type':'application/json'},...(method==='POST'?{body:JSON.stringify(body)}:{})}));return {status:r.status,data:await r.json(),reads,writes,checks};}
+for(const slug of Object.keys(routes)){
+ test(slug+' rejects STANDARD before account data or VPS actions',async()=>{const x=await edge(slug,false);assert.equal(x.status,403,JSON.stringify(x));assert.equal(x.writes.length,0);assert(x.checks.some(x=>x.name==='telegram_account_entitled'));assert(x.reads.every(n=>n==='telegram_push_config'));});
+ test(slug+' permits entitled PRO/ADMIN to reach the existing operation',async()=>{const x=await edge(slug,true);assert.equal(x.status,200,JSON.stringify(x));});
+}
+test('server entitlement and RLS reject STANDARD, stale profile Admin and expired PRO without changing basic access',async()=>{
+ const db=new PGlite();const ids=Array.from({length:5},(_,i)=>'00000000-0000-0000-0000-'+String(i+1).padStart(12,'0'));
+ try{
+ await db.exec("create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,raw_app_meta_data jsonb default '{}',raw_user_meta_data jsonb default '{}');");
+ await db.exec(fs.readFileSync(path.join(root,'tests/permissions/fixtures/permission-schema.sql'),'utf8'));
+ await db.exec(fs.readFileSync(path.join(root,'supabase/migrations/20261114160000_account_permission_hardening.sql'),'utf8'));
+ await db.exec("create table public.telegram_messages(user_id uuid,message_text text);alter table telegram_messages enable row level security;create policy own on telegram_messages for select to authenticated using(user_id=auth.uid());grant select on telegram_messages to authenticated;create table basic_data(user_id uuid);grant select on basic_data to authenticated;");
+ for(let i=0;i<5;i++){await db.query('insert into auth.users(id,email) values($1,$2)',[ids[i],'tier'+i+'@example.invalid']);await db.query('insert into profiles(id,role,edition) values($1,$2,$3)',[ids[i],i===3?'admin':'user',[0,3].includes(i)?'standard':'pro']);await db.query("insert into email_licenses(user_id,email,active,expires_at) values($1,$2,true,now()+$3::interval)",[ids[i],'tier'+i+'@example.invalid',i===4?'-1 day':'1 day']);await db.query("insert into telegram_messages values($1,'fixture')",[ids[i]]);await db.query('insert into basic_data values($1)',[ids[i]]);}
+ await db.query('insert into admin_users(user_id) values($1)',[ids[2]]);
+ await db.exec(fs.readFileSync(path.join(root,'supabase/migrations/20261114170000_telegram_pro_tier_gate.sql'),'utf8'));
+ for(let i=0;i<5;i++){await db.exec('reset role');await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub:ids[i],role:'authenticated',user_metadata:{edition:'pro'}})]);await db.exec('set role authenticated');assert.equal((await db.query('select telegram_feature_allowed() x')).rows[0].x,[false,true,true,false,false][i]);assert.equal((await db.query('select * from telegram_messages')).rows.length,[0,1,1,0,0][i]);assert.equal((await db.query('select * from basic_data')).rows.length,5);await assert.rejects(db.query('select telegram_account_entitled($1)',[ids[1]]),e=>e.code==='42501');}
+ await db.exec('reset role;set role service_role');for(let i=0;i<5;i++)assert.equal((await db.query('select telegram_account_entitled($1) x',[ids[i]])).rows[0].x,[false,true,true,false,false][i]);
+ await db.exec('reset role');await db.query("update profiles set edition='standard' where id=$1",[ids[1]]);await db.exec('set role service_role');assert.equal((await db.query('select telegram_account_entitled($1) x',[ids[1]])).rows[0].x,false);
+
+ await db.exec(`reset role;
+ create table telegram_push_subscriptions(id uuid primary key,user_id uuid,endpoint text,p256dh text,auth_key text,enabled boolean,enabled_since timestamptz);
+ create table telegram_chat_access(user_id uuid,enabled boolean);
+ create table telegram_member_messages(user_id uuid,chat_id bigint,message_id bigint,message_date timestamptz,received_at timestamptz,sender_name text,message_text text);
+ create table telegram_member_groups(user_id uuid,chat_id bigint,enabled boolean);
+ create table telegram_member_hidden(user_id uuid,chat_id bigint,message_id bigint);
+ create table telegram_push_deliveries(id uuid primary key default gen_random_uuid(),subscription_id uuid,chat_id bigint,message_id bigint,state text default 'queued',attempts int default 0,next_at timestamptz default now(),claimed_at timestamptz,unique(subscription_id,chat_id,message_id));
+ grant all on telegram_push_subscriptions,telegram_chat_access,telegram_member_messages,telegram_member_groups,telegram_member_hidden,telegram_push_deliveries to service_role;`);
+ await db.query("update profiles set edition='pro' where id=$1",[ids[1]]);
+ for(const uid of ids.slice(0,2)){
+  await db.query("insert into telegram_push_subscriptions values($1,$1,'https://fcm.googleapis.com/test','fixture','fixture',true,now()-interval '1 minute')",[uid]);
+  await db.query('insert into telegram_chat_access values($1,true)',[uid]);
+  await db.query("insert into telegram_member_messages values($1,1,1,now(),now(),'fixture','fixture')",[uid]);
+  await db.query('insert into telegram_member_groups values($1,1,true)',[uid]);
+ }
+ await db.exec('set role service_role');const claims=(await db.query('select * from telegram_push_claim()')).rows;assert.equal(claims.length,1);assert.equal(claims[0].subscription_id,ids[1]);
+ await db.exec('reset role');await db.query("insert into telegram_member_messages values($1,1,2,now(),now(),'fixture','fixture')",[ids[1]]);await db.query("insert into telegram_push_deliveries(subscription_id,chat_id,message_id) values($1,1,2)",[ids[1]]);await db.query("update profiles set edition='standard' where id=$1",[ids[1]]);await db.exec('set role service_role');assert.equal((await db.query('select * from telegram_push_claim()')).rows.length,0);
+ }finally{await db.close();}
+});
+function ui(){const dom=new JSDOM('<head></head><body class="app-unlocked" data-edition="standard"><div id="appCard"><button id="ottChatOpen">Chat</button><details id="ottChat"><summary>Chat</summary></details><div id="tgMemberInbox"></div></div></body>',{url:'https://cuncun.icu',runScripts:'outside-only'});const w=dom.window,calls=[];w.Response=Response;w.fetch=async(...a)=>{calls.push(a);return new Response('{}')};w.eval(fs.readFileSync(path.join(root,'assets/telegram-edition.js'),'utf8'));w.document.dispatchEvent(new w.Event('DOMContentLoaded'));return {dom,w,calls};}
+test('dynamic Telegram launcher and legacy panels stay locked for STANDARD',()=>{const x=ui();try{for(const id of ['ottChatOpen','ottChat','tgMemberInbox'])assert.equal(x.w.getComputedStyle(x.w.document.getElementById(id)).display,'none');assert(x.w.document.getElementById('telegramProNotice'));let clicked=0;x.w.document.getElementById('ottChatOpen').onclick=()=>clicked++;x.w.document.getElementById('ottChatOpen').click();assert.equal(clicked,0);}finally{x.dom.window.close();}});
+test('STANDARD cannot poll Telegram but normal app requests continue',async()=>{const x=ui();try{assert.equal((await x.w.fetch('https://zigpqddlhvjbjrwhfhaa.supabase.co/functions/v1/telegram-chat?action=read')).status,403);assert.equal(x.calls.length,0);await x.w.fetch('/functions/v1/xosoapi');assert.equal(x.calls.length,1);x.w.document.body.dataset.edition='pro';await x.w.fetch('/functions/v1/telegram-member-sync?action=read');assert.equal(x.calls.length,2);}finally{x.dom.window.close();}});

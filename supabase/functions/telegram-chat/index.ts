@@ -4,11 +4,16 @@ const out=(x:unknown,status=200)=>new Response(JSON.stringify(x),{status,headers
 const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,{auth:{persistSession:false}});
 const hash=async(s:string)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s))),v=>v.toString(16).padStart(2,"0")).join("");
 async function access(uid:string){
+ if(!await telegramProAllowed(uid))return null;
  const a=checked(await db.from("telegram_chat_access").select("enabled,worker_seen_at").eq("user_id",uid).maybeSingle());
  return a?.enabled===true?a:null;
 }
 const uuid=(s:unknown)=>typeof s==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 const checked=(r:any)=>{if(r.error)throw r.error;return r.data;};
+async function telegramProAllowed(uid:string){
+ const {data,error}=await db.rpc("telegram_account_entitled",{p_user_id:uid});
+ return !error&&data===true;
+}
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers});
  if(req.method!=="POST")return out({error:"Method not allowed"},405);

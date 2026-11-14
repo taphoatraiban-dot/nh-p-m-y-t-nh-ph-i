@@ -10,6 +10,10 @@ function endpointOK(v:unknown){
  try{const u=new URL(v);return u.protocol==="https:"&&!u.username&&!u.password&&(!u.port||u.port==="443")&&(u.hostname==="fcm.googleapis.com"||u.hostname==="updates.push.services.mozilla.com"||u.hostname.endsWith(".push.services.mozilla.com")||u.hostname==="web.push.apple.com"||u.hostname.endsWith(".push.apple.com")||u.hostname.endsWith(".notify.windows.com"));}catch{return false;}
 }
 function keyOK(v:unknown,n:number){try{if(typeof v!=="string"||v.length>200||!/^[a-zA-Z0-9_-]+={0,2}$/.test(v))return false;const raw=atob(v.replace(/-/g,"+").replace(/_/g,"/"));return raw.length===n&&(n!==65||raw.charCodeAt(0)===4);}catch{return false;}}
+async function telegramProAllowed(uid:string){
+ const {data,error}=await db.rpc("telegram_account_entitled",{p_user_id:uid});
+ return !error&&data===true;
+}
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers});
  if(req.method!=="POST")return out({error:"Method not allowed"},405);
@@ -35,6 +39,7 @@ Deno.serve(async req=>{
   if(!token)return out({error:"Cần đăng nhập phần mềm"},401);
   const {data:{user},error}=await db.auth.getUser(token);
   if(error||!user)return out({error:"Cần đăng nhập phần mềm"},401);
+ if(!await telegramProAllowed(user.id))return out({error:"Telegram chỉ dành cho PRO / ADMIN",code:"PRO_REQUIRED"},403);
   if(!endpointOK(b.endpoint))return out({error:"Địa chỉ thông báo không hợp lệ"},400);
   const current=checked(await db.from("telegram_push_subscriptions").select("id,user_id,enabled").eq("endpoint",b.endpoint).maybeSingle());
   if(action==="status")return out({success:true,enabled:current?.user_id===user.id&&current.enabled===true,public_key:config.public_key});

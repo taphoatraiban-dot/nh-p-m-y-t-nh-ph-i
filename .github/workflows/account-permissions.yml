@@ -21,3 +21,7 @@ jobs:
         working-directory: tests/permissions
       - name: Verify login, PIN and device entry
         run: node --test tests/login-startup.test.cjs tests/pin-unlock.test.cjs tests/desktop-phoi-entry.test.cjs tests/printer-transport-settings.test.cjs tests/parser-money.test.cjs tests/parser-regression.cjs tests/compact-station-receipt.test.cjs
+      - name: Verify Telegram tier and behavior regressions
+        env:
+          NODE_PATH: ${{ github.workspace }}/tests/permissions/node_modules
+        run: node --test tests/chat/ui.test.cjs tests/chat/endpoint.test.cjs tests/chat/hide-endpoint.test.cjs tests/chat/worker-auth.test.cjs tests/chat/push-endpoint.test.cjs tests/chat/push-ui.test.cjs

@@ -31,7 +31,7 @@ jobs:
         working-directory: tests/permissions
       - name: Start disposable Auth
         run: |
-          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c "create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls; create role authenticator login noinherit password 'local-test-db-only'; grant anon,authenticated,service_role to authenticator;"
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c "create schema auth; create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls; create role authenticator login noinherit password 'local-test-db-only'; grant anon,authenticated,service_role to authenticator;"
           docker run -d --name permission-auth --network host \
             -e GOTRUE_API_HOST=0.0.0.0 -e GOTRUE_API_PORT=55440 \
             -e API_EXTERNAL_URL=http://127.0.0.1:55440 \
@@ -50,6 +50,8 @@ jobs:
         run: |
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/permissions/fixtures/permission-schema.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/permissions/fixtures/claim-device.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261114160000_account_permission_hardening.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/permissions/fixtures/rollback-three-tier.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261114160000_account_permission_hardening.sql
       - name: Start disposable REST API
         run: |

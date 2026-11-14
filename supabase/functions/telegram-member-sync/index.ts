@@ -3,18 +3,40 @@ const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"au
 const out=(x:any,s=200)=>new Response(JSON.stringify(x),{status:s,headers:cors});
 const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,{auth:{persistSession:false}});
 const hash=async(v:string)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)))).map(b=>b.toString(16).padStart(2,"0")).join("");
+async function telegramProAllowed(uid:string){
+ const {data,error}=await db.rpc("telegram_account_entitled",{p_user_id:uid});
+ return !error&&data===true;
+}
 Deno.serve(async(req)=>{
 if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
 if(!["GET","POST"].includes(req.method))return out({error:"Method not allowed"},405);
 const action=new URL(req.url).searchParams.get("action")||"read";
 try {
 let userId="";
+if(action==="profile" && req.method==="POST"){
+ userId=req.headers.get("x-sync-user")||"";
+ const key=req.headers.get("x-sync-key")||"";
+ if(!/^[0-9a-f-]{36}$/i.test(userId)||key.length<40)return out({error:"Unauthorized"},401);
+ const {data:k}=await db.from("telegram_member_sync_keys").select("secret_hash").eq("user_id",userId).maybeSingle();
+ if(!k||await hash(key)!==k.secret_hash)return out({error:"Unauthorized"},401);
+ if(!await telegramProAllowed(userId))return out({error:"Telegram chỉ dành cho PRO / ADMIN",code:"PRO_REQUIRED"},403);
+ const b=await req.json();
+ const name=String(b.display_name||"").trim().slice(0,150);
+ const username=String(b.username||"").replace(/^@/,"").trim().slice(0,80);
+ const phone=String(b.phone||"").replace(/[^+0-9]/g,"").slice(0,24);
+ const accountId=String(b.telegram_id||"").trim().slice(0,30);
+ if(!name||!accountId||!/^\d+$/.test(accountId)||!/^\+?\d{7,15}$/.test(phone))return out({error:"Invalid Telegram profile"},400);
+ const {error}=await db.from("telegram_member_sync_keys").update({telegram_display_name:name,telegram_username:username,telegram_phone:phone,telegram_account_id:accountId,telegram_profile_updated_at:new Date().toISOString()}).eq("user_id",userId);
+ if(error)throw error;
+ return out({success:true});
+}
 if(action==="ingest"){
  userId=req.headers.get("x-sync-user")||"";
  const key=req.headers.get("x-sync-key")||"";
  if(!/^[0-9a-f-]{36}$/i.test(userId)||key.length<40)return out({error:"Unauthorized"},401);
  const {data:k}=await db.from("telegram_member_sync_keys").select("secret_hash").eq("user_id",userId).maybeSingle();
  if(!k||await hash(key)!==k.secret_hash)return out({error:"Unauthorized"},401);
+ if(!await telegramProAllowed(userId))return out({error:"Telegram chỉ dành cho PRO / ADMIN",code:"PRO_REQUIRED"},403);
  const b=await req.json();
  if(!Array.isArray(b.groups)||b.groups.length>300||!Array.isArray(b.messages)||b.messages.length>200)return out({error:"Invalid batch"},400);
  const groups=b.groups.filter((g:any)=>Number.isSafeInteger(g.chat_id)&&typeof g.group_name==="string"&&g.group_name.length<=200).map((g:any)=>({user_id:userId,chat_id:g.chat_id,group_name:g.group_name,last_seen_at:new Date().toISOString()}));
@@ -34,6 +56,7 @@ const bearer=req.headers.get("authorization")||"";
 if(!bearer.startsWith("Bearer "))return out({error:"Unauthorized"},401);
 const {data:{user},error:authErr}=await db.auth.getUser(bearer.slice(7));if(authErr||!user)return out({error:"Unauthorized"},401);
 userId=user.id;
+if(!await telegramProAllowed(userId))return out({error:"Telegram chỉ dành cho PRO / ADMIN",code:"PRO_REQUIRED"},403);
 if(action==="rotate-key"&&req.method==="POST"){
  const bytes=crypto.getRandomValues(new Uint8Array(32));const secret=Array.from(bytes).map(x=>x.toString(16).padStart(2,"0")).join("");
  const {error}=await db.from("telegram_member_sync_keys").upsert({user_id:userId,secret_hash:await hash(secret)},{onConflict:"user_id"});if(error)throw error;
@@ -69,12 +92,12 @@ if(action!=="read"||req.method!=="GET")return out({error:"Bad action"},400);
 const [g,m,k,h]=await Promise.all([
  db.from("telegram_member_groups").select("chat_id,group_name,enabled,last_seen_at").eq("user_id",userId).order("group_name"),
  db.from("telegram_member_messages").select("chat_id,message_id,message_text,sender_name,message_date,edited_at").eq("user_id",userId).gte("message_date",new Date(Date.now()-48*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000),
- db.from("telegram_member_sync_keys").select("created_at").eq("user_id",userId).maybeSingle(),
+ db.from("telegram_member_sync_keys").select("created_at,telegram_display_name,telegram_username,telegram_phone,telegram_account_id,telegram_profile_updated_at").eq("user_id",userId).maybeSingle(),
  db.from("telegram_member_hidden").select("chat_id,message_id").eq("user_id",userId)
 ]);
 if(g.error||m.error||k.error||h.error)throw(g.error||m.error||k.error||h.error);
 const hidden=new Set((h.data||[]).map((x:any)=>x.chat_id+":"+x.message_id));
 const hiddenChats=new Set((g.data||[]).filter((x:any)=>x.enabled===false).map((x:any)=>String(x.chat_id)));
-return out({success:true,configured:!!k.data,groups:g.data||[],messages:(m.data||[]).filter((x:any)=>!hidden.has(x.chat_id+":"+x.message_id)&&!hiddenChats.has(String(x.chat_id)))});
+return out({success:true,configured:!!k.data,telegram_profile:k.data?{display_name:k.data.telegram_display_name||"",username:k.data.telegram_username||"",phone:k.data.telegram_phone||"",telegram_id:k.data.telegram_account_id||"",updated_at:k.data.telegram_profile_updated_at||null}:null,groups:g.data||[],messages:(m.data||[]).filter((x:any)=>!hidden.has(x.chat_id+":"+x.message_id)&&!hiddenChats.has(String(x.chat_id)))});
 }catch(e){console.error("telegram member sync",e);return out({error:"Request failed"},500);}
 });

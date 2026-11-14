@@ -26,6 +26,7 @@ function init(){
   await new Promise((resolve,reject)=>{const channel=new MessageChannel(),timeout=setTimeout(()=>reject(Error('Không cập nhật được thông báo trên thiết bị')),4000);channel.port1.onmessage=()=>{clearTimeout(timeout);channel.port1.close();resolve();};registration.active.postMessage({type:'OTT_NOTIFICATION_PREFS',enabled:on,foreground:on&&foreground()},[channel.port2]);});
  }
  async function api(action,body={}){
+  if(window.cuncunCanUseTelegram?.()!==true)throw Error('Telegram chỉ dành cho PRO / ADMIN');
   const {data:{session}}=await sb.auth.getSession();if(!session)throw Error('Đăng nhập phần mềm trước khi bật thông báo.');
   owner=session.user.id;
   const res=await deadline(fetch(SUPABASE_URL+'/functions/v1/telegram-push?action='+action,{method:'POST',headers:{Authorization:'Bearer '+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)}),'Kết nối thông báo quá lâu. Hãy thử lại.');
@@ -39,6 +40,7 @@ function init(){
  }
  function keyBytes(key){const raw=atob(key.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-key.length%4)%4));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
  async function sync(){
+  if(window.cuncunCanUseTelegram?.()!==true){enabled=false;await workerPrefs(false).catch(()=>{});draw();return;}
   if(needsInstall()){say('iPhone/iPad: mở bằng Safari → Chia sẻ → Thêm vào Màn hình chính. Mở biểu tượng ÔNG THẦN TÀI rồi bật thông báo.');return;}
   if(!supported()){say(/iPhone|iPad|iPod/.test(navigator.userAgent)?'Trên iPhone/iPad: thêm phần mềm vào Màn hình chính, mở từ biểu tượng đó rồi bật thông báo.':'Trình duyệt này chưa hỗ trợ thông báo khi đóng phần mềm.');return;}
   try{
@@ -52,6 +54,7 @@ function init(){
   }catch(e){say(e.message);}
  }
  async function toggle(){
+  if(window.cuncunCanUseTelegram?.()!==true){say('Telegram chỉ dành cho PRO / ADMIN');return;}
   if(busy)return;
   if(needsInstall()){
    const message='1. Mở cuncun.icu bằng Safari.\n2. Bấm Chia sẻ → Thêm vào Màn hình chính.\n3. Mở từ biểu tượng ÔNG THẦN TÀI vừa thêm.\n4. Đăng nhập, bấm Bật báo tin rồi chọn Cho phép.';
@@ -86,7 +89,9 @@ function init(){
   }catch(e){say(e.message);help('Chưa bật được thông báo',e.message);}finally{busy=false;button=document.getElementById('ottPushToggle')||button;button.disabled=false;draw();}
  }
  document.addEventListener('click',event=>{const tapped=event.target.closest?.('#ottPushToggle');if(!tapped)return;event.preventDefault();event.stopPropagation();button=tapped;toggle();},true);
- navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='OTT_OPEN_CHAT'){panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'});}});
+ window.addEventListener('cuncun:edition-changed',()=>{if(window.cuncunCanUseTelegram?.()!==true){enabled=false;workerPrefs(false).catch(()=>{});draw();}else sync();});
+ window.addEventListener('cuncun:telegram-ready',()=>sync());
+ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='OTT_OPEN_CHAT'&&window.cuncunCanUseTelegram?.()===true){panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'center'});}});
  sb.auth.onAuthStateChange((event,session)=>{if(session?.user)setTimeout(sync,0);});
  document.addEventListener('visibilitychange',()=>{if(enabled)workerPrefs(true).catch(()=>{});});
  panel.addEventListener('toggle',()=>{if(enabled)workerPrefs(true).catch(()=>{});});

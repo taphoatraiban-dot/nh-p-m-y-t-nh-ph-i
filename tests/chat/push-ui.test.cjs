@@ -7,7 +7,7 @@ async function setup(options={}){
  const reg={active:{scriptURL:'https://cuncun.icu/ott-notifications-sw.js',postMessage:(data,ports)=>{preferences.push(data);ports?.[0]?.peer.onmessage();}},pushManager:{getSubscription:async()=>sub}};
  Object.defineProperty(w.navigator,'serviceWorker',{value:{getRegistration:async()=>reg,register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});
  w.MessageChannel=class{constructor(){this.port1={onmessage:null,close(){}};this.port2={peer:this.port1};}};
- w.localStorage.setItem('ott_push_owner','user-a');w.sb={auth:{getSession:async()=>({data:{session:{access_token:'jwt',user:{id:'user-a'}}}}),onAuthStateChange(){}}};w.SUPABASE_URL='https://test';w.SUPABASE_PUBLISHABLE_KEY='public';
+ w.localStorage.setItem('ott_push_owner','user-a');w.cuncunCanUseTelegram=()=>options.entitled!==false;w.sb={auth:{getSession:async()=>({data:{session:{access_token:'jwt',user:{id:'user-a'}}}}),onAuthStateChange(){}}};w.SUPABASE_URL='https://test';w.SUPABASE_PUBLISHABLE_KEY='public';
  w.fetch=async(url,args)=>{const action=url.split('action=')[1];calls.push({action,body:JSON.parse(args.body)});return{ok:true,json:async()=>({success:true,enabled:action!=='disable'})};};
  w.eval(code);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));await tick();return{w,d,calls,preferences,button:w.document.getElementById('ottPushToggle')};
 }

@@ -53,6 +53,8 @@ jobs:
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261114160000_account_permission_hardening.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/permissions/fixtures/rollback-three-tier.sql
           psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261114160000_account_permission_hardening.sql
+      - name: Apply Telegram tier protection
+        run: psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261114170000_telegram_pro_tier_gate.sql
       - name: Start disposable REST API
         run: |
           docker run -d --name permission-rest --network host \

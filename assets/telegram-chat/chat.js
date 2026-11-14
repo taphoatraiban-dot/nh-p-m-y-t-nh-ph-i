@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 function init(){
+ const allowed=()=>window.cuncunCanUseTelegram?.()===true&&document.body.classList.contains('app-unlocked');
  const anchor=document.getElementById('tgMemberInbox')||document.getElementById('tgForwardInbox');
  if(!anchor||document.getElementById('ottChat'))return;
  const panel=document.createElement('details');panel.id='ottChat';
@@ -14,6 +15,7 @@ function init(){
  panel.querySelector('summary').after(connected);
  let accountBusy=false;
  async function syncConnectedAccount(){
+  if(!allowed()){connected.textContent='🔒 Telegram chỉ dành cho PRO / ADMIN';return;}
   const existing=(document.getElementById('tgConnectedAccount')?.textContent||'').trim();
   if(existing.includes('Telegram đã kết nối')){connected.textContent=existing;return;}
   if(accountBusy)return;
@@ -47,20 +49,16 @@ function init(){
   };
   controls.append(notify);
  }
- // Keep legacy Telegram inbox nodes alive for their existing polling and settings,
- // but display only the unified Telegram Chat interface.
+ // Preserve legacy polling and settings, but show only unified Chat.
  anchor.before(panel);
- function hideLegacyInbox(){
-  for(const id of ['tgMemberInbox','tgForwardInbox']){
-   const legacy=document.getElementById(id);
-   if(legacy){legacy.hidden=true;legacy.setAttribute('aria-hidden','true');legacy.style.setProperty('display','none','important');}
-  }
- }
  const legacyStyle=document.createElement('style');
  legacyStyle.id='ottChatHideLegacyInbox';
  legacyStyle.textContent='#tgMemberInbox,#tgForwardInbox{display:none!important}';
  document.head.append(legacyStyle);
- hideLegacyInbox();
+ for(const id of ['tgMemberInbox','tgForwardInbox']){
+  const legacy=document.getElementById(id);
+  if(legacy){legacy.hidden=true;legacy.setAttribute('aria-hidden','true');legacy.style.setProperty('display','none','important');}
+ }
  const host=document.getElementById('appCard');
  if(host){
   const launch=document.createElement('button');launch.id='ottChatOpen';launch.type='button';launch.textContent='💬 Telegram Chat';launch.setAttribute('aria-controls','ottChat');
@@ -73,7 +71,7 @@ function init(){
    }
    if(!e.target.closest?.('#ottChatOpen'))return;
    e.preventDefault();e.stopPropagation();
-   if(!document.body.classList.contains('app-unlocked'))return;
+   if(!allowed())return;
    const currentPanel=document.getElementById('ottChat'),currentHost=document.getElementById('appCard');if(!currentPanel)return;
    const drawer=document.getElementById('appDrawer');if(drawer){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.getElementById('drawerBackdrop')?.classList.add('open');}
    for(let parent=currentPanel.parentElement;parent&&parent!==currentHost;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
@@ -94,6 +92,7 @@ function init(){
  function markRead(id){if(id===null||!userId)return;const max=latestNotices.filter(m=>String(m.chat_id)===String(id)).reduce((n,m)=>Math.max(n,Number(m.message_id)||0),readCursor(id));readKeys.set(id,max);try{localStorage.setItem(readStoreKey(id),String(max));}catch{}}
  function unreadCount(id){const cursor=readCursor(id);return latestNotices.filter(m=>String(m.chat_id)===String(id)&&Number(m.message_id)>cursor&&m.sender_name!=='Đã gửi').length;}
  async function api(action,body={},proof=ticket){
+  if(!allowed())throw Object.assign(Error('Telegram chỉ dành cho PRO / ADMIN'),{status:403});
   const {data:{session}}=await sb.auth.getSession();
   if(!session)throw Object.assign(Error('Cần đăng nhập phần mềm'),{status:401});
   if(userId&&session.user.id!==userId){lock(false);throw Error('Tài khoản đã thay đổi');}
@@ -203,6 +202,7 @@ function init(){
   root.scrollTop=atBottom?root.scrollHeight:oldScroll;
  }
  async function load(){
+  if(!allowed()){if(ticket)lock(false);return;}
   if(!ticket||busy||deleting||!el('DeleteConfirm').hidden||document.hidden||!panel.open)return;
   if(Date.now()>=expires){lock();return;}
   busy=true;const version=epoch;
@@ -282,6 +282,8 @@ function init(){
  panel.addEventListener('toggle',()=>{if(panel.open){if(ticket)load();else gate();}else lock();});
  sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(userId&&session?.user.id!==userId)){lock(false);userId='';}});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
+ window.addEventListener('cuncun:edition-changed',()=>{if(!allowed()){lock(false);panel.open=false;connected.textContent='🔒 Telegram chỉ dành cho PRO / ADMIN';}else syncConnectedAccount();});
+ window.addEventListener('cuncun:telegram-ready',()=>syncConnectedAccount());
  window.addEventListener('pagehide',()=>lock());setInterval(()=>{if(ticket&&Date.now()>=expires)lock();else load();},1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

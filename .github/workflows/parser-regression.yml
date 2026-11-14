@@ -99,7 +99,7 @@ jobs:
               for i in range(start,min(end,len(lines))+1):
                   line=lines[i-1].strip()
                   if len(line)>500 or re.search(r'(apikey|bearer|secret|authorization|password|supabaseUrl)',line,re.I):continue
-                  if re.search(r'(historyKey|historyRead|historyWrite|historyKeep|\.setItem\(|\.getItem\(|\.push\(|\.unshift\(|\.splice\(|\.filter\(|\.from\(|function .*history|saveHistory|recordPrint|createdAt|lastPrintedAt|const item|const entry|history\.|write\()',line,re.I):
+                  if re.search(r'(historyKey|historyRead|historyWrite|historyKeep|\.setItem\(|\.getItem\(|\.push\(|\.unshift\(|\.splice\(|\.filter\(|\.from\(|function .*history|saveHistory|recordPrint|createdAt|lastPrintedAt|const item|const entry|history\.|\bwrite\()',line,re.I):
                       sanitized=re.sub(r'(["\x27\x60])(?:\\.|(?!\1).)*?\1','<string>',line)
                       print(f'{i}: {sanitized[:220]}')
           PY

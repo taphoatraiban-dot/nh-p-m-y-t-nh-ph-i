@@ -8222,19 +8222,28 @@ function mainDrawsForCross2(row){
      if(editionErr)throw editionErr;
      const editionByUser={};
      (editionRows||[]).forEach(r=>{if(r.user_id)editionByUser[String(r.user_id)]=r.edition==='standard'?'standard':'pro';});
-     // Map opaque phone-alias emails to the real registered phone, admin only.
+     // Map phone-backed auth aliases to their registered phone numbers via an Admin-only RPC.
      let phoneByUser={};
      try{
-       const phoneResult=await phoneAdminRequest("list_accounts");
-       (phoneResult.accounts||[]).forEach(a=>{if(a.user_id&&a.phone_e164)phoneByUser[String(a.user_id)]=String(a.phone_e164);});
-     }catch(_e){}
+       const {data:phoneRows,error:phoneErr}=await sb.rpc('admin_list_device_phone_numbers');
+       if(phoneErr)throw phoneErr;
+       (phoneRows||[]).forEach(a=>{if(a.user_id&&a.phone_e164)phoneByUser[String(a.user_id)]=String(a.phone_e164);});
+     }catch(phoneReadError){
+       // Keep the older Admin endpoint as a fallback during rollout or a temporary RPC outage.
+       try{
+         const phoneResult=await phoneAdminRequest("list_accounts");
+         (phoneResult.accounts||[]).forEach(a=>{if(a.user_id&&a.phone_e164)phoneByUser[String(a.user_id)]=String(a.phone_e164);});
+       }catch(_e){console.warn('Không tải được số điện thoại thiết bị',phoneReadError);}
+     }
      const deviceQuery=(document.getElementById("deviceListSearch")?.value||"").trim().toLocaleLowerCase("vi-VN");
      const deviceStatusOf=x=>{const uid=String(x.user_id||"");if(adminUserIds.has(uid))return "admin";const licenseActive=Object.prototype.hasOwnProperty.call(licenseStateByUser,uid)?licenseStateByUser[uid]:true;return !licenseActive?"paused":"active";};
      for(const status of ["active","paused","admin"]){const el=document.querySelector(`[data-device-count="${status}"]`);if(el)el.textContent=String(data.filter(x=>deviceStatusOf(x)===status).length);}
      const filteredDevices=data.filter(x=>{if(deviceStatusOf(x)!==selectedDeviceStatus)return false;const raw=String(x.email||x.user_email||x.user_id||"");const phone=phoneByUser[String(x.user_id||"")]||"";return [raw,phone,String(x.device_name||""),String(x.device_id||"")].some(v=>v.toLocaleLowerCase("vi-VN").includes(deviceQuery));});
      box.innerHTML=filteredDevices.map((x,i)=>{
        const rawEmail=String(x.email||x.user_email||x.user_id||'Không rõ');
-       const email=phoneByUser[String(x.user_id||'')]||(/^phone-[0-9a-f]{64}@accounts\\.invalid$/i.test(rawEmail)?'Tài khoản SĐT':'Không rõ'===rawEmail?rawEmail:rawEmail);
+       const uidForLabel=String(x.user_id||'');
+       const isPhoneAlias=/^phone-[0-9a-f]{64}@accounts\.invalid$/i.test(rawEmail);
+       const email=phoneByUser[uidForLabel]||(isPhoneAlias?'SĐT chưa tải được':rawEmail);
        const dev=String(x.device_name||'Chưa xác định');
        const did=String(x.device_id||'');
        const last=x.last_seen?new Date(x.last_seen).toLocaleString('vi-VN'):'Chưa ghi nhận';

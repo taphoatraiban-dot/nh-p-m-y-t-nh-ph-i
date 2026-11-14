@@ -36,12 +36,12 @@ for(const name of ['showPinLock','showLogin'])test(name+' preserves a swipe to t
  const start=html.indexOf('function '+name+'('),end=html.indexOf('\n}',start)+2;
  const noop=()=>{},cls={add:noop,remove:noop,contains:x=>x==='public-auth-open'};
  const node={classList:cls,value:'',focus:noop};let covers=0;
- const context=vm.createContext({document:{body:{classList:cls},getElementById:()=>node},$:()=>node,stopIdleLogout:noop,refreshPinDots:noop,showPublicCover:()=>covers++,setTimeout:noop});
+ const context=vm.createContext({window:{},document:{body:{classList:cls},getElementById:()=>node},$:()=>node,stopIdleLogout:noop,refreshPinDots:noop,showPublicCover:()=>covers++,setTimeout:noop});
  vm.runInContext(html.slice(start,end),context);context[name]('demo@example.test');assert.equal(covers,0);
 });
 test('only one main boot call remains and INITIAL_SESSION does not reset view',()=>{
  assert.equal(html.slice(0,html.indexOf('// ===== V3 UI =====')).match(/^boot\(\);$/gm).length,1);
  const a=html.indexOf('sb.auth.onAuthStateChange((event,session)=>{'),b=html.indexOf('\nboot();',a);assert.ok(a>0&&b>a);
- let cb,shown=0;const c=vm.createContext({authBootEpoch:0,sb:{auth:{onAuthStateChange:fn=>cb=fn}},showLogin:()=>shown++});
- vm.runInContext(html.slice(a,b),c);cb('INITIAL_SESSION',null);assert.equal(shown,0);cb('SIGNED_OUT',null);assert.equal(shown,1);assert.equal(c.authBootEpoch,1);
+ let cb,shown=0,cleared=0;const report={rows:[]};const win={__ttLastProReport:report};const c=vm.createContext({authBootEpoch:0,window:win,ttApplyEdition:data=>{assert.equal(data,null);cleared++;},sb:{auth:{onAuthStateChange:fn=>cb=fn}},showLogin:()=>shown++});
+ vm.runInContext(html.slice(a,b),c);cb('INITIAL_SESSION',null);assert.equal(shown,0);cb('SIGNED_OUT',null);assert.equal(shown,1);assert.equal(c.authBootEpoch,1);assert.equal(cleared,1);assert.equal(win.__ttLastProReport,null);
 });

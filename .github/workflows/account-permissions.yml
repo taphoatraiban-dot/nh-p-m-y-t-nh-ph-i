@@ -19,3 +19,5 @@ jobs:
         run: echo "PW_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
       - run: npm test
         working-directory: tests/permissions
+      - name: Verify login, PIN and device entry
+        run: node --test tests/login-startup.test.cjs tests/pin-unlock.test.cjs tests/desktop-phoi-entry.test.cjs

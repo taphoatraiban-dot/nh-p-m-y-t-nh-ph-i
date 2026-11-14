@@ -56,3 +56,13 @@ npm test
 ```
 
 For a preinstalled compatible Chromium browser, set `PW_EXECUTABLE` to its executable. Set `PERMISSION_SCREENSHOTS` to an existing output directory to capture viewport examples.
+
+## Recheck for requested release
+
+A second verification run reproduced all 26 permission/viewport passes. An isolated PostgreSQL 17 + PostgREST 16.5 environment was then created locally from a schema-only snapshot of the nine relevant production permission/license tables, their constraints, all eight relevant RLS policies, grants and eight existing authorization functions. No production account/customer rows were copied. The new migration applied successfully. Eighteen HTTP/JWT checks passed, including direct endpoint denial, metadata spoofing, stale profile Admin roles, both Admin fixtures, missing profiles, malformed/expired JWTs and cross-session downgrade without token refresh. This does not cover the entire production schema, Auth service or separate WEB PM service.
+
+Expanded login/PIN/desktop-entry checks now pass 26/26. Test fixtures were updated to supply the logout permission reset dependency and existing browser animation/event dependencies; a wrong-local-PIN case now explicitly tests the no-cloud-PIN path. An additional check verifies that a cloud PIN rejects a stale locally cached PIN. Application login, PIN and money calculation code was not changed in this recheck.
+
+The original focused money/parser/receipt suite remains 371 passed / 4 failed on the same head and the original main. A broader check also found a pre-existing syntax error in `tests/printer-transport-settings.test.cjs`; that unrelated file is not modified by this PR.
+
+Release remains on hold: complete application authentication flows, separate WEB PM authorization, iPhone/Android execution beyond component viewport tests, and a verified full production restore point are still unverified. The current production database has no `pro_calculation_report` RPC and no new profile authority trigger. Publishing the frontend before the server migration would leave PRO report loading unavailable. No production migration or main update was made during recheck.

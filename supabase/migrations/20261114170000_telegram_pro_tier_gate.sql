@@ -1,7 +1,8 @@
 -- Protect Telegram separately; basic entry/pricing/customer features keep their current rights.
 begin;
-create or replace function public.telegram_account_entitled(p_user_id uuid)
-returns boolean language sql stable security invoker set search_path='' as $$
+create schema if not exists cuncun_private;
+create or replace function cuncun_private.telegram_account_entitled(p_user_id uuid)
+returns boolean language sql stable security definer set search_path='' as $$
  select p_user_id is not null and (
   exists(select 1 from public.admin_users a where a.user_id=p_user_id)
   or exists(
@@ -14,6 +15,13 @@ returns boolean language sql stable security invoker set search_path='' as $$
    end
   )
  );
+$$;
+revoke all on function cuncun_private.telegram_account_entitled(uuid) from public,anon,authenticated;
+grant usage on schema cuncun_private to service_role;
+grant execute on function cuncun_private.telegram_account_entitled(uuid) to service_role;
+create or replace function public.telegram_account_entitled(p_user_id uuid)
+returns boolean language sql stable security invoker set search_path='' as $$
+ select cuncun_private.telegram_account_entitled(p_user_id);
 $$;
 revoke all on function public.telegram_account_entitled(uuid) from public,anon,authenticated;
 grant execute on function public.telegram_account_entitled(uuid) to service_role;

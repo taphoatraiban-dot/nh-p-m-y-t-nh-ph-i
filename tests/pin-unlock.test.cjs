@@ -6,7 +6,7 @@ const source=html.slice(start,end);
 function pending(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b});return {promise,resolve,reject};}
 function setup(overrides={}){
  const calls=[];const fields={pinEmail:{value:'demo@example.test'},pinInput:{value:'1234'},pinStatus:{}};
- const c=vm.createContext({authBootEpoch:0,$:id=>fields[id],getSavedPin:()=>'',cloudPinHash:async()=> 'test-hash',tsSha256:async()=> 'test-hash',pinKey:email=>'test:'+email,localStorage:{setItem:()=>calls.push('cache')},checkLicense:async()=>calls.push('license'),claimDevice:async()=>calls.push('device'),showApp:()=>calls.push('app'),showFullLogin:()=>calls.push('password'),loginStatus:()=>calls.push('error'),refreshPinDots:()=>calls.push('dots'),sb:{auth:{signOut:async()=>calls.push('signout')}},...overrides});
+ const c=vm.createContext({pinMotion:()=>{},window:{dispatchEvent(){}},Event:class{},authBootEpoch:0,$:id=>fields[id],getSavedPin:()=>'',cloudPinHash:async()=> 'test-hash',tsSha256:async()=> 'test-hash',pinKey:email=>'test:'+email,localStorage:{setItem:()=>calls.push('cache')},checkLicense:async()=>calls.push('license'),claimDevice:async()=>calls.push('device'),showApp:()=>calls.push('app'),showFullLogin:()=>calls.push('password'),loginStatus:()=>calls.push('error'),refreshPinDots:()=>calls.push('dots'),sb:{auth:{signOut:async()=>calls.push('signout')}},...overrides});
  vm.runInContext(source,c);return {c,fields,calls,run:()=>vm.runInContext('unlockByPin()',c),busy:()=>vm.runInContext('pinUnlockBusy',c)};
 }
 test('cloud PIN lookup is single-flight under repeated submission',async()=>{
@@ -15,7 +15,7 @@ test('cloud PIN lookup is single-flight under repeated submission',async()=>{
  p.resolve('test-hash');await first;assert.equal(x.calls.filter(v=>v==='app').length,1);assert.equal(x.busy(),false);
 });
 test('wrong PIN resets input and allows retry without server grant',async()=>{
- const x=setup({getSavedPin:()=> '9999'});await x.run();assert.equal(x.fields.pinInput.value,'');assert.deepEqual(x.calls,['dots']);assert.equal(x.busy(),false);
+ const x=setup({getSavedPin:()=> '9999',cloudPinHash:async()=>''});await x.run();assert.equal(x.fields.pinInput.value,'');assert.deepEqual(x.calls,['dots']);assert.equal(x.busy(),false);
  x.fields.pinInput.value='9999';await x.run();assert.ok(x.calls.includes('app'));
 });
 test('private app waits for both license and device checks',async()=>{
@@ -36,4 +36,10 @@ test('cloud PIN hashing failure is handled and clears busy state',async()=>{
 });
 test('incomplete PIN never starts remote operations',async()=>{
  const x=setup();x.fields.pinInput.value='12';await x.run();assert.deepEqual(x.calls,[]);assert.equal(x.busy(),false);
+});
+
+test('cloud PIN rejects a stale cached local PIN',async()=>{
+ const x=setup({getSavedPin:()=> '1234',cloudPinHash:async()=> 'new-cloud-hash',tsSha256:async v=>v==='9999'?'new-cloud-hash':'old-hash',localStorage:{removeItem(){},setItem(){}}});
+ await x.run();assert.equal(x.fields.pinInput.value,'');assert.ok(!x.calls.includes('app'));assert.equal(x.busy(),false);
+ x.fields.pinInput.value='9999';await x.run();assert.ok(x.calls.includes('app'));
 });

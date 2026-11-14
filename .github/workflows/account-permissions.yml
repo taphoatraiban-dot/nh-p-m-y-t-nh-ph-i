@@ -1,0 +1,23 @@
+name: Account permissions
+on:
+  pull_request:
+    paths: ['index*.html', 'supabase/migrations/*account_permission_hardening.sql', 'tests/permissions/**', '.github/workflows/account-permissions.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  permissions:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: tests/permissions
+      - name: Use runner Chrome
+        run: echo "PW_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
+      - run: npm test
+        working-directory: tests/permissions
+      - name: Verify login, PIN and device entry
+        run: node --test tests/login-startup.test.cjs tests/pin-unlock.test.cjs tests/desktop-phoi-entry.test.cjs tests/printer-transport-settings.test.cjs tests/parser-money.test.cjs tests/parser-regression.cjs tests/compact-station-receipt.test.cjs

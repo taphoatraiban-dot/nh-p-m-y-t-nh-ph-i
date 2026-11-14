@@ -1,0 +1,80 @@
+name: Account permissions real Auth
+on:
+  pull_request:
+    paths: ['index.html', 'tests/permissions/**', '.github/workflows/account-permissions-e2e.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-page-auth:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: local-test-db-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: local-test-db-only
+      PERMISSION_TEST_LOCAL: '1'
+      PERMISSION_TEST_JWT_SECRET: cuncun-disposable-ci-jwt-secret-not-for-production-2026
+      PW_EXECUTABLE: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: tests/permissions
+      - name: Start disposable Auth
+        run: |
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c "create schema auth; create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls; create role authenticator login noinherit password 'local-test-db-only'; grant anon,authenticated,service_role to authenticator;"
+          docker run -d --name permission-auth --network host \
+            -e GOTRUE_API_HOST=0.0.0.0 -e GOTRUE_API_PORT=55440 \
+            -e API_EXTERNAL_URL=http://127.0.0.1:55440 \
+            -e GOTRUE_DB_DRIVER=postgres \
+            -e GOTRUE_DB_DATABASE_URL='postgres://postgres:local-test-db-only@127.0.0.1:5432/postgres?sslmode=disable' \
+            -e GOTRUE_DB_NAMESPACE=auth -e GOTRUE_SITE_URL=http://127.0.0.1:55441 \
+            -e GOTRUE_JWT_SECRET="$PERMISSION_TEST_JWT_SECRET" \
+            -e GOTRUE_JWT_AUD=authenticated -e GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated \
+            -e GOTRUE_JWT_ADMIN_ROLES=service_role -e GOTRUE_EXTERNAL_EMAIL_ENABLED=true \
+            -e GOTRUE_MAILER_AUTOCONFIRM=true -e GOTRUE_DISABLE_SIGNUP=false \
+            public.ecr.aws/supabase/gotrue:v2.197.0
+          for i in $(seq 1 40); do if curl -sf http://127.0.0.1:55440/health >/dev/null; then exit 0; fi; sleep 2; done
+          docker logs permission-auth
+          exit 1
+      - name: Restore permission schema and apply migration
+        run: |
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/permissions/fixtures/permission-schema.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/permissions/fixtures/claim-device.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261114160000_account_permission_hardening.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/permissions/fixtures/rollback-three-tier.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261114160000_account_permission_hardening.sql
+      - name: Start disposable REST API
+        run: |
+          docker run -d --name permission-rest --network host \
+            -e PGRST_DB_URI='postgres://authenticator:local-test-db-only@127.0.0.1:5432/postgres' \
+            -e PGRST_DB_SCHEMAS=public -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$PERMISSION_TEST_JWT_SECRET" -e PGRST_SERVER_PORT=55439 \
+            public.ecr.aws/supabase/postgrest:v16.5 postgrest
+          for i in $(seq 1 30); do if curl -sf http://127.0.0.1:55439/ >/dev/null; then exit 0; fi; sleep 2; done
+          docker logs permission-rest
+          exit 1
+      - name: Run full-page real-auth sessions
+        run: node tests/permissions/full-page.integration.cjs 2>&1 | tee full-page-result.log
+      - name: Save diagnostics
+        if: always()
+        run: |
+          docker logs permission-auth > auth-diagnostics.log 2>&1 || true
+          docker logs permission-rest > rest-diagnostics.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: permission-full-page-results
+          path: |
+            full-page-result.log
+            auth-diagnostics.log
+            rest-diagnostics.log

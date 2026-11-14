@@ -18,7 +18,8 @@ test('four stations with identical bets print one table and correct sum',()=>{
   const r=receipt([row('TP.HCM','14k'),row('Long An','14k'),row('Bình Phước','14k'),row('Hậu Giang','14k')]);
   assert.equal(r.labels.filter(x=>x==='SỐ').length,1);
   assert(r.labels.includes('56k'));
-  assert(r.labels.includes('TP.HCM + Long An + Bình Phước + Hậu Giang'));
+  assert(r.labels.includes('TP.HCM + Long An'));
+  assert(r.labels.includes('Bình Phước + Hậu Giang'));
 });
 test('different bets stay separate',()=>{
   const r=receipt([row('TP.HCM','14k'),row('Long An','14k','623')]);
@@ -60,8 +61,10 @@ test('direct receipt compacts identical repeated bets and preserves 161k',()=>{
  items.push(row('Đồng Nai + Cần Thơ','29k','86-68','DA','0.5n'));
  const result=receipt(items);
  for(const n of ['938','468','52','68','86-68'])assert.equal(result.labels.filter(x=>x===n).length,1);
- for(const amount of ['21k','45k','29k','161k','0.5n ×3','1n ×3'])assert(result.labels.includes(amount),amount);
+ for(const amount of ['21k','45k','29k','161k','0.5n','1n'])assert(result.labels.includes(amount),amount);
  assert.equal(result.labels.filter(x=>x==='SỐ').length,2);
+ assert(!result.labels.includes('1.5n'));
+ assert(!result.labels.includes('3n'));
 });
 test('same number at different stations is not collapsed without provenance',()=>{
  const result=receipt([row('Đồng Nai','7k','938','Bao 3','0.5n'),row('Cần Thơ','7k','938','Bao 3','0.5n')]);

@@ -2786,7 +2786,9 @@ function ttNormalizeClearNaturalBetNames(raw){
   // "123 đảo xc 10", "123 đảo xỉu chủ 10".
   .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo|đào|dào)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
  // Alternate names for a DA wager; preserve the stake and number order.
- const daAliases=/(^|[^a-z])(?:daxieng|daxuyen|dacheo|daxien|daxv|davx|dxv|dcv|dvx|dathang|davong|dacap|daxoay|davog|davg|dvong|dvog|dth|dat|thang|dav|dax|dx|xieng|xiêng|xien|xiên|cheo|chéo|x|dv|da[ \t]+xieng|da[ \t]+xiêng|da[ \t]+xien|da[ \t]+xiên|da[ \t]+xuyen|da[ \t]+x|da[ \t]+cheo|da[ \t]+chéo|da[ \t]+vong|vong[ \t]+da|da[ \t]+xoay|da[ \t]+cap|da[ \t]+v|vongda)(?=[ \t]*\d)/gi;
+ const daAliases=/(^|[^a-z])(?:daxieng|daxuyen|dacheo|daxien|daxv|davx|dxv|dcv|dvx|dathang|davong|dacap|daxoay|davog|davg|dvong|dvog|dth|dat|thang|dav|dax|dx|xieng|xiêng|xien|xiên|cheo|chéo|dv|da[ \t]+xieng|da[ \t]+xiêng|da[ \t]+xien|da[ \t]+xiên|da[ \t]+xuyen|da[ \t]+x|da[ \t]+cheo|da[ \t]+chéo|da[ \t]+vong|vong[ \t]+da|da[ \t]+xoay|da[ \t]+cap|da[ \t]+v|vongda)(?=[ \t]*\d)/gi;
+ // A bare "x" also means XC; only map it to DA when two 2-digit numbers precede it.
+ out=out.replace(/(^|[^0-9])(\d{2})[., \t:/-]+(\d{2})[ \t]*x(?=[ \t]*\d)/gi,"$1$2.$3da");
  out=out.replace(daAliases,"$1da");
  // Spoken order variants: TP 39 da 79 10 and TP da 39 79 10.
  out=out.replace(/^(\s*)([a-z0-9][a-z0-9._-]*)[ \t]+(\d{2})[ \t]+da[ \t]+(\d{2})[ \t]+(\d+(?:[,.]\d+)?n?)[ \t]*\.?[ \t]*$/gim,

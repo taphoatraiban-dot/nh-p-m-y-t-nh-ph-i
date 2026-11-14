@@ -1,0 +1,21 @@
+name: Account permissions
+on:
+  pull_request:
+    paths: ['index*.html', 'supabase/migrations/*account_permission_hardening.sql', 'tests/permissions/**', '.github/workflows/account-permissions.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: tests/permissions
+      - run: npx playwright install --with-deps chromium
+        working-directory: tests/permissions
+      - run: npm test
+        working-directory: tests/permissions

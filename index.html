@@ -4025,8 +4025,8 @@ function parseBets(){
    for(const m of line.matchAll(re)){
      const parts=m[1].split(/[ \t]*-[ \t]*/);
      // LOCK: 17-1819-20da1.5 is one DA function (17,18,19,20).
-     // Hyphen groups may contain consecutive pairs; only odd-length groups are invalid.
-     if(!parts.every(p=>p.length>=2 && p.length%2===0)){
+     // Hyphen groups may contain one or two consecutive pairs; reject longer ambiguous segments.
+     if(!parts.every(p=>[2,4].includes(p.length))){
        _badDaGroups.push('Dòng '+(index+1)+': Sai độ dài số ĐÁ: '+m[1]+'. Mỗi số ngăn bằng dấu - phải đúng 2 chữ số. Không tính tiền.');
      }
    }

@@ -33,7 +33,7 @@ test('Nút IN chọn tuyến riêng; AirPrint không giả vờ đã ra giấy',
   assert.match(html,/mode==='native'\)printPhoiToMac\(false,true\)/);
   assert.match(html,/printedResult\?\.airprint/);
   assert.match(html,/Chỉ bấm OK nếu giấy đã in xong/);
-  assert.match(html,/body>\*:not\(#tshAirPrintReceipt\)/);
+  assert.match(html,/body\.cuncun-receipt-print> :not\(#cuncun-print-receipt-only\)/);
 });
 
 test('IN NGAY tự lưu phương thức; CHIA SẺ dự phòng dùng luồng in cũ',()=>{
@@ -52,25 +52,26 @@ test('IN NGAY tự lưu phương thức; CHIA SẺ dự phòng dùng luồng in 
     localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v)},
     window:{TSHNativePrintBridge:{available:()=>false}}
   });
+  fields.printerTransportMode.value='airprint';
   fields.printerPrintNow.click();
   assert.equal(printClicks,1);
   assert.equal(JSON.parse(saved.get('TSH_PRINTER_LAN_V1')).mode,'airprint');
   fields.printerTransportMode.value='native';
   fields.printerPrintNow.click();
-  assert.equal(printClicks,1,'Không gửi lệnh giả khi thiếu ứng dụng native');
-  assert.match(fields.printerLanStatus.textContent,/Chưa có ứng dụng/);
+  assert.equal(printClicks,2,'Settings delegate to the existing print dispatcher');
+  assert.equal(JSON.parse(saved.get('TSH_PRINTER_LAN_V1')).mode,'native');
   fields.printerShareNow.click();
-  assert.equal(printClicks,2);
+  assert.equal(printClicks,3);
   assert.equal(JSON.parse(saved.get('TSH_PRINTER_LAN_V1')).mode,'share');
 });
 
 
 test('MB inline script stays executable and receipt HTML cannot leak into page',()=>{
- const mb=html.match(/<script id="mb-module-script">([\\s\\S]*?)<\\/script>/)?.[1];
+ const mb=html.match(/<script id="mb-module-script">([\s\S]*?)<\/script>/)?.[1];
  assert.ok(mb,'MB script must exist');
  assert.doesNotThrow(()=>new vm.Script(mb,{filename:'mb-module-script.js'}));
- assert.match(mb,/w\\.document\\.write\\('<!doctype html>/);
- assert.match(mb,/<\\/body><\\/html>'\\);w\\.document\\.close\\(\\)/);
+ assert.match(mb,/w\.document\.write\('<!doctype html>/);
+ assert.match(mb,/<\/body><\/html>'\);w\.document\.close\(\)/);
  assert.doesNotMatch(mb,/<style id="cuncun-auth-touch-recovery/);
  assert.equal((html.match(/id="cuncun-auth-touch-recovery-20261103"/g)||[]).length,1);
 });

@@ -20,4 +20,4 @@ jobs:
       - run: npm test
         working-directory: tests/permissions
       - name: Verify login, PIN and device entry
-        run: node --test tests/login-startup.test.cjs tests/pin-unlock.test.cjs tests/desktop-phoi-entry.test.cjs
+        run: node --test tests/login-startup.test.cjs tests/pin-unlock.test.cjs tests/desktop-phoi-entry.test.cjs tests/printer-transport-settings.test.cjs tests/parser-money.test.cjs tests/parser-regression.cjs tests/compact-station-receipt.test.cjs

@@ -1,68 +1,38 @@
-# THƯỜNG / PRO / ADMIN — review before rollout
+# CUNCUN three-tier permissions — release verification
 
-Base: main c9931c087e6cc682012ecca8892123c63c99c3d1 (14 November 2026).
+Base main: c9931c087e6cc682012ecca8892123c63c99c3d1. Release date: 14 November 2026.
 
-## Result
+## Behavior
 
-- THƯỜNG keeps the existing basic entry, calculations, price tables, customer messages, archives, statistics, balances and history. TOP 10 and the per-type summary use blurred synthetic placeholders with a lock and PRO label. Regional/day totals and collection amounts remain available.
-- PRO and ADMIN load both reports through `pro_calculation_report`; its server check requires an active license and a fresh database edition or canonical Admin membership. Existing printer/QR/live feature scope remains as on main.
-- Admin authority comes from `admin_users`, shared by license checks and six legacy CUNCUN Admin RPCs. No Admin membership is added or removed. Inspection found two existing Admin members, matching the two profile Admins.
-- Direct profile role/edition/identity changes from API roles are blocked by a trigger even if broader profile write grants are introduced later. Admin membership writes are revoked from browser roles. The existing Admin edition RPC retains its server membership check, refuses Admin downgrades, and can create a missing ordinary profile for an existing account.
-- Missing profile/edition and failed verification default to THƯỜNG. Downgrade clears displayed reports and invalidates pending responses. Server report authorization takes effect on the next request without JWT refresh. Existing 60-second/focus/visibility license checks update open tabs.
-- Device rows use the registered phone number; missing phone data gets an explicit fallback. Admin can change every non-Admin account between THƯỜNG and PRO.
-- Forty archived `index*.html` routes redirect to the canonical entry, preserving query and fragment. Their originals are in the external source backup; they must not remain as public application entry points.
+THƯỜNG retains basic entry/calculation, prices, customer messages, archives, statistics, balances/history and required collection totals. TOP 10 and per-type Loại/Tổng/Trúng/Thu-Bù show synthetic blurred placeholders, a lock and PRO label. PRO/ADMIN load these reports through a server-authorized RPC. Admin-only controls remain hidden for customers and their server APIs reject customer calls.
 
-No customer data, price tables, wager parser, settlement formula or license expiry is rewritten. The report API aggregates transient normalized rows from the existing calculation engine, without storing them or accepting another account's identifier. Basic local wager data can naturally be recomputed by its owner; this change protects the application report service, not against independent arithmetic on user-owned data.
+Admin authority is read from admin_users rather than profile roles or editable metadata. The two original Admin memberships are preserved. Direct browser writes cannot change profile authority or Admin membership. Admin can switch ordinary accounts between Standard/Pro, including existing accounts missing a profile; Admin downgrade is rejected. Missing/failed authority verification defaults to Standard.
+
+Editions are read from the database on each server check, without waiting for JWT refresh. Open pages recheck at the existing 60-second interval and on focus/visibility. Downgrade clears report content and invalidates pending responses. Device labels prefer the registered phone. Forty historical app pages redirect to the canonical entry.
+
+No pricing, settlement formula, existing customer data, account edition or Admin membership is bulk-rewritten. An ambiguous hyphenated DA input containing a six-digit segment is rejected before normalization; valid two/four-digit groups remain accepted. Receipt/parser tests were corrected for actual wrapped station headings, unchanged original stakes and the twelve legitimate B2 rows at 180k (total 2160k); the overall expected 3468k remains asserted.
 
 ## Verification
 
-Local PostgreSQL (PGlite) + DOM tests: 21 passed, 0 failed. Covers THƯỜNG/PRO/ADMIN, both Admin fixtures, anonymous access, stale profile Admin, missing profile, phone/email-license isolation, self-promotion, Admin downgrade protection, edition changes without token refresh, malformed payloads, revoked licenses, duplicate/fractional aggregation, top-ten order and stale response races.
+- 405 focused parser/money/receipt, login/PIN, desktop-entry and printer-routing checks passed locally.
+- 26 permission/database/DOM/browser-component checks passed.
+- 18 HTTP/JWT checks passed against isolated PostgreSQL 17/PostgREST with schema-only copies of nine production permission/license tables, constraints, RLS and grants. Includes anonymous calls, metadata spoofing, stale profile Admin roles, self-promotion, invalid JWTs and cross-session downgrade.
+- 12 full-page sessions passed with real GoTrue password login, PostgREST, production frontend logic, calculation/report rendering, direct Admin API denial and logout: Standard, Pro and two Admin fixtures at iPhone-size, Android-size and desktop viewports.
+- Migration apply → rollback → reapply succeeded in the real-Auth test environment.
+- WEB PM approval RPC definitions were inspected: both require server-side license_admins membership. That separate service was not modified.
+- Production migration was applied before frontend publication. Read-only production checks confirmed both original Admins retain full access, Standard is denied PRO/Admin APIs, and all five licensed Pro accounts receive the report. Twelve inactive Pro accounts were not granted access.
+- Production profile-row hash and both Admin IDs matched the pre-migration snapshot exactly. Browser grants cannot insert Admin membership or update edition.
 
-Browser component checks: 5 passed, 0 failed. Chromium/Cốc Cốc headless at 390×844, 412×915 and 1440×900; verifies locks, visible collection amount, edition badges, Admin-only controls and downgrade. Also checks all 40 legacy route redirects. These are component/viewport checks, not complete application sessions or physical iPhone/Android verification.
+Phone-size testing uses Chromium emulation, not physical iPhone/Android hardware or a Safari/WebKit compatibility guarantee. The separate WEB PM service was inspected, not tested through a complete live payment/approval flow. Independent recomputation of user-owned wager data is outside application licensing enforcement.
 
-Existing focused regression suite: 371 passed, 4 failed both before and after this patch, with the same failing names:
+A broader, non-gating historical test run still has six pre-existing failures outside this patch: repeated-station 5464k parsing, a cache-busting URL assertion in the iOS bridge test, three legacy QR privacy/source-shape assertions, and a schedule assertion expecting validation inside the parser instead of the later strict-validation pipeline. They are not represented as passing, and this release does not change those unrelated behaviors.
 
-1. four stations with identical bets print one table and correct sum
-2. direct receipt compacts identical repeated bets and preserves 161k
-3. LOCK: malformed hyphenated DA length blocks entire phoi
-4. LOCK: shared B applies to every DA pair across all compact groups and later line
+## Backup and rollback
 
-Those pre-existing failures remain unresolved; this authorization patch does not modify money parsing or printing to address them.
+The workspace outputs/backup directory contains the original main archive, a fresh snapshot of all nine replaced function definitions/grants and account authority, plus rollback-three-tier.sql. The restore script was exercised before production deployment. This is a backup of all changed authority objects and the source, not an export of the entire production/customer database.
 
-## Remaining release gates
-
-This is a draft. Do not merge or deploy yet.
-
-1. Test the migration against an isolated copy of the production schema (including actual RLS, Auth triggers and all account RPCs). PGlite fixtures do not replace this.
-2. Run full signed-in application sessions with dedicated THƯỜNG, PRO and ADMIN test accounts. Test direct HTTP RPC/Edge Function requests using their real JWTs, including the separate WEB PM approval service. Local database-role tests are not HTTP end-to-end tests.
-3. Verify on physical iPhone/Safari and Android/Chrome plus desktop, including input, price lookup, saved phơi/tin, balances/history, printing, report loading, cross-device upgrade/downgrade, logout and network loss.
-4. Resolve or explicitly triage the four existing regression failures. Require permission workflow and repository checks to pass on the final head.
-5. Take a fresh production backup and confirm a restore point. The workspace contains a source archive and authorization snapshots, not a full production database/data backup.
-
-## Rollout and rollback
-
-- Apply only `20261114160000_account_permission_hardening.sql` after staging verification. Do not rerun the earlier edition migration, which backfills existing Standard profiles to Pro.
-- Apply the additive server changes before publishing the frontend. The earlier frontend continues to work while the new report RPC becomes available. Verify both original Admins before publishing the UI.
-- No production migration or main update was performed during this task.
-- If the frontend fails, restore the prior deployment from the source archive; keep safe server guards while investigating. If a server rollback is required, restore the exact function definitions and grants from the pre-rollout schema backup, then drop the new report RPC, authority trigger and its private helper. Do not bulk-change account editions or Admin membership.
+Rollback the frontend to the archived main if publication fails. To revert the server change, run the exact saved rollback script, which restores original function definitions and Admin-table grants and removes the new report RPC/authority trigger. It does not rewrite customer data or account editions. Do not replay the old blanket-Pro-backfill migration.
 
 ## Reproduce
 
-```
-cd tests/permissions
-npm ci --ignore-scripts --no-audit --no-fund
-npx playwright install --with-deps chromium
-npm test
-```
-
-For a preinstalled compatible Chromium browser, set `PW_EXECUTABLE` to its executable. Set `PERMISSION_SCREENSHOTS` to an existing output directory to capture viewport examples.
-
-## Recheck for requested release
-
-A second verification run reproduced all 26 permission/viewport passes. An isolated PostgreSQL 17 + PostgREST 16.5 environment was then created locally from a schema-only snapshot of the nine relevant production permission/license tables, their constraints, all eight relevant RLS policies, grants and eight existing authorization functions. No production account/customer rows were copied. The new migration applied successfully. Eighteen HTTP/JWT checks passed, including direct endpoint denial, metadata spoofing, stale profile Admin roles, both Admin fixtures, missing profiles, malformed/expired JWTs and cross-session downgrade without token refresh. This does not cover the entire production schema, Auth service or separate WEB PM service.
-
-Expanded login/PIN/desktop-entry checks now pass 26/26. Test fixtures were updated to supply the logout permission reset dependency and existing browser animation/event dependencies; a wrong-local-PIN case now explicitly tests the no-cloud-PIN path. An additional check verifies that a cloud PIN rejects a stale locally cached PIN. Application login, PIN and money calculation code was not changed in this recheck.
-
-The original focused money/parser/receipt suite remains 371 passed / 4 failed on the same head and the original main. A broader check also found a pre-existing syntax error in `tests/printer-transport-settings.test.cjs`; that unrelated file is not modified by this PR.
-
-Release remains on hold: complete application authentication flows, separate WEB PM authorization, iPhone/Android execution beyond component viewport tests, and a verified full production restore point are still unverified. The current production database has no `pro_calculation_report` RPC and no new profile authority trigger. Publishing the frontend before the server migration would leave PRO report loading unavailable. No production migration or main update was made during recheck.
+Run npm ci in tests/permissions, then npm test after installing Playwright Chromium or setting PW_EXECUTABLE to a compatible browser. The Account permissions workflow also runs the 405 focused checks. Account permissions real Auth builds a disposable Auth/Postgres/PostgREST environment with synthetic users and tests full-page sessions plus migration rollback. It contains only fixture credentials and never authenticates against production.

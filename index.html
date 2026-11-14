@@ -2779,6 +2779,8 @@ function ttNormalizeClearNaturalBetNames(raw){
  return String(raw??"")
   // "5645 bao 12" is the spelled-out Bao instruction for the same number.
   .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1b$2")
+  // "639 xc dao 5n" explicitly means xỉu chủ đảo (XCDAO).
+  .replace(/(\d{3})[ \t]+xc[ \t]+(?:đảo|dao)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xcdao$2")
   // "123 đảo xc 10", "123 đảo xỉu chủ 10".
   .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo|đào|dào)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
 }

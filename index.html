@@ -2843,8 +2843,15 @@ function cuncunNormalizeXiuChuAlias(raw){
  // Preserve unrelated words, XCDAO, XCDau/XCDuoi and the original textarea.
  return String(raw??'').replace(/(\d{3})\s*(?:xỉu\s*chủ|xiu\s*chu|xiuchu|xchu)\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1xc$2');
 }
+function cuncunNormalizeBaoDdMissingAliases(raw){
+ // Only match complete number + named wager + stake; leave special functions unchanged.
+ // B LO / B LÔ and BAO-LO are B; ĐĐ / DAU-DUOI are DD.
+ return String(raw??'')
+  .replace(/(\d{2,4})\s*(?:b\s+l[oô]|bao\s*[-–]\s*l[oô])\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1b$2')
+  .replace(/(\d{2})\s*(?:đ\s*đ|dau\s*[-–]\s*duoi|đầu\s*[-–]\s*đuôi)\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1dd$2');
+}
 function ttNormalizeClearNaturalBetNames(raw){
- let out=cuncunNormalizeXiuChuAlias(raw)
+ let out=cuncunNormalizeBaoDdMissingAliases(cuncunNormalizeXiuChuAlias(raw))
   // "5645 bao 12" is the spelled-out Bao instruction for the same number.
   .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1b$2")
   // "639 xc dao 5n" explicitly means xỉu chủ đảo (XCDAO).
@@ -3674,7 +3681,7 @@ function normalizeBetShorthands(line){
   // - xN viết nối sau một cược => xcN (vd b0,5x5 => b0,5.xc5)
   // - xdui => xduoi
   // - không sinh '..' do chuẩn hóa.
-  line=ttSeparateJoinedBets(cuncunNormalizeXiuChuAlias(line));
+  line=ttSeparateJoinedBets(cuncunNormalizeBaoDdMissingAliases(cuncunNormalizeXiuChuAlias(line)));
 
   // Chuẩn alias trước để không bị hiểu nhầm chữ x trong xdui.
   // Common shorthand aliases: xiuchu / xchu = XC, xd = DAO XC, xddui = XC-đuôi.

@@ -24,7 +24,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 .receipt-table.payout-table th:nth-child(5){width:34%}
 .receipt-table.payout-table td:first-child{overflow-wrap:anywhere}
 .receipt-table.payout-table td:nth-child(2){overflow-wrap:anywhere}
-.draw-board{border:1px solid #cbd1d9;border-radius:10px;margin:12px 0;padding:10px}.draw-board h3{margin:3px 0 10px;font-size:17px}.draw-prize{display:grid;grid-template-columns:45px 1fr;align-items:center;border-top:1px solid #ddd;padding:7px 0;gap:6px}.draw-values{display:flex;gap:6px;flex-wrap:wrap}.draw-value{display:inline-block;padding:5px 7px;border-radius:5px;font-weight:750;font-variant-numeric:tabular-nums}.draw-value.winning-mark{background:#111;color:#fff}.draw-board-note{font-size:13px;color:#59636e;margin:6px 0} @media print{#markWinningDraws,#winningDrawBoards{display:none!important}}#publicDrawTable{min-width:0}#publicDrawStatus{white-space:pre-line}
+.draw-board{border:1px solid #cbd1d9;border-radius:10px;margin:12px 0;padding:10px}.draw-board h3{margin:3px 0 10px;font-size:17px}.draw-prize{display:grid;grid-template-columns:45px 1fr;align-items:center;border-top:1px solid #ddd;padding:7px 0;gap:6px}.draw-values{display:flex;gap:6px;flex-wrap:wrap}.draw-value{display:inline-block;padding:5px 7px;border-radius:5px;font-weight:750;font-variant-numeric:tabular-nums}.draw-value.winning-mark{background:#111;color:#fff}.draw-board-note{font-size:13px;color:#59636e;margin:6px 0} @media print{#markWinningDraws,#winningDrawBoards{display:none!important}}.draw-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.draw-result-table{width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}.draw-result-table th,.draw-result-table td{border:1px solid #cbd1d9;padding:7px 3px;text-align:center;vertical-align:middle}.draw-result-table th:first-child{width:45px;background:#f1f3f5}.draw-result-table tr:first-child th{background:#e9eff5}.draw-result-table .draw-station-values,.draw-result-table .draw-mb-values{line-height:1.65}.draw-result-table .draw-value{padding:3px 4px;margin:2px;display:inline-block;font-size:clamp(12px,3.4vw,18px);font-weight:750}.draw-result-table .draw-value.winning-mark{background:#111;color:#fff}.draw-region-board{padding:9px}.draw-region-board h3{text-align:center;font-size:16px}.draw-result-table caption{font-weight:800;padding:9px}@media(max-width:420px){.draw-result-table th,.draw-result-table td{padding:5px 1px}.draw-result-table .draw-value{font-size:12px;padding:2px}}#publicDrawTable{min-width:0}#publicDrawStatus{white-space:pre-line}
 #publicDrawTable .receipt-total{margin-bottom:18px;text-align:center}
 @media(max-width:480px){.receipt-table.payout-table{font-size:12px}.receipt-table.payout-table th,.receipt-table.payout-table td{padding:8px 1px}.receipt-table.payout-table td:last-child{font-size:11px}.receipt-table.payout-table th{font-size:11px}.payout-value{font-size:clamp(20px,6vw,26px)}}
 @media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
@@ -243,22 +243,55 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
        if(!show||boardHost.dataset.rendered)return;
        boardHost.dataset.rendered='1';
        const heading={db:'ĐB',g1:'G1',g2:'G2',g3:'G3',g4:'G4',g5:'G5',g6:'G6',g7:'G7',g8:'G8'};
-       for(const board of boards){
-         const section=document.createElement('section');section.className='draw-board';
-         const title=document.createElement('h3');title.textContent=board.station+' — '+board.region;section.append(title);
-         for(const key of ['db','g1','g2','g3','g4','g5','g6','g7','g8']){
-           const values=board.prizes?.[key];if(!Array.isArray(values)||!values.length)continue;
-           const line=document.createElement('div');line.className='draw-prize';
-           const name=document.createElement('b');name.textContent=heading[key];line.append(name);
-           const group=document.createElement('div');group.className='draw-values';
-           for(const value of values){
-             const cell=document.createElement('span');cell.className='draw-value';cell.textContent=value;
-             if(rows.some((row,i)=>matchesCell(row,i,board,key,value)))cell.classList.add('winning-mark');
-             group.append(cell);
+       // Draw tables follow the public results layout: station columns for MN/MT,
+       // and a single traditional prize table for MB.
+       const makeCell=(tag,label,cls='')=>{
+         const el=document.createElement(tag);el.textContent=label;
+         if(cls)el.className=cls;
+         return el;
+       };
+       const drawValue=(board,key,value)=>{
+         const cell=makeCell('span',value,'draw-value');
+         if(rows.some((row,i)=>matchesCell(row,i,board,key,value)))cell.classList.add('winning-mark');
+         return cell;
+       };
+       const prizeOrder=['g8','g7','g6','g5','g4','g3','g2','g1','db'];
+       for(const region of ['MN','MT','MB']){
+         const regionBoards=boards.filter(b=>b.region===region);
+         if(!regionBoards.length)continue;
+         const section=document.createElement('section');section.className='draw-board draw-region-board';
+         const title=makeCell('h3',region==='MN'?'KẾT QUẢ MIỀN NAM':region==='MT'?'KẾT QUẢ MIỀN TRUNG':'KẾT QUẢ MIỀN BẮC');
+         section.append(title);
+         const scroller=document.createElement('div');scroller.className='draw-table-scroll';
+         const table=document.createElement('table');table.className='draw-result-table';
+         if(region==='MB'){
+           for(const board of regionBoards){
+             const cap=document.createElement('caption');cap.textContent=board.station;table.append(cap);
+             const keys=['db','g1','g2','g3','g4','g5','g6','g7'];
+             for(const key of keys){
+               const values=board.prizes?.[key];if(!Array.isArray(values)||!values.length)continue;
+               const tr=document.createElement('tr');tr.append(makeCell('th',heading[key]));
+               const td=document.createElement('td');td.className='draw-mb-values';
+               for(const value of values)td.append(drawValue(board,key,value));
+               tr.append(td);table.append(tr);
+             }
            }
-           line.append(group);section.append(line);
+         }else{
+           const thead=document.createElement('tr');thead.append(makeCell('th','GIẢI'));
+           for(const board of regionBoards)thead.append(makeCell('th',board.station));
+           table.append(thead);
+           for(const key of prizeOrder){
+             if(!regionBoards.some(b=>Array.isArray(b.prizes?.[key])&&b.prizes[key].length))continue;
+             const tr=document.createElement('tr');tr.append(makeCell('th',heading[key]));
+             for(const board of regionBoards){
+               const td=document.createElement('td');td.className='draw-station-values';
+               for(const value of board.prizes?.[key]||[])td.append(drawValue(board,key,value));
+               tr.append(td);
+             }
+             table.append(tr);
+           }
          }
-         boardHost.append(section);
+         scroller.append(table);section.append(scroller);boardHost.append(section);
        }
        const note=document.createElement('p');note.className='draw-board-note';
        note.textContent='Ô đen chỉ đánh dấu vị trí khớp cược hợp lệ, không thay đổi tiền thưởng hoặc xác nhận thanh toán.';

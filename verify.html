@@ -603,7 +603,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  }
  try {
    const jwt=await ownerJwt();
-   if(jwt){const access=await call('owner-access',jwt);ownerBox.hidden=!access.allowed;box.hidden=!(access.allowed&&status.textContent==='PHIẾU CHƯA SỬ DỤNG');}
+   if(jwt){const access=await call('owner-access',jwt);ownerBox.hidden=!access.allowed;box.hidden=!(access.allowed&&status.textContent.includes('PHIẾU CHƯA SỬ DỤNG'));}
  } catch(_) {ownerBox.hidden=true;}
  ownerCheck.addEventListener('click',async()=>{
    ownerCheck.disabled=true;

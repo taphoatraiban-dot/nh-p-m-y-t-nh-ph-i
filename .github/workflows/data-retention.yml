@@ -1,0 +1,47 @@
+name: Data retention and chat history
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'qr-management.html'
+      - 'assets/telegram-chat/**'
+      - 'supabase/functions/receipt-verify/**'
+      - 'supabase/functions/telegram-chat/**'
+      - 'supabase/migrations/**'
+      - 'tests/receipt-archive.test.cjs'
+      - 'tests/qr-receipt-privacy.test.mjs'
+      - 'tests/helpers/receipt-endpoint.cjs'
+      - 'tests/chat/**'
+      - 'tests/permissions/receipt-*.test.cjs'
+      - '.github/workflows/data-retention.yml'
+  pull_request:
+    paths:
+      - 'qr-management.html'
+      - 'assets/telegram-chat/**'
+      - 'supabase/functions/receipt-verify/**'
+      - 'supabase/functions/telegram-chat/**'
+      - 'supabase/migrations/**'
+      - 'tests/receipt-archive.test.cjs'
+      - 'tests/qr-receipt-privacy.test.mjs'
+      - 'tests/helpers/receipt-endpoint.cjs'
+      - 'tests/chat/**'
+      - 'tests/permissions/receipt-*.test.cjs'
+      - '.github/workflows/data-retention.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  retention:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: tests/permissions
+      - name: Verify real handlers, owner isolation, migration and UI
+        env:
+          NODE_PATH: ${{ github.workspace }}/tests/permissions/node_modules
+        run: node --test tests/receipt-archive.test.cjs tests/qr-receipt-privacy.test.mjs tests/permissions/receipt-*.test.cjs tests/chat/*.test.cjs

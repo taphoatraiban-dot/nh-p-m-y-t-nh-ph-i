@@ -1,7 +1,10 @@
 name: Account permissions real Auth
 on:
+  push:
+    branches: [main]
+    paths: ['index*.html', 'assets/telegram-chat/**', 'src/telegram*', 'supabase/migrations/**', 'supabase/functions/**', 'supabase/config.toml', 'tests/permissions/**', 'tests/chat/**', '.github/workflows/account-permissions-e2e.yml']
   pull_request:
-    paths: ['index.html', 'tests/permissions/**', '.github/workflows/account-permissions-e2e.yml']
+    paths: ['index*.html', 'assets/telegram-chat/**', 'src/telegram*', 'supabase/migrations/**', 'supabase/functions/**', 'supabase/config.toml', 'tests/permissions/**', 'tests/chat/**', '.github/workflows/account-permissions-e2e.yml']
   workflow_dispatch:
 permissions:
   contents: read

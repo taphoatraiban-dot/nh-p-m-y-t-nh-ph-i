@@ -4002,6 +4002,9 @@ function parseBets(){
    // Contextual dong-sign shorthand: station groups use d; compact pair wagers use da.
    // 2₫mn -> 2dmn, 3₫mt -> 3dmt, 4955₫1n -> 4955da1n.
    .replace(/\b([234])₫(?=m[nt]\b)/gi,'$1d')
+   // XC and DD also accept a stray trailing 'ng' after the points.
+   // Keep the original wager amount: xc10ng -> xc10; dd10ng -> dd10.
+   .replace(/((?:xc|dd)\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|\n))/gim,'$1')
    // A trailing 'ng' after a complete B/DA wager is noise, not an n multiplier.
    // E.g. 76b10ng -> 76b10; 777879da1ng -> 777879da1.
    .replace(/(\d{2,}\s*(?:b|da|₫)\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|\n))/gim,'$1')

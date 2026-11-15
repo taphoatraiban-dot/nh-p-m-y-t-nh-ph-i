@@ -6137,7 +6137,7 @@ function resultForDA(row,draw){
   for(let i=0;i<wanted.length;i++){
     for(let j=i+1;j<wanted.length;j++){
       const a=wanted[i], b=wanted[j];
-      const times=Math.min(counts.get(a)||0,counts.get(b)||0);
+      const times=(counts.get(a)||0)>0 && (counts.get(b)||0)>0 ? 1 : 0;
       if(times>0) winningPairs.push({a,b,times});
     }
   }
@@ -6251,8 +6251,8 @@ function resultForCross2DA(row){
   for(let i=0;i<wanted.length;i++){
     for(let j=i+1;j<wanted.length;j++){
       const a=wanted[i], b=wanted[j];
-      // Nếu A về 2 lần và B về 1 lần thì chỉ có 1 cặp A-B.
-      const times=Math.min(counts.get(a)||0,counts.get(b)||0);
+      // Mỗi cặp số đá trúng tối đa 1 lần dù một hoặc cả hai số lặp trong kết quả.
+      const times=(counts.get(a)||0)>0 && (counts.get(b)||0)>0 ? 1 : 0;
       if(times>0) winningPairs.push({a,b,times});
     }
   }

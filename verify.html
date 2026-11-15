@@ -101,9 +101,9 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  }
  function show(data){
    const active=data.status==='active';
-   status.textContent=active?'PHIẾU CHƯA SỬ DỤNG':data.status==='redeemed'?'PHIẾU ĐÃ SỬ DỤNG':'PHIẾU ĐÃ HỦY';
+   status.textContent=active?'✓ PHIẾU CHƯA SỬ DỤNG':data.status==='redeemed'?'✕ PHIẾU ĐÃ SỬ DỤNG — ĐÃ TRẢ THƯỞNG':'PHIẾU ĐÃ HỦY';
    status.className=active?'ok':'bad';
-   details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Đã sử dụng: '+new Date(data.redeemed_at).toLocaleString('vi-VN'):'');
+   details.textContent='Mã phiếu: '+String(data.receipt_code||'')+(data.redeemed_at?' — Xác nhận đã trả: '+new Date(data.redeemed_at).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'');
    box.hidden=true; // Only the verified issuing account may see redemption controls.
    // QR token permits read-only viewing of sanitized receipt lines; redemption stays owner-only.
    const receipt=data.receipt;
@@ -758,12 +758,12 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    if(amountInput.value.trim()===''||!Number.isSafeInteger(amount)||amount<0||amount>1000000000000){
      note.textContent='Nhập số tiền đã trả thực tế bằng đồng, không để trống.';amountInput.focus();return;
    }
-   if(!confirm('Xác nhận ĐÃ TRẢ '+amount.toLocaleString('vi-VN')+' đ cho phiếu này? Phiếu sẽ bị khóa chống trả trùng và không thể hoàn tác.'))return;
+   if(!confirm('CHỈ XÁC NHẬN KHI ĐÃ GIAO TIỀN THỰC TẾ.\n\nĐã trả '+amount.toLocaleString('vi-VN')+' đ cho phiếu này?\n\nSau khi xác nhận, QR sẽ hiện PHIẾU ĐÃ SỬ DỤNG và không thể hoàn tác.'))return;
    btn.disabled=true;btn.textContent='ĐANG XÁC NHẬN…';
    try{
      await call('redeem',session.access_token,{paidAmountVnd:amount});
      show(await call('check'));
-     note.textContent='Đã ghi nhận trả thưởng và khóa phiếu chống xác nhận trùng.';
+     note.textContent='Đã ghi nhận trả thưởng. Quét lại QR sẽ hiển thị PHIẾU ĐÃ SỬ DỤNG.';
    }catch(e){
      note.textContent='Không xác nhận được: '+e.message;
      try{show(await call('check'));}catch(_){}

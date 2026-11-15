@@ -4601,6 +4601,9 @@ function parseBets(){
   s=s.replace(/xchu(?=\s*\d)/gi,'xc').replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*₫(?=\s*\d)/gi,'$1da');
   // Expand d + stake to DA before strict unknown-token validation.
   s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*d(?=\s*\d)/gi,'$1da');
+  // Accept ng as n at the end of a B wager, with or without punctuation before the next wager.
+  // Example: 049b2ng.xc25n -> 049b2n.xc25n; 049b2ngxc25n -> 049b2n.xc25n.
+  s=s.replace(/(b\s*\d+(?:[,.]\d+)?)ng(?=\s*\.?\s*(?:xc|b|dd|da)\s*\d)/gi,'$1n.').replace(/(b\s*\d+(?:[,.]\d+)?)n\.\s*\./gi,'$1n.');
   // Bao lô aliases: blo5 / bl5 -> b5. Preserve explicit bl2 + stake forms.
   s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*(?:blo|bao\s*l[oô])\s*(\d+(?:[,.]\d+)?)(?=n?(?:[.;\s]|$))/gi,'$1b$2');
   s=s.replace(/(\d{2,}(?:[.\s]+\d{2,})*)\s*bl20(?=n?(?:[.;\s]|$))/gi,'$1b20');

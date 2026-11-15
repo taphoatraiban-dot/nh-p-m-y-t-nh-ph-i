@@ -3820,6 +3820,11 @@ function addBet(rows,st,raw,type,p){
    const pr=isB?1:stations;
    gross=ns.length*p*pr;label="ĐUÔI";
  }
+ else if(type==="nhat_to_2" || type==="nhat_to_3"){
+   // G1: 2 digits use DUOI pricing; 3 digits use XC-DUOI pricing.
+   gross=ns.length*p*(isB?1:stations);
+   label=type==="nhat_to_2"?"NHẤT TO 2":"NHẤT TO 3";
+ }
  else if(type==="da"){
    const g=isB?54:36;
    // DA xuyên 2 đài MN/MT luôn phải tính đủ 2 đài.
@@ -4521,6 +4526,22 @@ function parseBets(){
   if(!hasExplicitStation){
     errors.push(`Thiếu tên đài trước cược: “${line.trim()}”. Phải ghi HN, tên tỉnh hoặc nhóm đài trước khi tính.`);
     continue;
+  }
+
+  // G1 / NHAT TO: one wager group, 2 or 3 trailing digits of first prize.
+  // Process before legacy token validators; never reinterpret as DD, XC or DA.
+  {
+    const g1=s.match(/^((?:\d{2,3}\s*[.]\s*)*\d{2,3})\s*(?:nhatto|nhto|nto)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i);
+    if(g1){
+      const values=g1[1].split(/\s*\.\s*/).filter(Boolean);
+      const points=Number(g1[2].replace(',','.'));
+      if(values.every(n=>n.length===2||n.length===3) && Number.isFinite(points) && points>0){
+        for(const n of values) addBet(rows,st,n,n.length===2?'nhat_to_2':'nhat_to_3',points);
+        continue;
+      }
+      errors.push('Sai cú pháp Nhất To: '+line.trim());
+      continue;
+    }
   }
 
   // LOCK 28-10: shared XC followed by XC-DUOI must never be dropped by
@@ -6061,6 +6082,12 @@ function resultForXC(row,draw){
   return entriesForKeys(draw,keys).filter(e=>lastN(e.value,3)===want);
 }
 
+function resultForNhatTo(row,draw){
+  const n=String(row.numbers?.[0]||'');
+  if(n.length!==2 && n.length!==3) return [];
+  return entriesForKeys(draw,['g1']).filter(e=>lastN(e.value,n.length)===n);
+}
+
 function resultForDD(row,draw){
   const want=(row.numbers[0]||"").padStart(2,"0");
   const isB=row.region==="B";
@@ -6393,6 +6420,7 @@ function scanRow(row){
     if(row.type.startsWith("B") || row.type==="DAO BL") r=resultForB(row,draw);
     else if(row.type==="XC"||row.type==="XC-ĐẦU"||row.type==="XC-ĐUÔI") r=resultForXC(row,draw);
     else if(row.type==="DD"||row.type==="ĐẦU"||row.type==="ĐUÔI") r=resultForDD(row,draw);
+    else if(row.type==="NHẤT TO 2"||row.type==="NHẤT TO 3") r=resultForNhatTo(row,draw);
     else if(row.type==="DA") r=resultForDA(row,draw);
     if(row.type==="DA"){
       // ĐÁ 1 đài: phải có đủ 2 số tạo thành ít nhất 1 cặp.
@@ -6537,7 +6565,8 @@ function priceForRow(row,c){
     else k='dathang';
   }
   if(row.type==='XC'||row.type==='DAO XC'||row.type==='XC-ĐẦU'||row.type==='XC-ĐUÔI') k='xc';
-  if(row.type==='DD'||row.type==='ĐẦU'||row.type==='ĐUÔI') k='dd';
+  if(row.type==='DD'||row.type==='ĐẦU'||row.type==='ĐUÔI'||row.type==='NHẤT TO 2') k='dd';
+  if(row.type==='NHẤT TO 3') k='xc';
   return +(c[k]||0);
 }
 function calcWinning(rows, priceTable){

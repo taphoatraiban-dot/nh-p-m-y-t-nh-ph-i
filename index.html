@@ -3993,12 +3993,23 @@ function normalizeLoosePhoiWithoutChangingFunctionCount(text){
   return String(text??'').replace(/\r/g,'').split('\n').map(normalizeOneFunctionLooseLine).join('\n');
 }
 
+function normalizeCustomerBaoDaoXdaoPhoi(raw){
+ // Parser-copy only: preserve user text, numbers and points.
+ // Handle an unambiguous three-part phrase without affecting other wager types.
+ return String(raw||'').replace(/\r\n?/g,'\n').split('\n').map(line=>{
+   const m=line.trim().match(/^(\d{4})\s*b\s*(\d+(?:[,.]\d+)?)\s*\.{1,}\s*(\d{3})\s*bao\s+dao\s*(\d+(?:[,.]\d+)?)\s*[,;.]+\s*dao\s+xc\s*(\d+(?:[,.]\d+)?)\s*\.?$/i);
+   if(m) return m[1]+'b'+m[2]+'.\n'+m[3]+'bdao'+m[4]+'.xdao'+m[5]+'.';
+   const da=line.trim().match(/^((?:\d{2}\s*[.,\s]\s*){2,}\d{2})\s*da\s*(\d+(?:[,.]\d+)?)\s*\.?$/i);
+   if(da) return da[1].replace(/\D/g,'')+'da'+da[2]+'.';
+   return line;
+ }).join('\n');
+}
 function parseBets(){
  // Strict validation of malformed station shorthand and stray terminal punctuation.
  // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
  // Accept decorative terminal punctuation after a complete wager function, only in parser copy.
  // Do not touch punctuation between numbers/functions, decimals, or the original textarea.
- const _rawInput=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').filter(line=>!/^\s*[^\p{L}\p{N}]*\s*$/u.test(line)).join('\n')
+ const _rawInput=normalizeCustomerBaoDaoXdaoPhoi($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').filter(line=>!/^\s*[^\p{L}\p{N}]*\s*$/u.test(line)).join('\n')
    // Vietnamese shorthand "đa1" (without acute accent) means DA, not an unknown wager.
    // Normalize parser copy only; preserve the original input and printed slip.
    .replace(/đa(?=\s*\d)/gi,'da')

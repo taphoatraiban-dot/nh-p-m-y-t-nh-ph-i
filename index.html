@@ -3716,7 +3716,7 @@ function daNums(raw){
 }
 function addBet(rows,st,raw,type,p){
  // Nhom DA 4 chu so tach boi dau cham la cac cap doc lap, khong da cheo.
- if(type==='da' && /^\d{4}(?:\.\d{4})+$/.test(String(raw).trim())){
+ if(type==='da' && /^\d{4,6}(?:\.\d{4,6})+$/.test(String(raw).trim()) && String(raw).trim().split('.').every(group=>group.length===4||group.length===6)){
    for(const pairGroup of String(raw).trim().split('.')) addBet(rows,st,pairGroup,type,p);
    return;
  }
@@ -4933,6 +4933,18 @@ if(/^\d{4}b\d+(?:[.,]\d+)?n?\.?$/i.test(s)){
     }
     found=true;
     continue;
+  }
+
+  // DA groups separated by dots are independent: 4 digits = 1 pair, 6 digits = 3 pairs.
+  // Preserve grouping before normalizeDaForParser can collapse all digits into one wager.
+  const groupedDa=s.match(/^((?:\d{4,6}\s*\.\s*)+\d{4,6})\s*(?:da|đá|đa)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i);
+  if(groupedDa){
+    const groups=groupedDa[1].split(/\s*\.\s*/);
+    if(groups.every(group=>group.length===4||group.length===6)){
+      const points=parseFloat(groupedDa[2].replace(',','.'));
+      for(const group of groups)addBet(rows,st,group,'da',points);
+      continue;
+    }
   }
 
   // ===== CHỐT DA COMPACT HỢP LỆ =====

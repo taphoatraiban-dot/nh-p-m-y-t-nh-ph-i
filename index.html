@@ -3716,7 +3716,7 @@ function daNums(raw){
 }
 function addBet(rows,st,raw,type,p){
  // Nhom DA 4 chu so tach boi dau cham la cac cap doc lap, khong da cheo.
- if(type==='da' && /^\d{4,6}(?:\.\d{4,6})+$/.test(String(raw).trim()) && String(raw).trim().split('.').every(group=>group.length===4||group.length===6)){
+ if(type==='da' && /^\d{4,}(?:\.\d{4,})+$/.test(String(raw).trim()) && String(raw).trim().split('.').every(group=>group.length>=4&&group.length%2===0)){
    for(const pairGroup of String(raw).trim().split('.')) addBet(rows,st,pairGroup,type,p);
    return;
  }
@@ -3961,7 +3961,7 @@ function normalizeOneFunctionLooseLine(raw){
   if(m){
     // Preserve dot-separated 4/6-digit DA groups before legacy flattening.
     const groups=m[1].trim().split(/\s*\.\s*/);
-    if(groups.length>1 && groups.every(g=>/^\d{4}$|^\d{6}$/.test(g)))
+    if(groups.length>1 && groups.every(g=>/^\d{4}(?:\d{2})*$/.test(g)))
       return groups.join('.')+'da'+m[2].replace(/\s+/g,'')+'.';
     const digits=m[1].replace(/\D/g,'');
     // DA phai tach duoc thanh cac so 2 chu so. Neu chuoi le, GIU NGUYEN de bao loi,
@@ -4024,8 +4024,8 @@ function cuncunDaSeparatedSixErrors(raw){
  String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
   const re=/(?:^|[\s;])((?:\d{2,}[.]){1,}\d{2,})\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/giu;
   for(const m of line.matchAll(re)){
-   const invalid=m[1].split('.').filter(n=>![2,4,6].includes(n.length));
-   if(invalid.length)errors.push('Dòng '+(i+1)+': Nhóm ĐÁ sai độ dài '+invalid.join(', ')+'. Chỉ chấp nhận nhóm 2, 4 hoặc 6 chữ số.');
+   const invalid=m[1].split('.').filter(n=>!(n.length>=4 && n.length%2===0));
+   if(invalid.length)errors.push('Dòng '+(i+1)+': Nhóm ĐÁ sai độ dài '+invalid.join(', ')+'. Mỗi nhóm phải có số chữ số chẵn, tối thiểu 4 chữ số.');
   }
  });
  return errors;
@@ -4545,10 +4545,10 @@ function parseBets(){
  // Only replace the exact single-station, single-wager case; other input is untouched.
  {
    const rawLines=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').map(x=>x.trim()).filter(Boolean);
-   const rawGrouped=/^((?:\d{4,6}\s*\.\s*)+\d{4,6})\s*(?:da|đá|đa)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i;
+   const rawGrouped=/^((?:\d{4,}\s*\.\s*)+\d{4,})\s*(?:da|đá|đa)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i;
    if(rawLines.length===2 && /^(?:hn|mb|hanoi|[234]dm[nt])$/i.test(rawLines[0])){
      const match=rawLines[1].match(rawGrouped);
-     if(match && match[1].split(/\s*\.\s*/).every(g=>g.length===4||g.length===6)){
+     if(match && match[1].split(/\s*\.\s*/).every(g=>g.length>=4&&g.length%2===0)){
        text=rawLines[0]+'\n'+match[1].replace(/\s*\.\s*/g,'.')+'da'+match[2]+'.';
      }
    }
@@ -4954,10 +4954,10 @@ if(/^\d{4}b\d+(?:[.,]\d+)?n?\.?$/i.test(s)){
 
   // DA groups separated by dots are independent: 4 digits = 1 pair, 6 digits = 3 pairs.
   // Preserve grouping before normalizeDaForParser can collapse all digits into one wager.
-  const groupedDa=s.match(/^((?:\d{4,6}\s*\.\s*)+\d{4,6})\s*(?:da|đá|đa)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i);
+  const groupedDa=s.match(/^((?:\d{4,}\s*\.\s*)+\d{4,})\s*(?:da|đá|đa)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i);
   if(groupedDa){
     const groups=groupedDa[1].split(/\s*\.\s*/);
-    if(groups.every(group=>group.length===4||group.length===6)){
+    if(groups.every(group=>group.length>=4&&group.length%2===0)){
       const points=parseFloat(groupedDa[2].replace(',','.'));
       for(const group of groups)addBet(rows,st,group,'da',points);
       continue;

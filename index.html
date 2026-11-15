@@ -3959,6 +3959,10 @@ function normalizeOneFunctionLooseLine(raw){
   //     11122324.15.16.17.18.19202122da1.
   let m=line.match(/^([0-9\s.,]+?)\s*da\s*(\d+(?:[.,]\d+)?)\s*n?\s*\.?$/i);
   if(m){
+    // Preserve dot-separated 4/6-digit DA groups before legacy flattening.
+    const groups=m[1].trim().split(/\s*\.\s*/);
+    if(groups.length>1 && groups.every(g=>/^\d{4}$|^\d{6}$/.test(g)))
+      return groups.join('.')+'da'+m[2].replace(/\s+/g,'')+'.';
     const digits=m[1].replace(/\D/g,'');
     // DA phai tach duoc thanh cac so 2 chu so. Neu chuoi le, GIU NGUYEN de bao loi,
     // tuyet doi khong tu them/bot mot chu so.

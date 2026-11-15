@@ -4013,7 +4013,23 @@ function normalizeCustomerBaoDaoXdaoPhoi(raw){
    return line;
  }).join('\n');
 }
+function cuncunMixedBaoXcErrors(raw){
+ const errors=[];
+ String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
+  // Reject only completed mixed-length number lists chained with B and XC.
+  // Do not reject normal independent B2/B3/B4 or XC wagers.
+  const re=/(?:^|[\s;])((?:\d{2,4}[.,-]){2,}\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?\s*[.;]?\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
+  for(const m of line.matchAll(re)){
+   const parts=m[1].split(/[.,-]/).filter(Boolean);
+   if(new Set(parts.map(x=>x.length)).size>1)
+    errors.push('Dòng '+(i+1)+': LỖI CÚ PHÁP ĐỎ — '+m[0].trim()+'. Nhóm số 2/3/4 chữ số dùng chung B và XC không rõ phạm vi. Hãy tách thành từng hàm cược rõ ràng.');
+  }
+ });
+ return errors;
+}
 function parseBets(){
+ const _mixedBaoXc=cuncunMixedBaoXcErrors($('bets')?.value||'');
+ if(_mixedBaoXc.length)return {rows:[],errors:_mixedBaoXc};
  // Strict validation of malformed station shorthand and stray terminal punctuation.
  // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
  // Accept decorative terminal punctuation after a complete wager function, only in parser copy.
@@ -14845,6 +14861,8 @@ function inspect(){
     if(nums.length===1&&nums[0].length>4&&nums[0].length%2!==0)warn(i,token,"Dãy đá có số chữ số lẻ; kiểm tra lại cách ghi.", "warning");
    }
   }
+  const mixed=cuncunMixedBaoXcErrors(line);
+  mixed.forEach(message=>warn(i,line,message.replace(/^Dòng \\d+: /,''),"error"));
   // Conservative anomaly: 2-digit and 4-digit numbers combined before DA, as in reference screenshot.
   const suspicious=line.match(/(?:^|[\s;])((?:\d{2}[.,]){1,}\d{4})\s*(?:\[da\]|da|đá)\s*\d+(?:[.,]\d+)?\.?(?=\s|;|$)/ig)||[];
   suspicious.forEach(part=>warn(i,part.trim(),"Nhóm đá trộn số 2 và 4 chữ số; cần xác nhận.", "warning"));
@@ -14859,7 +14877,7 @@ function inspect(){
  if(warnings.length>12){const more=document.createElement("div");more.textContent="Còn "+(warnings.length-12)+" cảnh báo khác.";out.append(more);}
 }
 window.cuncunInspectLiveWagers=inspect;
-input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(inspect,150);});
+input.addEventListener("input",()=>{clearTimeout(timer);inspect();});
 input.addEventListener("change",inspect);
 document.addEventListener("click",e=>{if(e.target?.id==="checkPhoi"||e.target?.id==="okAll")inspect();});
 inspect();

@@ -98,11 +98,23 @@ Deno.serve(async req=>{
   const groups=checked(await db.from("telegram_member_groups").select("chat_id,group_name,enabled,last_seen_at").eq("user_id",uid).neq("enabled",false).order("group_name"));
   const clearRows=checked(await db.from("telegram_chat_cleared").select("chat_id,cleared_at").eq("user_id",uid));
   const cleared=new Map(clearRows.map((r:any)=>[String(r.chat_id),Date.parse(r.cleared_at)]));
-  let messages:any[]=[];let hiddenIds=new Set<number>();
+  let messages:any[]=[];let hiddenIds=new Set<number>();let nextBefore:{date:string,id:number}|null=null;
   if(b.chat_id!==undefined){
    if(!Number.isSafeInteger(b.chat_id)||!groups.some((g:any)=>g.chat_id===b.chat_id))return out({error:"Hội thoại chưa được cấp quyền"},403);
-   messages=checked(await db.from("telegram_member_messages").select("chat_id,message_id,message_text,sender_name,message_date,edited_at").eq("user_id",uid).eq("chat_id",b.chat_id).order("message_date",{ascending:false}).order("message_id",{ascending:false}).limit(200));
-   const hidden=checked(await db.from("telegram_member_hidden").select("message_id").eq("user_id",uid).eq("chat_id",b.chat_id));
+   // Use both timestamp and ID so equal timestamps cannot skip or duplicate rows.
+   const before=b.before;
+   if(before!==undefined&&(!before||typeof before!=="object"||
+    typeof before.date!=="string"||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(before.date)||
+    !Number.isFinite(Date.parse(before.date))||!Number.isSafeInteger(before.id)||before.id<1))return out({error:"Mốc tải tin không hợp lệ"},400);
+   let query=db.from("telegram_member_messages").select("chat_id,message_id,message_text,sender_name,message_date,edited_at").eq("user_id",uid).eq("chat_id",b.chat_id);
+   const clearedAt=cleared.get(String(b.chat_id));
+   if(clearedAt)query=query.gt("message_date",new Date(clearedAt).toISOString());
+   if(before)query=query.or(`message_date.lt.${before.date},and(message_date.eq.${before.date},message_id.lt.${before.id})`);
+   const page=checked(await query.order("message_date",{ascending:false}).order("message_id",{ascending:false}).limit(201));
+   messages=page.slice(0,200);
+   // Advance over raw rows even if the entire page consists of hidden messages.
+   if(page.length>200){const last=messages[messages.length-1];nextBefore={date:last.message_date,id:last.message_id};}
+   const hidden=messages.length?checked(await db.from("telegram_member_hidden").select("message_id").eq("user_id",uid).eq("chat_id",b.chat_id).in("message_id",messages.map((m:any)=>m.message_id))):[];
    hiddenIds=new Set(hidden.map((m:any)=>m.message_id));messages=messages.filter(m=>!hiddenIds.has(m.message_id)&&Date.parse(m.message_date)>(cleared.get(String(m.chat_id))||0)).reverse();
   }
   let jobs=checked(await db.from("telegram_chat_outbox").select("id,chat_id,message_text,state,message_id,error,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(100));
@@ -116,6 +128,6 @@ Deno.serve(async req=>{
   }
   const notices=checked(await db.from("telegram_member_messages").select("chat_id,message_id,sender_name").eq("user_id",uid).gte("message_date",new Date(Date.now()-48*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000));
   const allowed=new Set(groups.map((g:any)=>g.chat_id));
-  return out({success:true,groups,messages,jobs:jobs.filter((j:any)=>j.chat_id!==b.chat_id||!hiddenIds.has(j.message_id)),notices:notices.filter((m:any)=>allowed.has(m.chat_id)&&(m.chat_id!==b.chat_id||!hiddenIds.has(m.message_id)))});
+  return out({success:true,groups,messages,next_before:nextBefore,jobs:jobs.filter((j:any)=>j.chat_id!==b.chat_id||!hiddenIds.has(j.message_id)),notices:notices.filter((m:any)=>allowed.has(m.chat_id)&&(m.chat_id!==b.chat_id||!hiddenIds.has(m.message_id)))});
  }catch{ return out({error:"Không thể xử lý Telegram Chat"},500); }
 });

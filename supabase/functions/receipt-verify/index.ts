@@ -26,48 +26,61 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const action = String(body?.action || "");
-    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "owner-detail", "owner-delete", "owner-delete-all", "owner-code-result", "owner-code-redeem", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
-    if (action === "owner-detail" || action === "owner-delete" || action === "owner-delete-all") {
+    if (!["issue", "check", "redeem", "owner-access", "owner-result", "owner-history", "owner-open", "owner-detail", "owner-delete", "owner-delete-all", "owner-archive", "owner-archive-all", "owner-archived", "owner-restore", "owner-code-result", "owner-code-redeem", "public-result"].includes(action)) return respond({ error: "invalid_action" }, 400);
+    // Old cached pages must not describe a reversible archive as permanent deletion.
+    if (action === "owner-delete" || action === "owner-delete-all")
+      return respond({ error: "Chức năng xóa đã thay bằng lưu trữ. Hãy tải lại trang quản lý phiếu." }, 409);
+    if (["owner-detail", "owner-archive", "owner-archive-all", "owner-archived", "owner-restore"].includes(action)) {
       const user = await actor(req);
       if (!user) return respond({ error: "unauthorized" }, 401);
       if (action === "owner-detail") {
         const code = String(body?.code || "");
         if (!/^CQ-[A-Z0-9-]{6,40}$/.test(code)) return respond({ error: "invalid_code" }, 400);
         const { data, error } = await db.from("receipt_verifications")
-          .select("receipt_code,status,issued_at,redeemed_at,paid_amount_vnd,receipt_snapshot")
+          .select("receipt_code,status,issued_at,redeemed_at,paid_amount_vnd,receipt_snapshot,archived_at")
           .eq("owner_user_id",user.id).eq("receipt_code",code).maybeSingle();
         if (error) return respond({ error: "detail_failed" }, 500);
         if (!data) return respond({ error: "not_found" }, 404);
         return respond({ receipt: { code:data.receipt_code,status:data.status,issuedAt:data.issued_at,
-          redeemedAt:data.redeemed_at,paidAmount:data.paid_amount_vnd,snapshot:data.receipt_snapshot } });
+          redeemedAt:data.redeemed_at,paidAmount:data.paid_amount_vnd,snapshot:data.receipt_snapshot,archivedAt:data.archived_at } });
       }
-      if (action === "owner-delete-all") {
-        if (body?.confirmation !== "XOA TAT CA PHIEU VINH VIEN")
-          return respond({ error:"confirmation_required" },400);
-        // Bounded batches prevent unbounded request sizes and allow visible progress.
+      if (action === "owner-archived") {
+        const page = Number(body?.page ?? 0);
+        if (!Number.isSafeInteger(page) || page < 0 || page > 10000) return respond({ error: "invalid_page" }, 400);
+        const { data, error } = await db.from("receipt_verifications")
+          .select("receipt_code,status,archived_at").eq("owner_user_id", user.id)
+          .not("archived_at", "is", null).order("archived_at", { ascending: false })
+          .order("id", { ascending: false }).range(page * 100, page * 100 + 100);
+        if (error) return respond({ error: "archive_history_failed" }, 500);
+        return respond({ hasMore: (data || []).length > 100, receipts: (data || []).slice(0,100).map((row: any) => ({
+          code: row.receipt_code, status: row.status, archivedAt: row.archived_at
+        })) });
+      }
+      if (action === "owner-archive-all") {
+        if (body?.confirmation !== "LUU TRU TAT CA") return respond({ error: "confirmation_required" }, 400);
         const { data: batch, error: listError } = await db.from("receipt_verifications")
-          .select("receipt_code").eq("owner_user_id",user.id)
-          .order("id",{ascending:true}).limit(100);
-        if (listError) return respond({error:"delete_list_failed"},500);
-        if (!batch?.length) return respond({deletedCount:0,hasMore:false});
-        const {data: deleted,error} = await db.from("receipt_verifications")
-          .delete().eq("owner_user_id",user.id)
-          .in("receipt_code",batch.map((r:any)=>r.receipt_code)).select("receipt_code");
-        if (error) return respond({error:"delete_failed"},500);
-        return respond({deletedCount:(deleted||[]).length,hasMore:batch.length===100});
+          .select("receipt_code").eq("owner_user_id", user.id).is("archived_at", null)
+          .order("id", { ascending: true }).limit(100);
+        if (listError) return respond({ error: "archive_list_failed" }, 500);
+        if (!batch?.length) return respond({ archivedCount: 0, hasMore: false });
+        const { data, error } = await db.from("receipt_verifications")
+          .update({ archived_at: new Date().toISOString() }).eq("owner_user_id", user.id)
+          .is("archived_at", null).in("receipt_code", batch.map((row: any) => row.receipt_code)).select("receipt_code");
+        if (error) return respond({ error: "archive_failed" }, 500);
+        return respond({ archivedCount: (data || []).length, hasMore: batch.length === 100 });
       }
       const codes = body?.codes;
       if (!Array.isArray(codes) || codes.length < 1 || codes.length > 100 ||
           new Set(codes).size !== codes.length ||
-          !codes.every((c:unknown)=>typeof c==="string" && /^CQ-[A-Z0-9-]{6,40}$/.test(c)))
+          !codes.every((code: unknown) => typeof code === "string" && /^CQ-[A-Z0-9-]{6,40}$/.test(code)))
         return respond({ error: "invalid_codes" }, 400);
-      if (body?.confirmation !== "XOA VINH VIEN") return respond({ error: "confirmation_required" }, 400);
-      // Delete only exact owner-owned receipts. Their QR hashes disappear too:
-      // public checks return not_found, including previously redeemed receipts.
+      const restoring = action === "owner-restore";
+      if (body?.confirmation !== (restoring ? "KHOI PHUC" : "LUU TRU")) return respond({ error: "confirmation_required" }, 400);
       const { data, error } = await db.from("receipt_verifications")
-        .delete().eq("owner_user_id",user.id).in("receipt_code",codes).select("receipt_code");
-      if (error) return respond({ error: "delete_failed" }, 500);
-      return respond({ deletedCodes:(data||[]).map((r:any)=>r.receipt_code),deletedCount:(data||[]).length });
+        .update({ archived_at: restoring ? null : new Date().toISOString() })
+        .eq("owner_user_id", user.id).in("receipt_code", codes).select("receipt_code");
+      if (error) return respond({ error: restoring ? "restore_failed" : "archive_failed" }, 500);
+      return respond({ codes: (data || []).map((row: any) => row.receipt_code), count: (data || []).length });
     }
     if (action === "owner-open") {
       const user = await actor(req);
@@ -77,7 +90,7 @@ Deno.serve(async (req) => {
       const size = 100;
       const { data, error } = await db.from("receipt_verifications")
         .select("receipt_code,issued_at,receipt_snapshot")
-        .eq("owner_user_id", user.id).eq("status", "active")
+        .eq("owner_user_id", user.id).eq("status", "active").is("archived_at", null)
         .order("issued_at", { ascending: false }).order("id", { ascending: false })
         .range(page * size, page * size + size);
       if (error) return respond({ error: "open_history_failed" }, 500);

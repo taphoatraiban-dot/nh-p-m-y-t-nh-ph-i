@@ -32,7 +32,7 @@ test('ứng dụng iOS gửi phiếu và chỉ xác nhận đã chuyển dữ li
 test('nút in và nút chia sẻ độc lập, có script bridge trong website',()=>{
   assert.match(html,/id="printPhoiBluetooth"/);
   assert.match(html,/id="printPhoiDirect"/);
-  assert.match(html,/src="src\/ios-native-print-bridge.js"/);
+  assert.match(html,/src="src\/ios-native-print-bridge\.js(?:\?[^"<>]*)?"/);
   assert.match(html,/printPhoiToMac\(false,true\)/);
   assert.match(html,/TSHNativePrintBridge\?\.available\(\)/);
 });

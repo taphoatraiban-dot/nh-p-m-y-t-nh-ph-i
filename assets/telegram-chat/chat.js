@@ -6,7 +6,7 @@ function init(){
  const anchor=document.getElementById('tgMemberInbox')||document.getElementById('tgForwardInbox');
  if(!anchor||document.getElementById('ottChat'))return;
  const panel=document.createElement('details');panel.id='ottChat';
- panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatSearchWrap"><input id="ottChatSearch" type="search" placeholder="Tìm người hoặc nhóm…" aria-label="Tìm hội thoại"><div id="ottChatTabs" class="ott-chat-row"><button type="button" data-mode="private">Cá nhân</button><button type="button" data-mode="group">Nhóm</button><button type="button" data-mode="all">Tất cả</button></div></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div id="ottChatThread"><div class="ott-chat-row"><button id="ottChatBack" type="button">← Trở lại</button><strong id="ottChatHeading">Chọn hội thoại</strong></div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin</button><button type="button" id="ottChatSelectAll">Chọn tất cả</button><button type="button" id="ottChatCopy">Sao chép (0)</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="button">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
+ panel.innerHTML='<summary>💬 Telegram Chat</summary><p id="ottChatStatus" role="status">Mở khóa để xem hội thoại.</p><form id="ottChatGate"><div class="ott-chat-row"><input id="ottChatPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" aria-label="PIN Chat 4 số" placeholder="PIN Chat 4 số" required><input id="ottChatConfirm" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Xác nhận PIN Chat" placeholder="Nhập lại PIN mới" hidden><button id="ottChatUnlock" type="submit">Mở Chat</button></div></form><div id="ottChatUnlocked" hidden><div class="ott-chat-row"><select id="ottChatMode" aria-label="Loại hội thoại"><option value="all">Tất cả hội thoại</option><option value="group">Nhóm</option><option value="private">Cá nhân</option></select><button id="ottChatSound" type="button">Bật âm báo</button><button id="ottChatRefresh" type="button">Làm mới</button><button id="ottChatLock" type="button">Khóa Chat</button></div><div id="ottChatSearchWrap"><input id="ottChatSearch" type="search" placeholder="Tìm người hoặc nhóm…" aria-label="Tìm hội thoại"><div id="ottChatTabs" class="ott-chat-row"><button type="button" data-mode="private">Cá nhân</button><button type="button" data-mode="group">Nhóm</button><button type="button" data-mode="all">Tất cả</button></div></div><div id="ottChatBody"><nav id="ottChatConversations" aria-label="Danh sách hội thoại"></nav><div id="ottChatThread"><div class="ott-chat-row"><button id="ottChatBack" type="button">← Trở lại</button><strong id="ottChatHeading">Chọn hội thoại</strong></div><div class="ott-chat-row" id="ottChatDeleteTools"><button type="button" id="ottChatSelect">Chọn tin</button><button type="button" id="ottChatSelectAll">Chọn tất cả</button><button type="button" id="ottChatCopy">Sao chép (0)</button><button type="button" id="ottChatDelete" hidden>Xóa tin đã chọn (0)</button><button type="button" id="ottChatCancel" hidden>Hủy chọn</button></div><div id="ottChatDeleteConfirm" role="dialog" aria-modal="true" aria-label="Xác nhận ẩn tin" hidden><p id="ottChatDeleteQuestion"></p><div class="ott-chat-row"><button type="button" id="ottChatConfirmDelete">Xóa khỏi CUNCUN</button><button type="button" id="ottChatKeep">Giữ lại</button></div></div><div class="ott-chat-row"><button id="ottChatOlder" type="button" hidden>Tin cũ hơn</button><button id="ottChatLatest" type="button" hidden>Về tin mới nhất</button></div><div id="ottChatMessages" aria-label="Tin nhắn"></div><form id="ottChatCompose"><textarea id="ottChatText" maxlength="4096" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn Telegram…" required></textarea><div class="ott-chat-row"><button id="ottChatSend" type="button">Gửi Telegram</button><small>Đưa tin vào nhập phơi để kiểm tra thủ công.</small></div></form></div></div></div>';
  // Mirror the connected VPS Telegram account from the existing authenticated inbox.
  const connected=document.createElement('div');connected.id='ottChatConnectedAccount';
  connected.setAttribute('role','status');
@@ -82,6 +82,7 @@ function init(){
 
  const el=id=>panel.querySelector('#ottChat'+id),status=t=>{el('Status').textContent=t;};
  let ticket='',userId='',expires=0,epoch=0,hasPin=true,busy=false,sending=false,chatId=null,groups=[],jobs=[],messages=[],seen=new Set(),baseline=false,audio=null,sound=true;
+ let before=null,nextBefore=null;
  let selecting=false,deleting=false,swipedChatId=null;const selected=new Set();
  const pending=new Map();
  const drafts=new Map();
@@ -102,7 +103,7 @@ function init(){
  }
  function lock(revoke=true){
   const previous=ticket;if(revoke&&previous)api('lock',{},previous).catch(()=>{});
-  el('DeleteConfirm').hidden=true;epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;latestNotices=[];readKeys.clear();drafts.clear();pending.clear();selected.clear();selecting=false;updateDeleteTools();
+  el('DeleteConfirm').hidden=true;resetPage();epoch++;ticket='';expires=0;chatId=null;groups=[];messages=[];jobs=[];seen.clear();baseline=false;latestNotices=[];readKeys.clear();drafts.clear();pending.clear();selected.clear();selecting=false;updateDeleteTools();
   view();el('Text').value='';el('Pin').value='';el('Confirm').value='';el('Messages').replaceChildren();el('Conversations').replaceChildren();
   el('Unlocked').hidden=true;el('Gate').hidden=false;status('Chat đã khóa. Nhập PIN để mở lại.');
  }
@@ -112,7 +113,8 @@ function init(){
  document.addEventListener('pointerdown',resumeSound);document.addEventListener('keydown',resumeSound);
  function beep(){if(!sound||!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);o.frequency.value=880;g.gain.setValueAtTime(.32,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.start();o.stop(audio.currentTime+.18);}catch{}}
  function modeGroups(){return groups.filter(g=>(el('Mode').value==='all'||(String(g.group_name).startsWith('Cá nhân: ')?'private':'group')===el('Mode').value)&&String(g.group_name).toLocaleLowerCase('vi').includes((el('Search')?.value||'').toLocaleLowerCase('vi').trim()));}
- function view(){panel.classList.toggle('ott-chat-thread-open',chatId!==null);el('SearchWrap').hidden=chatId!==null;el('Back').hidden=chatId===null;for(const b of el('Tabs').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.mode===el('Mode').value));}
+ function resetPage(){before=null;nextBefore=null;}
+ function view(){el('Older').hidden=chatId===null||!nextBefore;el('Latest').hidden=chatId===null||!before;el('Older').disabled=busy||deleting;el('Latest').disabled=busy||deleting;panel.classList.toggle('ott-chat-thread-open',chatId!==null);el('SearchWrap').hidden=chatId!==null;el('Back').hidden=chatId===null;for(const b of el('Tabs').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.mode===el('Mode').value));}
  function updateDeleteTools(){
   el('Select').disabled=chatId===null||deleting;el('Select').hidden=selecting;el('Delete').hidden=!selecting;el('Cancel').hidden=!selecting;el('SelectAll').hidden=chatId===null;el('Copy').hidden=chatId===null;
   const available=messages.filter(m=>Number.isSafeInteger(m.message_id));
@@ -127,7 +129,7 @@ function init(){
   try{
    await api('clear-chat',{chat_id:target});
    if(ticket!==proof)return;
-   if(chatId===target){chatId=null;messages=[];selected.clear();selecting=false;el('Text').value='';}
+   if(chatId===target){chatId=null;resetPage();messages=[];selected.clear();selecting=false;el('Text').value='';}
    jobs=jobs.filter(j=>j.chat_id!==target);
    epoch++;draw();await load();
    status('Đã xóa tin nhắn của '+name+' khỏi CUNCUN. Telegram gốc không thay đổi.');
@@ -157,7 +159,7 @@ function init(){
     const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
     if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.3){swiping=true;suppress=true;swipedChatId=dx<0?g.chat_id:null;for(const row of list.querySelectorAll('.ott-chat-swipe-row'))if(row!==wrap)row.classList.remove('swiped');wrap.classList.toggle('swiped',dx<0);e.preventDefault();}
    },{passive:false});
-   b.onclick=()=>{if(suppress){suppress=false;return;}if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;markRead(chatId);epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};
+   b.onclick=()=>{if(suppress){suppress=false;return;}if(deleting)return;if(chatId!==null)drafts.set(chatId,el('Text').value);el('DeleteConfirm').hidden=true;chatId=g.chat_id;resetPage();markRead(chatId);epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value=drafts.get(chatId)||'';draw();load();};
    wrap.append(b,remove);list.append(wrap);
   }
   if(!list.children.length)list.textContent='Chưa có hội thoại được đồng bộ.';
@@ -198,7 +200,7 @@ function init(){
    });
    item.append(meta,p,b);root.append(item);
   }
-  if(!rows.length)root.textContent=chatId===null?'Chọn một hội thoại để xem tin.':'Chưa có tin nhắn trong hội thoại.';
+  if(!rows.length)root.textContent=chatId===null?'Chọn một hội thoại để xem tin.':nextBefore?'Trang này không có tin hiển thị. Chọn Tin cũ hơn để tiếp tục.':'Không có tin nhắn hiển thị ở trang này.';
   root.scrollTop=atBottom?root.scrollHeight:oldScroll;
  }
  async function load(){
@@ -207,15 +209,15 @@ function init(){
   if(Date.now()>=expires){lock();return;}
   busy=true;const version=epoch;
   try{
-   const fresh=await api('read',chatId===null?{}:{chat_id:chatId});if(version!==epoch||!ticket)return;
-   groups=fresh.groups;jobs=fresh.jobs;messages=fresh.messages;
-   if(chatId!==null&&!groups.some(g=>g.chat_id===chatId)){chatId=null;messages=[];}
+   const fresh=await api('read',chatId===null?{}:{chat_id:chatId,...(before?{before}: {})});if(version!==epoch||!ticket)return;
+   groups=fresh.groups;jobs=before?[]:fresh.jobs;messages=fresh.messages;nextBefore=fresh.next_before||null;
+   if(chatId!==null&&!groups.some(g=>g.chat_id===chatId)){chatId=null;resetPage();messages=[];}
    const signals=fresh.notices||[];latestNotices=signals;if(chatId!==null)markRead(chatId);
    if(baseline&&signals.some(m=>!seen.has(m.chat_id+':'+m.message_id)&&m.sender_name!=='Đã gửi'&&!jobs.some(j=>j.state==='sent'&&j.chat_id===m.chat_id&&j.message_id===m.message_id)))beep();
    for(const m of signals)seen.add(m.chat_id+':'+m.message_id);baseline=true;
    if(seen.size>5000)seen=new Set(signals.map(m=>m.chat_id+':'+m.message_id));
    draw();status('');
-  }catch(e){if(version===epoch)fail(e);}finally{busy=false;}
+  }catch(e){if(version===epoch)fail(e);}finally{busy=false;view();}
  }
  async function gate(){const version=epoch;try{const x=await api('status');if(version!==epoch)return;hasPin=x.has_pin;el('Confirm').hidden=hasPin;el('Unlock').textContent=hasPin?'Mở Chat':'Tạo PIN & mở Chat';status(hasPin?'Nhập PIN Chat 4 số.':'Tạo PIN Chat 4 số và nhập lại để xác nhận.');}catch(e){fail(e);}}
  el('Gate').onsubmit=async e=>{e.preventDefault();if(el('Unlock').disabled)return;const pin=el('Pin').value;if(!/^\d{4}$/.test(pin)){status('PIN phải đúng 4 số');return;}if(!hasPin&&pin!==el('Confirm').value){status('Hai lần nhập PIN không khớp');return;}
@@ -226,7 +228,7 @@ function init(){
   // Keep UUID after a lost response so pressing Send retries the same job.
   if(!pending.has(chatId)||pending.get(chatId).text!==text)pending.set(chatId,{id:crypto.randomUUID(),chat_id:chatId,text});
   const job=pending.get(chatId),version=epoch,proof=ticket;sending=true;el('Send').disabled=true;status('Đang gửi tới máy chủ Telegram…');
-  try{const x=await api('send',job);if(ticket!==proof)return;if(chatId===job.chat_id&&el('Text').value===text)el('Text').value='';if(drafts.get(job.chat_id)===text)drafts.delete(job.chat_id);pending.delete(job.chat_id);if(version!==epoch)return;status(x.job.state==='sent'?'Đã gửi':'Đã xếp hàng gửi. Chờ xác nhận từ Telegram.');await load();}catch(err){if(version===epoch)fail(err);}finally{sending=false;el('Send').disabled=false;}
+  try{const x=await api('send',job);if(ticket!==proof)return;if(chatId===job.chat_id&&el('Text').value===text)el('Text').value='';if(drafts.get(job.chat_id)===text)drafts.delete(job.chat_id);pending.delete(job.chat_id);if(version!==epoch)return;resetPage();status(x.job.state==='sent'?'Đã gửi':'Đã xếp hàng gửi. Chờ xác nhận từ Telegram.');await load();}catch(err){if(version===epoch)fail(err);}finally{sending=false;el('Send').disabled=false;}
  }
  el('Send').disabled=false;
  el('Send').addEventListener('click',sendTelegram);
@@ -274,11 +276,13 @@ function init(){
   }catch(e){if(ticket===proof)fail(e);}
   finally{deleting=false;el('ConfirmDelete').disabled=false;updateDeleteTools();}
  };
+ el('Older').onclick=()=>{if(busy||deleting||!nextBefore)return;before=nextBefore;nextBefore=null;epoch++;messages=[];selected.clear();selecting=false;draw();load();};
+ el('Latest').onclick=()=>{if(busy||deleting)return;resetPage();epoch++;messages=[];selected.clear();selecting=false;draw();load();};
  el('Lock').onclick=()=>{lock();gate();};el('Refresh').onclick=load;
  el('Search').oninput=()=>draw();
  for(const b of el('Tabs').querySelectorAll('button'))b.onclick=()=>{el('Mode').value=b.dataset.mode;el('Mode').onchange();};
- el('Back').onclick=()=>{if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};
- el('Mode').onchange=()=>{if(deleting)return;el('DeleteConfirm').hidden=true;if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};
+ el('Back').onclick=()=>{if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;resetPage();epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};
+ el('Mode').onchange=()=>{if(deleting)return;el('DeleteConfirm').hidden=true;if(chatId!==null)drafts.set(chatId,el('Text').value);chatId=null;resetPage();epoch++;messages=[];selected.clear();selecting=false;updateDeleteTools();el('Text').value='';draw();load();};
  panel.addEventListener('toggle',()=>{if(panel.open){if(ticket)load();else gate();}else lock();});
  sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(userId&&session?.user.id!==userId)){lock(false);userId='';}});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});

@@ -15,6 +15,7 @@ async function setup(options={}){
   if(action==='read'&&options.readError)return{ok:false,status:403,json:async()=>({error:'Tài khoản chưa được bật Chat'})};
   if(action==='hide'){if(options.hideError)return{ok:false,status:500,json:async()=>({error:'Không ẩn được'})};body.message_ids.forEach(id=>hidden.add(body.chat_id+':'+id));}
   if(action==='read')result={success:true,groups,jobs:options.jobs||[],notices:signals,messages:body.chat_id?[{chat_id:body.chat_id,message_id:1,message_text:'<img onerror="bad">\nTin nhận',message_date:'2026-11-09T06:00:00Z',sender_name:'Đã nhận'},...(options.extraMessages||[])].filter(m=>!hidden.has(body.chat_id+':'+m.message_id)):[]};
+  if(action==='read'&&options.pageRead)result={...result,...options.pageRead(body)};
   if(action==='send'){if(options.waitSend)await options.waitSend;if(options.sendFail){options.sendFail=false;throw Error('Mất kết nối');}result.job={state:'queued'};}
   return{ok:true,status:200,json:async()=>result};
  };
@@ -114,4 +115,22 @@ test('STANDARD cannot unlock Chat or request Telegram data',async()=>{
 test('downgrade clears Chat and ignores a late read response',async()=>{
  let finish;const options={entitled:true};const s=await setup(options);
  try{await s.unlock();options.waitRead=new Promise(r=>finish=r);s.el('Conversations').firstChild.querySelector('button').click();await tick();options.entitled=false;s.w.dispatchEvent(new s.w.CustomEvent('cuncun:edition-changed'));assert(s.el('Unlocked').hidden);assert.equal(s.el('Messages').textContent,'');finish();await tick();assert.equal(s.el('Messages').textContent,'');assert(s.el('Unlocked').hidden);}finally{s.d.window.close();}
+});
+
+test('history controls page older messages, keep drafts, return to latest and reset on account change',async()=>{
+ const older={date:'2026-11-09T06:00:00Z',id:200};
+ const s=await setup({pageRead:body=>({messages:body.chat_id?[{chat_id:body.chat_id,message_id:body.before?100:300,message_text:body.before?'Older message':'Latest message',message_date:'2026-11-09T06:00:00Z'}]:[],next_before:body.chat_id&&!body.before?older:null})});
+ try{
+  await s.unlock();s.el('Conversations').firstChild.querySelector('button').click();await tick();
+  assert(!s.el('Older').hidden);assert(s.el('Latest').hidden);s.el('Text').value='Draft stays';
+  s.el('Older').click();await tick();assert(s.el('Messages').textContent.includes('Older message'));assert(!s.el('Latest').hidden);assert(s.el('Older').hidden);assert.equal(s.el('Text').value,'Draft stays');
+  assert.deepEqual(s.calls.filter(c=>c.action==='read').at(-1).body.before,older);
+  s.el('Refresh').click();await tick();assert(s.el('Messages').textContent.includes('Older message'));
+  s.el('Latest').click();await tick();assert(s.el('Messages').textContent.includes('Latest message'));assert(!('before' in s.calls.filter(c=>c.action==='read').at(-1).body));
+  s.el('Older').click();await tick();s.authChange();assert(s.el('Older').hidden);assert(s.el('Latest').hidden);assert.equal(s.el('Messages').textContent,'');
+ }finally{s.d.window.close();}
+});
+test('a page containing only hidden messages still offers the next history page',async()=>{
+ const s=await setup({pageRead:body=>({messages:[],next_before:body.chat_id?{date:'2026-11-09T06:00:00Z',id:200}:null})});
+ try{await s.unlock();s.el('Conversations').firstChild.querySelector('button').click();await tick();assert(!s.el('Older').hidden);s.el('Older').click();await tick();assert(s.calls.filter(c=>c.action==='read').at(-1).body.before);}finally{s.d.window.close();}
 });

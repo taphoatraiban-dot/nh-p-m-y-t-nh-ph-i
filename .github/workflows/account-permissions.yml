@@ -1,7 +1,10 @@
 name: Account permissions
 on:
+  push:
+    branches: [main]
+    paths: ['index*.html', 'assets/telegram-chat/**', 'src/telegram*', 'supabase/migrations/**', 'supabase/functions/**', 'supabase/config.toml', 'tests/permissions/**', 'tests/chat/**', '.github/workflows/account-permissions.yml']
   pull_request:
-    paths: ['index*.html', 'supabase/migrations/*account_permission_hardening.sql', 'tests/permissions/**', '.github/workflows/account-permissions.yml']
+    paths: ['index*.html', 'assets/telegram-chat/**', 'src/telegram*', 'supabase/migrations/**', 'supabase/functions/**', 'supabase/config.toml', 'tests/permissions/**', 'tests/chat/**', '.github/workflows/account-permissions.yml']
   workflow_dispatch:
 permissions:
   contents: read

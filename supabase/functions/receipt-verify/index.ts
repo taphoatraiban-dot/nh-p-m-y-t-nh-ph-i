@@ -348,10 +348,12 @@ Deno.serve(async (req) => {
           const a=numbers[i], b=numbers[j];
           const first=perStation[0].hits.find(h => h.number === a)?.count || 0;
           const second=perStation[0].hits.find(h => h.number === b)?.count || 0;
-          const times=cross ? (
-            first * (perStation[1].hits.find(h => h.number === b)?.count || 0) +
-            second * (perStation[1].hits.find(h => h.number === a)?.count || 0)
-          ) : first * second;
+          // One distinct pair pays once, regardless of duplicate prize occurrences.
+          const otherA=perStation[1]?.hits.find(h => h.number === a)?.count || 0;
+          const otherB=perStation[1]?.hits.find(h => h.number === b)?.count || 0;
+          const times=cross
+            ? ((first>0 && otherB>0) || (second>0 && otherA>0) ? 1 : 0)
+            : (first>0 && second>0 ? 1 : 0);
           if (times > 0) pairs.push({ a,b,times });
         }
         return { index, supported: true, diagnosticOnly: true, cross, stations: perStation, pairs };

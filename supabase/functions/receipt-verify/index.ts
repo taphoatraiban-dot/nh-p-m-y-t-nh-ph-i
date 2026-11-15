@@ -358,6 +358,20 @@ Deno.serve(async (req) => {
         }
         return { index, supported: true, diagnosticOnly: true, cross, stations: perStation, pairs };
       });
+      // Read-only draw boards scoped to stations on this verified receipt only.
+      const resultBoards = [...new Map(stationCoverage.flatMap((c: any, i: number) => {
+        const row = source.pricedRows[i];
+        const region = row?.region === "N" ? "MN" : row?.region === "T" ? "MT" : "MB";
+        return c.ready ? c.stations.filter((st: any) => st.complete && st.matched).map((st: any) => {
+          const draw = (draws || []).find(d => String(d.region).toUpperCase() === region);
+          const province = (Array.isArray(draw?.data?.data) ? draw.data.data : []).find((p: any) => p.province === st.matched);
+          const prizes = province?.prizes || {};
+          const clean: Record<string,string[]> = {};
+          for (const key of ["db","g1","g2","g3","g4","g5","g6","g7","g8"])
+            if (Array.isArray(prizes[key])) clean[key] = prizes[key].filter((v: unknown) => typeof v === "string" && /^[0-9]+$/.test(v));
+          return [region+"|"+st.matched,{region,station:st.matched,prizes:clean}];
+        }) : [];
+      }))].values();
       return respond({ allowed: !publicResult, ready: false,
         source: publicResult ? { pricedRows: source.pricedRows, drawDate: date, payoutRatesSnapshot: source.payoutRatesSnapshot } :
           { rawText: source.rawText, totalGross: source.totalGross, finalTotal: source.finalTotal, pricedRows: source.pricedRows, drawDate: date, payoutRatesSnapshot: source.payoutRatesSnapshot, payoutRatesSnapshotVersion: source.payoutRatesSnapshotVersion },
@@ -365,6 +379,7 @@ Deno.serve(async (req) => {
         resultSources: (draws || []).map(d => ({ region: d.region, source: d.source })),
         resultCoverage: coverage,
         stationCoverage,
+        resultBoards,
         matchDiagnostics,
         specialDiagnostics,
         daDiagnostics,

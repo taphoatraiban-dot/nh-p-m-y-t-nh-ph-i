@@ -14910,6 +14910,58 @@ inspect();
 })();
 </script>
 
+<script id="cuncun-mixed-bao-xc-hardguard-20261116">
+(function(){
+ 'use strict';
+ var input=document.getElementById('bets');
+ var out=document.getElementById('phoiLiveWarnings');
+ if(!input||!out)return;
+ function findErrors(value){
+  var errors=[];
+  String(value||'').replace(/\r/g,'').split('\n').forEach(function(line,index){
+   var pattern=/(?:^|[\s;])((?:\d{2,4}\s*[.,-]\s*){2,}\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?\s*[.;]?\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
+   var m;
+   while((m=pattern.exec(line))!==null){
+    var nums=m[1].split(/[.,-]/).map(function(n){return n.trim();}).filter(Boolean);
+    if(new Set(nums.map(function(n){return n.length;})).size>1){
+     errors.push({line:index+1,token:m[0].trim()});
+    }
+   }
+  });
+  return errors;
+ }
+ function show(){
+  var errors=findErrors(input.value);
+  input.setAttribute('aria-invalid',errors.length?'true':'false');
+  if(!errors.length){
+   if(out.dataset.mixedGuard==='1'){out.style.display='none';out.replaceChildren();delete out.dataset.mixedGuard;}
+   input.style.removeProperty('outline');
+   return false;
+  }
+  out.dataset.mixedGuard='1';
+  out.replaceChildren();
+  out.style.cssText='display:block!important;margin:8px 0;padding:12px;border:2px solid #dc2626;border-radius:10px;background:#fff0f0;color:#991b1b;font-size:15px;font-weight:700';
+  var title=document.createElement('div');title.textContent='🔴 LỖI CÚ PHÁP — KHÔNG TÍNH TIỀN';out.appendChild(title);
+  errors.forEach(function(error){
+   var row=document.createElement('div');row.style.marginTop='6px';
+   row.textContent='Dòng '+error.line+': '+error.token+' — Nhóm số 2, 3, 4 chữ số dùng chung B và XC không rõ phạm vi. Hãy tách riêng từng hàm.';
+   out.appendChild(row);
+  });
+  input.style.outline='2px solid #dc2626';
+  return true;
+ }
+ input.addEventListener('input',show);
+ input.addEventListener('paste',function(){setTimeout(show,0);setTimeout(show,100);},true);
+ document.addEventListener('click',function(e){
+  var button=e.target&&e.target.closest&&e.target.closest('#okAll,#checkPhoi');
+  if(!button||!show())return;
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  input.focus();
+ },true);
+ window.cuncunMixedBaoXcGuard={check:show,findErrors:findErrors};
+ show();
+})();
+</script>
 <!-- Isolated Telegram Chat experiment -->
 <link rel="stylesheet" href="assets/telegram-chat/chat.ea9fb338a4da.css">
 <style id="ott-hide-duplicate-telegram">#tgMemberInbox,#tgForwardInbox{display:none!important;visibility:hidden!important}</style>

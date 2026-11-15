@@ -3999,6 +3999,10 @@ function parseBets(){
    .replace(/đa(?=\s*\d)/gi,'da')
    // The currency symbol ₫ is frequently pasted in place of Vietnamese đ.
    .replace(/₫a(?=\s*\d)/gi,'da')
+   // Contextual dong-sign shorthand: station groups use d; compact pair wagers use da.
+   // 2₫mn -> 2dmn, 3₫mt -> 3dmt, 4955₫1n -> 4955da1n.
+   .replace(/\b([234])₫(?=m[nt]\b)/gi,'$1d')
+   .replace(/(\d{4,})₫(?=\s*\d+(?:[,.]\d+)?n?(?:[.;\s]|$))/gim,'$1da')
    // Accept ₫ typed in place of đ in the named bet abbreviations.
    .replace(/₫au(?=\s*\d)/gi,'dau')
    .replace(/₫uoi(?=\s*\d)/gi,'duoi')

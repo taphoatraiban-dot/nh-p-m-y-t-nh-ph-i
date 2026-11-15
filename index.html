@@ -4540,6 +4540,19 @@ function parseBets(){
      text=source.map(line=>line.trim()).join('\n');
    }
  }
+ // FINAL RAW DA GROUP INVARIANT: restore the user's explicit dot boundaries.
+ // All upstream Telegram/loose normalizers may collapse these groups.
+ // Only replace the exact single-station, single-wager case; other input is untouched.
+ {
+   const rawLines=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').map(x=>x.trim()).filter(Boolean);
+   const rawGrouped=/^((?:\d{4,6}\s*\.\s*)+\d{4,6})\s*(?:da|đá|đa)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i;
+   if(rawLines.length===2 && /^(?:hn|mb|hanoi|[234]dm[nt])$/i.test(rawLines[0])){
+     const match=rawLines[1].match(rawGrouped);
+     if(match && match[1].split(/\s*\.\s*/).every(g=>g.length===4||g.length===6)){
+       text=rawLines[0]+'\n'+match[1].replace(/\s*\.\s*/g,'.')+'da'+match[2]+'.';
+     }
+   }
+ }
  for(let line of text.split("\n")){
   let s=line.trim(); if(!s) continue;
   // Nếu người dùng ghi rõ ngày đầu dòng (CN/T2...T7), ngày đó được ưu tiên cho 3DMN/2DMN.

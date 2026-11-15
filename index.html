@@ -4018,7 +4018,7 @@ function cuncunXcLengthErrors(raw){
  String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
   // Number list immediately attached to XC: each explicit dot/comma/hyphen segment must have exactly 3 digits.
   // Ignore other completed wagers and only inspect the final number group before XC.
-  const re=/(?:^|[\s;])((?:\d{2,4}[.,-]){1,}\d{2,4})\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
+  const re=/(?:^|[\s;])(\d{2,4}(?:[.,-]\d{2,4})*)\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
   for(const m of line.matchAll(re)){
    const nums=m[1].split(/[.,-]/).filter(Boolean);
    const invalid=nums.filter(n=>n.length!==3);

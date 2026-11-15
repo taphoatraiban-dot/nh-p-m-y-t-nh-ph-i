@@ -24,7 +24,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 .receipt-table.payout-table th:nth-child(5){width:34%}
 .receipt-table.payout-table td:first-child{overflow-wrap:anywhere}
 .receipt-table.payout-table td:nth-child(2){overflow-wrap:anywhere}
-#publicDrawTable{min-width:0}#publicDrawStatus{white-space:pre-line}
+.draw-board{border:1px solid #cbd1d9;border-radius:10px;margin:12px 0;padding:10px}.draw-board h3{margin:3px 0 10px;font-size:17px}.draw-prize{display:grid;grid-template-columns:45px 1fr;align-items:center;border-top:1px solid #ddd;padding:7px 0;gap:6px}.draw-values{display:flex;gap:6px;flex-wrap:wrap}.draw-value{display:inline-block;padding:5px 7px;border-radius:5px;font-weight:750;font-variant-numeric:tabular-nums}.draw-value.winning-mark{background:#111;color:#fff}.draw-board-note{font-size:13px;color:#59636e;margin:6px 0} @media print{#markWinningDraws,#winningDrawBoards{display:none!important}}#publicDrawTable{min-width:0}#publicDrawStatus{white-space:pre-line}
 #publicDrawTable .receipt-total{margin-bottom:18px;text-align:center}
 @media(max-width:480px){.receipt-table.payout-table{font-size:12px}.receipt-table.payout-table th,.receipt-table.payout-table td{padding:8px 1px}.receipt-table.payout-table td:last-child{font-size:11px}.receipt-table.payout-table th{font-size:11px}.payout-value{font-size:clamp(20px,6vw,26px)}}
 @media(max-width:480px){body{padding:10px}main{margin:8px auto;padding:15px}.snapshot{padding:9px}.receipt-table{font-size:14px}.receipt-table th,.receipt-table td{padding:8px 3px}}
@@ -50,7 +50,7 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>
 <p class="muted">Quét QR chỉ kiểm tra trạng thái, không tự đánh dấu phiếu đã sử dụng. Việc xác nhận sử dụng yêu cầu đăng nhập chủ phiếu.</p>
-<div id="claimPrintControls" hidden><button id="printClaimReceipt" type="button">IN PHIẾU LĨNH THƯỞNG (80MM)</button><p class="muted">In không đồng nghĩa đã trả thưởng. Chỉ xác nhận trả sau khi giao tiền.</p></div><section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>PHIẾU CHƯA XÁC NHẬN TRẢ THƯỞNG</h2><p class="muted">Đây là phiếu QR còn hiệu lực, không phải số tiền công nợ. Chỉ xác nhận đã trả sau khi thanh toán thực tế.</p><button id="ownerOpenBtn" type="button">XEM PHIẾU CHƯA TRẢ</button><button id="ownerOpenMoreBtn" type="button" hidden>TẢI THÊM 100 PHIẾU</button><p id="ownerOpenStatus" class="muted" aria-live="polite"></p><div id="ownerOpenTable" style="overflow-x:auto"></div><div style="border-top:1px solid #ddd;margin:18px 0"></div><h2>LỊCH SỬ TRẢ THƯỞNG</h2><div style="display:grid;gap:8px;margin:10px 0"><label>Khách hàng <input id="historyCustomerFilter" type="search" placeholder="Tên khách (để trống: tất cả)" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Từ ngày xác nhận <input id="historyFromFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Đến ngày xác nhận <input id="historyToFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label></div><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><button id="historyCsvBtn" type="button" style="margin-top:8px;background:#44546a" disabled>XUẤT CSV DANH SÁCH ĐANG XEM</button><button id="historyNextBtn" type="button" style="margin-top:8px;background:#44546a" hidden>TẢI THÊM 100 PHIẾU</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><label for="paidAmountVnd" style="display:block;font-weight:750;margin-bottom:8px">SỐ TIỀN ĐÃ TRẢ THỰC TẾ (đ)</label><p id="paidAmountSuggestion" class="muted">Bấm DÒ KẾT QUẢ ở phần chủ phiếu để xem số tiền gợi ý. Bạn cần kiểm tra và xác nhận số thực trả.</p><button id="applySuggestedAmount" type="button" hidden style="margin-bottom:12px;background:#44546a">ĐIỀN TIỀN THƯỞNG GỢI Ý</button><input id="paidAmountVnd" type="number" min="0" max="1000000000000" step="1" inputmode="numeric" placeholder="Nhập số tiền thực trả, ví dụ 1480000" style="box-sizing:border-box;width:100%;padding:14px;font-size:19px;margin-bottom:12px;border:1px solid #aaa;border-radius:8px" /><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
+<div id="claimPrintControls" hidden><button id="printClaimReceipt" type="button">IN PHIẾU LĨNH THƯỞNG (80MM)</button><p class="muted">In không đồng nghĩa đã trả thưởng. Chỉ xác nhận trả sau khi giao tiền.</p></div><section id="publicDraw"><h2>KẾT QUẢ DÒ</h2><p id="publicDrawStatus" class="muted">Đang đối chiếu kết quả...</p><div id="publicDrawTable" style="overflow-x:auto"></div><button id="markWinningDraws" type="button" hidden aria-expanded="false" style="margin-top:16px;background:#263445">ĐÁNH DẤU SỐ TRÚNG</button><div id="winningDrawBoards" hidden style="margin-top:12px"></div></section><section id="ownerBox" hidden><h2>DÒ KẾT QUẢ - CHỦ PHIẾU</h2><button id="ownerCheck" type="button">DÒ KẾT QUẢ</button><p id="ownerMessage" class="muted" aria-live="polite"></p><div id="ownerTable" style="overflow-x:auto;margin-top:12px" hidden></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:16px"><h2>PHIẾU CHƯA XÁC NHẬN TRẢ THƯỞNG</h2><p class="muted">Đây là phiếu QR còn hiệu lực, không phải số tiền công nợ. Chỉ xác nhận đã trả sau khi thanh toán thực tế.</p><button id="ownerOpenBtn" type="button">XEM PHIẾU CHƯA TRẢ</button><button id="ownerOpenMoreBtn" type="button" hidden>TẢI THÊM 100 PHIẾU</button><p id="ownerOpenStatus" class="muted" aria-live="polite"></p><div id="ownerOpenTable" style="overflow-x:auto"></div><div style="border-top:1px solid #ddd;margin:18px 0"></div><h2>LỊCH SỬ TRẢ THƯỞNG</h2><div style="display:grid;gap:8px;margin:10px 0"><label>Khách hàng <input id="historyCustomerFilter" type="search" placeholder="Tên khách (để trống: tất cả)" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Từ ngày xác nhận <input id="historyFromFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label><label>Đến ngày xác nhận <input id="historyToFilter" type="date" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px"></label></div><button id="ownerHistoryBtn" type="button">XEM PHIẾU ĐÃ TRẢ</button><button id="historyCsvBtn" type="button" style="margin-top:8px;background:#44546a" disabled>XUẤT CSV DANH SÁCH ĐANG XEM</button><button id="historyNextBtn" type="button" style="margin-top:8px;background:#44546a" hidden>TẢI THÊM 100 PHIẾU</button><p id="ownerHistoryStatus" class="muted" aria-live="polite"></p><div id="ownerHistoryTable" style="overflow-x:auto"></div></div></section><section id="redeemBox" hidden><label for="paidAmountVnd" style="display:block;font-weight:750;margin-bottom:8px">SỐ TIỀN ĐÃ TRẢ THỰC TẾ (đ)</label><p id="paidAmountSuggestion" class="muted">Bấm DÒ KẾT QUẢ ở phần chủ phiếu để xem số tiền gợi ý. Bạn cần kiểm tra và xác nhận số thực trả.</p><button id="applySuggestedAmount" type="button" hidden style="margin-bottom:12px;background:#44546a">ĐIỀN TIỀN THƯỞNG GỢI Ý</button><input id="paidAmountVnd" type="number" min="0" max="1000000000000" step="1" inputmode="numeric" placeholder="Nhập số tiền thực trả, ví dụ 1480000" style="box-sizing:border-box;width:100%;padding:14px;font-size:19px;margin-bottom:12px;border:1px solid #aaa;border-radius:8px" /><button id="redeemBtn" type="button">XÁC NHẬN ĐÃ TRẢ THƯỞNG</button><p id="redeemNote" class="muted">Chỉ bấm sau khi đã trả thưởng thực tế. Chỉ chủ phiếu được xác nhận; không thể hoàn tác.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.10/dist/umd/supabase.min.js"></script><script>
 (async()=>{
  const status=document.getElementById('status'),details=document.getElementById('details');
  const snapshotBox=document.getElementById('snapshotBox'),snapshotEl=document.getElementById('snapshot');
@@ -201,6 +201,71 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
    const isLegacyX74=['CQ-8162EB1B-9AA','CQ-5D3070A5-FBB'].some(code=>details.textContent.includes(code))&&result.source?.drawDate==='2026-10-29';
    const rates=result.source?.payoutRatesSnapshot||(isLegacyX74?{b2:74,b3:640,b4:5000,xc:640,dd:74,da2:540,dathang:700,daMB:640}:null);
    const diagnostics=rows.map((row,i)=>[result.daDiagnostics?.[i],result.specialDiagnostics?.[i],result.matchDiagnostics?.[i]].find(d=>d?.supported)||null);
+   // Purely visual: mark eligible prize cells without changing payouts or receipt state.
+   const boardButton=document.getElementById('markWinningDraws');
+   const boardHost=document.getElementById('winningDrawBoards');
+   const boards=Array.isArray(result.resultBoards)?result.resultBoards:[];
+   if(boards.length&&rows.length){
+     boardButton.hidden=false;
+     const regionOf=row=>row?.region==='N'?'MN':row?.region==='T'?'MT':'MB';
+     const suffix=(value,n)=>String(value||'').slice(-n);
+     const keyAllowed=(row,key)=>{
+       const region=regionOf(row),type=String(row.type||'').toUpperCase();
+       if(type==='DA')return region==='MB'?key!=='g8':true;
+       if(type==='DD'||type==='ĐẦU'||type==='ĐUÔI'){
+         return type==='ĐẦU'?(key===(region==='MB'?'g7':'g8')):type==='ĐUÔI'?key==='db':(key==='db'||key===(region==='MB'?'g7':'g8'));
+       }
+       if(type==='XC'||type==='DAO XC'||type==='XC-ĐẦU'||type==='XC-ĐUÔI')return key==='db'||key===(region==='MB'?'g6':'g7');
+       if(type.startsWith('NHẤT TO'))return key==='g1';
+       const digits=type==='B2'||type==='BL2'?2:type==='B3'||type==='BL3'?3:type==='B4'||type==='BL4'?4:0;
+       if(!digits)return false;
+       return region==='MB'?(digits===3?!['g7','g8'].includes(key):digits===4?!['g6','g7','g8'].includes(key):key!=='g8'):
+         digits===3?key!=='g8':digits===4?!['g7','g8'].includes(key):true;
+     };
+     const matchesCell=(row,i,board,key,value)=>{
+       const diag=diagnostics[i];if(!diag?.supported||!keyAllowed(row,key))return false;
+       const coverage=result.stationCoverage?.[i];
+       if(!coverage?.ready||!coverage.stations?.some(st=>st.matched===board.station))return false;
+       if(regionOf(row)!==board.region)return false;
+       const type=String(row.type||'').toUpperCase();
+       const numbers=(Array.isArray(row.numbers)?row.numbers:[]).map(String);
+       if(type==='DA'){
+         const pairs=Array.isArray(diag.pairs)?diag.pairs.filter(p=>p.times>0):[];
+         return pairs.some(p=>[p.a,p.b].some(n=>suffix(value,2)===n));
+       }
+       const digits=type==='B4'||type==='BL4'?4:type==='B3'||type==='BL3'||type==='XC'||type==='DAO XC'||type==='XC-ĐẦU'||type==='XC-ĐUÔI'||type==='NHẤT TO 3'?3:2;
+       return numbers.some(n=>suffix(value,digits)===n);
+     };
+     boardButton.addEventListener('click',()=>{
+       const show=boardHost.hidden;
+       boardHost.hidden=!show;boardButton.setAttribute('aria-expanded',String(show));
+       boardButton.textContent=show?'ẨN ĐÁNH DẤU SỐ TRÚNG':'ĐÁNH DẤU SỐ TRÚNG';
+       if(!show||boardHost.dataset.rendered)return;
+       boardHost.dataset.rendered='1';
+       const heading={db:'ĐB',g1:'G1',g2:'G2',g3:'G3',g4:'G4',g5:'G5',g6:'G6',g7:'G7',g8:'G8'};
+       for(const board of boards){
+         const section=document.createElement('section');section.className='draw-board';
+         const title=document.createElement('h3');title.textContent=board.station+' — '+board.region;section.append(title);
+         for(const key of ['db','g1','g2','g3','g4','g5','g6','g7','g8']){
+           const values=board.prizes?.[key];if(!Array.isArray(values)||!values.length)continue;
+           const line=document.createElement('div');line.className='draw-prize';
+           const name=document.createElement('b');name.textContent=heading[key];line.append(name);
+           const group=document.createElement('div');group.className='draw-values';
+           for(const value of values){
+             const cell=document.createElement('span');cell.className='draw-value';cell.textContent=value;
+             if(rows.some((row,i)=>matchesCell(row,i,board,key,value)))cell.classList.add('winning-mark');
+             group.append(cell);
+           }
+           line.append(group);section.append(line);
+         }
+         boardHost.append(section);
+       }
+       const note=document.createElement('p');note.className='draw-board-note';
+       note.textContent='Ô đen chỉ đánh dấu vị trí khớp cược hợp lệ, không thay đổi tiền thưởng hoặc xác nhận thanh toán.';
+       boardHost.append(note);
+     });
+   }
+
    // Fail closed when diagnostic station differs from the wager's own station.
    const stationKey=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase().replace(/[^a-z0-9]/g,'');
    const stationAlias={tn:'tayninh',ag:'angiang',bt:'binhthuan',tphcm:'hochiminh',tpho:'hochiminh',hcm:'hochiminh',sg:'hochiminh',tphochiminh:'hochiminh',thanhphohochiminh:'hochiminh',lan:'longan',hn:'mienbac',mb:'mienbac',hanoi:'mienbac',hanoibac:'mienbac',bac:'mienbac'};

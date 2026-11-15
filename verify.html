@@ -45,7 +45,38 @@ button:disabled{opacity:.5;cursor:not-allowed}#ownerMessage{white-space:pre-wrap
  h1{font-size:17px!important;text-align:center!important}
  h2{font-size:14px!important}
  #snapshot{overflow:visible!important}
-}</style><script type="module">import {calculateQrPayout} from './qr-payout-preview.mjs'; window.calculateQrPayout=calculateQrPayout;</script>
+}
+/* Compact mobile QR verification layout — presentation only, no receipt/status logic changes */
+@media screen {
+ body{background:#f4f6fa;padding:12px;color:#17243a}
+ main{max-width:520px;margin:8px auto;padding:16px;border:1px solid #e1e6ee;border-radius:16px;box-shadow:0 3px 16px #17243a0a}
+ main>h1{font-size:19px;line-height:1.25;margin:0;font-weight:850;color:#163c76}
+ main>h1 + p.muted{font-size:12px;margin:3px 0 10px}
+ #status{font-size:17px;line-height:1.3;margin:10px 0 5px;padding:11px 12px;border-radius:10px;background:#e9f7ec;border:1px solid #bce6c5}
+ #status.bad{background:#fff0f0;border-color:#f1c5c5}
+ #details{font-size:13px;line-height:1.4;margin:7px 0 11px;overflow-wrap:anywhere;color:#48566b}
+ #snapshotBox{margin-top:10px}
+ #snapshotBox>h2{font-size:16px;line-height:1.3;margin:8px 0 7px}
+ #snapshotBox>p.muted{display:none}
+ .snapshot{padding:9px;border-radius:10px;background:#fff}
+ .receipt-paper-title{font-size:17px;margin:3px 0 7px}
+ .receipt-meta{font-size:13px;line-height:1.4}
+ .receipt-table{margin:8px 0;font-size:13px}
+ .receipt-table th,.receipt-table td{padding:6px 3px}
+ .receipt-table .receipt-station{font-size:14px;padding:6px}
+ .receipt-total{font-size:17px;padding-top:8px;margin-top:8px}
+ main>p.muted{font-size:12px;line-height:1.4;margin:10px 0}
+ #publicDraw>h2,#ownerBox h2{font-size:17px;margin:14px 0 8px}
+ #publicDrawStatus{font-size:13px}
+ #redeemBox{margin-top:14px;padding-top:12px}
+}
+@media screen and (max-width:480px){
+ body{padding:7px}
+ main{margin:3px auto;padding:12px;border-radius:13px}
+ .snapshot{padding:7px}
+ .receipt-table.payout-table th,.receipt-table.payout-table td{padding:5px 2px}
+}
+</style><script type="module">import {calculateQrPayout} from './qr-payout-preview.mjs'; window.calculateQrPayout=calculateQrPayout;</script>
 </head><body><main>
 <h1>XÁC THỰC PHIẾU</h1><p class="muted">CuncunPrint — QR xác thực phiếu</p>
 <p id="status">Đang kiểm tra…</p><p id="details"></p><section id="snapshotBox" hidden><h2>NỘI DUNG GỐC CỦA PHIẾU</h2><p class="muted">Đối chiếu từng dòng với phiếu giấy. Nội dung được lấy từ bản đã lưu trên máy chủ.</p><div id="snapshot" class="snapshot"></div></section>

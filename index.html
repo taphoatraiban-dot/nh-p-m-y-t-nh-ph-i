@@ -2838,8 +2838,13 @@ function ttNormalizeDaoLoPhrase(raw){
   // chained parser receives this as a single wager group.
   .replace(/([0-9]{4}\s*b\s*\d+(?:,\d+)?n?)\s*\.\s*bdao\s*(\d+(?:,\d+)?n?)/giu,"$1.bdao$2");
 }
+function cuncunNormalizeXiuChuAlias(raw){
+ // Normalize only XC wager aliases following an explicit three-digit number.
+ // Preserve unrelated words, XCDAO, XCDau/XCDuoi and the original textarea.
+ return String(raw??'').replace(/(\d{3})\s*(?:xỉu\s*chủ|xiu\s*chu|xiuchu|xchu)\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1xc$2');
+}
 function ttNormalizeClearNaturalBetNames(raw){
- let out=String(raw??"")
+ let out=cuncunNormalizeXiuChuAlias(raw)
   // "5645 bao 12" is the spelled-out Bao instruction for the same number.
   .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1b$2")
   // "639 xc dao 5n" explicitly means xỉu chủ đảo (XCDAO).
@@ -3669,7 +3674,7 @@ function normalizeBetShorthands(line){
   // - xN viết nối sau một cược => xcN (vd b0,5x5 => b0,5.xc5)
   // - xdui => xduoi
   // - không sinh '..' do chuẩn hóa.
-  line=ttSeparateJoinedBets(String(line??""));
+  line=ttSeparateJoinedBets(cuncunNormalizeXiuChuAlias(line));
 
   // Chuẩn alias trước để không bị hiểu nhầm chữ x trong xdui.
   // Common shorthand aliases: xiuchu / xchu = XC, xd = DAO XC, xddui = XC-đuôi.

@@ -4013,6 +4013,20 @@ function normalizeCustomerBaoDaoXdaoPhoi(raw){
    return line;
  }).join('\n');
 }
+function cuncunDaSeparatedSixErrors(raw){
+ const errors=[];
+ String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
+  // A dot-separated DA number list is explicit: never silently split a 6-digit segment into three pairs.
+  const re=/(?:^|[\s;])((?:\d{2,}[.]){1,}\d{2,})\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/giu;
+  for(const m of line.matchAll(re)){
+   const parts=m[1].split('.');
+   if(parts.some(n=>n.length!==2)){
+    errors.push('Dòng '+(i+1)+': LỖI ĐÁ — '+m[1]+'. Mỗi số ngăn bằng dấu chấm phải đúng 2 chữ số; không tự tách số 6 chữ số thành 3 con. Không tính tiền.');
+   }
+  }
+ });
+ return errors;
+}
 function cuncunXcLengthErrors(raw){
  const errors=[];
  String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
@@ -4042,6 +4056,8 @@ function cuncunMixedBaoXcErrors(raw){
  return errors;
 }
 function parseBets(){
+ const _daSix=cuncunDaSeparatedSixErrors($('bets')?.value||'');
+ if(_daSix.length)return {rows:[],errors:_daSix};
  const _xcLength=cuncunXcLengthErrors($('bets')?.value||'');
  if(_xcLength.length)return {rows:[],errors:_xcLength};
  const _mixedBaoXc=cuncunMixedBaoXcErrors($('bets')?.value||'');
@@ -14877,6 +14893,7 @@ function inspect(){
     if(nums.length===1&&nums[0].length>4&&nums[0].length%2!==0)warn(i,token,"Dãy đá có số chữ số lẻ; kiểm tra lại cách ghi.", "warning");
    }
   }
+  cuncunDaSeparatedSixErrors(line).forEach(message=>warn(i,line,message,'error'));
   cuncunXcLengthErrors(line).forEach(message=>warn(i,line,message.replace(/^Dòng \\d+: /,''),'error'));
   const mixed=cuncunMixedBaoXcErrors(line);
   mixed.forEach(message=>warn(i,line,message.replace(/^Dòng \\d+: /,''),"error"));
@@ -14935,6 +14952,7 @@ inspect();
  if(!input||!out)return;
  function findErrors(value){
   var errors=[];
+  cuncunDaSeparatedSixErrors(value).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\d+)/)||[])[1]||1),token:message});});
   cuncunXcLengthErrors(value).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\\d+)/)||[])[1]||1),token:message.replace(/^Dòng \\d+: /,'')});});
   String(value||'').replace(/\r/g,'').split('\n').forEach(function(line,index){
    var pattern=/(?:^|[\s;])((?:\d{2,4}\s*[.,-]\s*){2,}\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?\s*[.;]?\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;

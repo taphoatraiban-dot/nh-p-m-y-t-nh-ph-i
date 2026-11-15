@@ -26,7 +26,8 @@ test('dong-sign contextual shorthand matches explicit da and station groups',()=
   ].join('\n');
   const actual=parse(raw,'2026-11-15');
   const expected=parse(normalized,'2026-11-15');
-  assert.deepEqual(actual.errors,expected.errors);
+  assert.deepEqual(actual.errors,[],'all eight customer lines must parse without errors');
+  assert.deepEqual(expected.errors,[],'normalized equivalent must parse without errors');
   assert.deepEqual(actual.rows,expected.rows);
   assert.ok(expected.rows.length>0,'expected wagers must produce parsed rows');
 });

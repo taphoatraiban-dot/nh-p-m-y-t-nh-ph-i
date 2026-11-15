@@ -4014,15 +4014,14 @@ function normalizeCustomerBaoDaoXdaoPhoi(raw){
  }).join('\n');
 }
 function cuncunDaSeparatedSixErrors(raw){
+ // Explicit dot-separated DA groups of 2, 4 or 6 digits are valid.
+ // Keep groups intact; do not reject them merely for length or repeated pairs inside a 6-digit group.
  const errors=[];
  String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
-  // A dot-separated DA number list is explicit: never silently split a 6-digit segment into three pairs.
   const re=/(?:^|[\s;])((?:\d{2,}[.]){1,}\d{2,})\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/giu;
   for(const m of line.matchAll(re)){
-   const parts=m[1].split('.');
-   if(parts.some(n=>n.length!==2)){
-    errors.push('Dòng '+(i+1)+': LỖI ĐÁ — '+m[1]+'. Mỗi số ngăn bằng dấu chấm phải đúng 2 chữ số; không tự tách số 6 chữ số thành 3 con. Không tính tiền.');
-   }
+   const invalid=m[1].split('.').filter(n=>![2,4,6].includes(n.length));
+   if(invalid.length)errors.push('Dòng '+(i+1)+': Nhóm ĐÁ sai độ dài '+invalid.join(', ')+'. Chỉ chấp nhận nhóm 2, 4 hoặc 6 chữ số.');
   }
  });
  return errors;
@@ -4264,7 +4263,7 @@ function parseBets(){
      const pairs=(chunk.match(/\d{2}/g)||[]);
      const seen=new Set();
      const repeated=pairs.find(n=>seen.has(n)||!seen.add(n));
-     if(repeated)return {rows:[],errors:[`Sai cược đá: số ${repeated} bị trùng trong nhóm ${chunk}. Không tính tiền toàn bộ phơi.`]};
+     if(repeated && chunk.length!==6)return {rows:[],errors:[`Sai cược đá: số ${repeated} bị trùng trong nhóm ${chunk}. Không tính tiền toàn bộ phơi.`]};
    }
  }
  // FIX 19-10: Expand shared XC/XDAO on EACH line before Telegram normalization.
@@ -14888,8 +14887,8 @@ function inspect(){
    if(!m)continue;
    const nums=m[1].split(/[.,-]/).filter(Boolean),kind=m[2]||m[3]||m[4]||m[5]||m[6]||m[7]||"";
    if(kind.toLowerCase()==="da"||/đá/i.test(token)){
-    if(nums.length>=2&&new Set(nums.map(n=>n.length)).size>1)warn(i,token,"Các số đá có độ dài khác nhau; kiểm tra cách ghi.", "warning");
-    if(nums.length>=2&&new Set(nums).size!==nums.length)warn(i,token,"Có số đá bị lặp trong cùng nhóm.", "error");
+    // DA groups of 2/4/6 digits may coexist; no mixed-length warning.
+    // Duplicate checks belong to the parser, with 6-digit DA groups exempt.
     if(nums.length===1&&nums[0].length>4&&nums[0].length%2!==0)warn(i,token,"Dãy đá có số chữ số lẻ; kiểm tra lại cách ghi.", "warning");
    }
   }

@@ -6852,7 +6852,6 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
       </div>
 
       <div class="sample-type-title">${regionName[r]}</div>
-      <div class="sample-rule-note">Thu/Bù: <b>(Tiền xác × Giá nhận đúng loại − Tiền trúng) × Hồi khi thu</b>. Các ô Chỉnh giá là <b>Giá nhận riêng</b>, không phải hệ số hồi. Nếu bật <b>3 số không hồi</b> thì Bao 3/XC/đảo XC dùng Hồi = 1; MB chỉ dùng giá riêng khi bật <b>Nhận giá Miền Bắc</b>. Dấu <b>+</b> là THU, dấu <b>−</b> là BÙ.</div>
       <div data-pro-report="summary" data-pro-region="${r}">${ttProPlaceholder()}</div>
 
       ${order.filter(k=>k.startsWith(r+'|')).map(key=>{

@@ -359,7 +359,7 @@ Deno.serve(async (req) => {
         return { index, supported: true, diagnosticOnly: true, cross, stations: perStation, pairs };
       });
       // Read-only draw boards scoped to stations on this verified receipt only.
-      const resultBoards = [...new Map(stationCoverage.flatMap((c: any, i: number) => {
+      const resultBoards = Array.from(new Map(stationCoverage.flatMap((c: any, i: number) => {
         const row = source.pricedRows[i];
         const region = row?.region === "N" ? "MN" : row?.region === "T" ? "MT" : "MB";
         return c.ready ? c.stations.filter((st: any) => st.complete && st.matched).map((st: any) => {
@@ -371,7 +371,7 @@ Deno.serve(async (req) => {
             if (Array.isArray(prizes[key])) clean[key] = prizes[key].filter((v: unknown) => typeof v === "string" && /^[0-9]+$/.test(v));
           return [region+"|"+st.matched,{region,station:st.matched,prizes:clean}];
         }) : [];
-      }))].values();
+      })).values());
       return respond({ allowed: !publicResult, ready: false,
         source: publicResult ? { pricedRows: source.pricedRows, drawDate: date, payoutRatesSnapshot: source.payoutRatesSnapshot } :
           { rawText: source.rawText, totalGross: source.totalGross, finalTotal: source.finalTotal, pricedRows: source.pricedRows, drawDate: date, payoutRatesSnapshot: source.payoutRatesSnapshot, payoutRatesSnapshotVersion: source.payoutRatesSnapshotVersion },

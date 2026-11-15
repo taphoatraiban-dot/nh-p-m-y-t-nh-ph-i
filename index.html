@@ -4149,7 +4149,10 @@ function parseBets(){
    if(!m || !stationToken(m[2],$('date')?.value||''))return line;
    return m[1]+m[2]+'\n'+m[3];
  }).join('\n');
- const _raw2057=ttFixCompactBetSeparators(_stationJoinedSafe);
+ // Normalize only complete standalone DA lines before strict length checks.
+ // Multiple spaces between pairs must not cause the last pair to be misread as a single DA.
+ const _spaceSafeDa=_stationJoinedSafe.split('\n').map(line=>/^\s*[\d\s.,]+\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?n?\s*\.?\s*$/i.test(line)?normalizeOneFunctionLooseLine(line):line).join('\n');
+ const _raw2057=ttFixCompactBetSeparators(_spaceSafeDa);
  // Chặn cược sai độ dài số trên phơi gốc cho TẤT CẢ các đài MN/MT/MB.
  // DD đúng 2 chữ số; XC đúng 3 chữ số. Bất kỳ token sai đều khóa toàn phơi.
  const _strictLengthRe=/(?:^|[^0-9])([0-9]+)\s*(xc|dd)\s*([0-9]+(?:[,.][0-9]+)?)(?:n)?(?=\s*(?:\.|$|\n))/gim;

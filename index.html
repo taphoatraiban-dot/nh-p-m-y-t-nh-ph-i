@@ -3604,6 +3604,9 @@ function nums(s){return String(s).replace(/[\s,;]+/g,".").replace(/\.{2,}/g,".")
 // 014.114.214.314.514.614.714.814.914b2,5
 // (không tự chèn 414).
 function expandKeoRanges(line){
+  // Customer aliases: den / kéo / keo / k are equivalent range operators.
+  // Restrict to digits on both sides so unrelated words stay untouched.
+  line=String(line||'').replace(/(\d{2,3})\s*(?:den|kéo|keo|k)\s*(?=\d{2,3}(?:\D|$))/gi,'$1keo');
   let out=String(line||'');
   // KÉO CÓ BƯỚC - áp dụng mọi đài/miền:
   // 20/30keo90 => 20,30,...,90 ; 60/61keo69 => 60..69 ; 111/222keo999 => 111,222,...,999.

@@ -4107,13 +4107,13 @@ function cuncunMixedBaoXcErrors(raw){
 }
 function cuncunStrictSocTrangSchedule(raw,dateValue){
  const errors=[];
- const m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(String(dateValue||''));
+ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateValue||''));
  if(!m)return errors;
  const d=new Date(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),12));
  if(d.getUTCFullYear()!==Number(m[1])||d.getUTCMonth()!==Number(m[2])-1||d.getUTCDate()!==Number(m[3]))return errors;
  if(d.getUTCDay()===3)return errors;
- String(raw||'').split(/\\r?\\n/).forEach((line,i)=>{
-  if(/^\\s*(?:st|strang|soctrang|s[oó]c\\s*tr[aă]ng)(?=\\s|[.:,;]|\\d|$)/iu.test(line))
+ String(raw||'').split(/\r?\n/).forEach((line,i)=>{
+  if(/^\s*(?:st|strang|soctrang|s[oó]c\s*tr[aă]ng)(?=\s|[.:,;]|\d|$)/iu.test(line))
    errors.push('Dòng '+(i+1)+': Sai lịch đài Sóc Trăng — chỉ mở thưởng T4; ngày đã chọn không phải T4.');
  });
  return errors;

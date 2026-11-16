@@ -78,3 +78,15 @@ test('two-station bao counts every verified hit',()=>{
  [{supported:true,diagnosticOnly:true,matches:[{station:'Tây Ninh',count:1},{station:'An Giang',count:2}]}],customerRates.X74);
  assert.equal(result.ready,true);assert.equal(result.total,3840);
 });
+
+test('QR DA 65-67 repeated twice pays 1080k at X74 cross rate',()=>{
+ const bet=row('DA',{numbers:['25','67','65'],points:1,cross2:true,crossProvinces:['TP.HCM','Đồng Tháp']});
+ const diag={supported:true,diagnosticOnly:true,cross:true,pairs:[{a:'67',b:'65',times:2}]};
+ const result=calculateQrPayout([bet],[diag],customerRates.X74);
+ assert.equal(result.ready,true);assert.equal(result.lines[0].units,2);assert.equal(result.total,1080);
+});
+test('QR DA unequal occurrences pay only matched pair count',()=>{
+ const bet=row('DA',{numbers:['25','67','65'],points:1,cross2:true});
+ const diag={supported:true,diagnosticOnly:true,cross:true,pairs:[{a:'67',b:'65',times:1}]};
+ assert.equal(calculateQrPayout([bet],[diag],customerRates.X74).total,540);
+});

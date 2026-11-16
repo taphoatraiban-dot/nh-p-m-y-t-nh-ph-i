@@ -4049,8 +4049,30 @@ function cuncunDaSeparatedSixErrors(raw){
  String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
   const re=/(?:^|[\s;])((?:\d{2,}[.]){1,}\d{2,})\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/giu;
   for(const m of line.matchAll(re)){
-   const invalid=m[1].split('.').filter(n=>!(n.length>=4 && n.length%2===0));
-   if(invalid.length)errors.push('Dòng '+(i+1)+': Nhóm ĐÁ sai độ dài '+invalid.join(', ')+'. Mỗi nhóm phải có số chữ số chẵn, tối thiểu 4 chữ số.');
+   const invalid=m[1].split('.').filter(n=>!(n.length>=2 && n.length%2===0));
+   if(invalid.length)errors.push('Dòng '+(i+1)+': Nhóm ĐÁ sai độ dài '+invalid.join(', ')+'. Mỗi nhóm phải có số chữ số chẵn, tối thiểu 2 chữ số.');
+  }
+ });
+ return errors;
+}
+function cuncunDdLengthErrors(raw){
+ const errors=[];
+ String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
+  const re=/(?:^|[\s;])((?:\d{2,4}[.,-])*\d{2,4})\s*dd\s*\d+(?:[,.]\d+)?n?(?=[.;\s]|$)/gi;
+  for(const m of line.matchAll(re)){
+   const bad=m[1].split(/[.,-]/).filter(n=>n.length!==2);
+   if(bad.length)errors.push('Dòng '+(i+1)+': LỖI DD — '+bad.join(', ')+' không phải số 2 chữ số. Không tính tiền.');
+  }
+ });
+ return errors;
+}
+function cuncunSharedBaoXcLengthErrors(raw){
+ const errors=[];
+ String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
+  const re=/(?:^|[\s;])((?:\d{2,4}[.,-])+\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?n?\s*[.;]\s*xc\s*\d+(?:[,.]\d+)?n?(?=[.;\s]|$)/gi;
+  for(const m of line.matchAll(re)){
+   const bad=m[1].split(/[.,-]/).filter(n=>n.length!==3);
+   if(bad.length)errors.push('Dòng '+(i+1)+': LỖI XC — '+bad.join(', ')+' không đủ 3 chữ số trong nhóm B/XC dùng chung. Không tính tiền.');
   }
  });
  return errors;
@@ -4083,9 +4105,35 @@ function cuncunMixedBaoXcErrors(raw){
  });
  return errors;
 }
+function cuncunStrictSocTrangSchedule(raw,dateValue){
+ const errors=[];
+ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateValue||''));
+ if(!m)return errors;
+ const d=new Date(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),12));
+ if(d.getUTCFullYear()!==Number(m[1])||d.getUTCMonth()!==Number(m[2])-1||d.getUTCDate()!==Number(m[3]))return errors;
+ if(d.getUTCDay()===3)return errors;
+ String(raw||'').split(/\r?\n/).forEach((line,i)=>{
+  if(/^\s*(?:st|strang|soctrang|s[oó]c\s*tr[aă]ng)(?=\s|[.:,;]|\d|$)/iu.test(line))
+   errors.push('Dòng '+(i+1)+': Sai lịch đài Sóc Trăng — chỉ mở thưởng T4; ngày đã chọn không phải T4.');
+ });
+ return errors;
+}
 function parseBets(){
+ const _stationSchedule=cuncunStrictSocTrangSchedule($('bets')?.value||'',$('date')?.value||'');
+ if(_stationSchedule.length)return {rows:[],errors:_stationSchedule};
+ const _rawDa=String($('bets')?.value||'').replace(/\r/g,'');
+ const _invalidDa=[];
+ _rawDa.split('\n').forEach((line,i)=>{
+  const re=/(?:^|[\s;])([0-9]{6})(?:\s*)(?:da|đá|đa)\s*[0-9]+(?:[,.][0-9]+)?n?(?=[.;\s]|$)/giu;
+  for(const match of line.matchAll(re)){const pairs=match[1].match(/.{2}/g)||[];if(new Set(pairs).size!==pairs.length)_invalidDa.push('Dòng '+(i+1)+': LỖI ĐÁ — '+match[1]+' có cặp số trùng trong nhóm ĐÁ 6 chữ số. Hãy xác nhận và tách rõ các cặp trước khi tính tiền.');}
+ });
+ if(_invalidDa.length)return {rows:[],errors:_invalidDa};
  const _daSix=cuncunDaSeparatedSixErrors($('bets')?.value||'');
  if(_daSix.length)return {rows:[],errors:_daSix};
+ const _ddLength=cuncunDdLengthErrors($('bets')?.value||'');
+ if(_ddLength.length)return {rows:[],errors:_ddLength};
+ const _sharedXc=cuncunSharedBaoXcLengthErrors($('bets')?.value||'');
+ if(_sharedXc.length)return {rows:[],errors:_sharedXc};
  const _xcLength=cuncunXcLengthErrors($('bets')?.value||'');
  if(_xcLength.length)return {rows:[],errors:_xcLength};
  const _mixedBaoXc=cuncunMixedBaoXcErrors($('bets')?.value||'');
@@ -9385,7 +9433,7 @@ sb.auth.onAuthStateChange((event)=>{
 </script>
 
 <script src="src/ios-share-phoi.js?v=20261111-original-points-no-count-v6"></script>
-<script src="src/ios-native-print-bridge.js?v=20261103-mode-selector-v2"></script>
+<script src="src/ios-native-print-bridge.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded',function(){

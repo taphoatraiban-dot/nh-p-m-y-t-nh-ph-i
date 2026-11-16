@@ -1,0 +1,28 @@
+name: DD XC parser regression
+on:
+  pull_request:
+  push:
+    branches: [fix/parser-dd-xc-validation-20261116]
+permissions:
+  contents: write
+jobs:
+  parser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regenerate deterministic reconciliation preview
+        run: |
+          node scripts/build-reconcile-preview.cjs
+          if [ "${{ github.event_name }}" = 'push' ] && [ "${{ github.ref }}" = 'refs/heads/fix/parser-dd-xc-validation-20261116' ] && ! git diff --quiet -- doi-soat-thu.html; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add doi-soat-thu.html
+            git commit -m "chore: regenerate reconciliation preview from production parser"
+            git push
+          fi
+      - run: node --test tests/*.test.cjs

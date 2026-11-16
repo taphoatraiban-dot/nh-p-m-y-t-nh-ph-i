@@ -22,3 +22,16 @@ test('decimal comma and decimal point are preserved',()=>{
  assert.deepEqual(a.errors,[]);
  assert.deepEqual(b.errors,[]);
 });
+
+test('punctuation-only header prefixes and suffixes preserve station parsing',()=>{
+ const original=parse('hn\n88dd10.');
+ for(const header of ['..hn','hn!!!','!!!hn???','~hn~']){
+  assert.deepEqual(parse(header+'\n88dd10.'),original,header);
+ }
+});
+test('decorative punctuation does not change original wager stake',()=>{
+ const plain=parse('hn\n324xdao5.');
+ for(const input of ['hn\n324///xdao5.','hn\n324:::xdao5.']){
+  assert.deepEqual(parse(input),plain,input);
+ }
+});

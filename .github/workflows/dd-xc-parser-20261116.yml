@@ -1,0 +1,14 @@
+name: DD XC parser regression
+on:
+  pull_request:
+  push:
+    branches: [fix/parser-dd-xc-validation-20261116]
+jobs:
+  parser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/*.test.cjs

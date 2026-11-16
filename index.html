@@ -4125,6 +4125,8 @@ function cuncunForgivingExtraSeparators(raw){
   let v=line;
   // Decorative punctuation before a complete station/group header.
   v=v.replace(new RegExp('^\\s*(?:'+marks+'\\s*)+(?=(?:[234]dm[nt]|hn|hanoi|tpho|st|strang|ctho|dnai|dnang)\\b)','i'),'');
+  // Strip decorative suffixes on standalone station headers, never on wager lines.
+  v=v.replace(/^([ \t]*(?:[234]dm[nt]|hn|hanoi|tpho|st|strang|ctho|dnai|dnang))[.,;:/_|!?~•-]+[ \t]*$/i,'$1');
   // Repeated punctuation between separate numeric tokens is a single delimiter.
   // Never touch one decimal mark inside a stake (0,5 / 1.5).
   v=v.replace(/(\d{2,4})[.,;:/_|!?~•-]{2,}(?=\d{2,4}(?:\D|$))/g,'$1.');

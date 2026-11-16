@@ -348,12 +348,13 @@ Deno.serve(async (req) => {
           const a=numbers[i], b=numbers[j];
           const first=perStation[0].hits.find(h => h.number === a)?.count || 0;
           const second=perStation[0].hits.find(h => h.number === b)?.count || 0;
-          // One distinct pair pays once, regardless of duplicate prize occurrences.
+          // Each repeated matching pair counts once per matched occurrence.
+          // Unequal occurrence counts cannot create an extra pair.
           const otherA=perStation[1]?.hits.find(h => h.number === a)?.count || 0;
           const otherB=perStation[1]?.hits.find(h => h.number === b)?.count || 0;
           const times=cross
-            ? ((first>0 && otherB>0) || (second>0 && otherA>0) ? 1 : 0)
-            : (first>0 && second>0 ? 1 : 0);
+            ? Math.min(first,otherB)+Math.min(second,otherA)
+            : Math.min(first,second);
           if (times > 0) pairs.push({ a,b,times });
         }
         return { index, supported: true, diagnosticOnly: true, cross, stations: perStation, pairs };

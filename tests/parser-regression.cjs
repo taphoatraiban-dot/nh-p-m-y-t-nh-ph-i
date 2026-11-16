@@ -17,7 +17,7 @@ function extract(name){
  throw Error('Unable to extract '+name);
 }
 const context=vm.createContext({});
-for(const n of ['ttFixCompactBetSeparators','ttNormalizeDaoLoPhrase','ttNormalizeClearNaturalBetNames'])vm.runInContext(extract(n),context,{timeout:1000});
+for(const n of ['ttFixCompactBetSeparators','ttNormalizeDaoLoPhrase','cuncunNormalizeXiuChuAlias','cuncunNormalizeBaoDdMissingAliases','ttNormalizeClearNaturalBetNames'])vm.runInContext(extract(n),context,{timeout:1000});
 const fix=context.ttFixCompactBetSeparators,dao=context.ttNormalizeDaoLoPhrase,natural=context.ttNormalizeClearNaturalBetNames;
 let ncases=0;
 for(const a of ['01','12','23','39','68','79','90','99'])

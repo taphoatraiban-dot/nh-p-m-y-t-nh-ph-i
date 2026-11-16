@@ -2738,11 +2738,14 @@ function splitGroupedPhoiCodes(line){
 // Nhờ vậy có thể copy một lần rất nhiều tin Telegram mà không mất phôi.
 function stripChatClipboardMetadata(text){
   let s=String(text||'')
-    .replace(/\r\n?/g,'\n')
+    .replace(/\r
+?/g,'
+')
     .replace(/[\u200B-\u200D\u2060\uFEFF]/g,'')
     .replace(/\u00A0/g,' ');
   const kept=[];
-  for(let raw of s.split('\n')){
+  for(let raw of s.split('
+')){
     let line=raw.trim();
     if(!line) { if(kept.length && kept[kept.length-1]!== '') kept.push(''); continue; }
     // Telegram desktop/iPhone: "Tên, [Th. 9 28, 16:00 2026]"
@@ -2751,21 +2754,30 @@ function stripChatClipboardMetadata(text){
     // Một số kiểu export đặt timestamp sau cùng dòng tên.
     line=line.replace(/^.{1,160},\s*\[[^\]]*(?:\d{1,2}:\d{2}|\d{1,2}[\/.\-]\d{1,2}|th\.?\s*\d+)[^\]]*\]\s*/iu,'').trim();
     // Bỏ timestamp đứng riêng, không đụng các dòng cược có ngoặc/số bình thường.
-    if(/^\[?\s*(?:th\.?\s*\d+\s+\d{1,2}|\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?)[^\n]{0,45}\d{1,2}:\d{2}[^\n]{0,20}\]?$/iu.test(line)) continue;
+    if(/^\[?\s*(?:th\.?\s*\d+\s+\d{1,2}|\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?)[^
+]{0,45}\d{1,2}:\d{2}[^
+]{0,20}\]?$/iu.test(line)) continue;
     kept.push(line);
   }
-  return kept.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  return kept.join('
+').replace(/
+{3,}/g,'
+
+').trim();
 }
 
 // V7.1: Insert missing separators BETWEEN completed bet amounts and the next bet type.
 // Does not change digit sequences or decimal separators inside amounts.
 function tshFixJoinedBaoXC(raw){
   // All numbers in the preceding group share Bao, XC and XC-duoi stakes.
-  return String(raw??'').replace(/(^|\n)([ \t]*)(\d{3}(?:\s*\.\s*\d{3})+)\s*b\s*(\d+(?:,\d+)?)\s*\.?\s*x(?:c)?\s*(\d+(?:,\d+)?)\s*\.?\s*x(?:c)?\s*(?:dui|duoi)\s*(\d+(?:,\d+)?)\s*\./gi,
+  return String(raw??'').replace(/(^|
+)([ \t]*)(\d{3}(?:\s*\.\s*\d{3})+)\s*b\s*(\d+(?:,\d+)?)\s*\.?\s*x(?:c)?\s*(\d+(?:,\d+)?)\s*\.?\s*x(?:c)?\s*(?:dui|duoi)\s*(\d+(?:,\d+)?)\s*\./gi,
     (whole,prefix,indent,numbers,b,xc,tail)=>{
       const nums=numbers.split(/\s*\.\s*/).filter(Boolean);
       const group=nums.join('.');
-      return prefix+indent+group+'b'+b+'.\n'+indent+group+'xc'+xc+'.\n'+indent+group+'xduoi'+tail+'.';
+      return prefix+indent+group+'b'+b+'.
+'+indent+group+'xc'+xc+'.
+'+indent+group+'xduoi'+tail+'.';
     });
 }
 function ttSeparateJoinedBets(value){
@@ -2780,7 +2792,8 @@ function ttSeparateJoinedBets(value){
   }
   // LOCK: a completed stake closes its number group. Never carry numbers
   // from 8015.6573da1. into 1570da4. (also works for B/XC/DD).
-  output=output.replace(/((?:xcduoi|xcdau|xduoi|xdui|xdau|xcdao|xdao|bdao|duoi|dui|dau|dd|xc|da|b)\s*\d+(?:,\d+)?(?:n|ng)?\.)[ \t]*(?=\d{2,}(?:[.\s]|(?:da|b|xc|dd)\b))/gi,'$1\n');
+  output=output.replace(/((?:xcduoi|xcdau|xduoi|xdui|xdau|xcdao|xdao|bdao|duoi|dui|dau|dd|xc|da|b)\s*\d+(?:,\d+)?(?:n|ng)?\.)[ \t]*(?=\d{2,}(?:[.\s]|(?:da|b|xc|dd)\b))/gi,'$1
+');
   return output.replace(/\.{2,}/g,'.');
 }
 
@@ -2801,16 +2814,20 @@ function ttFixCompactBetSeparators(raw){
  return String(raw??"")
   // Three or more two-digit numbers separated by hyphens are a DA group.
   // Parsing copy only; never alter the customer's visible input.
-  .replace(/(^|[^0-9A-Za-z])((?:\d{2}[ \t]*-[ \t]*){2,}\d{2})[ \t]*(da[ \t]*\d+(?:[,.]\d+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
+  .replace(/(^|[^0-9A-Za-z])((?:\d{2}[ \t]*-[ \t]*){2,}\d{2})[ \t]*(da[ \t]*\d+(?:[,.]\d+)?n?)(?=[ \t]*(?:[.;
+]|$))/gim,
     (_m,prefix,group,stake)=>prefix+group.replace(/[ \t-]/g,'')+stake.replace(/[ \t]/g,''))
-  .replace(/(^|[^0-9A-Za-z])([0-9]{4})[ \t]*\.[ \t]*(b[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
+  .replace(/(^|[^0-9A-Za-z])([0-9]{4})[ \t]*\.[ \t]*(b[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;
+]|$))/gim,
     (_m,prefix,num,stake)=>prefix+num+stake.replace(/[ \t]/g,""))
-  .replace(/(^|[^0-9A-Za-z])([0-9]{2})[ \t]*[:\/\-][ \t]*([0-9]{2})[ \t]*(da[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;\n]|$))/gim,
+  .replace(/(^|[^0-9A-Za-z])([0-9]{2})[ \t]*[:\/\-][ \t]*([0-9]{2})[ \t]*(da[ \t]*[0-9]+(?:,[0-9]+)?n?)(?=[ \t]*(?:[.;
+]|$))/gim,
     (_m,prefix,left,right,stake)=>prefix+left+right+stake.replace(/[ \t]/g,""));
 }
 function cuncunNormalizeGroupStationHeader(raw){
  // Recognize only explicit MN/MT group headers; never guess from bare "2d"/"3 dai".
- return String(raw??'').split(/\r?\n/).map(line=>{
+ return String(raw??'').split(/\r?
+/).map(line=>{
   const folded=line.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/gi,'d').toLowerCase();
   const m=folded.match(/^(\s*)(2|3|4|hai|ba|bon)\s*(?:(?:[._-]\s*)?(?:dai|d)(?:\s*[._-]\s*|\s*)|\s*)(mien\s*nam|mien\s*trung|mn|mt|nam|trung)\b\s*([:.]?\s*\d.*)?\s*$/i);
   if(!m)return line;
@@ -2818,22 +2835,29 @@ function cuncunNormalizeGroupStationHeader(raw){
   const region=/^(?:mien\s*trung|mt|trung)$/i.test(m[3])?'mt':'mn';
   if(region==='mt' && n===4)return line; // unsupported group: keep for validation
   const tail=m[4]||'';
-  return m[1]+n+'d'+region+(tail?'\n'+tail.replace(/^\s*[:.]\s*/,''):'');
- }).join('\n');
+  return m[1]+n+'d'+region+(tail?'
+'+tail.replace(/^\s*[:.]\s*/,''):'');
+ }).join('
+');
 }
 function ttNormalizeNaturalStationHeaders(raw){
  // Convert only explicit, unambiguous station names at the start of each line.
  // Keep the names linked to the next wager; do not infer a station from plain numbers.
- return cuncunNormalizeGroupStationHeader(raw).split(/\r?\n/).map(line=>{
+ return cuncunNormalizeGroupStationHeader(raw).split(/\r?
+/).map(line=>{
   // TP.HCM written as "T.phố.663.xc100." or "T phố 663xc100."
-  const tp=line.match(/^(\s*)t\s*\.?\s*ph[oố]\s*\.?\s*(\d{2,4}(?:[.\s]*[a-zA-Z]+)?[^\n]*)$/iu);
-  if(tp)return tp[1]+"tpho\n"+tp[1]+tp[2].replace(/^(\d{2,4})\.(?=[a-zA-Z])/,"$1");
+  const tp=line.match(/^(\s*)t\s*\.?\s*ph[oố]\s*\.?\s*(\d{2,4}(?:[.\s]*[a-zA-Z]+)?[^
+]*)$/iu);
+  if(tp)return tp[1]+"tpho
+"+tp[1]+tp[2].replace(/^(\d{2,4})\.(?=[a-zA-Z])/,"$1");
   const m=line.match(/^(\s*)(bình\s*dương\s+trà\s*vinh|bình\s*dương|trà\s*vinh)\s+((?:\d).*)$/iu);
   if(!m)return line;
   const key=m[2].toLocaleLowerCase("vi-VN").replace(/\s+/g,"");
   const alias=key==="bìnhdươngtràvinh"?"binhduongtravinh":key==="bìnhdương"?"bduong":"tvinh";
-  return m[1]+alias+"\n"+m[1]+m[3];
- }).join("\n");
+  return m[1]+alias+"
+"+m[1]+m[3];
+ }).join("
+");
 }
 function ttNormalizeDaoLoPhrase(raw){
  // Normalize explicit natural-language lottery shorthand without changing digits/stakes.
@@ -2846,7 +2870,8 @@ function ttNormalizeDaoLoPhrase(raw){
   .replace(/\bdao\s*lo\s*(?=\d)/giu,"bdao")
   .replace(/\bdxc\s*(?=\d)/giu,"xdao")
   // A comma after a completed stake separates wagers, not a decimal amount.
-  .replace(/(bdao\s*\d+(?:,\d+)?n?)\s*,\s*(?=\d{2,4}(?:[.\s]|bdao|b|xdao))/giu,"$1.\n")
+  .replace(/(bdao\s*\d+(?:,\d+)?n?)\s*,\s*(?=\d{2,4}(?:[.\s]|bdao|b|xdao))/giu,"$1.
+")
   // "5645b12.bdao1" shares the same number in a follow-on function;
   // chained parser receives this as a single wager group.
   .replace(/([0-9]{4}\s*b\s*\d+(?:,\d+)?n?)\s*\.\s*bdao\s*(\d+(?:,\d+)?n?)/giu,"$1.bdao$2");
@@ -2854,25 +2879,32 @@ function ttNormalizeDaoLoPhrase(raw){
 function cuncunNormalizeXiuChuAlias(raw){
  // Normalize only XC wager aliases following an explicit three-digit number.
  // Preserve unrelated words, XCDAO, XCDau/XCDuoi and the original textarea.
- return String(raw??'').replace(/(\d{3})\s*(?:xỉu\s*chủ|xiu\s*chu|xiuchu|xchu)\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1xc$2');
+ return String(raw??'').replace(/(\d{3})\s*(?:xỉu\s*chủ|xiu\s*chu|xiuchu|xchu)\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;
+]|$))/giu,'$1xc$2');
 }
 function cuncunNormalizeBaoDdMissingAliases(raw){
  // Only match complete number + named wager + stake; leave special functions unchanged.
  // B LO / B LÔ and BAO-LO are B; ĐĐ / DAU-DUOI are DD.
  return String(raw??'')
-  .replace(/(\d{2,4})\s*(?:b\s+l[oô]|bao\s*[-–]\s*l[oô])\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1b$2')
-  .replace(/(\d{2})\s*(?:đ\s*đ|dau\s*[-–]\s*duoi|đầu\s*[-–]\s*đuôi)\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,'$1dd$2');
+  .replace(/(\d{2,4})\s*(?:b\s+l[oô]|bao\s*[-–]\s*l[oô])\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;
+]|$))/giu,'$1b$2')
+  .replace(/(\d{2})\s*(?:đ\s*đ|dau\s*[-–]\s*duoi|đầu\s*[-–]\s*đuôi)\s*(\d+(?:[,.]\d+)?n?)(?=\s*(?:[.;
+]|$))/giu,'$1dd$2');
 }
 function ttNormalizeClearNaturalBetNames(raw){
  let out=cuncunNormalizeBaoDdMissingAliases(cuncunNormalizeXiuChuAlias(raw))
   // "5645 bao 12" is the spelled-out Bao instruction for the same number.
-  .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1b$2")
+  .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;
+]|$))/giu,"$1b$2")
   // "639 xc dao 5n" explicitly means xỉu chủ đảo (XCDAO).
-  .replace(/(\d{3})[ \t]+xc[ \t]+(?:đảo|dao)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xcdao$2")
+  .replace(/(\d{3})[ \t]+xc[ \t]+(?:đảo|dao)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;
+]|$))/giu,"$1xcdao$2")
   // "898 xiu dao 10n" means xỉu đảo (XDAO), with or without accents.
-  .replace(/(\d{3})[ \t]*(?:xỉu|xiu)[ \t]+(?:đảo|dao)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2")
+  .replace(/(\d{3})[ \t]*(?:xỉu|xiu)[ \t]+(?:đảo|dao)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;
+]|$))/giu,"$1xdao$2")
   // "123 đảo xc 10", "123 đảo xỉu chủ 10".
-  .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo|đào|dào)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1xdao$2");
+  .replace(/(\d{3})[ \t]+(?:đảo|dao|dảo|đào|dào)[ \t]+(?:xc|xỉu[ \t]*chủ|xiu[ \t]*chu)[ \t]*(\d+(?:,\d+)?n?)(?=\s*(?:[.;
+]|$))/giu,"$1xdao$2");
  // Alternate names for a DA wager; preserve the stake and number order.
  const daAliases=/(^|[^a-z])(?:daxieng|daxuyen|dacheo|daxien|daxv|davx|dxv|dcv|dvx|dathang|davong|dacap|daxoay|davog|davg|dvong|dvog|dth|dat|thang|dav|dax|dx|xieng|xiêng|xien|xiên|cheo|chéo|dv|da[ \t]+xieng|da[ \t]+xiêng|da[ \t]+xien|da[ \t]+xiên|da[ \t]+xuyen|da[ \t]+x|da[ \t]+cheo|da[ \t]+chéo|da[ \t]+vong|vong[ \t]+da|da[ \t]+xoay|da[ \t]+cap|da[ \t]+v|vongda)(?=[ \t]*\d)/gi;
  // A bare "x" also means XC; only map it to DA when two 2-digit numbers precede it.
@@ -2880,9 +2912,11 @@ function ttNormalizeClearNaturalBetNames(raw){
  out=out.replace(daAliases,"$1da");
  // Spoken order variants: TP 39 da 79 10 and TP da 39 79 10.
  out=out.replace(/^(\s*)([a-z0-9][a-z0-9._-]*)[ \t]+(\d{2})[ \t]+da[ \t]+(\d{2})[ \t]+(\d+(?:[,.]\d+)?n?)[ \t]*\.?[ \t]*$/gim,
-   (_m,space,station,a,b,amount)=>space+station+'\n'+a+'.'+b+'da'+amount+'.');
+   (_m,space,station,a,b,amount)=>space+station+'
+'+a+'.'+b+'da'+amount+'.');
  out=out.replace(/^(\s*)([a-z0-9][a-z0-9._-]*)[ \t]+da[ \t]+(\d{2})[ \t]+(\d{2})[ \t]+(\d+(?:[,.]\d+)?n?)[ \t]*\.?[ \t]*$/gim,
-   (_m,space,station,a,b,amount)=>space+station+'\n'+a+'.'+b+'da'+amount+'.');
+   (_m,space,station,a,b,amount)=>space+station+'
+'+a+'.'+b+'da'+amount+'.');
  return out;
 }
 // LOCK: accent-insensitive Vietnamese lottery text. Operates on a parsing
@@ -2892,12 +2926,14 @@ function ttFoldVietnamesePhoi(raw){
 }
 function ttNormalizeAccentedStationAndBets(raw){
  const folded=ttFoldVietnamesePhoi(raw);
- return folded.split(/\r?\n/).map(line=>{
+ return folded.split(/\r?
+/).map(line=>{
    const m=line.match(/^(\s*)(bac\s*lieu|ben\s*tre|vung\s*tau)\s*[:.\-]?\s*(\d.*)$/i);
    if(m){
      const station=m[2].toLowerCase().replace(/\s+/g,'');
      const alias=station==='baclieu'?'blieu':station==='bentre'?'btre':'vtau';
-     return m[1]+alias+'\n'+m[1]+m[3];
+     return m[1]+alias+'
+'+m[1]+m[3];
    }
    const head=line.match(/^(\s*)(bac\s*lieu|ben\s*tre|vung\s*tau)\s*$/i);
    if(head){
@@ -2905,7 +2941,8 @@ function ttNormalizeAccentedStationAndBets(raw){
      return head[1]+(station==='baclieu'?'blieu':station==='bentre'?'btre':'vtau');
    }
    return line;
- }).join('\n');
+ }).join('
+');
 }
 function ttUnifiedNormalize(raw){
  // Preserve the canonical b7lo spelling in DÒ SAI and visible normalized text.
@@ -2913,12 +2950,22 @@ function ttUnifiedNormalize(raw){
  raw=ttFixCompactBetSeparators(ttNormalizeAccentedStationAndBets(ttNormalizeClearNaturalBetNames(ttNormalizeDaoLoPhrase(ttNormalizeNaturalStationHeaders(raw)))));
  // LOCK 18/10: aliases and DAU-DUOI syntax. Only at start of a line
  // or after a region/station separator; never change numbers or stakes.
- raw=String(raw??'').replace(/\r\n?/g,'\n');
- raw=raw.replace(/(^|\n)[ \t]*(?:tpbp|tphobp|tphobphuoc)\s*\.?\s*(?=\d)/giu,'$1tphobphuoc\n');
- raw=raw.replace(/(^|\n)[ \t]*(?:lan|long|longan)\s*\.?\s*(?=\d)/giu,'$1longan\n');
- raw=raw.replace(/(^|\n)[ \t]*(?:tp|tpho|tphcm|hcm|la)\s*\.?\s*(?=\d)/giu,(_,start,alias)=>start+(/^la$/i.test(alias)?'longan':'tpho')+'\n');
- raw=raw.replace(/(^|\n)[ \t]*(?:tpbp|tphobp|tphobphuoc)[ \t]*$/giu,'$1tphobphuoc');
- raw=raw.replace(/(^|\n)[ \t]*(?:lan|long|longan)[ \t]*$/giu,'$1longan');
+ raw=String(raw??'').replace(/\r
+?/g,'
+');
+ raw=raw.replace(/(^|
+)[ \t]*(?:tpbp|tphobp|tphobphuoc)\s*\.?\s*(?=\d)/giu,'$1tphobphuoc
+');
+ raw=raw.replace(/(^|
+)[ \t]*(?:lan|long|longan)\s*\.?\s*(?=\d)/giu,'$1longan
+');
+ raw=raw.replace(/(^|
+)[ \t]*(?:tp|tpho|tphcm|hcm|la)\s*\.?\s*(?=\d)/giu,(_,start,alias)=>start+(/^la$/i.test(alias)?'longan':'tpho')+'
+');
+ raw=raw.replace(/(^|
+)[ \t]*(?:tpbp|tphobp|tphobphuoc)[ \t]*$/giu,'$1tphobphuoc');
+ raw=raw.replace(/(^|
+)[ \t]*(?:lan|long|longan)[ \t]*$/giu,'$1longan');
  // Keep the decimal comma in b0,5 and split subsequent xc stakes.
  raw=raw.replace(/(b\s*\d+(?:,\d+)?)[ \t]*\.?[ \t]*x(?:c)?(?=\s*\d)/giu,'$1.xc');
  // Two-sided head/tail stake is a single DD instruction.
@@ -2926,43 +2973,65 @@ function ttUnifiedNormalize(raw){
 
  // LOCK: station and region headers occupy their own line, even when
  // pasted as 'tpbp 556...', 'long.74...', or '2dmt 59...'.
- raw=raw.replace(/(^|\n)[ \t]*(tpbp|tphobp|tphobphuoc|lan|long|longan|2dmn|2dmt|3dmn|3dmt|4dmn|hn|mb)[ \t]*\.?[ \t]*(?=\d)/giu,
-  (_,start,alias)=>start+(/^(?:tpbp|tphobp|tphobphuoc)$/i.test(alias)?'tphobphuoc':/^(?:lan|long|longan)$/i.test(alias)?'longan':alias.toLowerCase())+'\n');
+ raw=raw.replace(/(^|
+)[ \t]*(tpbp|tphobp|tphobphuoc|lan|long|longan|2dmn|2dmt|3dmn|3dmt|4dmn|hn|mb)[ \t]*\.?[ \t]*(?=\d)/giu,
+  (_,start,alias)=>start+(/^(?:tpbp|tphobp|tphobphuoc)$/i.test(alias)?'tphobphuoc':/^(?:lan|long|longan)$/i.test(alias)?'longan':alias.toLowerCase())+'
+');
  // The explicit aliases must also be recognized if entered as a lone header.
- raw=raw.replace(/(^|\n)[ \t]*(?:tpbp|tphobp)(?=[ \t]*(?:\n|$))/giu,'$1tphobphuoc');
- raw=raw.replace(/(^|\n)[ \t]*(?:lan|long)(?=[ \t]*(?:\n|$))/giu,'$1longan');
- raw=raw.replace(/(^|\n)[ \t]*(?:tp|la)(?=[ \t]*(?:\n|$))/giu,(_,start,alias)=>start+(/^la$/i.test(alias)?'longan':'tpho'));
+ raw=raw.replace(/(^|
+)[ \t]*(?:tpbp|tphobp)(?=[ \t]*(?:
+|$))/giu,'$1tphobphuoc');
+ raw=raw.replace(/(^|
+)[ \t]*(?:lan|long)(?=[ \t]*(?:
+|$))/giu,'$1longan');
+ raw=raw.replace(/(^|
+)[ \t]*(?:tp|la)(?=[ \t]*(?:
+|$))/giu,(_,start,alias)=>start+(/^la$/i.test(alias)?'longan':'tpho'));
 
- let text=String(raw??'').replace(/(^|\n)([ \t]*)btthuan(?=\s|[.:]|\d|$)/giu,'$1$2bthuan').replace(/\r\n?/g,'\n').replace(/[\u00a0\u202f\u2007]/g,' ').replace(/[\u200b-\u200d\ufeff]/g,'');
+ let text=String(raw??'').replace(/(^|
+)([ \t]*)btthuan(?=\s|[.:]|\d|$)/giu,'$1$2bthuan').replace(/\r
+?/g,'
+').replace(/[\u00a0\u202f\u2007]/g,' ').replace(/[\u200b-\u200d\ufeff]/g,'');
  // KHOA NGHIEM NGAT: only remove complete, clearly conversational lines.
  // Never remove mixed lines containing digits, station tokens or bet instructions.
- text=text.split('\n').filter(function(line){
+ text=text.split('
+').filter(function(line){
    const x=line.trim().toLocaleLowerCase('vi-VN').replace(/[.!?]+$/,'').trim();
    return !/^(?:anh(?: ơi)? ghi (?:giúp|dùm) em(?: mấy con này)?(?: nha| nhé)?|hết(?: rồi)?(?: nha)?(?: anh)?(?: nhé)?|hết rồi anh nhé)$/.test(x);
- }).join('\n');
+ }).join('
+');
  // Restore the keo/duoi notation before generic punctuation handling.
  // 00.keo.09duoi.30. -> 00keo09duoi30.
  text=text.replace(/(\d{2,3})\s*\.\s*keo\s*\.\s*(\d{2,3})\s*duoi\s*\.\s*(\d+(?:,\d+)?)/giu,'$1keo$2duoi$3');
  // New station after a completed bet must start a fresh line, even after
  // previous paste normalizers joined lines. Never split within an amount.
  const stationBoundary='(?:khktum|ctstr|huepy|btvt|dtcm|vlbd|tgkg|dnqn|khkt|btthuan|bthuan|agiang|angiang|btre|vtau|dthap|cmau|ctho|strang|tgiang|kgiang|dnang|qngai|hue|pyen|hn|mb|2dmn|2dmt|3dmn|3dmt)';
- text=text.replace(new RegExp('((?:xcduoi|xduoi|xdui|duoi|dau|dd|xc|da|b)\\s*\\d+(?:,\\d+)?(?:n|ng)?\\.)\\s*(?='+stationBoundary+'(?=\\s|\\.|\\d|$))','giu'),'$1\n');
+ text=text.replace(new RegExp('((?:xcduoi|xduoi|xdui|duoi|dau|dd|xc|da|b)\\s*\\d+(?:,\\d+)?(?:n|ng)?\\.)\\s*(?='+stationBoundary+'(?=\\s|\\.|\\d|$))','giu'),'$1
+');
  // Mẫu viết liền: toàn bộ danh sách 3 số dùng chung cho B, XC và XC-đuôi.
  // Không cần dấu chấm cuối và không phụ thuộc nguồn Zalo/Telegram.
- text=text.replace(/(^|\n|\s)((?:\d{3}\s*[.,]\s*)+\d{3})\s*b\s*(\d+(?:,\d+)?)(?:n|ng)?\s*\.?\s*x\s*(?:c)?\s*(\d+(?:,\d+)?)(?:n|ng)?\s*\.?\s*x\s*(?:c)?\s*d(?:u|uo)i\s*(\d+(?:,\d+)?)(?:n|ng)?\s*\.?/giu,
- (_,prefix,nums,b,xc,tail)=>{const group=nums.replace(/\s*[.,]\s*/g,'.');return prefix+group+'b'+b+'.\n'+group+'xc'+xc+'.\n'+group+'xduoi'+tail+'.';});
+ text=text.replace(/(^|
+|\s)((?:\d{3}\s*[.,]\s*)+\d{3})\s*b\s*(\d+(?:,\d+)?)(?:n|ng)?\s*\.?\s*x\s*(?:c)?\s*(\d+(?:,\d+)?)(?:n|ng)?\s*\.?\s*x\s*(?:c)?\s*d(?:u|uo)i\s*(\d+(?:,\d+)?)(?:n|ng)?\s*\.?/giu,
+ (_,prefix,nums,b,xc,tail)=>{const group=nums.replace(/\s*[.,]\s*/g,'.');return prefix+group+'b'+b+'.
+'+group+'xc'+xc+'.
+'+group+'xduoi'+tail+'.';});
  // KHOA 16/10: a completed stake followed by a fresh number list starts a new group.
  // Commas between numbers are separators, but decimal commas inside stakes stay intact.
  // A bare stake such as ",b1.xc10" has no number list: leave it for error reporting.
- text=text.replace(/((?:xcduoi|xduoi|xdui|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?(?:n|ng)?\.)\s*[,;]\s*(?=\d{2,}(?:[.,]|\s|(?:b|xc|da|dd)))/giu,'$1\n');
- text=text.replace(/((?:xcduoi|xduoi|xdui|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?(?:n|ng)?\.)\s*(?=\d{2,}(?:[.,]|(?:b|xc|da|dd)))/giu,'$1\n');
+ text=text.replace(/((?:xcduoi|xduoi|xdui|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?(?:n|ng)?\.)\s*[,;]\s*(?=\d{2,}(?:[.,]|\s|(?:b|xc|da|dd)))/giu,'$1
+');
+ text=text.replace(/((?:xcduoi|xduoi|xdui|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?(?:n|ng)?\.)\s*(?=\d{2,}(?:[.,]|(?:b|xc|da|dd)))/giu,'$1
+');
  // Region labels written on the same line must not be consumed as a stake.
- text=text.replace(/([.;]\s*)(?=(?:2\s*d\s*m[nt]|hn|mb)\s+\d)/giu,'$1\n');
+ text=text.replace(/([.;]\s*)(?=(?:2\s*d\s*m[nt]|hn|mb)\s+\d)/giu,'$1
+');
  // Preserve a completed n-suffixed wager boundary before the next numeric list.
  // This is parsing-copy only: no user input, prices, or saved receipts are changed.
  // Covers xc5n.5974, b1n.689, xdao10n.94 and comma/space variants.
- text=text.replace(/((?:b7ldao|b7lo|bdao|xcdao|xdao|xcduoi|xduoi|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n)\s*[.,;]\s*(?=\d{2,4}(?:[.,\s]|(?:b7lo|bdao|xdao|xc|dd|da|b)))/giu,'$1.\n');
- text=text.replace(/((?:b7ldao|b7lo|bdao|xcdao|xdao|xcduoi|xduoi|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n)\s+(?=\d{2,4}(?:[.,\s]|(?:b7lo|bdao|xdao|xc|dd|da|b)))/giu,'$1.\n');
+ text=text.replace(/((?:b7ldao|b7lo|bdao|xcdao|xdao|xcduoi|xduoi|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n)\s*[.,;]\s*(?=\d{2,4}(?:[.,\s]|(?:b7lo|bdao|xdao|xc|dd|da|b)))/giu,'$1.
+');
+ text=text.replace(/((?:b7ldao|b7lo|bdao|xcdao|xdao|xcduoi|xduoi|xcdau|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n)\s+(?=\d{2,4}(?:[.,\s]|(?:b7lo|bdao|xdao|xc|dd|da|b)))/giu,'$1.
+');
  const output=[];
  const betTypes='(?:xcduoi|xduoi|xdui|xcdau|xdau|xcdao|xdao|duoi|dau|dd|xc|da|b)';
  const amount='\\d+(?:,\\d+)?(?:n|ng)?';
@@ -2985,10 +3054,13 @@ function ttUnifiedNormalize(raw){
   line=line.replace(/(b|xc|dd|da|xduoi|xdao)[ \t]+(?=\d)/giu,'$1');
   // The same list of 3-digit numbers applies to all three joined functions.
   line=line.replace(/(^|\s)((?:\d{3}[.,])+\d{3})b(\d+(?:,\d+)?)(?:n|ng)?\.?xc(\d+(?:,\d+)?)(?:n|ng)?\.?xduoi(\d+(?:,\d+)?)(?:n|ng)?\.?/giu,
-   (_,prefix,nums,b,xc,tail)=>{const g=nums.replace(/,/g,'.');return prefix+g+'b'+b+'.\n'+g+'xc'+xc+'.\n'+g+'xduoi'+tail+'.';});
+   (_,prefix,nums,b,xc,tail)=>{const g=nums.replace(/,/g,'.');return prefix+g+'b'+b+'.
+'+g+'xc'+xc+'.
+'+g+'xduoi'+tail+'.';});
   // A 4-digit Bao group followed by a 3-digit Bao/XC group: retain separate scopes.
   line=line.replace(/((?:\d{4}[.,])+\d{4})b(\d+(?:,\d+)?)(?:n|ng)?\s*[,;]\s*((?:\d{3}[.,])+\d{3})b(\d+(?:,\d+)?)(?:n|ng)?\.?xc(\d+(?:,\d+)?)(?:n|ng)?/giu,
-   (_,a,ba,c,bc,xc)=>a.replace(/,/g,'.')+'b'+ba+'.\n'+c.replace(/,/g,'.')+'b'+bc+'.xc'+xc);
+   (_,a,ba,c,bc,xc)=>a.replace(/,/g,'.')+'b'+ba+'.
+'+c.replace(/,/g,'.')+'b'+bc+'.xc'+xc);
   // LOCKED: split joined bet functions, including x3, xdui10, đđ20.
   // Decimal commas are part of amounts and must never be split.
   line=line.replace(/xdui(?=\d)/giu,'xduoi').replace(/(?<![a-z])x(?=\d)/giu,'xc').replace(/(?:đđ|dđ)(?=\d)/giu,'dd');
@@ -2998,26 +3070,33 @@ function ttUnifiedNormalize(raw){
   // Commas between number tokens denote a list; decimal stakes retain comma.
   line=line.replace(/(\d{2,4})\s*,\s*(?=\d{2,4}(?:\s*[, .]|\s*(?:b|xc|dd|da)\b))/g,'$1.');
   // Only split completed functions when another number group follows.
-  line=line.replace(new RegExp('('+betTypes+amount+'\\.)\\s+(?=\\d{2,4}[., ])','giu'),'$1\n');
+  line=line.replace(new RegExp('('+betTypes+amount+'\\.)\\s+(?=\\d{2,4}[., ])','giu'),'$1
+');
   return line;
  };
- for(const l of text.split('\n')){const normalized=cleanLine(l);if(normalized)output.push(normalized);}
- return output.join('\n');
+ for(const l of text.split('
+')){const normalized=cleanLine(l);if(normalized)output.push(normalized);}
+ return output.join('
+');
 }
 function cleanTelegramPhoiText(text){
  // Expand compact DA + Bao into independent complete wagers before legacy normalizers.
  // Optional terminal period and trailing comma must not discard any Bao pair.
- text=String(text??'').split('\n').map(function(rawLine){
+ text=String(text??'').split('
+').map(function(rawLine){
    const m=rawLine.trim().match(/^(\d{4,})\s*da\s*(\d+(?:[,.]\d+)?)(n?)\s*\.\s*b\s*(\d+(?:[,.]\d+)?)(n?)\s*\.?\s*,?\s*$/i);
    if(!m || m[1].length%2!==0) return rawLine;
    const pairs=m[1].match(/\d{2}/g)||[];
    if(pairs.length<2) return rawLine;
-   return [m[1]+'da'+m[2]+m[3]+'.',...pairs.map(n=>n+'b'+m[4]+m[5]+'.')].join('\n');
- }).join('\n');
+   return [m[1]+'da'+m[2]+m[3]+'.',...pairs.map(n=>n+'b'+m[4]+m[5]+'.')].join('
+');
+ }).join('
+');
  text=ttUnifiedNormalize(text);
  text=ttSeparateJoinedBets(text);
  let out=[];
- const lines=String(text||"").replace(/\r/g,"").split("\n");
+ const lines=String(text||"").replace(/\r/g,"").split("
+");
  for(const rawLine of lines){
    let line=ttSeparateJoinedBets(rawLine.trim());
    if(!line) continue;
@@ -3067,7 +3146,8 @@ function cleanTelegramPhoiText(text){
          out.push(sp2[1]+'b'+sp2[3]+(sp2[4]||'')+'. '+
                   sp2[2]+'bdao'+sp2[3]+(sp2[4]||'')+'. '+
                   sp2[1]+'xdao'+sp2[5]+(sp2[6]||'')+'. '+
-                  sp2[2]+'xcdao'+sp2[5]+(sp2[6]||'')+'.\n'+sp2[7].trim());
+                  sp2[2]+'xcdao'+sp2[5]+(sp2[6]||'')+'.
+'+sp2[7].trim());
          continue;
        }
      }
@@ -3160,7 +3240,8 @@ function cleanTelegramPhoiText(text){
    // 337800₫a0;5    -> 337800da0,5.
    // 000b1;5        -> 000b1,5.
    line=line.replace(/([23])\s*[₫đĐ]\s*(m[nt])\b/gi,"$1d$2");
-   line=line.replace(/\b(2d(?:mn|mt))([^\\n]*?)\s+đ[áa]\s*(\d+(?:[.,]\d+)?)/gi,
+   line=line.replace(/\b(2d(?:mn|mt))([^\
+]*?)\s+đ[áa]\s*(\d+(?:[.,]\d+)?)/gi,
      (m,prefix,middle,pts)=>prefix+middle+"da"+pts);
    line=line.replace(/₫\s*a\b/gi,"da");
    line=line.replace(/([0-9]+)\s*₫\s*a\s*(?=\d)/gi,"$1da");
@@ -3172,11 +3253,14 @@ function cleanTelegramPhoiText(text){
    // 679xc10.
    // Tách ra trước khi parser phân tích loại cược.
    line=line.replace(/(\d+(?:[.,]\d+)*)\s*xduoi\s*(\d+(?:[.,]\d+)?)\s*:\s*xc\s*(\d+(?:[.,]\d+)?)/gi,
-     "$1xduoi$2\n$1xc$3");
+     "$1xduoi$2
+$1xc$3");
    line=line.replace(/(\d+(?:[.,]\d+)*)\s*xcduoi\s*(\d+(?:[.,]\d+)?)\s*:\s*xc\s*(\d+(?:[.,]\d+)?)/gi,
-     "$1xcduoi$2\n$1xc$3");
+     "$1xcduoi$2
+$1xc$3");
    // Header Telegram dạng: T A, [Th. 9 25, 16:13 2026]
-   if(/^[^\n,]{1,120},\s*\[[^\]]*\]\s*$/.test(line)) continue;
+   if(/^[^
+,]{1,120},\s*\[[^\]]*\]\s*$/.test(line)) continue;
    // Một số bản copy có timestamp ở cuối dòng.
    line=line.replace(/\s*\[[^\]]*\]\s*$/g,"").trim();
    // === PHÔI THÔ: CHUẨN HÓA CÁC CÁCH VIẾT TÊN ĐÀI / LOẠI ĐÀI ===
@@ -3200,7 +3284,11 @@ function cleanTelegramPhoiText(text){
    line=line.replace(/d\s*xc\s*duoi/gi,'dxcduoi');
 
    // Chuẩn hóa các biến thể đài và viết tắt thường gặp khi copy từ Zalo/Telegram.
-   // Ví dụ: Vl.88... -> Vlong\n88..., Bd.815... -> Bduong\n815..., Gl.28... -> Glai\n28..., Hn7196... -> Hn\n7196...
+   // Ví dụ: Vl.88... -> Vlong
+88..., Bd.815... -> Bduong
+815..., Gl.28... -> Glai
+28..., Hn7196... -> Hn
+7196...
    line=line.replace(/([0-9])\s*[₫đĐ]\s*(mn|mt)\b/gi,"$1d$2");
    line=line.replace(/\b(?:đa|đá|dá)\b/gi,"da");
    // Dấu chấm kép/cuối câu trong tin nhắn: đá1.. -> da1.
@@ -3219,7 +3307,8 @@ function cleanTelegramPhoiText(text){
        /^(?:bl|blieu|baclieu)$/.test(key)?"Blieu":
        /^(?:dnong|daknong)$/.test(key)?"Dnong":
        /^(?:qngai|quangngai)$/.test(key)?"Qngai":"Hn";
-     line=canonical+"\n"+line.slice(stationPrefix[0].length).trim();
+     line=canonical+"
+"+line.slice(stationPrefix[0].length).trim();
    }
    // Viết tắt B + X được hiển thị thành B + XC: 576b0,5x3 -> 576b0.5xc3.
    line=line.replace(/(\d{2,4}(?:[.\s]+\d{2,4})*)\s*b\s*(\d+(?:[.,]\s*\d+)?)\s*x\s*(\d+(?:[.,]\s*\d+)?)(?:n)?/gi,
@@ -3340,7 +3429,10 @@ function cleanTelegramPhoiText(text){
    if(line) out.push(line);
  }
  // Telegram đôi khi tách danh sách số ra thành một dòng riêng:
- // 2dmn\n304.580....304\n091.058x25.\n
+ // 2dmn
+304.580....304
+091.058x25.
+
  // Phần mềm chuẩn hiểu đây là MỘT phôi. Gộp dòng số thuần vào dòng cược kế tiếp.
  const merged=[];
  for(let i=0;i<out.length;i++){
@@ -3357,7 +3449,8 @@ function cleanTelegramPhoiText(text){
      merged.push(cur);
    }
  }
- return merged.join("\n");
+ return merged.join("
+");
 }
 function weeklyCrossStations(kind,dateValue){
   const v=String(dateValue||$("date")?.value||"");
@@ -4028,25 +4121,33 @@ function normalizeOneFunctionLooseLine(raw){
   return line;
 }
 function normalizeLoosePhoiWithoutChangingFunctionCount(text){
-  return String(text??'').replace(/\r/g,'').split('\n').map(normalizeOneFunctionLooseLine).join('\n');
+  return String(text??'').replace(/\r/g,'').split('
+').map(normalizeOneFunctionLooseLine).join('
+');
 }
 
 function normalizeCustomerBaoDaoXdaoPhoi(raw){
  // Parser-copy only: preserve user text, numbers and points.
  // Handle an unambiguous three-part phrase without affecting other wager types.
- return String(raw||'').replace(/\r\n?/g,'\n').split('\n').map(line=>{
+ return String(raw||'').replace(/\r
+?/g,'
+').split('
+').map(line=>{
    const m=line.trim().match(/^(\d{4})\s*b\s*(\d+(?:[,.]\d+)?)\s*\.{1,}\s*(\d{3})\s*bao\s+dao\s*(\d+(?:[,.]\d+)?)\s*[,;.]+\s*dao\s+xc\s*(\d+(?:[,.]\d+)?)\s*\.?$/i);
-   if(m) return m[1]+'b'+m[2]+'.\n'+m[3]+'bdao'+m[4]+'.xdao'+m[5]+'.';
+   if(m) return m[1]+'b'+m[2]+'.
+'+m[3]+'bdao'+m[4]+'.xdao'+m[5]+'.';
    const da=line.trim().match(/^((?:\d{2}\s*[.,\s]\s*){2,}\d{2})\s*da\s*(\d+(?:[,.]\d+)?)\s*\.?$/i);
    if(da) return da[1].replace(/\D/g,'')+'da'+da[2]+'.';
    return line;
- }).join('\n');
+ }).join('
+');
 }
 function cuncunDaSeparatedSixErrors(raw){
  // Explicit dot-separated DA groups of 2, 4 or 6 digits are valid.
  // Keep groups intact; do not reject them merely for length or repeated pairs inside a 6-digit group.
  const errors=[];
- String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
+ String(raw||'').replace(/\r/g,'').split('
+').forEach((line,i)=>{
   const re=/(?:^|[\s;])((?:\d{2,}[.]){1,}\d{2,})\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/giu;
   for(const m of line.matchAll(re)){
    const invalid=m[1].split('.').filter(n=>!(n.length>=4 && n.length%2===0));
@@ -4055,9 +4156,37 @@ function cuncunDaSeparatedSixErrors(raw){
  });
  return errors;
 }
+function cuncunDdLengthErrors(raw){
+ const errors=[];
+ String(raw||'').replace(/\r/g,'').split('
+').forEach((line,i)=>{
+  // DD only accepts two-digit numbers. Reject the entire input rather than silently
+  // discarding or shortening an invalid number.
+  const re=/(?:^|[\s;])((?:\d{2,4}[.,-])*\d{2,4})\s*dd\s*\d+(?:[,.]\d+)?n?(?=[.;\s]|$)/gi;
+  for(const m of line.matchAll(re)){
+   const bad=m[1].split(/[.,-]/).filter(n=>n.length!==2);
+   if(bad.length)errors.push('Dòng '+(i+1)+': LỖI DD — '+bad.join(', ')+' không phải số 2 chữ số. Không tính tiền.');
+  }
+ });
+ return errors;
+}
+function cuncunSharedBaoXcLengthErrors(raw){
+ const errors=[];
+ String(raw||'').replace(/\r/g,'').split('
+').forEach((line,i)=>{
+  // A.Bb10.xc10 applies XC to the same numbers; all must be 3 digits.
+  const re=/(?:^|[\s;])((?:\d{2,4}[.,-])+\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?n?\s*[.;]\s*xc\s*\d+(?:[,.]\d+)?n?(?=[.;\s]|$)/gi;
+  for(const m of line.matchAll(re)){
+   const bad=m[1].split(/[.,-]/).filter(n=>n.length!==3);
+   if(bad.length)errors.push('Dòng '+(i+1)+': LỖI XC — '+bad.join(', ')+' không đủ 3 chữ số trong nhóm B/XC dùng chung. Không tính tiền.');
+  }
+ });
+ return errors;
+}
 function cuncunXcLengthErrors(raw){
  const errors=[];
- String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
+ String(raw||'').replace(/\r/g,'').split('
+').forEach((line,i)=>{
   // Number list immediately attached to XC: each explicit dot/comma/hyphen segment must have exactly 3 digits.
   // Ignore other completed wagers and only inspect the final number group before XC.
   const re=/(?:^|[\s;])(\d{2,4}(?:[.,-]\d{2,4})*)\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
@@ -4071,7 +4200,8 @@ function cuncunXcLengthErrors(raw){
 }
 function cuncunMixedBaoXcErrors(raw){
  const errors=[];
- String(raw||'').replace(/\r/g,'').split('\n').forEach((line,i)=>{
+ String(raw||'').replace(/\r/g,'').split('
+').forEach((line,i)=>{
   // Reject only completed mixed-length number lists chained with B and XC.
   // Do not reject normal independent B2/B3/B4 or XC wagers.
   const re=/(?:^|[\s;])((?:\d{2,4}[.,-]){2,}\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?\s*[.;]?\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
@@ -4086,6 +4216,10 @@ function cuncunMixedBaoXcErrors(raw){
 function parseBets(){
  const _daSix=cuncunDaSeparatedSixErrors($('bets')?.value||'');
  if(_daSix.length)return {rows:[],errors:_daSix};
+ const _ddLength=cuncunDdLengthErrors($('bets')?.value||'');
+ if(_ddLength.length)return {rows:[],errors:_ddLength};
+ const _sharedXc=cuncunSharedBaoXcLengthErrors($('bets')?.value||'');
+ if(_sharedXc.length)return {rows:[],errors:_sharedXc};
  const _xcLength=cuncunXcLengthErrors($('bets')?.value||'');
  if(_xcLength.length)return {rows:[],errors:_xcLength};
  const _mixedBaoXc=cuncunMixedBaoXcErrors($('bets')?.value||'');
@@ -4094,7 +4228,11 @@ function parseBets(){
  // These errors must be detected BEFORE forgiving Telegram normalizers erase them.
  // Accept decorative terminal punctuation after a complete wager function, only in parser copy.
  // Do not touch punctuation between numbers/functions, decimals, or the original textarea.
- const _rawInput=normalizeCustomerBaoDaoXdaoPhoi($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').filter(line=>!/^\s*[^\p{L}\p{N}]*\s*$/u.test(line)).join('\n')
+ const _rawInput=normalizeCustomerBaoDaoXdaoPhoi($('bets')?.value||'').replace(/\r
+?/g,'
+').split('
+').filter(line=>!/^\s*[^\p{L}\p{N}]*\s*$/u.test(line)).join('
+')
    // Vietnamese shorthand "đa1" (without acute accent) means DA, not an unknown wager.
    // Normalize parser copy only; preserve the original input and printed slip.
    .replace(/đa(?=\s*\d)/gi,'da')
@@ -4105,13 +4243,16 @@ function parseBets(){
    .replace(/\b([234])₫(?=m[nt]\b)/gi,'$1d')
    // XC and DD also accept a stray trailing 'ng' after the points.
    // Keep the original wager amount: xc10ng -> xc10; dd10ng -> dd10.
-   .replace(/((?:xc|dd)\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|\n))/gim,'$1')
+   .replace(/((?:xc|dd)\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|
+))/gim,'$1')
    // A trailing 'ng' after a complete B/DA wager is noise, not an n multiplier.
    // E.g. 76b10ng -> 76b10; 777879da1ng -> 777879da1.
-   .replace(/(\d{2,}\s*(?:b|da|₫)\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|\n))/gim,'$1')
+   .replace(/(\d{2,}\s*(?:b|da|₫)\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|
+))/gim,'$1')
    // ng is a customer shorthand for n at the end of a complete DA wager.
    // Normalize before ₫ handling so 6768₫1ng becomes 6768da1n.
-   .replace(/(\d{4,})₫(\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|\n))/gim,'$1₫$2n')
+   .replace(/(\d{4,})₫(\s*\d+(?:[,.]\d+)?)ng(?=\s*(?:[.;]|$|
+))/gim,'$1₫$2n')
    .replace(/(\d{4,})₫(?=\s*\d+(?:[,.]\d+)?n?(?:[.;\s]|$))/gim,'$1da')
    // 'b2ngxc25n' means b2n followed by xc25n; do not turn 'ng' into station shorthand.
    .replace(/(b\s*\d+(?:[,.]\d+)?)ng(?=(?:xc|b|dd|da)\s*\d)/gi,'$1n.')
@@ -4122,23 +4263,32 @@ function parseBets(){
    .replace(/₫₫(?=\s*\d)/gi,'dd')
    // Accept a full, unaccented Khánh Hòa station header as one station token.
    // Parser copy only: never modify the text shown to the customer.
-   .replace(/(^|\n)[ \t]*khanh[ \t]+hoa[ \t]*(?=\n|$)/gim,'$1khanhhoa')
+   .replace(/(^|
+)[ \t]*khanh[ \t]+hoa[ \t]*(?=
+|$)/gim,'$1khanhhoa')
    // Preserve short standalone station headers before Telegram normalizers.
-   .replace(/(^|\n)[ \t]*la[ \t]*(?=\n|$)/gim,'$1longan')
-   .replace(/(^|\n)[ \t]*cm[ \t]*(?=\n|$)/gim,'$1cmau')
+   .replace(/(^|
+)[ \t]*la[ \t]*(?=
+|$)/gim,'$1longan')
+   .replace(/(^|
+)[ \t]*cm[ \t]*(?=
+|$)/gim,'$1cmau')
    // Full station names: normalize accents, whitespace and punctuation only for header-only lines.
    // Never collapse arbitrary wager lines or guess unknown station names.
-   .split('\n').map(line=>{
+   .split('
+').map(line=>{
      const clean=String(line).trim().toLowerCase().replace(/[đ₫]/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
      const fullNames=new Set(('ha noi|mien bac|ho chi minh|thanh pho ho chi minh|long an|binh phuoc|hau giang|dong nai|can tho|soc trang|ben tre|vung tau|bac lieu|tra vinh|tay ninh|an giang|dong thap|ca mau|vinh long|binh duong|tien giang|kien giang|da lat|binh thuan|da nang|quang ngai|dak nong|gia lai|phu yen|dak lak|quang nam|binh dinh|quang tri|ninh thuan|quang binh|khanh hoa|kon tum|thua thien hue|2 dai mien nam|2 dai mien trung').split('|').map(x=>x.replace(/[^a-z0-9]/g,'')));
      if(!fullNames.has(clean))return line;
      const aliases={hanoi:'hn',mienbac:'hn',hochiminh:'hcm',thanhphohochiminh:'hcm',daklak:'dlak',dalat:'dlat', '2daimiennam':'2dmn','2daimientrung':'2dmt'};
      return aliases[clean]||clean;
-   }).join('\n');
+   }).join('
+');
  // LOCK 07/11: a hyphen in DA explicitly separates two-digit numbers.
  // Never silently split a malformed six-digit segment into three pairs.
  const _badDaGroups=[];
- _rawInput.split('\n').forEach((line,index)=>{
+ _rawInput.split('
+').forEach((line,index)=>{
    const re=/([0-9]+(?:[ \t]*-[ \t]*[0-9]+)+)[ \t]*(?:da|đá|đa)[ \t]*[0-9]+(?:[,.]+[0-9]+)?n?/giu;
    for(const m of line.matchAll(re)){
      const parts=m[1].split(/[ \t]*-[ \t]*/);
@@ -4153,11 +4303,13 @@ function parseBets(){
  // LOCK: a line may contain several independent DA pairs, with apostrophe
  // as decimal comma and spaces between completed functions.
  // Only rewrite the parser copy, preserving the customer's original receipt.
- const _multiDaSafe=_rawInput.split('\n').map(line=>{
+ const _multiDaSafe=_rawInput.split('
+').map(line=>{
    if(!/^(?:\s*\d{2,}(?:\s*-\s*\d{2,})\s*da\s*\d+['’]\d+\s*){2,}$/i.test(line))return line;
    return line.replace(/(\d{2,}(?:\s*-\s*\d{2,})+)\s*da\s*(\d+)['’](\d+)/gi,
      (_m,nums,whole,frac)=>nums.replace(/[\s-]/g,'')+'da'+whole+','+frac+'.');
- }).join('\n');
+ }).join('
+');
  // LOCK DA: hyphens join two-digit numbers into ONE function, not separate bets.
  // Keep the raw receipt unchanged. Convert decimal-dot stakes to comma only on parser copy.
  const _daHyphenSafe=_multiDaSafe.replace(/(\d{2,}(?:[ \t]*-[ \t]*\d{2,})+)[ \t]*(da|đá|đa)[ \t]*(\d+)[.](\d+)(?=[.;\s]|$)/gim,
@@ -4179,11 +4331,14 @@ function parseBets(){
  // Decimal points/commas inside stakes remain untouched (0,5 is still 0.5).
  const _betSeparatorSafe=_halfPointSafe.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d+(?:[,.]\d+)?n?)[ \t]*[,.?!\-/:;"'_\\|~•]+[ \t]*(?=(?:bdao|xcdao|xdao|xc|dd|da|b)[ \t]*\d)/gim,'$1.');
  const _hyphenHalfPointSafe=_betSeparatorSafe;
- const _terminalSafeInput=_hyphenHalfPointSafe.split('\n').map(line=>{
+ const _terminalSafeInput=_hyphenHalfPointSafe.split('
+').map(line=>{
    const m=line.match(/^(.*(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?)([\s.,;:!?/\-\[\]{}#%^*+=_\\|~<>$¥€•'’"]+)$/i);
    return m ? m[1]+'.' : line;
- }).join('\n');
- const _strictRawLines=_terminalSafeInput.split('\n');
+ }).join('
+');
+ const _strictRawLines=_terminalSafeInput.split('
+');
  const _strictRawErrors=[];
  for(let _li=0;_li<_strictRawLines.length;_li++){
    const _rawLine=_strictRawLines[_li].trim();
@@ -4201,12 +4356,14 @@ function parseBets(){
  // Sanitize only the parsing copy so Telegram and manual typing follow the same path.
  // Collapse redundant terminal periods ONLY on the parsing copy, after a complete stake.
  // Example: 677677da1.b10.... => 677677da1.b10.
- const _dotSafeRaw=_terminalSafeInput.split(/\r?\n/).map(line=>{
+ const _dotSafeRaw=_terminalSafeInput.split(/\r?
+/).map(line=>{
    // Accept repeated dots or a terminal comma after a complete stake, only in parser copy.
    // Never change decimal commas such as b0,5 or a comma between numbers.
    if(!/(?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n?\s*[.,]+\s*$/i.test(line))return line;
    return line.replace(/[.,]+\s*$/,'.');
- }).join('\n');
+ }).join('
+');
  // Split only an explicit completed n-suffixed wager from the next numeric group.
  // This must precede legacy normalizers that can consume ",964" as a decimal stake.
  const _separatedTelegram=_dotSafeRaw.replace(
@@ -4214,30 +4371,40 @@ function parseBets(){
    '$1.');
  // Additional Telegram group boundaries: commas between 2-4 digit numbers
  // and spaces after completed n-suffixed wagers. Decimal points remain intact.
- const _groupSeparatedTelegram=_separatedTelegram.split('\n').map(line=>{
+ const _groupSeparatedTelegram=_separatedTelegram.split('
+').map(line=>{
    let v=line.replace(/(\d{2,4})\s*,\s*(?=\d{2,4}(?:[.,\s]|(?:bdao|xdao|xc|dd|da|b)))/gi,'$1.');
    v=v.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n)\s+(?=\d{2,4}(?:[.,]|\s|(?:bdao|xdao|xc|dd|da|b)))/gi,'$1.');
    v=v.replace(/((?:bdao|xcdao|xdao|xc|dd|da|b)\s*\d+(?:,\d+)?n)\s+(?=\d{2,4}$)/gi,'$1.');
    return v;
- }).join('\n');
+ }).join('
+');
  const _telegramSafeInput=_groupSeparatedTelegram
-   .replace(/\r\n?/g,"\n")
+   .replace(/\r
+?/g,"
+")
    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,"")
    .replace(/[\u00A0\u202F\u2007]/g," ")
    .replace(/[\uFF0E\u2024]/g,".")
    .replace(/[\uFF0C]/g,",")
    // Complete terminal wagers do not require a trailing period.
    // Parsing copy only: keep the original textarea and decimal commas unchanged.
-   .replace(/((?:b7ldao|b7lo|b7ld|baobay|bao7|bao8|b8l|bao2|bl2|xcdao|daoxc|xdao|bdao|xcduoi|xcdau|xduoi|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n?)[ \t]*(?=\n|$)/gim,"$1.");
+   .replace(/((?:b7ldao|b7lo|b7ld|baobay|bao7|bao8|b8l|bao2|bl2|xcdao|daoxc|xdao|bdao|xcduoi|xcdau|xduoi|xdau|duoi|dau|dd|xc|da|b)\s*\d+(?:,\d+)?n?)[ \t]*(?=
+|$)/gim,"$1.");
  // Normalize explicit station names attached to a wager, preserving the raw textarea.
  // Do not infer a station when the source contains only an unlabelled number.
  const _stationSafeInput=_telegramSafeInput
-   .replace(/(^|\n)[ \t]*(?:s[oó]c[ \t]*tr[aă]ng|soc[ \t]*trang|soctrang|strang)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1strang\n')
-   .replace(/(^|\n)[ \t]*(?:ctho|can[ \t]*tho|c[aầ]n[ \t]*th[oơ]|ct)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1ctho\n');
+   .replace(/(^|
+)[ \t]*(?:s[oó]c[ \t]*tr[aă]ng|soc[ \t]*trang|soctrang|strang)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1strang
+')
+   .replace(/(^|
+)[ \t]*(?:ctho|can[ \t]*tho|c[aầ]n[ \t]*th[oơ]|ct)[ \t]*\.?[ \t]*(?=\d{2,4}[ \t]*(?:dau|dd|duoi|b|xc|da))/giu,'$1ctho
+');
  // A station's bare dotted number row may inherit the b stake from the
  // immediately following row only when every explicit b wager there agrees.
  // This handles grouped slips such as "VL.90.85...52." followed by "...b3".
- const _stationStakeCarrySafe=_stationSafeInput.split('\n').map((line,index,lines)=>{
+ const _stationStakeCarrySafe=_stationSafeInput.split('
+').map((line,index,lines)=>{
    const bare=line.match(/^(\s*)([a-z]{2,24})\.(\d{2}(?:\.\d{2}){1,})\.?\s*$/i);
    if(!bare || !stationToken(bare[2],$('date')?.value||''))return line;
    let nextIndex=index+1;
@@ -4246,26 +4413,34 @@ function parseBets(){
    const stakes=[...lines[nextIndex].matchAll(/\d{2,}(?:[.,]\d{2,})*b\s*(\d+(?:[,.]\d+)?)(?:n)?(?=[.;\s]|$)/gi)].map(m=>m[1].replace(',','.'));
    if(!stakes.length || stakes.some(stake=>stake!==stakes[0]))return line;
    return bare[1]+bare[2]+'.'+bare[3]+'b'+stakes[0]+'.';
- }).join('\n');
+ }).join('
+');
  // Preserve explicit station prefixes attached to a complete DA wager, with
  // punctuation or no separator. Only known station codes are accepted.
  // The original textarea is never changed.
- const _stationJoinedSafe=_stationStakeCarrySafe.split('\n').map(line=>{
+ const _stationJoinedSafe=_stationStakeCarrySafe.split('
+').map(line=>{
    // Protect two explicit, dotted station aliases if earlier normalization
    // joined their separator to the following DA numbers (e.g. Qtri.QB31.71da0,5).
    const pair=line.match(/^(\s*)([a-z]{2,24}\.[a-z]{2,24})\.?(\d{2,}(?:[\s.,+/-]*\d{2,})*\s*da\s*\d+(?:[,.]\d+)?n?\.?)\s*$/i);
-   if(pair && stationToken(pair[2],$('date')?.value||''))return pair[1]+pair[2]+'\n'+pair[3];
+   if(pair && stationToken(pair[2],$('date')?.value||''))return pair[1]+pair[2]+'
+'+pair[3];
    const m=line.match(/^(\s*)([a-z]{2,24})[^a-z0-9]*(\d{2,}(?:[\s.,+/-]*\d{2,})*\s*da\s*\d+(?:[,.]\d+)?n?\.?)\s*$/i);
    if(!m || !stationToken(m[2],$('date')?.value||''))return line;
-   return m[1]+m[2]+'\n'+m[3];
- }).join('\n');
+   return m[1]+m[2]+'
+'+m[3];
+ }).join('
+');
  // Normalize only complete standalone DA lines before strict length checks.
  // Multiple spaces between pairs must not cause the last pair to be misread as a single DA.
- const _spaceSafeDa=_stationJoinedSafe.split('\n').map(line=>/^\s*[\d\s.,]+\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?n?\s*\.?\s*$/i.test(line)?normalizeOneFunctionLooseLine(line):line).join('\n');
+ const _spaceSafeDa=_stationJoinedSafe.split('
+').map(line=>/^\s*[\d\s.,]+\s*(?:da|đá|đa)\s*\d+(?:[,.]\d+)?n?\s*\.?\s*$/i.test(line)?normalizeOneFunctionLooseLine(line):line).join('
+');
  const _raw2057=ttFixCompactBetSeparators(_spaceSafeDa);
  // Chặn cược sai độ dài số trên phơi gốc cho TẤT CẢ các đài MN/MT/MB.
  // DD đúng 2 chữ số; XC đúng 3 chữ số. Bất kỳ token sai đều khóa toàn phơi.
- const _strictLengthRe=/(?:^|[^0-9])([0-9]+)\s*(xc|dd)\s*([0-9]+(?:[,.][0-9]+)?)(?:n)?(?=\s*(?:\.|$|\n))/gim;
+ const _strictLengthRe=/(?:^|[^0-9])([0-9]+)\s*(xc|dd)\s*([0-9]+(?:[,.][0-9]+)?)(?:n)?(?=\s*(?:\.|$|
+))/gim;
  for(const _match of _raw2057.matchAll(_strictLengthRe)){
    const _num=_match[1],_type=_match[2].toLowerCase(),_expected=_type==="xc"?3:2;
    if(_num.length!==_expected){
@@ -4273,7 +4448,8 @@ function parseBets(){
    }
  }
  // DA across every station (MN, MT, MB): must have even digit count >=4.
- const _daLengthScan=/(?:^|[^0-9a-zA-Z])([0-9]{2,}(?:[., -][0-9]{2,})*)\s*(?:da|đá|đa)\s*[0-9]+(?:[,.][0-9]+)?n?(?=\s*(?:\.|$|\n))/gim;
+ const _daLengthScan=/(?:^|[^0-9a-zA-Z])([0-9]{2,}(?:[., -][0-9]{2,})*)\s*(?:da|đá|đa)\s*[0-9]+(?:[,.][0-9]+)?n?(?=\s*(?:\.|$|
+))/gim;
  for(const daMatch of _raw2057.matchAll(_daLengthScan)){
    const daDigits=daMatch[1].replace(/[^0-9]/g,'');
    if(daDigits.length<4 || daDigits.length%2!==0){
@@ -4290,7 +4466,8 @@ function parseBets(){
    (_whole,indent,numbers,xc,xd)=>{
      const nums=numbers.split(/\s*\.\s*/).filter(Boolean);
      if(nums.length<2) return _whole;
-     return nums.map(n=>indent+n+xc.replace(/\s+/g,'')+'.').concat(nums.map(n=>indent+n+xd.replace(/\s+/g,'')+'.')).join('\n');
+     return nums.map(n=>indent+n+xc.replace(/\s+/g,'')+'.').concat(nums.map(n=>indent+n+xd.replace(/\s+/g,'')+'.')).join('
+');
    });
  // Expand an unambiguous shared XC + XDUOI group BEFORE any legacy
  // Telegram normalizer. This works independently for every line/station.
@@ -4301,26 +4478,33 @@ function parseBets(){
      const numbers=group.split(/\s*\.\s*/).filter(Boolean);
      if(numbers.length<2 || !numbers.every(n=>/^\d{3}$/.test(n)))return _whole;
      return numbers.map(n=>indent+n+'xc'+xcPoints+'.')
-       .concat(numbers.map(n=>indent+n+'xduoi'+duoiPoints+'.')).join('\n');
+       .concat(numbers.map(n=>indent+n+'xduoi'+duoiPoints+'.')).join('
+');
    }
  );
  const _fixed2057=tshFixJoinedBaoXC(_expandedSharedXcDuoi)
    // Preserve explicitly named station as a header, never infer a missing station.
-   .replace(/^\s*(?:s[oó]c\s*tr[aă]ng|soc\s*trang)\s*[:：-]\s*(?=\d)/gim,'st\n')
-   .replace(/^\s*(?:c[aầ]n\s*th[oơ]|can\s*tho)\s*[:：-]\s*(?=\d)/gim,'ctho\n')
-   .replace(/^\s*ct(?=\d{2}dd\d+(?:[,.]\d+)?\.?\s*$)/gim,'ctho\n');
+   .replace(/^\s*(?:s[oó]c\s*tr[aă]ng|soc\s*trang)\s*[:：-]\s*(?=\d)/gim,'st
+')
+   .replace(/^\s*(?:c[aầ]n\s*th[oơ]|can\s*tho)\s*[:：-]\s*(?=\d)/gim,'ctho
+')
+   .replace(/^\s*ct(?=\d{2}dd\d+(?:[,.]\d+)?\.?\s*$)/gim,'ctho
+');
  let rows=[],errors=[],st={region:"N",stations:1,label:"Mặc định"};
  let hasExplicitStation=false;
  let text=normalizeLoosePhoiWithoutChangingFunctionCount(cleanTelegramPhoiText(ttSeparateJoinedBets(ttUnifiedNormalize(_fixed2057))));
  // Preserve a recognized, standalone station header if the Telegram normalizers
  // drop or split it. Only for a single explicit station and following wager lines.
  {
-   const originalLines=_raw2057.split('\n').map(x=>x.trim()).filter(Boolean);
+   const originalLines=_raw2057.split('
+').map(x=>x.trim()).filter(Boolean);
    if(originalLines.length>=2 && stationToken(originalLines[0],$('date')?.value||'')
       && originalLines.slice(1).every(x=>/^\d/.test(x))){
-     const parsedLines=text.split('\n').map(x=>x.trim()).filter(Boolean);
+     const parsedLines=text.split('
+').map(x=>x.trim()).filter(Boolean);
      if(!parsedLines.length || !stationToken(parsedLines[0],$('date')?.value||'')){
-       text=originalLines.join('\n');
+       text=originalLines.join('
+');
      }
    }
  }
@@ -4329,7 +4513,8 @@ function parseBets(){
  // Telegram normalizers. They must never be silently reclassified as HN/B.
  // This narrow path handles one attached station and one or more DA lines.
  {
-   const original=_stationSafeInput.trim().split('\n').map(x=>x.trim()).filter(Boolean);
+   const original=_stationSafeInput.trim().split('
+').map(x=>x.trim()).filter(Boolean);
    const first=original[0]||'';
    const attached=first.match(/^(labp|tphg)[.\s:;-]*((?:\d{2,}[.\s,+\/-]*)+)da\s*(\d+(?:[,.]\d+)?)\.?$/i);
    if(attached && original.slice(1).every(x=>/^\d{4,}\s*da\s*\d+(?:[,.]\d+)?\.?$/i.test(x))){
@@ -4337,35 +4522,46 @@ function parseBets(){
      if(digits.length>=4 && digits.length%2===0){
        const header=attached[1].toLowerCase();
        const stake=attached[3].replace(',','.');
-       text=header+'\n'+digits+'da'+stake+'.'+(original.length>1?'\n'+original.slice(1).join('\n'):'');
+       text=header+'
+'+digits+'da'+stake+'.'+(original.length>1?'
+'+original.slice(1).join('
+'):'');
      }
    }
  }
  // HN: shared four-digit numbers with Bao + Bao dao must retain both numbers
  // and both stakes. Expand only this exact, unambiguous form on the parser copy.
  {
-   const rawLines=_raw2057.replace(/\r/g,'').trim().split('\n').map(x=>x.trim());
+   const rawLines=_raw2057.replace(/\r/g,'').trim().split('
+').map(x=>x.trim());
    if(rawLines.length===2 && /^(?:hn|mb)$/i.test(rawLines[0])){
      const m=rawLines[1].match(/^((?:\d{4}\s*\.\s*)+\d{4})\s*b\s*(\d+(?:[,.]\d+)?n?)\s*\.\s*bdao\s*(\d+(?:[,.]\d+)?n?)\s*[.:]?\s*$/i);
      if(m){
        const nums=m[1].split(/\s*\.\s*/).filter(Boolean);
-       text=rawLines[0]+'\n'+nums.map(n=>n+'b'+m[2]+'.').concat(nums.map(n=>n+'bdao'+m[3]+'.')).join('\n');
+       text=rawLines[0]+'
+'+nums.map(n=>n+'b'+m[2]+'.').concat(nums.map(n=>n+'bdao'+m[3]+'.')).join('
+');
      }
    }
  }
  // Preserve the already validated explicit station header across legacy normalizers.
  // Some legacy layers split "Soc Trang.58dau30" into invalid "Soc" / "Trang".
  // Restore ONLY the exact station+wager lines from the input copy.
- const _explicitStationLines=_stationSafeInput.split('\n').map(x=>x.trim()).filter(Boolean);
+ const _explicitStationLines=_stationSafeInput.split('
+').map(x=>x.trim()).filter(Boolean);
  if(_explicitStationLines.some(x=>/^(?:strang|ctho)$/i.test(x))){
    const _originalNormalized=_stationSafeInput.trim();
-   const _hasAttachedStation=/(?:^|\n)\s*(?:strang|ctho)\s*\n\s*\d{2,4}\s*(?:dau|dd|duoi|b|xc|da)/i.test(_originalNormalized);
+   const _hasAttachedStation=/(?:^|
+)\s*(?:strang|ctho)\s*
+\s*\d{2,4}\s*(?:dau|dd|duoi|b|xc|da)/i.test(_originalNormalized);
    if(_hasAttachedStation) {
      // Reuse the normalizer on every line, but keep station lines atomic.
-     const _segments=_originalNormalized.split(/\n/);
+     const _segments=_originalNormalized.split(/
+/);
      text=_segments.map(line=>/^(?:strang|ctho)$/i.test(line.trim())
        ? line.trim()
-       : normalizeLoosePhoiWithoutChangingFunctionCount(cleanTelegramPhoiText(line))).join('\n');
+       : normalizeLoosePhoiWithoutChangingFunctionCount(cleanTelegramPhoiText(line))).join('
+');
    }
  }
 
@@ -4373,48 +4569,60 @@ function parseBets(){
  // For an exact station + mixed XC/XDUOI shorthand, use the original text
  // just as a direct manual entry would. Do not rewrite the visible textarea.
  {
-   const originalLines=_raw2057.replace(/\r\n?/g,'\n').trim().split('\n').map(x=>x.trim()).filter(Boolean);
+   const originalLines=_raw2057.replace(/\r
+?/g,'
+').trim().split('
+').map(x=>x.trim()).filter(Boolean);
    if(originalLines.length===2
       && /^(?:btre|btr)$/i.test(originalLines[0])
       && /^(?:\d{3}\.)+\d{3}xc\d+(?:,\d+)?\.xduoi\d+(?:,\d+)?\.?$/i.test(originalLines[1])){
-     text=originalLines.join('\n');
+     text=originalLines.join('
+');
    }
  }
  // Telegram regression: numbered forwarded lines and mixed HN XC/XDUOI.
  // Strip only an explicit list marker followed by a complete three-digit XC
  // group; do not change the actual digits or the stakes.
  {
-   const rawLines=_raw2057.replace(/\r\n?/g,'\n').trim().split('\n').map(x=>x.trim()).filter(Boolean);
+   const rawLines=_raw2057.replace(/\r
+?/g,'
+').trim().split('
+').map(x=>x.trim()).filter(Boolean);
    const mixed=/^(?:\d{3}\s*\.\s*)+\d{3}\s*xc\s*\d+(?:,\d+)?\s*\.\s*xduoi\s*\d+(?:,\d+)?\.?$/i;
    if(rawLines.length===2 && /^(?:hn|mb|hanoi)$/i.test(rawLines[0])){
      const wager=rawLines[1].replace(/^\d{1,2}\s*\.\s+(?=\d{3}\s*\.)/,'').trim();
-     if(mixed.test(wager)) text=rawLines[0]+'\n'+wager;
+     if(mixed.test(wager)) text=rawLines[0]+'
+'+wager;
    }
  }
  // Preserve shared function groups through every legacy normalizer using a stable placeholder.
  // The earlier normalization may add or remove lines, so index-based restoration is unsafe.
  {
-   const sourceLines=_raw2057.replace(/\r/g,'').split('\n');
+   const sourceLines=_raw2057.replace(/\r/g,'').split('
+');
    const sharedRe=/^\s*(?:\d{2,}\s*\.\s*)+\d{2,}\s*(?:(?:xcdao|daoxc|xdao|dxc|xc|da|b|bao2|bl2|dd|dau|duoi|dui)\s*\d+(?:,\d+)?n?\s*\.?\s*)+$/i;
    // For a simple phoi with one header and one shared group, use the original
    // line verbatim; all later stages can then parse it as one group.
    if(sourceLines.length===2 && /^(?:[234]dm[nt]|hn|mb)$/i.test(sourceLines[0].trim()) && sharedRe.test(sourceLines[1])
       && !/^\s*\d{4,}\s*da\s*\d+(?:[,.]\d+)?n?\s*\.\s*b\s*\d+(?:[,.]\d+)?n?\s*\.?\s*,?\s*$/i.test(sourceLines[1])) {
-     text=sourceLines.map(x=>x.trim()).join('\n');
+     text=sourceLines.map(x=>x.trim()).join('
+');
    }
  }
  // LOCK 19-10: verify the complete XC + XDAO expansion survived legacy Telegram normalizers.
  // Repair only missing individual tokens in their ORIGINAL station block; never add duplicates.
  // A distinct 3-digit number (including 020) must retain its own DAO XC wager.
  {
-   const original=_raw2057.replace(/\r/g,'').split('\n');
+   const original=_raw2057.replace(/\r/g,'').split('
+');
    const shared=/^\s*((?:\d{3}\s*\.\s*)+\d{3})\s*(xc\s*\d+(?:,\d+)?n?)\s*\.\s*(xdao\s*\d+(?:,\d+)?n?)\s*\.?\s*$/i;
    for(let i=0;i<original.length;i++){
      const m=original[i].match(shared);if(!m)continue;
      const numbers=m[1].split(/\s*\.\s*/).filter(Boolean);
      const xc=m[2].replace(/\s+/g,'').toLowerCase(),xd=m[3].replace(/\s+/g,'').toLowerCase();
      const wanted=[...numbers.map(n=>n+xc+'.'),...numbers.map(n=>n+xd+'.')];
-     const normalized=text.split('\n');
+     const normalized=text.split('
+');
      // Find this group's own anchor in the normalized block, not an identical wager in another province.
      let anchor=-1;
      for(let j=0;j<normalized.length;j++){
@@ -4430,27 +4638,35 @@ function parseBets(){
      }
      const need=new Map();const missing=[];
      for(const w of wanted){const key=w.toLowerCase();const count=(need.get(key)||0)+1;need.set(key,count);if((seen.get(key)||0)<count)missing.push(w);}
-     if(missing.length){normalized.splice(end+1,0,...missing);text=normalized.join('\n');}
+     if(missing.length){normalized.splice(end+1,0,...missing);text=normalized.join('
+');}
    }
  }
  // FIX 05-10-2026: nhiều hàm cược trên cùng một dòng phải giữ đủ nhóm số riêng.
- // VD: 1120da10. 11.20b30. => 1120da10.\n11.20b30.
+ // VD: 1120da10. 11.20b30. => 1120da10.
+11.20b30.
  // Chỉ tách tại khoảng trắng sau dấu chấm kết thúc một hàm cược; không đổi chữ số/cú pháp bên trong hàm.
- text=text.replace(/((?:xdao|xcdao|daoxc|dxc|b7ldao|b7ld|b7lo|baobay|bao7|bao8|b8l|bao2|bl2|xcdau|xcduoi|xdau|xduoi|xdui|dau|dui|duoi|dd|xc|x|bdao|daob|dv|da|b)\s*\d+(?:[.,]\d+)?n?\.)[ \t]+(?=\d)/gi, '$1\n');
+ text=text.replace(/((?:xdao|xcdao|daoxc|dxc|b7ldao|b7ld|b7lo|baobay|bao7|bao8|b8l|bao2|bl2|xcdau|xcduoi|xdau|xduoi|xdui|dau|dui|duoi|dd|xc|x|bdao|daob|dv|da|b)\s*\d+(?:[.,]\d+)?n?\.)[ \t]+(?=\d)/gi, '$1
+');
  // FIX DÒ SAI: tách hai cụm DA hoàn chỉnh cùng dòng trước khi kiểm tra.
- // 8015.6573da1.1570da4. => 8015.6573da1.\n1570da4.
+ // 8015.6573da1.1570da4. => 8015.6573da1.
+1570da4.
  // Không thay đổi dấu phẩy thập phân hoặc các hàm không phải DA.
- text=text.replace(/(da\s*\d+(?:,\d+)?n?\.)\s*(?=\d{4,}(?:\.|\s*da))/gi,'$1\n');
+ text=text.replace(/(da\s*\d+(?:,\d+)?n?\.)\s*(?=\d{4,}(?:\.|\s*da))/gi,'$1
+');
  // KHOA DA QUA XUONG DONG: "33 38 83" + "88da1." => "33.38.83.88da1."
  // Chỉ nối khi dòng trước CHỈ gồm các số 2 chữ số và dòng sau bắt đầu bằng số 2 chữ số + DA.
  // Không kéo cược từ dòng/đài khác.
- text=text.replace(/(^|\n)\s*((?:\d{2}\s+)+\d{2})\s*\n\s*(\d{2})\s*(?:đá|dá|đa|da)\s*(\d+(?:[.,]\d+)?)n?\.?/gi,
+ text=text.replace(/(^|
+)\s*((?:\d{2}\s+)+\d{2})\s*
+\s*(\d{2})\s*(?:đá|dá|đa|da)\s*(\d+(?:[.,]\d+)?)n?\.?/gi,
    (m,prefix,left,last,pt)=> prefix + left.trim().split(/\s+/).concat(last).join('.') + 'da' + pt + '.');
  // FIX DA TOÀN BỘ ĐÀI: một dòng có nhiều chốt compact trước cùng mã DA
  // 3298.3098da1. => 3298da1. + 3098da1.
  // 3238.3098.5566da2n. => giữ đủ 3 chốt, không lấy riêng chốt đầu.
  // Chỉ tách các cụm compact >=4 chữ số chẵn; không đụng 10.50.90da1.
- text=text.split("\n").flatMap(function(_line){
+ text=text.split("
+").flatMap(function(_line){
    const _m=String(_line||'').trim().match(/^((?:\d{4,}\.)+\d{4,})\s*(?:đá|dá|đa|da)\s*(\d+(?:[.,]\d+)?)(n?)\.?$/i);
    if(!_m) return [_line];
    const _gs=_m[1].split('.').filter(Boolean);
@@ -4459,26 +4675,35 @@ function parseBets(){
    // normalizeOneFunctionLooseLine will compact the list for addBet.
    if(_gs.length===2) return [_line];
    return _gs.map(g=>g+'da'+_m[2]+(_m[3]||'')+'.');
- }).join("\n");
+ }).join("
+");
  // LOCK 28-10: preserve each station block in a combined Telegram phoi.
  // Legacy normalizers can consume the second block or carry numbers across
  // station headers. The existing station parser and direct shared-XC handler
  // must receive each original block unchanged.
  {
-   const rawBlocks=_raw2057.replace(/\r\n?/g,'\n').trim().split('\n').map(x=>x.trim()).filter(Boolean);
+   const rawBlocks=_raw2057.replace(/\r
+?/g,'
+').trim().split('
+').map(x=>x.trim()).filter(Boolean);
    const header=/^(?:btre|bentre|hn|mb|hanoi)$/i;
    const wager=/^(?:\d{3}\s*\.\s*)+\d{3}\s*xc\s*\d+(?:[,.]\d+)?\s*\.\s*xduoi\s*\d+(?:[,.]\d+)?\s*\.?$/i;
    if(rawBlocks.length>=4 && rawBlocks.length%2===0
       && rawBlocks.every((line,i)=>i%2===0?header.test(line):wager.test(line))){
-     text=rawBlocks.join('\n');
+     text=rawBlocks.join('
+');
    }
  }
  // FINAL INVARIANT: preserve every XC-DUOI wager from shared shorthand.
  // Legacy normalization may retain all XC but only the last XDUOI.
  // Reconcile only the matching original station block; never change other bets.
  {
-   const original=_raw2057.replace(/\r\n?/g,'\n').split('\n');
-   const normalized=text.split('\n');
+   const original=_raw2057.replace(/\r
+?/g,'
+').split('
+');
+   const normalized=text.split('
+');
    const shared=/^((?:\d{3}\s*\.\s*)+\d{3})\s*xc\s*(\d+(?:[,.]\d+)?)\s*\.\s*xduoi\s*(\d+(?:[,.]\d+)?)\s*\.?$/i;
    const isHeader=s=>/^(?:[234]dm[nt]|hn|mb|hanoi|btre|btr|bentre|vtau|blieu|bacleu|tpho|dnai|ctho|st|dt|cmau|vl|bd|tg|kg|ag|tn)$/i.test(s.trim());
    for(let i=0;i<original.length;i++){
@@ -4508,15 +4733,20 @@ function parseBets(){
      rest.splice(first,0,...canonical);
      normalized.splice(start+1,end-start-1,...rest);
    }
-   text=normalized.join('\n');
+   text=normalized.join('
+');
  }
  // REGRESSION LOCK 28-10: a two-number BDAO+XDAO wager must retain
  // the FIRST DAO XC wager missing from legacy normalization, even when the numbers are
  // permutations of one another (300 and 033). The second is already emitted by legacy normalization; restoring it again duplicates 120k. Restore only the missing first token
  // after ALL normalizers, scoped to the original station block.
  {
-   const rawLines=_raw2057.replace(/\r\n?/g,'\n').split('\n');
-   const lines=text.split('\n');
+   const rawLines=_raw2057.replace(/\r
+?/g,'
+').split('
+');
+   const lines=text.split('
+');
    const header=s=>/^(?:[234]dm[nt]|hn|mb|hanoi|btre|btr|bentre|vtau|blieu|tpho|dnai|ctho|st|dt|cmau|vl|bd|tg|kg|ag|tn)$/i.test(s.trim());
    const mixed=/(\d{3})\s*[.,]\s*(\d{3})\s*bdao\s*(\d+(?:[,.]\d+)?)n?\s*\.\s*xdao\s*(\d+(?:[,.]\d+)?)n?(?=\s*[.,]|\s*$)/gi;
    for(let i=0;i<rawLines.length;i++){
@@ -4549,36 +4779,44 @@ function parseBets(){
      }
      lines.splice(start+1,end-start-1,...section);
    }
-   text=lines.join('\n');
+   text=lines.join('
+');
  }
  // LOCK: a multi-group DA followed by shared B must retain the entire group.
  // Legacy Telegram normalizers may split it into DA lines, leaving B on the last pair only.
  // Restore only the matching original station block, preserving all subsequent wager lines.
  {
-   const source=_raw2057.replace(/\r/g,'').split('\n');
+   const source=_raw2057.replace(/\r/g,'').split('
+');
    const originalGroup=/^\s*((?:\d{4,}\s*\.\s*)+\d{4,})\s*da\s*\d+(?:[,.]\d+)?n?\s*\.\s*b\s*\d+(?:[,.]\d+)?n?\s*\.?\s*$/i;
    const header=/^(?:[234]dm[nt]|hn|mb)$/i;
    if(source.length>=3 && header.test(source[0].trim()) && originalGroup.test(source[1].trim())
      && source.slice(2).every(line=>line.trim() && !header.test(line.trim()))){
      // The original line is handled by the existing shared-function parser,
      // which applies B to every two-digit pair in every DA group.
-     text=source.map(line=>line.trim()).join('\n');
+     text=source.map(line=>line.trim()).join('
+');
    }
  }
  // FINAL RAW DA GROUP INVARIANT: restore the user's explicit dot boundaries.
  // All upstream Telegram/loose normalizers may collapse these groups.
  // Only replace the exact single-station, single-wager case; other input is untouched.
  {
-   const rawLines=String($('bets')?.value||'').replace(/\r\n?/g,'\n').split('\n').map(x=>x.trim()).filter(Boolean);
+   const rawLines=String($('bets')?.value||'').replace(/\r
+?/g,'
+').split('
+').map(x=>x.trim()).filter(Boolean);
    const rawGrouped=/^((?:\d{4,}\s*\.\s*)+\d{4,})\s*(?:da|đá|đa)\s*(\d+(?:[,.]\d+)?)n?\s*\.?$/i;
    if(rawLines.length===2 && /^(?:hn|mb|hanoi|[234]dm[nt])$/i.test(rawLines[0])){
      const match=rawLines[1].match(rawGrouped);
      if(match && match[1].split(/\s*\.\s*/).every(g=>g.length>=4&&g.length%2===0)){
-       text=rawLines[0]+'\n'+match[1].replace(/\s*\.\s*/g,'.')+'da'+match[2]+'.';
+       text=rawLines[0]+'
+'+match[1].replace(/\s*\.\s*/g,'.')+'da'+match[2]+'.';
      }
    }
  }
- for(let line of text.split("\n")){
+ for(let line of text.split("
+")){
   let s=line.trim(); if(!s) continue;
   // Nếu người dùng ghi rõ ngày đầu dòng (CN/T2...T7), ngày đó được ưu tiên cho 3DMN/2DMN.
   let explicitWeekday=null;
@@ -5534,7 +5772,8 @@ function xsmnMobiWeekdayPath(date){
 function parseXsmnMobiMarkdown(text,selectedDate){
   // Parser dự phòng cho nội dung HTML/Markdown của XSMN.mobi:
   // tìm bảng có hàng G8..ĐB và lấy hàng tiêu đề làm tên đài.
-  const lines=String(text||"").replace(/\r/g,"").split("\n");
+  const lines=String(text||"").replace(/\r/g,"").split("
+");
   const rows=[];
   for(let i=0;i<lines.length;i++){
     const line=lines[i].trim();
@@ -5611,7 +5850,8 @@ async function fetchXsmnMobiDirect(date){
           const trs=[...table.querySelectorAll("tr")].map(tr=>[...tr.children].map(td=>td.textContent.trim()));
           for(const tr of trs) if(tr.length>=3 && /G8/i.test(tr[0])) md.push("|"+tr.join("|")+"|");
         }
-        const htmlRows=parseXsmnMobiMarkdown(md.join("\n"),date);
+        const htmlRows=parseXsmnMobiMarkdown(md.join("
+"),date);
         if(htmlRows.length) return htmlRows;
       }
       lastErr="Không đọc được bảng kết quả XSMN.mobi.";
@@ -7062,7 +7302,12 @@ function renderCalculation(rows, errors, c, winData=null, apiMessage=""){
       const suspicious=live&&live.style.display!=='none'?live.innerText.trim():'';
       if(strict.length||suspicious){
         box.style.background='#fff0ed';box.style.border='1px solid #dc2626';box.style.color='#991b1b';
-        box.textContent='⚠️ KIỂM TRA PHƠI TRƯỚC KHI SỬ DỤNG KẾT QUẢ\n'+strict.slice(0,6).join('\n')+(strict.length>6?'\nCòn '+(strict.length-6)+' lỗi khác.':'')+(suspicious?'\n'+suspicious:'')+'\nHãy quay lại ô nhập để sửa nếu cần.';
+        box.textContent='⚠️ KIỂM TRA PHƠI TRƯỚC KHI SỬ DỤNG KẾT QUẢ
+'+strict.slice(0,6).join('
+')+(strict.length>6?'
+Còn '+(strict.length-6)+' lỗi khác.':'')+(suspicious?'
+'+suspicious:'')+'
+Hãy quay lại ô nhập để sửa nếu cần.';
       }else{
         box.style.background='#e8f7ee';box.style.border='1px solid #b9e4ca';box.style.color='#166534';
         box.textContent='✓ Đã kiểm tra lại: không phát hiện lỗi cú pháp, lịch đài hoặc đoạn đáng nghi theo các quy tắc hiện có.';
@@ -7507,7 +7752,8 @@ function clearBetsHighlights(){
   if(layer) layer.innerHTML='';
 }
 function markErrorRanges(rawText, errors){
-  const lines=String(rawText||'').split(/\r?\n/);
+  const lines=String(rawText||'').split(/\r?
+/);
   const ranges=[];
   for(const err0 of (errors||[])){
     const err=String(err0||'');
@@ -7556,7 +7802,8 @@ function markErrorRanges(rawText, errors){
     let pos=0;
     for(const [a0,b0] of rr){const a=Math.max(pos,a0),b=Math.max(a,b0); if(a>pos)out.push(escHtml(line.slice(pos,a))); if(b>a)out.push('<span class="bad-char">'+escHtml(line.slice(a,b))+'</span>'); pos=b;}
     out.push(escHtml(line.slice(pos)));
-    if(i<lines.length-1)out.push('\n');
+    if(i<lines.length-1)out.push('
+');
   }
   return out.join('');
 }
@@ -7606,7 +7853,8 @@ function stationScheduleMessageForLine(line,dateValue){
   const bad=stations.filter(n=>STATION_WEEKDAYS[n]&&!STATION_WEEKDAYS[n].includes(today)); if(!bad.length)return null;
   return {details:bad.map(n=>`${n}: ${STATION_WEEKDAYS[n].join(" / ")}`).join(" • "),today};
 }
-function getStationScheduleErrors(dateValue){ const raw=String($("bets")?.value||"").split(/\r?\n/); return raw.map((line,i)=>{const x=stationScheduleMessageForLine(line,dateValue); return x?{...x,lineNo:i+1}:null;}).filter(Boolean); }
+function getStationScheduleErrors(dateValue){ const raw=String($("bets")?.value||"").split(/\r?
+/); return raw.map((line,i)=>{const x=stationScheduleMessageForLine(line,dateValue); return x?{...x,lineNo:i+1}:null;}).filter(Boolean); }
 
 // Gắn lỗi với miền/đài gần nhất; không tự đoán đài khi thiếu ngữ cảnh.
 function phoiErrorContexts(rawLines,dateValue){
@@ -7644,7 +7892,8 @@ function checkPhoiErrors(){
   const box=$('phoiErrorBox'); if(box)box.innerHTML='';
   const r=parseBets();
   const issues=phoiStrictErrors(r);
-  const rawLines=String($('bets')?.value||'').split(/\r?\n/);
+  const rawLines=String($('bets')?.value||'').split(/\r?
+/);
   const contexts=phoiErrorContexts(rawLines,$('date')?.value||'');
   const entries=[];
   for(const e of issues.schedule){
@@ -7687,7 +7936,8 @@ function checkPhoiErrors(){
     ).join('')+'</div>';
     box.querySelectorAll('[data-error-line]').forEach(b=>b.addEventListener('click',()=>{
       const n=Number(b.dataset.errorLine),ta=$('bets');if(!n||!ta)return;
-      const lines=ta.value.split(/\r?\n/);let a=0;for(let i=0;i<n-1;i++)a+=lines[i].length+1;
+      const lines=ta.value.split(/\r?
+/);let a=0;for(let i=0;i<n-1;i++)a+=lines[i].length+1;
       ta.focus();try{ta.setSelectionRange(a,a+lines[n-1].length)}catch(_){}
       ta.scrollTop=Math.max(0,ta.scrollHeight*n/Math.max(lines.length,1)-ta.clientHeight/2);
     }));
@@ -7768,16 +8018,23 @@ let __phoiPasting=false;
 // Muc tieu: dan nguyen tin Telegram vao o phoi thi chi con header dai + ham tinh.
 // KHONG chuan hoa cu phap cuoc tai day de tranh lam sai parser.
 function stripTelegramMetadataOnly(text){
-  const src=String(text??'').replace(/\r\n?/g,'\n')
+  const src=String(text??'').replace(/\r
+?/g,'
+')
     .replace(/[\u200B-\u200D\u2060\uFEFF]/g,'').replace(/\u00A0/g,' ');
-  return src.split('\n').filter(raw=>{
+  return src.split('
+').filter(raw=>{
     const x=String(raw||'').trim();
     if(!x) return true;
     // Xóa dòng tên + ngày giờ Telegram, kể cả khi copy nhiều tin/lồng tin.
     // VD: T A, [Th. 10 3, 16:17 2026]
     //     Tiến LS, [Th. 10 3, 16:03 2026]
     return !/^.{1,180},\s*\[[^\]]*(?:\d{1,2}:\d{2})[^\]]*\]\s*$/iu.test(x);
-  }).join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  }).join('
+').replace(/
+{3,}/g,'
+
+').trim();
 }
 // ===== KHOA HIEN THI: TOI DA 3 HAM / 1 HANG =====
 // Chi sap xep lai xuong dong SAU KHI dan xong. KHONG gioi han parser, KHONG xoa/doi cuoc.
@@ -7787,7 +8044,9 @@ function stripTelegramMetadataOnly(text){
 function formatPhoiMax3PerLine(text){
   // Không chia/cắt phơi khi copy nhiều tin Telegram.
   // Giữ nguyên 100% số dòng và thứ tự.
-  return String(text ?? '').replace(/\r\n?/g, '\n');
+  return String(text ?? '').replace(/\r
+?/g, '
+');
 }// ===== FIX RIENG DUONG DAN PASTE: GIU B + DA CUNG CUM =====
 // iOS/Telegram paste di qua lop dinh dang truoc parser. Chuyen rieng mau
 // 15.51b10.da2. => 15.51b10. 1551da2. ngay SAU khi loc metadata.
@@ -7894,10 +8153,13 @@ $('pasteAll').onclick=async function(){
     return;
   }
   // DÁN TOÀN BỘ: lọc tên/ngày/giờ Telegram, giữ nguyên nội dung cược; parser chuẩn hóa khi tính.
-  ta.value=String(txt||'').replace(/\r\n?/g,'\n');  ta.focus();
+  ta.value=String(txt||'').replace(/\r
+?/g,'
+');  ta.focus();
   ta.setSelectionRange(ta.value.length,ta.value.length);
   autoReadPhoi();
-  setStatus(`✓ Đã dán nguyên văn ${ta.value.split('\n').length} dòng (${ta.value.length} ký tự) từ Clipboard. Kiểm tra đủ tin trước khi bấm OK.`,'ok');
+  setStatus(`✓ Đã dán nguyên văn ${ta.value.split('
+').length} dòng (${ta.value.length} ký tự) từ Clipboard. Kiểm tra đủ tin trước khi bấm OK.`,'ok');
 };
 $('clearBets').onclick=function(){ $('bets').value=''; clearBetsHighlights(); autoReadPhoi(); $('bets').focus(); };
 
@@ -7964,8 +8226,16 @@ function totalCopyText(mode='customer'){
   };
   const tc=Math.round(x.totalThu||0), old=Math.round(x.old||0);
   const final=Math.round((x.finalTotal ?? (tc+old))||0);
-  const co=x.showCommission?`\n→       Cò: ${Math.round(x.totalCommission||0)}`:'';
-  return `Tên:   ${x.name || 'Gốc X74'}\n→     Ngày: ${date}\n🄽:${line(x.N)}\n🅃:${line(x.T)}\n🄱:${line(x.B)}\n→       ${tc<0?'Bù':'Thu'}: ${tc}${co}\n→       Cũ: ${old}\n→ Tổng cuối: ${final}`;
+  const co=x.showCommission?`
+→       Cò: ${Math.round(x.totalCommission||0)}`:'';
+  return `Tên:   ${x.name || 'Gốc X74'}
+→     Ngày: ${date}
+🄽:${line(x.N)}
+🅃:${line(x.T)}
+🄱:${line(x.B)}
+→       ${tc<0?'Bù':'Thu'}: ${tc}${co}
+→       Cũ: ${old}
+→ Tổng cuối: ${final}`;
 }
 function handleCopyTotal(){
   if(!lastSummary){alert('Chưa có bảng tổng. Bấm OK trước.');return;}
@@ -8467,7 +8737,9 @@ function mainDrawsForCross2(row){
      box.querySelectorAll('.device-change-btn').forEach(btn=>btn.addEventListener('click',async()=>{
        const uid=btn.dataset.userId, email=btn.dataset.email||'tài khoản này';
        if(!uid)return;
-       if(!confirm(`Đổi thiết bị cho ${email}?\n\nThiết bị hiện tại sẽ bị hủy liên kết. Tài khoản có thể đăng nhập trên thiết bị mới. Quyền và dữ liệu tài khoản được giữ nguyên.`))return;
+       if(!confirm(`Đổi thiết bị cho ${email}?
+
+Thiết bị hiện tại sẽ bị hủy liên kết. Tài khoản có thể đăng nhập trên thiết bị mới. Quyền và dữ liệu tài khoản được giữ nguyên.`))return;
        btn.disabled=true; btn.textContent='⏳ ĐANG ĐỔI MÁY...';
        try{
          const {data,error}=await sb.rpc('admin_reset_device',{p_user_id:uid});
@@ -8484,7 +8756,9 @@ function mainDrawsForCross2(row){
        const uid=btn.dataset.userId,email=btn.dataset.email||'tài khoản này';
        const next=btn.dataset.edition==='pro'?'standard':'pro';
        const label=next==='pro'?'Pro':'Thường';
-       if(!uid||!confirm(`Đổi ${email} sang phiên bản ${label}?\n\nQuyền và dữ liệu tài khoản vẫn được giữ nguyên.`))return;
+       if(!uid||!confirm(`Đổi ${email} sang phiên bản ${label}?
+
+Quyền và dữ liệu tài khoản vẫn được giữ nguyên.`))return;
        btn.disabled=true;btn.textContent='⏳ ĐANG CẬP NHẬT...';
        try{
          const {data,error}=await sb.rpc('admin_set_profile_edition',{p_user_id:uid,p_edition:next});
@@ -8592,7 +8866,9 @@ function mainDrawsForCross2(row){
          const months=sel.value==='days'?0:Number(sel.value),extraDays=sel.value==='days'?Number(days.value):0;
          const paid=Number(amount.value||0);
          if(!Number.isSafeInteger(paid)||paid<0||paid>1000000000){alert('Tiền thu không hợp lệ.');return;}
-         if(!confirm('Cộng '+(months?months+' tháng':extraDays+' ngày')+' cho '+email+'?\\nHạn mới dự kiến: '+d.toLocaleDateString('vi-VN')+'\\nTiền thu: '+paid.toLocaleString('vi-VN')+'đ'))return;
+         if(!confirm('Cộng '+(months?months+' tháng':extraDays+' ngày')+' cho '+email+'?\
+Hạn mới dự kiến: '+d.toLocaleDateString('vi-VN')+'\
+Tiền thu: '+paid.toLocaleString('vi-VN')+'đ'))return;
          submit.disabled=true;submit.textContent='Đang cộng hạn...';
          const requestId=crypto.randomUUID();
          try{const {data,error}=await sb.rpc('admin_extend_customer_license',{p_user_id:uid,p_months:months,p_days:extraDays,p_request_id:requestId,p_amount_vnd:paid,p_note:note.value.trim()});if(error)throw error;if(!data?.ok)throw Error(data?.message||'Gia hạn thất bại');modal.remove();await loadDeviceList();alert('Đã cộng hạn thành công. Hạn mới: '+new Date(data.new_expires_at).toLocaleDateString('vi-VN'));}
@@ -8605,7 +8881,9 @@ function mainDrawsForCross2(row){
        const isPaused=btn.dataset.paused==='1';
        const nextPaused=!isPaused;
        const action=nextPaused?'Tạm ngưng':'Mở lại';
-       if(!confirm(`${action} quyền của ${email}?\n\n${nextPaused?'Máy vẫn được giữ nguyên, KHÔNG reset. Khách chỉ tạm thời không dùng được phần mềm.':'Máy cũ vẫn được giữ nguyên và khách có thể dùng lại ngay.'}`))return;
+       if(!confirm(`${action} quyền của ${email}?
+
+${nextPaused?'Máy vẫn được giữ nguyên, KHÔNG reset. Khách chỉ tạm thời không dùng được phần mềm.':'Máy cũ vẫn được giữ nguyên và khách có thể dùng lại ngay.'}`))return;
        btn.disabled=true; btn.textContent=nextPaused?'⏳ ĐANG TẠM NGƯNG...':'⏳ ĐANG MỞ LẠI...';
        try{
          const {data,error}=await sb.rpc('admin_set_license_paused',{p_user_id:uid,p_paused:nextPaused});
@@ -8769,12 +9047,15 @@ window.showHistoryItem=showHistoryItem;
     }
     let tail=line.slice(start).trim();
     if(tail) out.push(tail);
-    return out.join("\n");
+    return out.join("
+");
   }
 
   function formatPhoi(text){
     // Không nhập vào giữa một cụm; chỉ chia tại điểm kết thúc cược hợp lệ.
-    return String(text||"").split(/\r?\n/).map(wrapBetLine).join("\n");
+    return String(text||"").split(/\r?
+/).map(wrapBetLine).join("
+");
   }
 
   function findBox(){
@@ -8911,7 +9192,9 @@ window.showHistoryItem=showHistoryItem;
    if(!b)return;
    const next=!current;
    const message=String(input()?.value||'').trim()||'Hệ thống đang được nâng cấp. Vui lòng quay lại sau ít phút.';
-   if(!confirm(next?'Bật BẢO TRÌ cho toàn bộ máy khách?\n\nAdmin vẫn vào được bình thường.':'Kết thúc BẢO TRÌ và mở lại phần mềm cho toàn bộ khách?')) return;
+   if(!confirm(next?'Bật BẢO TRÌ cho toàn bộ máy khách?
+
+Admin vẫn vào được bình thường.':'Kết thúc BẢO TRÌ và mở lại phần mềm cho toàn bộ khách?')) return;
    b.disabled=true; b.textContent=next?'⏳ ĐANG BẬT BẢO TRÌ...':'⏳ ĐANG MỞ LẠI...';
    if(st){st.className='status';st.textContent='Đang cập nhật...';}
    try{
@@ -8996,7 +9279,9 @@ sb.auth.onAuthStateChange((event)=>{
   const write=a=>localStorage.setItem(KEY,JSON.stringify(historyKeep(a).slice(-1000)));
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt=v=>Math.round(Number(v)||0).toLocaleString('vi-VN')+'k';
-  const fingerprint=(date,customer,text)=>[date,customer,String(text).trim().replace(/\r/g,'')].join('\n---\n');
+  const fingerprint=(date,customer,text)=>[date,customer,String(text).trim().replace(/\r/g,'')].join('
+---
+');
   function currentSummary(){
     const x=(typeof lastSummary==='object'&&lastSummary)?lastSummary:null;
     return x?{totalGross:Number(x.totalGross)||0,totalWin:Number(x.totalWin)||0,totalThu:Number(x.totalThu)||0,finalTotal:Number(x.finalTotal)||0}:null;
@@ -9084,7 +9369,8 @@ sb.auth.onAuthStateChange((event)=>{
     }
     const fmtAmount=n=>(n<0?'-':'')+money(n)+'k';
     // Original user-authored text is the only source for the NỘI DUNG column.
-    const originalLines=rawText.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    const originalLines=rawText.split(/\r?
+/).map(x=>x.trim()).filter(Boolean);
     const headerLine=/^(?:[234]dmn|[23]dmt|hn|mb|mn|mt|hanoi)(?:\s|$)/i;
     const contentLines=originalLines.filter(x=>!headerLine.test(x));
     // The receipt must bind to the selected customer's exact table.
@@ -9179,7 +9465,11 @@ sb.auth.onAuthStateChange((event)=>{
           const entry=savePrinted(savedText,rawText);
           const all=read(),stored=all.find(x=>x.id===entry.id);
           if(stored){stored.printStatus='saved_no_print';stored.printCount=0;stored.lastPrintedAt=null;write(all);}
-          alert('ĐÃ LƯU PHƠI – KHÔNG IN\\nKhách: '+customer+'\\nNgày: '+date+'\\nMã: '+issued.receipt_code+'\\nĐã lưu lên hệ thống QR và lịch sử trên thiết bị. Không gửi lệnh in.');
+          alert('ĐÃ LƯU PHƠI – KHÔNG IN\
+Khách: '+customer+'\
+Ngày: '+date+'\
+Mã: '+issued.receipt_code+'\
+Đã lưu lên hệ thống QR và lịch sử trên thiết bị. Không gửi lệnh in.');
           return;
         }
         const qrLib=await import('https://esm.sh/qrcode@1.5.4?bundle');
@@ -9280,7 +9570,8 @@ sb.auth.onAuthStateChange((event)=>{
         lines.push([station,type,numbers,points,content,amount].filter(Boolean).join(' | '));
       }
       if(data.total)lines.push('Tổng tiền: '+data.total);
-      return lines.join('\n')||'Phiếu chưa có nội dung hiển thị';
+      return lines.join('
+')||'Phiếu chưa có nội dung hiển thị';
     }catch(err){console.warn('Cannot format stored receipt',err);return raw;}
   }
   const printedTime=x=>{const t=Number(x.lastPrintedAt||x.createdAt||0);return t?new Date(t).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Ho_Chi_Minh'}):'--:--';};
@@ -9294,7 +9585,9 @@ sb.auth.onAuthStateChange((event)=>{
       <div style="padding:10px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><button id="phCopy" style="background:#229ED9;color:#fff">📋 COPY TELEGRAM</button><button id="phSelectAll" style="background:#e2e8f0">CHỌN / BỎ TẤT CẢ</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><select id="phRegion" aria-label="Lọc miền" style="min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:10px"><option value="">TẤT CẢ MIỀN</option><option value="MN">MIỀN NAM</option><option value="MT">MIỀN TRUNG</option><option value="MB">MIỀN BẮC</option></select><select id="phDay" aria-label="Lọc ngày" style="min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:10px">${[...new Set(a.map(x=>String(x.date||new Date(x.lastPrintedAt||x.createdAt||0).toISOString().slice(0,10)).slice(0,10)))].filter(Boolean).sort().reverse().map(d=>`<option value="${esc(d)}">${d===new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Ho_Chi_Minh"})?"HÔM NAY":esc(d)}</option>`).join("")}</select></div>
       <div id="phFilterCount" style="font-size:12px;color:#475569;margin:2px 0 8px;font-weight:700">Đang hiển thị ${a.length} phiếu</div>
-      <div id="phList">${a.length?a.map(x=>`<div class="ph-card" data-ph-id="${esc(x.id)}" data-ph-day="${esc(String(x.date||new Date(x.lastPrintedAt||x.createdAt||0).toISOString().slice(0,10)).slice(0,10))}" data-ph-region="${esc((()=>{const t=String(x.raw||x.phoi||x.message||x.text||"").toLowerCase();if(/(^|\n)\s*(hn|mb|hanoi|ha noi|2dmb)\b|hà nội|ha noi/.test(t))return "MB";if(/(^|\n)\s*(2dmt|3dmt|mt)\b|dlak|qnam|dnang|bdinh|qtri|glai|nthuan|qngai|ktum|hue/.test(t))return "MT";return "MN";})())}" style="background:#fff;border:1px solid #dbe2ea;border-radius:12px;padding:10px;margin:8px 0"><label style="display:flex;gap:8px;align-items:flex-start"><input class="phSel" data-id="${esc(x.id)}" type="checkbox" ${x.selected!==false?'checked':''} style="width:20px;height:20px"><span style="flex:1"><b>${esc(x.customer||'Không tên')}</b> • ${esc(x.date||'')} • <b>Đã in ×${Number(x.printCount)||1}</b><br><small>Giờ in: <b>${printedTime(x)}</b> · Tiền thu: <b>${printedRevenue(x)}</b></small></span></label><button type="button" class="ph-reprint" data-print-id="${esc(x.id)}" style="margin-top:8px;margin-right:8px;padding:9px 14px;background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:9px;font-weight:800;touch-action:manipulation">🖨 IN LẠI</button><button type="button" class="ph-delete" data-del-id="${esc(x.id)}" style="margin-top:8px;padding:9px 14px;background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3;border-radius:9px;font-weight:800;touch-action:manipulation">🗑 XÓA</button><pre style="white-space:pre-wrap;background:#f8fafc;padding:8px;border-radius:8px;font-size:12px;max-height:150px;overflow:auto">${esc(readablePrintedPhoi(x))}</pre></div>`).join(''):'<div style="text-align:center;padding:25px;color:#64748b">Chưa có phơi đã in.</div>'}</div></div></div>`;
+      <div id="phList">${a.length?a.map(x=>`<div class="ph-card" data-ph-id="${esc(x.id)}" data-ph-day="${esc(String(x.date||new Date(x.lastPrintedAt||x.createdAt||0).toISOString().slice(0,10)).slice(0,10))}" data-ph-region="${esc((()=>{const t=String(x.raw||x.phoi||x.message||x.text||"").toLowerCase();if(/(^|
+)\s*(hn|mb|hanoi|ha noi|2dmb)\b|hà nội|ha noi/.test(t))return "MB";if(/(^|
+)\s*(2dmt|3dmt|mt)\b|dlak|qnam|dnang|bdinh|qtri|glai|nthuan|qngai|ktum|hue/.test(t))return "MT";return "MN";})())}" style="background:#fff;border:1px solid #dbe2ea;border-radius:12px;padding:10px;margin:8px 0"><label style="display:flex;gap:8px;align-items:flex-start"><input class="phSel" data-id="${esc(x.id)}" type="checkbox" ${x.selected!==false?'checked':''} style="width:20px;height:20px"><span style="flex:1"><b>${esc(x.customer||'Không tên')}</b> • ${esc(x.date||'')} • <b>Đã in ×${Number(x.printCount)||1}</b><br><small>Giờ in: <b>${printedTime(x)}</b> · Tiền thu: <b>${printedRevenue(x)}</b></small></span></label><button type="button" class="ph-reprint" data-print-id="${esc(x.id)}" style="margin-top:8px;margin-right:8px;padding:9px 14px;background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:9px;font-weight:800;touch-action:manipulation">🖨 IN LẠI</button><button type="button" class="ph-delete" data-del-id="${esc(x.id)}" style="margin-top:8px;padding:9px 14px;background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3;border-radius:9px;font-weight:800;touch-action:manipulation">🗑 XÓA</button><pre style="white-space:pre-wrap;background:#f8fafc;padding:8px;border-radius:8px;font-size:12px;max-height:150px;overflow:auto">${esc(readablePrintedPhoi(x))}</pre></div>`).join(''):'<div style="text-align:center;padding:25px;color:#64748b">Chưa có phơi đã in.</div>'}</div></div></div>`;
     document.body.appendChild(ov);
     const applyHistoryFilters=()=>{
       const region=ov.querySelector('#phRegion').value,day=ov.querySelector('#phDay').value;
@@ -9356,7 +9649,9 @@ sb.auth.onAuthStateChange((event)=>{
       const picked=all.filter(x=>ids.includes(x.id));
       if(!picked.length){alert('Chưa chọn phơi nào.');return;}
       // Copy the saved source exactly: never strip trailing amounts or punctuation.
-      const txt=picked.map(x=>String(x.raw||x.phoi||x.message||x.text||'')).filter(Boolean).join('\n\n');
+      const txt=picked.map(x=>String(x.raw||x.phoi||x.message||x.text||'')).filter(Boolean).join('
+
+');
       if(!txt.trim()){alert('Phiếu không có nội dung để COPY.');return;}
       try{await navigator.clipboard.writeText(txt);}catch(_){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
       all.forEach(x=>x.selected=ids.includes(x.id));write(all);alert('Đã COPY '+picked.length+' phơi. Sang Telegram và DÁN.');
@@ -9431,7 +9726,11 @@ document.addEventListener('DOMContentLoaded',function(){
      const u=await sb.auth.getUser();
      if(!u?.data?.user?.id) throw new Error('Chưa đăng nhập tài khoản');
      const date=$('date')?.value||'', customer=$('customerSelect')?.value||'';
-     const printText=isTest ? ('=== IN THỬ ===\nTHẦN SỐ HỌC\nMáy in: '+(c.name||'WION W68W')+'\n\n') : text;
+     const printText=isTest ? ('=== IN THỬ ===
+THẦN SỐ HỌC
+Máy in: '+(c.name||'WION W68W')+'
+
+') : text;
      const q=await sb.from('print_queue').insert({
        print_text:printText, customer:customer, draw_date:date||null, status:'pending'
      }).select('id').single();
@@ -9465,7 +9764,11 @@ document.addEventListener('DOMContentLoaded',function(){
  $('testPrinterBtn')?.addEventListener('click',async()=>{
    localStorage.setItem(KEY,JSON.stringify(readForm()));
    setStatus('⏳ Đang thử kết nối...',null);
-   try{const rr=await sendPrint('=== IN THU ===\nTHAN SO HOC\nMay in: '+getCfg().name+'\n\n',true);setStatus(rr?.queued?'☁️ Đã gửi lệnh lên Mac. Chờ máy in chạy...':'✅ Đã gửi lệnh in thử.',true)}
+   try{const rr=await sendPrint('=== IN THU ===
+THAN SO HOC
+May in: '+getCfg().name+'
+
+',true);setStatus(rr?.queued?'☁️ Đã gửi lệnh lên Mac. Chờ máy in chạy...':'✅ Đã gửi lệnh in thử.',true)}
    catch(e){setStatus('❌ Không in được: '+(e?.message||String(e)),false)}
  });
  fill();
@@ -9505,9 +9808,13 @@ document.addEventListener('DOMContentLoaded',function(){
         else alert('Telegram chưa có tin nhắn mới.');
         return;
       }
-      let joined=texts.join('\n\n');
+      let joined=texts.join('
+
+');
       if(typeof stripTelegramMetadataOnly==='function') joined=stripTelegramMetadataOnly(joined);
-      ta.value=joined.replace(/\r\n?/g,'\n').trim();
+      ta.value=joined.replace(/\r
+?/g,'
+').trim();
       try{ta.setSelectionRange(ta.value.length,ta.value.length)}catch(_){}
       ta.focus();
       if(typeof clearBetsHighlights==='function') clearBetsHighlights();
@@ -9584,7 +9891,8 @@ document.addEventListener('DOMContentLoaded',function(){
     if(hm){
       const h=canonicalHeader(hm[1]);
       const rest=x.slice(hm[0].length).trim();
-      return h+'\n'+normalizeLine(rest);
+      return h+'
+'+normalizeLine(rest);
     }
     if(HEADER_RE.test(x)) return canonicalHeader(x);
 
@@ -9603,16 +9911,29 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 
   function normalizePhoi(raw){
-    let text=String(raw||'').replace(/\r\n?/g,'\n').replace(/\\n/g,'\n');
+    let text=String(raw||'').replace(/\r
+?/g,'
+').replace(/\
+/g,'
+');
     // tên đầy đủ ở đầu dòng
-    text=text.replace(/(^|\n)\s*ti[eề]n\s+giang\s*[.:]*/gi,'$1tgiang\n');
-    text=text.replace(/(^|\n)\s*ki[eê]n\s+giang\s*[.:]*/gi,'$1kgiang\n');
-    text=text.replace(/(^|\n)\s*(?:đà|da)\s+lạt\s*[.:]*/gi,'$1dlat\n');
+    text=text.replace(/(^|
+)\s*ti[eề]n\s+giang\s*[.:]*/gi,'$1tgiang
+');
+    text=text.replace(/(^|
+)\s*ki[eê]n\s+giang\s*[.:]*/gi,'$1kgiang
+');
+    text=text.replace(/(^|
+)\s*(?:đà|da)\s+lạt\s*[.:]*/gi,'$1dlat
+');
 
     let expanded=[];
-    for(const rawLine of text.split('\n')){
+    for(const rawLine of text.split('
+')){
       const n=normalizeLine(rawLine);
-      if(n.includes('\n')) expanded.push(...n.split('\n'));
+      if(n.includes('
+')) expanded.push(...n.split('
+'));
       else expanded.push(n);
     }
 
@@ -9628,7 +9949,11 @@ document.addEventListener('DOMContentLoaded',function(){
       }
       out.push(line);
     }
-    return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+    return out.join('
+').replace(/
+{3,}/g,'
+
+').trim();
   }
 
   window.tshNormalizePhoiFinal=normalizePhoi;
@@ -9677,7 +10002,8 @@ document.addEventListener('DOMContentLoaded',function(){
     date.removeAttribute("min"); date.removeAttribute("max");
     if(!date.value) date.value=isoLocal(base);
   }
-  // Chỉ hiển thị ngày đầy đủ tại nút chọn ngày chính, không tạo thêm ô chọn ngày.\n  setTimeout(rebuild8Days,50);
+  // Chỉ hiển thị ngày đầy đủ tại nút chọn ngày chính, không tạo thêm ô chọn ngày.
+  setTimeout(rebuild8Days,50);
   setTimeout(rebuild8Days,700);
 })();
 </script>
@@ -9688,13 +10014,26 @@ document.addEventListener('DOMContentLoaded',function(){
  const HR=new RegExp('^'+H+'$','i');
  const canon=x=>({'dl':'dlat','tg':'tgiang','kg':'kgiang'})[String(x).toLowerCase()]||String(x).toLowerCase();
  function fmt(v){
-  let s=String(v||'').replace(/\r\n?/g,'\n').replace(/\\n/g,'\n').replace(/[₫đ]/gi,'d')
-   .replace(/(^|\n)\s*ti[eề]n\s*giang\s*[.:]*/gi,'$1tgiang\n')
-   .replace(/(^|\n)\s*ki[eê]n\s*giang\s*[.:]*/gi,'$1kgiang\n')
-   .replace(/(^|\n)\s*(?:đà|da)\s*lạt\s*[.:]*/gi,'$1dlat\n');
-  s=s.replace(new RegExp('(^|\\n)\\s*('+H+')\\s*\\.?\\s*(?=\\d)','gi'),(_,a,b)=>a+canon(b)+'\n');
+  let s=String(v||'').replace(/\r
+?/g,'
+').replace(/\
+/g,'
+').replace(/[₫đ]/gi,'d')
+   .replace(/(^|
+)\s*ti[eề]n\s*giang\s*[.:]*/gi,'$1tgiang
+')
+   .replace(/(^|
+)\s*ki[eê]n\s*giang\s*[.:]*/gi,'$1kgiang
+')
+   .replace(/(^|
+)\s*(?:đà|da)\s*lạt\s*[.:]*/gi,'$1dlat
+');
+  s=s.replace(new RegExp('(^|\
+)\\s*('+H+')\\s*\\.?\\s*(?=\\d)','gi'),(_,a,b)=>a+canon(b)+'
+');
   let out=[];
-  for(let x of s.split('\n')){
+  for(let x of s.split('
+')){
    x=ttSeparateJoinedBets(x).trim(); if(!x)continue;
    if(HR.test(x)){if(out.length&&out[out.length-1]!=='')out.push('');out.push(canon(x));continue}
    x=x.replace(/\b(?:đá|dá)\b/gi,'da');
@@ -9709,7 +10048,11 @@ document.addEventListener('DOMContentLoaded',function(){
    x=x.replace(/(b\s*\d+(?:[,.]\d+)?n?)\s*[,;:\/\\-]\s*(?=(?:xc|xdao|xcdao|daoxc|dxc)\s*\d)/gi,'$1.');
    out.push(x.replace(/[ \t]{2,}/g,' ').trim());
   }
-  return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  return out.join('
+').replace(/
+{3,}/g,'
+
+').trim();
  }
  window.tshFinalPhoi=fmt; const ta=document.getElementById('bets');
  function apply(){if(!ta)return;let n=fmt(ta.value);if(n!==ta.value){ta.value=n;try{ta.setSelectionRange(n.length,n.length)}catch(e){}}}
@@ -9735,10 +10078,18 @@ document.addEventListener('DOMContentLoaded',function(){
 
  const HEADER=/^(?:2dmn|3dmn|4dmn|2dmt|3dmt|hn|mb|tpho|tphcm|tph|tp|btre|dthap|cmau|hue|dlat|tgiang|kgiang)$/i;
  function norm(raw){
-  let s=String(raw||'').replace(/\r\n?/g,'\n').replace(/[₫đ]/gi,'d');
-  s=s.replace(/mi[eề]n\s*b[aắ]c/gi,'hn').replace(/tphcm/gi,'tpho').replace(/\bgi\s*l[oô]\b/gi,'hn\n');
-  s=s.replace(/\bmt\s*[.]?\s*hu[eế]\s*[.]?/gi,'hue\n').replace(/\bmn\s*[.]?\s*c[aà]\s*mau\s*[.]?/gi,'cmau\n').replace(/\bmb\s*[.]?/gi,'hn\n');
-  s=s.replace(/(^|\n)\s*(hn|tpho|btre|hue|cmau|dlat|tgiang|kgiang|2dmn|3dmn|4dmn|2dmt|3dmt)\s*[.]\s*(?=\d)/gi,'$1$2\n');
+  let s=String(raw||'').replace(/\r
+?/g,'
+').replace(/[₫đ]/gi,'d');
+  s=s.replace(/mi[eề]n\s*b[aắ]c/gi,'hn').replace(/tphcm/gi,'tpho').replace(/\bgi\s*l[oô]\b/gi,'hn
+');
+  s=s.replace(/\bmt\s*[.]?\s*hu[eế]\s*[.]?/gi,'hue
+').replace(/\bmn\s*[.]?\s*c[aà]\s*mau\s*[.]?/gi,'cmau
+').replace(/\bmb\s*[.]?/gi,'hn
+');
+  s=s.replace(/(^|
+)\s*(hn|tpho|btre|hue|cmau|dlat|tgiang|kgiang|2dmn|3dmn|4dmn|2dmt|3dmt)\s*[.]\s*(?=\d)/gi,'$1$2
+');
   s=s.replace(/\bbl[oô]?\s*(?=\d)/gi,'b').replace(/\b(?:d[aá]|đa|xien)\s*/gi,'da').replace(/\bdd\s*/gi,'dd').replace(/\bxc\s*/gi,'xc');
   s=s.replace(/\s+2\s*dai\b/gi,'').replace(/\s+2\s*đai\b/gi,'');
   s=s.replace(/(\d)\s*\*\s*(\d+(?:[.,]\d+)?)/g,'$1b$2');
@@ -9769,7 +10120,9 @@ document.addEventListener('DOMContentLoaded',function(){
   // independent number starts get one space
   s=s.replace(/((?:b|xc|dd|da)\d+(?:[.,]\d+)?\.)(?=\d)/gi,'$1 ');
   s=s.replace(/\.{2,}/g,'.');
-  s=s.replace(/[ \t]{2,}/g,' ').replace(/\n[ \t]+/g,'\n');
+  s=s.replace(/[ \t]{2,}/g,' ').replace(/
+[ \t]+/g,'
+');
   return s.trim();
  }
  window.tshNewestNormalize=norm;
@@ -10558,11 +10911,16 @@ window.addEventListener('DOMContentLoaded',function(){
  function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return[]}}
  function write(a){localStorage.setItem(KEY,JSON.stringify(a.slice(-1000)))}
  function rawPhoi(x){
-   let t=String(x.raw||x.phoi||x.message||x.text||'').replace(/\\n/g,'\n');
-   let lines=t.split(/\r?\n/),out=[],inside=false,sep=0;
+   let t=String(x.raw||x.phoi||x.message||x.text||'').replace(/\
+/g,'
+');
+   let lines=t.split(/\r?
+/),out=[],inside=false,sep=0;
    for(let z of lines){z=z.trim();if(/^[-_=]{8,}$/.test(z)){sep++;inside=sep===1; if(sep>=2)break; continue} if(inside&&z)out.push(z)}
-   if(out.length)return out.join('\n').trim();
-   return lines.filter(z=>{z=z.trim();return z&&!/^(\d{4}-\d{2}-\d{2}.*MA:|KHACH:|TIEN XAC:|THU:|BU:|MA PHIEU:|\[\[QR:|Phieu chi co gia tri)/i.test(z)&&!/^[-_=]{8,}$/.test(z)}).join('\n').trim();
+   if(out.length)return out.join('
+').trim();
+   return lines.filter(z=>{z=z.trim();return z&&!/^(\d{4}-\d{2}-\d{2}.*MA:|KHACH:|TIEN XAC:|THU:|BU:|MA PHIEU:|\[\[QR:|Phieu chi co gia tri)/i.test(z)&&!/^[-_=]{8,}$/.test(z)}).join('
+').trim();
  }
  function regions(text){
    let t=String(text).toLowerCase(),r=[];
@@ -10571,7 +10929,8 @@ window.addEventListener('DOMContentLoaded',function(){
    if(/\b(hn|mb|hanoi|mbac)\b/.test(t))r.push('HN');
    return r.length?r:['KHÁC'];
  }
- function tgText(x,i){return 'Tin '+(i+1)+'\n'+rawPhoi(x)}
+ function tgText(x,i){return 'Tin '+(i+1)+'
+'+rawPhoi(x)}
  function selectedIds(root,cls){return [...root.querySelectorAll(cls+':checked')].map(c=>c.dataset.id)}
  function delIds(ids){if(!ids.length)return;write(read().filter(x=>!ids.includes(String(x.id))));window.CuncunRecentPhoiHooks?.deleted(ids)}
  function open(){
@@ -10596,7 +10955,9 @@ window.addEventListener('DOMContentLoaded',function(){
      ov.querySelector('#pall')?.addEventListener('click',()=>{if(confirm('Xóa TOÀN BỘ phơi đã in?')){const ids=read().map(x=>String(x.id));write([]);window.CuncunRecentPhoiHooks?.deleted(ids);render()}});
      ov.querySelector('#td')?.addEventListener('click',()=>{let ids=selectedIds(ov,'.ts');if(!ids.length)return alert('Chưa chọn tin.');if(confirm('Xóa '+ids.length+' tin đã chọn?')){delIds(ids);render()}});
      ov.querySelector('#tall')?.addEventListener('click',()=>{if(confirm('Xóa TOÀN BỘ dữ liệu Telegram/phơi đã in?')){const ids=read().map(x=>String(x.id));write([]);window.CuncunRecentPhoiHooks?.deleted(ids);render()}});
-     ov.querySelector('#tcopy')?.addEventListener('click',async()=>{let ids=selectedIds(ov,'.ts'),a=read().filter(x=>ids.includes(String(x.id)));if(!a.length)return alert('Chưa chọn tin.');let txt=a.map((x,i)=>tgText(x,i)).join('\n\n');try{await navigator.clipboard.writeText(txt)}catch(_){let ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}alert('Đã COPY '+a.length+' tin.')});
+     ov.querySelector('#tcopy')?.addEventListener('click',async()=>{let ids=selectedIds(ov,'.ts'),a=read().filter(x=>ids.includes(String(x.id)));if(!a.length)return alert('Chưa chọn tin.');let txt=a.map((x,i)=>tgText(x,i)).join('
+
+');try{await navigator.clipboard.writeText(txt)}catch(_){let ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}alert('Đã COPY '+a.length+' tin.')});
    }
    ov.querySelector('#thClose').onclick=()=>ov.remove();
    ov.querySelectorAll('.th-tab').forEach(b=>b.onclick=()=>{ov.querySelectorAll('.th-tab').forEach(x=>x.classList.remove('active'));ov.querySelectorAll('.th-pane').forEach(x=>x.classList.remove('active'));b.classList.add('active');ov.querySelector('#th'+(b.dataset.tab==='stats'?'Stats':b.dataset.tab==='printed'?'Printed':'Telegram')).classList.add('active')});
@@ -10791,7 +11152,8 @@ window.addEventListener('DOMContentLoaded',function(){
      return out;
    }
    const out={};
-   for(const line of raw.split(/\r?\n/)){
+   for(const line of raw.split(/\r?
+/)){
      const m=line.match(/^\s*(ĐB|DB|Đặc biệt|G\.?[1-8]|Giải\s*[1-8]|[1-8])\s*[:：=\-]\s*(.*)$/i);
      if(!m)continue;const k=prizeKey(m[1]);if(k)out[k]=parseNumberArray(m[2]);
    }
@@ -10816,15 +11178,25 @@ window.addEventListener('DOMContentLoaded',function(){
     else matched.push(k.toUpperCase());
    }
    const title=station+' – '+($id('date')?.value||'')+' – '+({N:'Miền Nam',T:'Miền Trung',B:'Miền Bắc'}[region]);
-   if(bad.length)report('❌ KHÔNG KHỚP: '+title+'\n'+bad.join('\n')+(missing.length?'\nChưa đủ: '+missing.join('; '):''),'error');
-   else if(missing.length)report('⚠️ CHƯA THỂ XÁC NHẬN: '+title+'\nKhớp '+matched.length+' giải, nhưng thiếu: '+missing.join('; '),'warn');
-   else report('✅ KHỚP ĐỦ GIẢI (đối chiếu thủ công): '+title+'\n'+matched.join(' • ')+'\nChỉ xác nhận dữ liệu đã nhập; cần bảo đảm nguồn 2 độc lập và đúng ngày, đúng đài.','ok');
+   if(bad.length)report('❌ KHÔNG KHỚP: '+title+'
+'+bad.join('
+')+(missing.length?'
+Chưa đủ: '+missing.join('; '):''),'error');
+   else if(missing.length)report('⚠️ CHƯA THỂ XÁC NHẬN: '+title+'
+Khớp '+matched.length+' giải, nhưng thiếu: '+missing.join('; '),'warn');
+   else report('✅ KHỚP ĐỦ GIẢI (đối chiếu thủ công): '+title+'
+'+matched.join(' • ')+'
+Chỉ xác nhận dữ liệu đã nhập; cần bảo đảm nguồn 2 độc lập và đúng ngày, đúng đài.','ok');
   }catch(e){report('⚠️ '+(e?.message||String(e)),'warn');}
  }
  function init(){
   const bar=$id('liveSoiBar');if(!bar||$id('s2VerifyWrap'))return;
   const details=document.createElement('details');details.id='s2VerifyWrap';
-  details.innerHTML='<summary>🔎 Đối chiếu nguồn 2 (kiểm tra từng giải)</summary><div class="s2hint">Mở kết quả từ một <b>website độc lập với XSMN.mobi</b> (ví dụ <a href="https://xoso.com.vn/" target="_blank" rel="noopener noreferrer">xoso.com.vn</a>). Chọn đúng ngày, đài rồi dán các giải. Không tự đánh dấu đã xác minh khi chưa đối chiếu.</div><div class="s2row"><label>Miền<select id="s2Region"><option value="N">Miền Nam</option><option value="T">Miền Trung</option><option value="B">Miền Bắc</option></select></label><label>Đài<select id="s2Station"></select></label></div><div class="s2hint">Ngày cần đối chiếu: <b id="s2Date"></b>. Mỗi dòng theo mẫu: <code>G8: 12</code>, <code>G6: 1234 5678 9012</code>, <code>ĐB: 123456</code>. Miền Bắc không có G8; có thể dán JSON dạng <code>{"prizes":{...}}</code>.</div><textarea id="s2Raw" placeholder="G8: 12\nG7: 123\nG6: 1234 5678 9012\n...\nĐB: 123456" aria-label="Kết quả từ nguồn thứ hai"></textarea><button type="button" id="s2Compare">So sánh từng giải</button><div id="s2VerifyResult" role="status">Chưa đối chiếu nguồn 2. Dữ liệu dò phơi vẫn đang lấy từ API V5.3.</div>';
+  details.innerHTML='<summary>🔎 Đối chiếu nguồn 2 (kiểm tra từng giải)</summary><div class="s2hint">Mở kết quả từ một <b>website độc lập với XSMN.mobi</b> (ví dụ <a href="https://xoso.com.vn/" target="_blank" rel="noopener noreferrer">xoso.com.vn</a>). Chọn đúng ngày, đài rồi dán các giải. Không tự đánh dấu đã xác minh khi chưa đối chiếu.</div><div class="s2row"><label>Miền<select id="s2Region"><option value="N">Miền Nam</option><option value="T">Miền Trung</option><option value="B">Miền Bắc</option></select></label><label>Đài<select id="s2Station"></select></label></div><div class="s2hint">Ngày cần đối chiếu: <b id="s2Date"></b>. Mỗi dòng theo mẫu: <code>G8: 12</code>, <code>G6: 1234 5678 9012</code>, <code>ĐB: 123456</code>. Miền Bắc không có G8; có thể dán JSON dạng <code>{"prizes":{...}}</code>.</div><textarea id="s2Raw" placeholder="G8: 12
+G7: 123
+G6: 1234 5678 9012
+...
+ĐB: 123456" aria-label="Kết quả từ nguồn thứ hai"></textarea><button type="button" id="s2Compare">So sánh từng giải</button><div id="s2VerifyResult" role="status">Chưa đối chiếu nguồn 2. Dữ liệu dò phơi vẫn đang lấy từ API V5.3.</div>';
   bar.append(details);$id('s2Region').addEventListener('change',refresh);$id('s2Compare').addEventListener('click',compare);
   $id('date')?.addEventListener('change',()=>{refresh();report('⚠️ Ngày đã thay đổi. Hãy đối chiếu lại.','warn');});
   $id('liveCheckNow')?.addEventListener('click',()=>report('⚠️ API đang kiểm tra lại. Kết quả nguồn 2 cần bấm So sánh từng giải lần nữa.','warn'));
@@ -10883,8 +11255,12 @@ window.addEventListener('DOMContentLoaded',function(){
    x=x.replace(/\b(?:đầu\s*đuôi|dau\s*duoi)\b/gi,'dd').replace(/\b(?:đá|da)\s*(\d)/gi,'da$1');
    x=x.replace(/\b(?:xiên|xien)\s*(\d)/gi,'da$1');
    // Tách các hàm khi dấu chấm đã kết thúc mã, không sửa phần số thập phân.
-   x=x.replace(/\.(\s*)(?=(?:hn|mb|2dmn|3dmn|2dmt|3dmt)\b)/gi,'.\n');
-   x=x.replace(/\n{3,}/g,'\n\n').trim();
+   x=x.replace(/\.(\s*)(?=(?:hn|mb|2dmn|3dmn|2dmt|3dmt)\b)/gi,'.
+');
+   x=x.replace(/
+{3,}/g,'
+
+').trim();
    if(x!==orig.trim()) notes.push('Đã chuẩn hóa từ viết tắt và dấu câu. Kiểm tra các loại cược trước khi áp dụng.');
    if(/\b(?:miền nam|miền trung)\b/i.test(orig))notes.push('Tên miền chung được tạm quy đổi về nhóm 2 đài: cần xác nhận đúng đài trước khi OK.');
    if(/\b(?:bao ba|bao bốn|bao 3|bao 4)\b/i.test(orig))notes.push('Bao 3/4 có cú pháp riêng: phải kiểm tra lại số lượng chữ số.');
@@ -10926,7 +11302,8 @@ window.addEventListener('DOMContentLoaded',function(){
       try{recognition?.stop();recognition=new SR();recognition.lang='vi-VN';recognition.interimResults=true;recognition.continuous=true;voiceText=byId('v4Transcript').value.trim();recognition.onresult=e=>{let final=voiceText,part='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0]?.transcript||'';if(e.results[i].isFinal)final+=' '+t;else part+=' '+t;}voiceText=final.trim();byId('v4Transcript').value=(voiceText+' '+part).trim();};recognition.onerror=e=>{byId('v4VoiceStatus').textContent='Lỗi micro: '+e.error+'. Có thể dùng nút micro trên bàn phím iPhone.';};recognition.onend=()=>{byId('v4VoiceStatus')&&(byId('v4VoiceStatus').textContent='Đã dừng. Kiểm tra và sửa nội dung trước khi dán.');};recognition.start();byId('v4VoiceStatus').textContent='🎤 Đang nghe…';}catch(e){byId('v4VoiceStatus').textContent='Không bật được nhận dạng: '+e.message;}
    };
    byId('v4Stop').onclick=()=>{try{recognition?.stop()}catch(_){};};
-   byId('v4VoiceApply').onclick=()=>{const t=byId('v4Transcript').value.trim(),b=byId('bets');if(!t||!b)return alert('Chưa có nội dung giọng nói.');try{recognition?.stop()}catch(_){}const previous=b.value.trim();b.value=(previous?previous+'\n':'')+t;b.dispatchEvent(new Event('input',{bubbles:true}));byId('v4Close').click();b.focus();};
+   byId('v4VoiceApply').onclick=()=>{const t=byId('v4Transcript').value.trim(),b=byId('bets');if(!t||!b)return alert('Chưa có nội dung giọng nói.');try{recognition?.stop()}catch(_){}const previous=b.value.trim();b.value=(previous?previous+'
+':'')+t;b.dispatchEvent(new Event('input',{bubbles:true}));byId('v4Close').click();b.focus();};
  }
  function install(){
    const card=byId('betsCard'),bets=byId('bets');if(!card||!bets||byId('tshV4Tools'))return;
@@ -10964,9 +11341,14 @@ window.addEventListener('DOMContentLoaded',function(){
  let lastPasteSource='';
  const region=/^(?:hn|mb|2dmn|3dmn|4dmn|2dmt|3dmt|tpho|dthap|cmau|btre|vtau|dngai|ctho|tgiang|kgiang|hue|dnang|qngai|ktum|glai|dlat|khoa|qnam|qtri|binhdinh|binhduong|vinhlong|angiang|tayninh)\b/i;
  const timeHead=/^(?:(?:\[?\d{1,2}:\d{2}(?::\d{2})?\]?)|(?:\[?\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\]?))$/;
- function lines(text){return String(text||'').replace(/\r\n?/g,'\n').split('\n')}
+ function lines(text){return String(text||'').replace(/\r
+?/g,'
+').split('
+')}
  function safeNormalize(raw){
-  let t=String(raw||'').replace(/\r\n?/g,'\n');const issues=[],changes=[];
+  let t=String(raw||'').replace(/\r
+?/g,'
+');const issues=[],changes=[];
   // Bảo toàn phẩy trong tiền thập phân, dấu phân cách khác chuyển dấu chấm.
   t=t.replace(/[；;：:／\\]/g,'.').replace(/，/g,'.');
   t=t.replace(/\b(mi[eề]n\s*b[aắ]c)\b/gi,'hn');
@@ -10978,7 +11360,10 @@ window.addEventListener('DOMContentLoaded',function(){
    return `${a}b${v}. ${b}b${v}`;
   });
   // Chuẩn hóa các tên nhóm và tách tin tại dòng tên miền (không tự suy đoán đài).
-  t=t.replace(/\n{3,}/g,'\n\n').trim();
+  t=t.replace(/
+{3,}/g,'
+
+').trim();
   const before=(String(raw||'').match(/\b\d{2,4}\b/g)||[]);
   if(t!==String(raw||'').trim()&&!changes.length)changes.push('Đã chuẩn hóa dấu câu/tên miền.');
   if(/\b(?:xien|xiên|bao\s*ba|bao\s*bốn|b\d+[.,]\d+[.,]\d+)\b/i.test(raw))issues.push('Có cú pháp phức hợp; cần xem lại trước khi áp dụng.');
@@ -10987,7 +11372,8 @@ window.addEventListener('DOMContentLoaded',function(){
  }
  function splitMessages(raw){
   const src=lines(raw),blocks=[];let current=[],head='';
-  function flush(){if(current.some(x=>x.trim()))blocks.push({head,body:current.join('\n').trim()});current=[];head=''}
+  function flush(){if(current.some(x=>x.trim()))blocks.push({head,body:current.join('
+').trim()});current=[];head=''}
   for(const original of src){const line=original.trim();
    // Các ứng dụng chat thường xuất: Tên, [ngày giờ] hoặc Tên, 11/10/2026 16:07.
    const m=line.match(/^(.{2,70}?),\s*(?:\[?(?:th\.?\s*\d+\s+)?\d{1,2}[\/.-]\d{1,2}(?:[\/.-]\d{2,4})?\]?[ ,]*)?\[?\d{1,2}:\d{2}(?::\d{2})?\]?\s*$/i);
@@ -11013,14 +11399,22 @@ window.addEventListener('DOMContentLoaded',function(){
     for(const n of [a,c])if(!new RegExp('(?:^|[^\\d])'+n+'b'+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:[.\\s]|$)','i').test(b.normalized))omitted.push(`Tin ${i+1}: Thiếu ${n}b${v}`);
    }
   });
-  const combined=normalized.map(b=>b.normalized).filter(Boolean).join('\n\n');
+  const combined=normalized.map(b=>b.normalized).filter(Boolean).join('
+
+');
   return {blocks:normalized,combined,warnings,omitted};
  }
  function modal(src){const report=getReport(src);$('tshV5Modal')?.remove();const div=document.createElement('div');div.id='tshV5Modal';
   div.innerHTML=`<div class="v5panel"><div class="v5hdr"><h3>🔍 TÁCH TIN & KIỂM TRA BỎ SÓT</h3><button id="v5Close" type="button">✕</button></div><p class="v5warn" id="v5Check"></p><p>Phát hiện <b>${report.blocks.length}</b> nhóm tin. Mỗi nhóm được ngăn bằng một dòng trống. Không tự đoán tên khách/đài.</p><div class="v5blocks" id="v5Blocks"></div><label>Dữ liệu sau khi chuẩn hóa (được phép sửa)</label><textarea id="v5Result"></textarea><div class="v5actions"><button id="v5Review">🔁 Kiểm tra lại</button><button id="v5Accept" class="v5confirm">✓ Áp dụng vào ô nhập</button></div><p style="font-size:12px;color:#64748b">Chưa tự bấm OK hoặc in. Bản gốc còn trong ô xem trước đến khi đóng.</p><details><summary>Xem nội dung gốc đã dán</summary><textarea id="v5Original" readonly></textarea></details></div>`;
   document.body.appendChild(div);$('v5Result').value=report.combined;$('v5Original').value=src;
-  $('v5Blocks').innerHTML=report.blocks.map((b,i)=>`<div class="v5block"><b>Tin ${i+1}${b.head?' · '+esc(b.head):''}</b>\n${esc(b.normalized)}</div>`).join('');
-  function message(rep){$('v5Check').textContent=(rep.omitted.length?'❌ PHÁT HIỆN BỎ SÓT:\n'+rep.omitted.join('\n'):'✅ Không phát hiện thiếu số trong các mẫu bao 2 đơn giản đã kiểm tra.')+(rep.warnings.length?'\n⚠️ '+rep.warnings.join('\n'):'')+'\nLưu ý: kiểm tra này chưa chứng minh mọi cú pháp phức hợp đều đầy đủ.'}
+  $('v5Blocks').innerHTML=report.blocks.map((b,i)=>`<div class="v5block"><b>Tin ${i+1}${b.head?' · '+esc(b.head):''}</b>
+${esc(b.normalized)}</div>`).join('');
+  function message(rep){$('v5Check').textContent=(rep.omitted.length?'❌ PHÁT HIỆN BỎ SÓT:
+'+rep.omitted.join('
+'):'✅ Không phát hiện thiếu số trong các mẫu bao 2 đơn giản đã kiểm tra.')+(rep.warnings.length?'
+⚠️ '+rep.warnings.join('
+'):'')+'
+Lưu ý: kiểm tra này chưa chứng minh mọi cú pháp phức hợp đều đầy đủ.'}
   message(report);
   $('v5Close').onclick=()=>div.remove();div.onclick=e=>{if(e.target===div)div.remove()};
   $('v5Review').onclick=()=>{const updated=getReport($('v5Result').value);message(updated)};
@@ -11335,7 +11729,8 @@ function init(){
  $('tshDebtSave').onclick=()=>{let name=$('tshDebtName').value.trim(),date=$('tshDebtDate').value,amount=Number($('tshDebtAmount').value);if(!name||!date||!Number.isFinite(amount)||amount<=0){alert('Nhập đủ ngày, tên khách và số tiền hợp lệ');return}let a=load(),old=a.find(x=>x.id===editId);let x={id:editId||'debt_'+Date.now()+'_'+Math.random().toString(36).slice(2),name,date,amount,type:$('tshDebtType').value,note:$('tshDebtNote').value.trim(),created:old?.created||Date.now()};if(editId)a=a.map(y=>y.id===editId?x:y);else a.push(x);if(save(a)){$('tshDebtMonth').value=date.slice(0,7);reset();render()}};
  $('tshDebtCancel').onclick=reset;
  $('tshDebtRows').onclick=e=>{let b=e.target.closest('button[data-act]');if(!b)return;let a=load(),x=a.find(z=>z.id===b.dataset.id);if(!x)return;if(b.dataset.act==='delete'){if(confirm('Xóa giao dịch này?')&&save(a.filter(z=>z.id!==x.id)))render()}else{editId=x.id;$('tshDebtDate').value=x.date;$('tshDebtName').value=x.name;$('tshDebtAmount').value=x.amount;$('tshDebtType').value=typeOf(x)==='paidlegacy'?'old':typeOf(x);$('tshDebtNote').value=x.note||'';$('tshDebtSave').textContent='💾 LƯU SỬA';$('tshDebtCancel').style.display='inline-block'}};
- $('tshDebtExport').onclick=()=>{let lines=[['Ngày','Khách','Loại','Số tiền','Ghi chú'],...load().map(x=>[x.date,x.name,typeOf(x),x.amount,x.note||''])],csv='\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n'),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download='cong-no-365-ngay-'+today()+'.csv';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+ $('tshDebtExport').onclick=()=>{let lines=[['Ngày','Khách','Loại','Số tiền','Ghi chú'],...load().map(x=>[x.date,x.name,typeOf(x),x.amount,x.note||''])],csv='\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r
+'),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download='cong-no-365-ngay-'+today()+'.csv';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)};
  render();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();setTimeout(init,1200);
@@ -11439,7 +11834,8 @@ function show(pg){page=pg;document.querySelectorAll('#mbApp .mb-panel').forEach(
 function setup(){if(!$('mbOpen'))return;$('mbNav').innerHTML=names.map(([id,name])=>`<button type="button" data-page="${id}">${name}</button>`).join('');$('mbNav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)show(b.dataset.page)});$('mbOpen').addEventListener('click',()=>{$('mbApp').classList.add('mb-visible');$('mbApp').setAttribute('aria-hidden','false');document.body.style.overflow='hidden';show('calc')});$('mbClose').addEventListener('click',()=>{$('mbApp').classList.remove('mb-visible');$('mbApp').setAttribute('aria-hidden','true');document.body.style.overflow='';});$('mbDate').value=$('mbDebtDate').value=new Date().toLocaleDateString('en-CA');$('mbPriceGroup').onchange=renderPrices;$('mbPriceProfile').onchange=()=>{selected=$('mbPriceProfile').value;renderPrices()};$('mbAddProfile').onclick=()=>{const group=$('mbPriceGroup').value;const name=prompt('Tên bảng giá MB mới:');if(!name?.trim())return;const id='mb'+Date.now();state.profiles.push({id,name:name.trim(),group,rates:{}});selected=id;save();renderPrices()};$('mbCloneProfile').onclick=()=>{const p=profile();if(!p)return;const id='mb'+Date.now();state.profiles.push({...JSON.parse(JSON.stringify(p)),id,name:p.name+' (sao chép)'});selected=id;save();renderPrices()};$('mbDeleteProfile').onclick=()=>{const p=profile();if(!p||state.profiles.filter(x=>x.group===p.group).length<2){alert('Cần giữ ít nhất một bảng mỗi nhóm.');return}if(!confirm('Xóa bảng giá '+p.name+'?'))return;state.profiles=state.profiles.filter(x=>x.id!==p.id);selected=state.profiles.find(x=>x.group===p.group).id;save();renderPrices()};$('mbSavePrice').onclick=savePrice;$('mbCalculate').onclick=calculate;$('mbSaveSlip').onclick=()=>storeText('slips');$('mbSaveMessage').onclick=()=>storeText('messages');$('mbClearSlips').onclick=()=>clearItems('slips');$('mbClearMessages').onclick=()=>clearItems('messages');$('mbAddDebt').onclick=addDebt;$('mbDemoStake').oninput=updateDemo;$('mbDemoFactor').onchange=updateDemo;$('mbGuideNorth').onclick=()=>renderGuide('north');$('mbGuideSouth').onclick=()=>renderGuide('south');$('mbPrint').onclick=()=>{const content=$('mbBets').value.trim();if(!content)return alert('Chưa có phơi MB để in');const w=window.open('','_blank');if(!w)return alert('Trình duyệt chặn cửa sổ in');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Phơi MB</title><style>body{font-family:Arial,sans-serif;margin:12px}pre{white-space:pre-wrap}</style></head><body><h3>PHIẾU MIỀN BẮC (IN THỬ)</h3><pre>'+esc(content)+'</pre></body></html>');w.document.close();w.focus();w.print()};renderPrices();updateDemo();show('calc')}
 function renderPrices(){let group=$('mbPriceGroup').value;let ps=state.profiles.filter(x=>x.group===group);if(!ps.some(x=>x.id===selected))selected=ps[0]?.id;$('mbPriceProfile').innerHTML=ps.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');$('mbPriceProfile').value=selected;const p=profile();$('mbPriceFields').innerHTML=categories.map(([id,name,def])=>{const r=effective(p,id);return `<div class="mb-card" data-rate="${id}"><b>${name}</b><div class="mb-grid"><div><label>Đơn vị</label><select class="mb-rate-unit"><option value="point" ${ (r.unit||def)==='point'?'selected':''}>Điểm</option><option value="money" ${(r.unit||def)==='money'?'selected':''}>Tiền</option></select></div><div><label>Giá thu (đ/điểm hoặc hệ số)</label><input class="mb-rate-price" inputmode="decimal" value="${esc(r.price??'')}"></div><div><label>Thưởng (đ/điểm hoặc hệ số)</label><input class="mb-rate-reward" inputmode="decimal" value="${esc(r.reward??'')}"></div></div></div>`}).join('');$('mbCalcPrice').innerHTML=state.profiles.filter(x=>x.group==='customer').map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}
 function savePrice(){const p=profile();if(!p)return;const rates={};for(const el of document.querySelectorAll('#mbPriceFields [data-rate]')){const id=el.dataset.rate;const price=el.querySelector('.mb-rate-price').value.trim().replace(',','.');const reward=el.querySelector('.mb-rate-reward').value.trim().replace(',','.');if([price,reward].some(x=>x!==''&&(!Number.isFinite(Number(x))||Number(x)<0)))return alert('Giá không hợp lệ: '+id);rates[id]={unit:el.querySelector('.mb-rate-unit').value,price,reward}}p.rates=rates;save();alert('Đã lưu bảng giá MB: '+p.name)}
-function calculate(){const raw=$('mbBets').value;const p=state.profiles.find(x=>x.id===$('mbCalcPrice').value);if(!raw.trim())return alert('Nhập phơi MB trước');let total=0,lines=[],warnings=[];const segments=raw.replace(/\r/g,'').split(/\n|(?<=\.)\s+(?=\d)/).map(x=>x.trim()).filter(Boolean);for(const seg of segments){if(/^(hn|mb|mien bac)$/i.test(seg))continue;const m=seg.match(/^((?:\d{2}\.)*\d{2,4})(l3|l|lo|de|g1|x2|x3|x4)(?:x)?(\d+(?:[,.]\d+)?)\.?$/i);if(!m){warnings.push(seg);continue}const ids=m[1].split('.'),kind=/^(l|lo)$/i.test(m[2])?'lo2':m[2].toLowerCase(),r=effective(p,kind);if(kind.startsWith('x')&&ids.length!==Number(kind.slice(1))){warnings.push(seg+' (sai số lượng xiên)');continue}if(['de','g1','lo2'].includes(kind)&&ids.some(x=>x.length!==2)){warnings.push(seg+' (sai độ dài)');continue}if(kind==='l3'&&ids.some(x=>x.length!==3)){warnings.push(seg+' (sai độ dài)');continue}if(!r.price&&r.price!==0){warnings.push(seg+' (chưa đặt giá thu '+kind+')');continue}const n=Number(m[3].replace(',','.')),price=Number(r.price),count=kind.startsWith('x')?1:ids.length;const value=n*price*count;if(!Number.isFinite(value)){warnings.push(seg);continue}total+=value;lines.push(`${seg}: ${fmt(value)}đ`)}lastCalc={total,lines,warnings};$('mbCalcResult').innerHTML=`<div class="mb-money">Tạm tính: ${fmt(total)}đ</div><div class="mb-muted">Bảng ${esc(p?.name||'—')}</div>${lines.map(x=>'<div class="mb-listitem">'+esc(x)+'</div>').join('')}${warnings.length?'<div class="mb-warn"><b>Chưa tính '+warnings.length+' dòng:</b><br>'+warnings.map(esc).join('<br>')+'</div>':''}`}
+function calculate(){const raw=$('mbBets').value;const p=state.profiles.find(x=>x.id===$('mbCalcPrice').value);if(!raw.trim())return alert('Nhập phơi MB trước');let total=0,lines=[],warnings=[];const segments=raw.replace(/\r/g,'').split(/
+|(?<=\.)\s+(?=\d)/).map(x=>x.trim()).filter(Boolean);for(const seg of segments){if(/^(hn|mb|mien bac)$/i.test(seg))continue;const m=seg.match(/^((?:\d{2}\.)*\d{2,4})(l3|l|lo|de|g1|x2|x3|x4)(?:x)?(\d+(?:[,.]\d+)?)\.?$/i);if(!m){warnings.push(seg);continue}const ids=m[1].split('.'),kind=/^(l|lo)$/i.test(m[2])?'lo2':m[2].toLowerCase(),r=effective(p,kind);if(kind.startsWith('x')&&ids.length!==Number(kind.slice(1))){warnings.push(seg+' (sai số lượng xiên)');continue}if(['de','g1','lo2'].includes(kind)&&ids.some(x=>x.length!==2)){warnings.push(seg+' (sai độ dài)');continue}if(kind==='l3'&&ids.some(x=>x.length!==3)){warnings.push(seg+' (sai độ dài)');continue}if(!r.price&&r.price!==0){warnings.push(seg+' (chưa đặt giá thu '+kind+')');continue}const n=Number(m[3].replace(',','.')),price=Number(r.price),count=kind.startsWith('x')?1:ids.length;const value=n*price*count;if(!Number.isFinite(value)){warnings.push(seg);continue}total+=value;lines.push(`${seg}: ${fmt(value)}đ`)}lastCalc={total,lines,warnings};$('mbCalcResult').innerHTML=`<div class="mb-money">Tạm tính: ${fmt(total)}đ</div><div class="mb-muted">Bảng ${esc(p?.name||'—')}</div>${lines.map(x=>'<div class="mb-listitem">'+esc(x)+'</div>').join('')}${warnings.length?'<div class="mb-warn"><b>Chưa tính '+warnings.length+' dòng:</b><br>'+warnings.map(esc).join('<br>')+'</div>':''}`}
 function storeText(type){const text=$('mbBets').value.trim();if(!text)return alert('Chưa có nội dung MB');state[type].unshift({id:Date.now()+Math.random(),date:$('mbDate').value,text,total:type==='slips'&&lastCalc?.warnings.length===0?lastCalc.total:null});save();alert('Đã lưu vào '+(type==='slips'?'kho phơi':'kho tin')+' MB')}
 function clearItems(type){if(!confirm('Xóa toàn bộ '+(type==='slips'?'kho phơi':'kho tin')+' MB? Không ảnh hưởng MN/MT.'))return;state[type]=[];save();renderLists()}
 function addDebt(){const name=$('mbDebtName').value.trim(),amount=Number($('mbDebtAmount').value);if(!name||!Number.isFinite(amount)||amount===0)return alert('Nhập tên và số tiền khác 0');state.debts.unshift({id:Date.now()+Math.random(),name,amount,date:$('mbDebtDate').value,note:$('mbDebtNote').value});save();$('mbDebtAmount').value='';renderLists()}
@@ -11478,7 +11874,8 @@ function getPrizes(api){
 }
 function parse(raw){
  const arr=[];const bad=[];
- const parts=String(raw).replace(/\r/g,'').split(/\n|(?<=\.)\s+(?=\d)/).map(x=>x.trim()).filter(Boolean);
+ const parts=String(raw).replace(/\r/g,'').split(/
+|(?<=\.)\s+(?=\d)/).map(x=>x.trim()).filter(Boolean);
  for(const part of parts){if(/^(hn|mb|mien bac)$/i.test(part))continue;
   const m=part.match(/^((?:\d{2}\.)*\d{2,4})(l3|lo|l|de|g1|x2|x3|x4)(?:x)?(\d+(?:[,.]\d+)?)\.?$/i);
   if(!m){bad.push(part);continue}
@@ -11728,7 +12125,10 @@ client.auth.getSession().then(({data})=>{if(data.session)load();});
    const status=res.data||{};
    const planNames={'1_month':'1 tháng','3_months':'3 tháng','12_months':'1 năm','lifetime':'Vĩnh viễn','admin':'Admin'};
    const expiry=status.expires_at?new Date(status.expires_at).toLocaleString('vi-VN'):'Không có';
-   out.textContent=(status.active?'✅ Tài khoản WEB PM hợp lệ.':'🔒 Tài khoản WEB PM chưa có quyền hoặc đã hết hạn.')+'\nGói: '+(planNames[status.plan]||status.plan||'Chưa cấp')+'\nHết hạn: '+expiry+'\nLưu ý: Chưa thể vào phần mềm bằng tài khoản WEB PM cho tới khi hoàn tất kết nối khóa thiết bị trên máy chủ.';
+   out.textContent=(status.active?'✅ Tài khoản WEB PM hợp lệ.':'🔒 Tài khoản WEB PM chưa có quyền hoặc đã hết hạn.')+'
+Gói: '+(planNames[status.plan]||status.plan||'Chưa cấp')+'
+Hết hạn: '+expiry+'
+Lưu ý: Chưa thể vào phần mềm bằng tài khoản WEB PM cho tới khi hoàn tất kết nối khóa thiết bị trên máy chủ.';
   }catch(e){out.textContent='Không kiểm tra được: '+(e.message||String(e));}
   finally{await client.auth.signOut().catch(()=>{});btn.disabled=false;}
  });
@@ -11862,10 +12262,16 @@ function init(){
  choose.addEventListener("click",()=>{const shown=visible();const all=shown.length>0&&shown.every(m=>selected.has(m.id));selected=all?new Set():new Set(shown.map(m=>m.id));area.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=!all)});
  importBtn.addEventListener("click",()=>{
   const input=document.getElementById("bets");if(!input)return;
-  const existing=new Set(input.value.split(/\n\s*\n/).map(v=>v.trim().toLowerCase()).filter(Boolean));
+  const existing=new Set(input.value.split(/
+\s*
+/).map(v=>v.trim().toLowerCase()).filter(Boolean));
   const lines=visible().filter(m=>selected.has(m.id)).sort((a,b)=>new Date(a.message_date)-new Date(b.message_date)).map(m=>String(m.message_text||"").trim()).filter(t=>{const key=t.toLowerCase();if(!key||existing.has(key))return false;existing.add(key);return true});
   if(!lines.length){status.textContent="Chưa chọn tin mới hoặc tin đã có trong ô tính.";return}
-  input.value=[input.value.trim(),lines.join("\n\n")].filter(Boolean).join("\n\n");
+  input.value=[input.value.trim(),lines.join("
+
+")].filter(Boolean).join("
+
+");
   input.dispatchEvent(new Event("input",{bubbles:true}));document.getElementById("betsCard").open=true;status.textContent="Đã đưa "+lines.length+" tin vào ô tính.";
  });
  if(groupFilter)groupFilter.addEventListener("change",render);
@@ -12463,13 +12869,18 @@ const HEADS=['2dmn','3dmn','4dmn','2dmt','3dmt','4dmt','tpho','tphcm','dthap','c
 const heads=HEADS.sort((a,b)=>b.length-a.length).join('|');
 const rx=new RegExp('^\\s*('+heads+')(\\s*\\.?\\s*)(?=\\d)','i');
 function splitHeadLine(text){
- return String(text||'').replace(/\r\n?/g,'\n').split('\n').map(line=>{
+ return String(text||'').replace(/\r
+?/g,'
+').split('
+').map(line=>{
   const hit=line.match(rx);
   if(!hit)return line;
   const prefix=hit[1]+(hit[2].includes('.')?'.':'');
   const bet=line.slice(hit[0].length).trimStart();
-  return prefix+'\n'+(/(?:da|xc|dd|b)\d+(?:[,.]\d+)?$/i.test(bet)?bet+'.':bet);
- }).join('\n');
+  return prefix+'
+'+(/(?:da|xc|dd|b)\d+(?:[,.]\d+)?$/i.test(bet)?bet+'.':bet);
+ }).join('
+');
 }
 window.ttSplitHeadLine=splitHeadLine;
 let busy=false;
@@ -12545,7 +12956,8 @@ const money=n=>Number(n).toLocaleString('vi-VN',{maximumFractionDigits:2})+'đ';
 function getState(){try{return JSON.parse(localStorage.getItem('ott_mb_isolated_v1'))||{}}catch(e){return {}}}
 function parse(){
  const raw=$('mbBets')?.value||'';const lines=[];const warnings=[];
- const parts=raw.replace(/\r/g,'').split(/\n|(?<=\.)\s+(?=\d)/).map(s=>s.trim()).filter(Boolean);
+ const parts=raw.replace(/\r/g,'').split(/
+|(?<=\.)\s+(?=\d)/).map(s=>s.trim()).filter(Boolean);
  for(const part of parts){if(/^(hn|mb|mien bac)$/i.test(part))continue;
   const m=part.match(/^((?:\d{2}\.)*\d{2,4})(l3|lo|l|de|g1|x2|x3|x4)(?:x)?(\d+(?:[,.]\d+)?)\.?$/i);
   if(!m){warnings.push(part+' (chưa nhận diện)');continue}
@@ -12578,7 +12990,8 @@ function buildText(d,full){const lines=['BẢNG TỔNG MIỀN BẮC','Ngày: '+d
  lines.push('TỔNG TIỀN XÁC: '+money(d.total),'TỔNG TIỀN TRÚNG: '+(d.prize===null?'Chờ kết quả':money(d.prize)),d.balanceLabel.toUpperCase()+': '+(d.balanceAmount===null?'Chưa xác định':money(d.balanceAmount)));
  if(d.warnings.length)lines.push('CHƯA TÍNH: '+d.warnings.join('; '));
  if(!d.ready)lines.push('Kết quả trúng thưởng chưa được xác nhận đủ 27 giải.');
- return lines.join('\n');}
+ return lines.join('
+');}
 function render(){const root=$('mbSummaryCopy');if(!root)return;const d=collect();
  $('mbSummaryDate').textContent=d.date||'—';$('mbSummaryProfile').textContent=d.name;
  $('mbSummaryGross').textContent=money(d.total);$('mbSummaryPrize').textContent=d.prize===null?'Chờ kết quả':money(d.prize);$('mbSummaryPrize').dataset.waiting=d.prize===null?'true':'false';
@@ -12629,7 +13042,8 @@ const total=document.createElement('section');total.id='mbReplicaSummary';total.
 const sum=$('mbSummaryCopy');if(sum){sum.insertAdjacentElement('beforebegin',detail);sum.insertAdjacentElement('afterend',total)}else{calc.insertAdjacentElement('afterend',detail);detail.insertAdjacentElement('afterend',total)}
 $('mbDetailToggle').onclick=()=>{let b=$('mbDetailBody'),open=b.hidden;b.hidden=!open;$('mbDetailToggle').setAttribute('aria-expanded',String(open));$('mbDetailToggle').lastElementChild.textContent=open?'▲':'▼'};
 $('mbRepMinus').onclick=()=>{sign=-1;render()};$('mbRepPlus').onclick=()=>{sign=1;render()};$('mbRepOld').oninput=render;
-$('mbRepCopy').onclick=async()=>{const d=read(),net=d.ready?d.gross-d.prize:null,adjust=Number($('mbRepOld').value)||0;const content=['TỔNG MIỀN BẮC','Ngày: '+($('mbDate')?.value||''),'Bảng: '+($('mbCalcPrice')?.selectedOptions?.[0]?.text||''),'Tiền xác: '+fmt(d.gross),'Tiền trúng: '+(d.ready?fmt(d.prize):'Chờ kết quả'),'Thu/Bù: '+(net===null?'Chờ kết quả':(net>=0?'Thu ':'Bù ')+fmt(Math.abs(net))),'Cũ: '+(sign>0?'+':'−')+fmt(Math.abs(adjust)),'Tổng cuối: '+(net===null?'Chờ kết quả':fmt(net+sign*adjust))].join('\n');try{await navigator.clipboard.writeText(content);$('mbReplicaNotice').textContent='Đã sao chép bảng tổng.'}catch(e){const ta=document.createElement('textarea');ta.value=content;document.body.append(ta);ta.select();try{document.execCommand('copy');$('mbReplicaNotice').textContent='Đã sao chép.'}catch(_){$('mbReplicaNotice').textContent='Không thể sao chép tự động.'}ta.remove()}};
+$('mbRepCopy').onclick=async()=>{const d=read(),net=d.ready?d.gross-d.prize:null,adjust=Number($('mbRepOld').value)||0;const content=['TỔNG MIỀN BẮC','Ngày: '+($('mbDate')?.value||''),'Bảng: '+($('mbCalcPrice')?.selectedOptions?.[0]?.text||''),'Tiền xác: '+fmt(d.gross),'Tiền trúng: '+(d.ready?fmt(d.prize):'Chờ kết quả'),'Thu/Bù: '+(net===null?'Chờ kết quả':(net>=0?'Thu ':'Bù ')+fmt(Math.abs(net))),'Cũ: '+(sign>0?'+':'−')+fmt(Math.abs(adjust)),'Tổng cuối: '+(net===null?'Chờ kết quả':fmt(net+sign*adjust))].join('
+');try{await navigator.clipboard.writeText(content);$('mbReplicaNotice').textContent='Đã sao chép bảng tổng.'}catch(e){const ta=document.createElement('textarea');ta.value=content;document.body.append(ta);ta.select();try{document.execCommand('copy');$('mbReplicaNotice').textContent='Đã sao chép.'}catch(_){$('mbReplicaNotice').textContent='Không thể sao chép tự động.'}ta.remove()}};
 $('mbRepShot').onclick=()=>{const target=$('mbReplicaSummary');target.scrollIntoView({behavior:'smooth',block:'start'});$('mbReplicaNotice').textContent='Đã đưa bảng tổng lên màn hình. Dùng chức năng chụp màn hình của điện thoại để cắt ảnh.'};
 let queued=false;const refresh=()=>{if(queued)return;queued=true;setTimeout(()=>{queued=false;render()},50)};
 const watched=['mbSummaryText','mbCheckResults','mbCalcResult'];watched.forEach(id=>{const el=$(id);if(el)new MutationObserver(refresh).observe(el,{childList:true,subtree:true,characterData:true,attributes:false})});['mbBets','mbDate','mbCalcPrice'].forEach(id=>$(id)?.addEventListener('change',refresh));$('mbCalculate')?.addEventListener('click',()=>setTimeout(render,150));render();}
@@ -12649,7 +13063,8 @@ function init(){if($('mbSummaryCopy'))build();else setTimeout(build,200)}if(docu
 const $=id=>document.getElementById(id),money=n=>Math.round(n).toLocaleString('vi-VN'),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const labels={lo2:'Lô 2',de:'Đề ĐB',g1:'Đề G1',x2:'Xiên 2',x3:'Xiên 3',x4:'Xiên 4'};
 const keys=['db','g1','g2','g3','g4','g5','g6','g7'],names={db:'ĐB',g1:'G1',g2:'G2',g3:'G3',g4:'G4',g5:'G5',g6:'G6',g7:'G7'};
-function bets(){let result=[],bad=[];let input=$('mbBets')?.value||'';let chunks=input.replace(/\r/g,'').split(/\n|(?<=\.)\s+(?=\d)/).map(x=>x.trim()).filter(Boolean);
+function bets(){let result=[],bad=[];let input=$('mbBets')?.value||'';let chunks=input.replace(/\r/g,'').split(/
+|(?<=\.)\s+(?=\d)/).map(x=>x.trim()).filter(Boolean);
 for(let part of chunks){if(/^(hn|mb|mien bac)$/i.test(part))continue;let m=part.match(/^((?:\d{2}\.)*\d{2,4})(l3|lo|l|de|g1|x2|x3|x4)(?:x)?(\d+(?:[,.]\d+)?)\.?$/i);if(!m){bad.push(part);continue}let kind=/^(lo|l)$/i.test(m[2])?'lo2':m[2].toLowerCase(),nums=m[1].split('.');if(!labels[kind]||(['lo2','de','g1'].includes(kind)&&nums.some(n=>n.length!==2))||(kind.startsWith('x')&&(nums.length!==Number(kind[1])||new Set(nums).size!==nums.length))){bad.push(part);continue}const stake=Number(m[3].replace(',','.'));if(!Number.isFinite(stake)||stake<=0){bad.push(part);continue}result.push({kind,nums,stake,part})}return {result,bad}}
 function snapshot(){let d=window.__mbVerified;const expected={db:1,g1:1,g2:2,g3:6,g4:4,g5:6,g6:3,g7:4};const complete=d&&d.pr&&Object.entries(expected).every(([k,n])=>Array.isArray(d.pr[k])&&d.pr[k].length===n&&d.pr[k].every(v=>typeof v==='string'&&/^\d+$/.test(v)));return complete&&d.date===$('mbDate')?.value&&d.profile===$('mbCalcPrice')?.value&&d.raw===($('mbBets')?.value||'')&&/Đã đối chiếu đủ 27 giải MB từ API/.test($('mbCheckResults')?.innerText||'')&&!/Cần kiểm tra:|Chưa xác định đủ/.test($('mbCheckResults')?.innerText||'')?d:null}
 function compute(){let {result,bad}=bets(),st;try{st=JSON.parse(localStorage.getItem('ott_mb_isolated_v1'))||{}}catch{st={}}let profile=st.profiles?.find(p=>p.id===$('mbCalcPrice')?.value),verified=snapshot();let rows=[],gross=0,prize=0,unknown=[...bad];for(let b of result){let rate=profile?.rates?.[b.kind];if(rate?.price==null||rate.price===''){unknown.push(b.part+' thiếu giá thu');continue}let price=Number(rate.price),reward=rate.reward==null||rate.reward===''?null:Number(rate.reward);if(!Number.isFinite(price)||price<=0){unknown.push(b.part+' giá thu không hợp lệ');continue}if(reward!==null&&(!Number.isFinite(reward)||reward<0)){unknown.push(b.part+' giá thưởng không hợp lệ');continue}for(let n of (b.kind.startsWith('x')?[b.nums.join('.')]:b.nums)){let stake=b.stake,amount=stake*price;if(!Number.isFinite(amount)){unknown.push(b.part+' giá không hợp lệ');continue}gross+=amount;let hit=0,matched=[];if(verified){let pr=verified.pr;for(let k of keys){if((b.kind==='de'&&k!=='db')||(b.kind==='g1'&&k!=='g1'))continue;for(let v of pr[k]){if(b.kind.startsWith('x'))continue;if(v.slice(-2)===n){hit++;matched.push({k,v})}}}if(b.kind.startsWith('x')){let tails=keys.flatMap(k=>pr[k].map(v=>v.slice(-2)));hit=b.nums.every(x=>tails.includes(x))?1:0}}
@@ -13364,11 +13779,17 @@ $("tgImport").addEventListener("click",()=>{
  if(!items.length){$("tgInboxStatus").textContent="Hãy chọn ít nhất một tin.";return}
  const input=$("bets");if(!input)return;
  const normalize=v=>String(v||"").normalize("NFKC").replace(/\s+/g," ").trim().toLowerCase();
- const existing=new Set(input.value.split(/\n\s*\n/).map(normalize).filter(Boolean));
+ const existing=new Set(input.value.split(/
+\s*
+/).map(normalize).filter(Boolean));
  const unique=[];for(const m of items){const body=String(m.message_text||"").trim(),key=normalize(body);if(key&&!existing.has(key)){unique.push(body);existing.add(key);}}
  if(!unique.length){$("tgInboxStatus").textContent="Tất cả tin đã chọn đều trùng với nội dung trong ô nhập.";return;}
- const text=unique.join("\n\n");
- input.value=[input.value.trim(),text].filter(Boolean).join("\n\n");
+ const text=unique.join("
+
+");
+ input.value=[input.value.trim(),text].filter(Boolean).join("
+
+");
  input.dispatchEvent(new Event("input",{bubbles:true}));
  $("betsCard").open=true;$("tgInboxStatus").textContent="Đã đưa "+unique.length+" tin không trùng vào ô nhập, bỏ qua "+(items.length-unique.length)+" tin trùng.";
  input.scrollIntoView({behavior:"smooth",block:"center"});
@@ -13481,7 +13902,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
      const g=enabledGroups.find(x=>x.chat_id===m.chat_id);if(!g)continue;
      if(selected&&norm(selected)!=="tất cả nhóm"&&norm(selected)!==norm(g.group_name))continue;
      const item=document.createElement("div");item.style.cssText="padding:7px;border:1px solid #e2e8f0;border-radius:7px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px";
-     item.textContent=g.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN")+"\n"+m.message_text;messages.append(item);
+     item.textContent=g.group_name+" · "+new Date(m.message_date).toLocaleString("vi-VN")+"
+"+m.message_text;messages.append(item);
     }
    }catch(e){info.textContent="Lỗi: "+e.message}
   }
@@ -13649,8 +14071,10 @@ async function copyText(str){
 function importMessages(items){
  if(!items.length){status.textContent="Chưa có tin để đưa vào ô nhập.";return;}
  const box=document.getElementById("bets");if(!box){status.textContent="Không tìm thấy ô nhập liệu.";return;}
- const text=items.slice().reverse().map(m=>m.message_text).join("\n");
- box.value=(box.value.trim()?box.value.replace(/\s*$/,"")+"\n":"")+text;
+ const text=items.slice().reverse().map(m=>m.message_text).join("
+");
+ box.value=(box.value.trim()?box.value.replace(/\s*$/,"")+"
+":"")+text;
  box.dispatchEvent(new Event("input",{bubbles:true}));
  status.textContent="Đã đưa "+items.length+" tin vào ô nhập liệu.";
  box.scrollIntoView({behavior:"smooth",block:"center"});
@@ -14917,7 +15341,8 @@ body.app-unlocked #liveSoiBar{display:block!important}
 const input=document.getElementById("bets"),out=document.getElementById("phoiLiveWarnings");if(!input||!out)return;
 let timer;
 function inspect(){
- const warnings=[],lines=input.value.replace(/\r/g,"").split("\n");
+ const warnings=[],lines=input.value.replace(/\r/g,"").split("
+");
  function warn(i,part,reason,level){if(!warnings.some(w=>w.line===i+1&&w.part===part&&w.reason===reason))warnings.push({line:i+1,part,reason,level});}
  for(let i=0;i<lines.length;i++){
   const line=lines[i].trim();if(!line)continue;
@@ -14993,7 +15418,8 @@ inspect();
   var errors=[];
   cuncunDaSeparatedSixErrors(value).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\d+)/)||[])[1]||1),token:message});});
   cuncunXcLengthErrors(value).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\\d+)/)||[])[1]||1),token:message.replace(/^Dòng \\d+: /,'')});});
-  String(value||'').replace(/\r/g,'').split('\n').forEach(function(line,index){
+  String(value||'').replace(/\r/g,'').split('
+').forEach(function(line,index){
    var pattern=/(?:^|[\s;])((?:\d{2,4}\s*[.,-]\s*){2,}\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?\s*[.;]?\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
    var m;
    while((m=pattern.exec(line))!==null){

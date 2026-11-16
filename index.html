@@ -4110,7 +4110,7 @@ function parseBets(){
  const _invalidDa=[];
  _rawDa.split('\n').forEach((line,i)=>{
   const re=/(?:^|[\s;])([0-9]{6})(?:\s*)(?:da|đá|đa)\s*[0-9]+(?:[,.][0-9]+)?n?(?=[.;\s]|$)/giu;
-  for(const match of line.matchAll(re))_invalidDa.push('Dòng '+(i+1)+': LỖI ĐÁ — '+match[1]+' gồm 6 chữ số liền nhau, không được tự tách cặp. Hãy nhập rõ các cặp 2 số hoặc nhóm ĐÁ hợp lệ.');
+  for(const match of line.matchAll(re)){const pairs=match[1].match(/.{2}/g)||[];if(new Set(pairs).size!==pairs.length)_invalidDa.push('Dòng '+(i+1)+': LỖI ĐÁ — '+match[1]+' có cặp số trùng trong nhóm ĐÁ 6 chữ số. Hãy xác nhận và tách rõ các cặp trước khi tính tiền.');}
  });
  if(_invalidDa.length)return {rows:[],errors:_invalidDa};
  const _daSix=cuncunDaSeparatedSixErrors($('bets')?.value||'');

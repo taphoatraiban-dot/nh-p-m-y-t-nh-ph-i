@@ -15,11 +15,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Regenerate deterministic reconciliation preview on branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/fix/parser-dd-xc-validation-20261116'
+      - name: Regenerate deterministic reconciliation preview
         run: |
           node scripts/build-reconcile-preview.cjs
-          if ! git diff --quiet -- doi-soat-thu.html; then
+          if [ "${{ github.event_name }}" = 'push' ] && [ "${{ github.ref }}" = 'refs/heads/fix/parser-dd-xc-validation-20261116' ] && ! git diff --quiet -- doi-soat-thu.html; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add doi-soat-thu.html

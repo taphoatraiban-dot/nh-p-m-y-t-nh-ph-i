@@ -348,12 +348,12 @@ Deno.serve(async (req) => {
           const a=numbers[i], b=numbers[j];
           const first=perStation[0].hits.find(h => h.number === a)?.count || 0;
           const second=perStation[0].hits.find(h => h.number === b)?.count || 0;
-          // Each repeated matching pair counts once per matched occurrence.
-          // Unequal occurrence counts cannot create an extra pair.
+          // DA across two selected stations counts all eligible occurrences on
+          // both stations, then matches complete pairs. Unmatched extras do not pay.
           const otherA=perStation[1]?.hits.find(h => h.number === a)?.count || 0;
           const otherB=perStation[1]?.hits.find(h => h.number === b)?.count || 0;
           const times=cross
-            ? Math.min(first,otherB)+Math.min(second,otherA)
+            ? Math.min(first+otherA,second+otherB)
             : Math.min(first,second);
           if (times > 0) pairs.push({ a,b,times });
         }

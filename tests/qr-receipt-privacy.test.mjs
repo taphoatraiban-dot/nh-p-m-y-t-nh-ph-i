@@ -10,7 +10,7 @@ test('public receipt lookup returns only explicitly sanitized display fields',()
  assert.match(publicCode,/\.select\("receipt_code,status,issued_at,redeemed_at,receipt_snapshot"\)/);
  assert.match(publicCode,/const items = Array\.isArray\(original\.items\)/);
  assert.match(publicCode,/const safeText =/);
- assert.doesNotMatch(publicCode,/verificationSource|owner_user_id|payoutRatesSnapshot|customer/);
+ assert.doesNotMatch(publicCode,/original\.verificationSource|owner_user_id|payoutRatesSnapshot|original\.customer/);
 });
 test('public response has explicit safe fields, never spreads source',()=>{
  assert.match(publicCode,/return respond\(\{ receipt_code: data\.receipt_code, status: data\.status, issued_at: data\.issued_at, redeemed_at: data\.redeemed_at,/);

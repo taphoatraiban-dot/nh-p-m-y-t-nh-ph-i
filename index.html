@@ -5795,7 +5795,7 @@ async function getAllLotteryResults(requiredRegions){
     // LIVE: retain partial numbers. Never silently discard an entire region during draw.
     next[key]=typeof liveMergeRegion==='function'?liveMergeRegion(next[key],draws):draws;
     for(const draw of next[key]){
-      const prizes=drawPrizes(draw);
+      const prizes=drawPrizes(draw,true);
       const expected=region==='MB'?27:18;
       const count=Object.values(prizes).reduce((n,values)=>n+(Array.isArray(values)?values.length:0),0);
       if(count<expected)partial.push(region+' '+(drawProvince(draw)||'đài')+' '+count+'/'+expected);
@@ -5885,10 +5885,11 @@ function prizeKey(k){
   };
   return map[s] || s;
 }
-function drawPrizes(draw){
+function drawPrizes(draw,keepRepeated=false){
   // Chuẩn hóa cấu trúc XoSoAPI: prizes là object {db,g1,...};
   // đồng thời hỗ trợ results/result dạng object hoặc mảng.
   const out={};
+  let source=out;
   const prizeAliases={
     db:'db',dacbiet:'db',dacbietgiai:'db',special:'db',gdb:'db',
     g1:'g1',nhat:'g1',giainhat:'g1',
@@ -5913,7 +5914,7 @@ function drawPrizes(draw){
         for(const y of Object.values(x)) add(k,y);
       }else{
         const found=String(x).match(/\d{2,6}/g)||[];
-        if(found.length) out[k]=(out[k]||[]).concat(found);
+        if(found.length) source[k]=(source[k]||[]).concat(found);
       }
     }
   };
@@ -5939,13 +5940,25 @@ function drawPrizes(draw){
     }
   };
 
-  readObj(draw?.prizes);
-  readObj(draw?.result);
-  // Nếu results là object thì key giải được giữ nguyên.
-  readObj(draw?.results);
-  readPrizeArray(draw?.results);
-  readPrizeArray(draw?.result);
-  readPrizeArray(draw?.prizes);
+  function readSource(value){
+    if(keepRepeated) source={};
+    readObj(value);
+    readPrizeArray(value);
+    if(!keepRepeated) return;
+    // API có thể lặp lại bảng giải ở nhiều trường. Giữ số lần lặp
+    // trong từng bảng, không cộng trùng giữa các bản sao của bảng.
+    for(const [key,values] of Object.entries(source)){
+      const merged=out[key]||=[];
+      const remaining=new Map();
+      for(const value of merged) remaining.set(value,(remaining.get(value)||0)+1);
+      for(const value of values){
+        const count=remaining.get(value)||0;
+        if(count) remaining.set(value,count-1);
+        else merged.push(value);
+      }
+    }
+  }
+  for(const value of [draw?.prizes,draw?.result,draw?.results]) readSource(value);
 
   // Một số nguồn chỉ trả results theo thứ tự giải. Chỉ dùng mapping này
   // khi results thật sự là mảng và không có prizes object.
@@ -5953,16 +5966,17 @@ function drawPrizes(draw){
     const vals=Array.isArray(draw?.results)?draw.results:(Array.isArray(draw?.result)?draw.result:null);
     if(vals){
       const keys=['g8','g7','g6','g5','g4','g3','g2','g1','db'];
+      source=out;
       vals.forEach((v,i)=>add(keys[i]||('r'+i),v));
     }
   }
 
   for(const container of [draw?.lottery,draw?.result_data,draw?.data]){
     if(container&&typeof container==='object'&&!Array.isArray(container)){
-      readObj(container.prizes); readObj(container.results); readObj(container.result);
+      for(const value of [container.prizes,container.results,container.result]) readSource(value);
     }
   }
-  for(const k of Object.keys(out)) out[k]=[...new Set(out[k])];
+  if(!keepRepeated) for(const k of Object.keys(out)) out[k]=[...new Set(out[k])];
   return out;
 }
 function cleanDigits(v){return String(v||"").replace(/\D/g,"");}
@@ -6194,8 +6208,8 @@ function eligibleKeys(row, type){
   }
   return [];
 }
-function entriesForKeys(draw, keys){
-  const p=drawPrizes(draw), out=[];
+function entriesForKeys(draw, keys, keepRepeated=false){
+  const p=drawPrizes(draw,keepRepeated), out=[];
   for(const k of keys||[]){
     for(const v of (p[k]||[])){
       const d=cleanDigits(v);
@@ -6272,37 +6286,37 @@ function resultForDD(row,draw){
   return entriesForKeys(draw,keys).filter(e=>lastN(e.value,2)===want);
 }
 
-function resultForDA(row,draw){
-  const wanted=[...new Set(row.numbers.map(x=>lastN(x,2)).filter(Boolean))];
+function resultForDA(row,draws){
+  const wanted=[...new Set((row.numbers||[]).map(n=>lastN(n,2)).filter(Boolean))];
   const keys=eligibleKeys(row,"DA");
   const counts=new Map(wanted.map(n=>[n,0]));
-  for(const e of entriesForKeys(draw,keys)){
-    const n=lastN(e.value,2);
-    if(counts.has(n)) counts.set(n,(counts.get(n)||0)+1);
+  for(const draw of draws){
+    for(const e of entriesForKeys(draw,keys,true)){
+      const n=lastN(e.value,2);
+      if(counts.has(n)) counts.set(n,counts.get(n)+1);
+    }
   }
-  const hit=wanted.filter(x=>(counts.get(x)||0)>0);
-  // ĐÁ 1 đài — tính theo số CẶP THỰC SỰ CÙNG VỀ:
-  // 2 số về = 1 cặp × điểm; 3 số về = 3 cặp × điểm; 4 số về = 6 cặp × điểm.
-  // Với điểm 0.5n và giá Đá HN 640: 2 số = 0.5×640=320k;
-  // 3 số = 1.5×640=960k; 4 số = 3×640=1.920k.
-  // Ví dụ 47-74-91-32: nếu 47 và 74 cùng về thì cặp 47-74 phải được báo trúng,
-  // dù 91 hoặc 32 không về.
-  const winningPairs=[];
+  const pairs=[];
+  let pairCount=0;
   for(let i=0;i<wanted.length;i++){
     for(let j=i+1;j<wanted.length;j++){
       const a=wanted[i], b=wanted[j];
-      const times=(counts.get(a)||0)>0 && (counts.get(b)||0)>0 ? 1 : 0;
-      if(times>0) winningPairs.push({a,b,times});
+      const times=Math.min(counts.get(a),counts.get(b));
+      if(times>0){
+        pairCount+=times;
+        pairs.push(a+"–"+b+(times>1?" ×"+times:""));
+      }
     }
   }
-  const pairCount=winningPairs.reduce((sum,p)=>sum+p.times,0);
-  const pairs=winningPairs.map(p=>`${p.a}–${p.b}`+(p.times>1?` ×${p.times}`:""));
-  return {
-    numbers:hit,
-    pairs,
-    pairCount,
-    counts:Object.fromEntries(wanted.map(n=>[n,counts.get(n)||0]))
-  };
+  const hit=wanted.filter(n=>counts.get(n)>0);
+  const detail="Số về: "+hit.map(n=>n+"("+counts.get(n)+")").join(", ")
+    +(pairs.length?" • Cặp trúng: "+pairs.join(", "):"");
+  return {pairCount,detail};
+}
+
+function isCrossDA(row){
+  return row.type==="DA" && (row.cross2 || row.daMode==="cross" ||
+    row.crossProvinces?.length===2 || /^2 Đài (MN(?: phụ)?|MT)$/i.test(String(row.station||"")));
 }
 
 function resultForCross2B(row){
@@ -6333,106 +6347,6 @@ function resultForCross2B(row){
   return hits;
 }
 
-function resultForCross2DA(row){
-  // ĐÁ 2 ĐÀI — dò theo ĐÚNG 2 đài của phôi và gom toàn bộ lô 2 số
-  // từ G8 -> ĐB của cả 2 đài. Một cặp được tính nếu 2 số cùng xuất hiện
-  // trong tập kết quả của 2 đài, kể cả khi cả 2 số cùng nằm ở một đài.
-  // Ví dụ 25/09/2026 XSMT: Ninh Thuận có 86677 và 62825 => cặp 77–25.
-  let draws=[];
-  const selectedDate=$("date").value;
-  const all=uniqueDrawList(lotteryResults[row.region]||[])
-    .filter(d=>{const dk=drawDateKey(d); return !dk || dk===selectedDate;});
-
-  if(Array.isArray(row.crossProvinces) && row.crossProvinces.length===2){
-    // Cặp đài đã được xác định ngay từ lúc nhận diện phôi.
-    // 2DMN chính = TP.HCM + Long An; 2DMN phụ = Bình Phước + Hậu Giang.
-    for(const name of row.crossProvinces){
-      const d=findDrawForStation(all,name);
-      if(d) draws.push(d);
-    }
-  }else if(row.region==='N' && /^2 Đài MN phụ$/i.test(String(row.station||''))){
-    const preferred=["Bình Phước","Hậu Giang"];
-    for(const name of preferred){
-      const d=findDrawForStation(all,name);
-      if(d) draws.push(d);
-    }
-  }else if(row.region==='N' && /^2 Đài MN$/i.test(String(row.station||''))){
-    // 2DMN chính: TP.HCM + Long An.
-    const preferred=weeklyCrossStations('MN');
-    for(const name of preferred){
-      const d=findDrawForStation(all,name);
-      if(d) draws.push(d);
-    }
-    if(draws.length<2){
-      for(const d of all){
-        if(draws.some(x=>String(drawProvince(x)||'').toLowerCase()===String(drawProvince(d)||'').toLowerCase())) continue;
-        draws.push(d);
-        if(draws.length===2) break;
-      }
-    }
-  }else if(row.region==='T' && /^2 Đài MT$/i.test(String(row.station||''))){
-    // 2DMT CHÍNH = ĐÀ NẴNG + QUẢNG NGÃI.
-    // Tuyệt đối không lấy 2 đài đầu tiên API trả về và không dùng Đắk Nông.
-    const preferred=weeklyCrossStations('MT');
-    for(const name of preferred){
-      const d=findDrawForStation(all,name);
-      if(d) draws.push(d);
-    }
-  }else{
-    draws=regionDraws(row);
-  }
-
-  // DA chỉ dò 2 số cuối của toàn bộ giải. G4 BẮT BUỘC có mặt.
-  const wanted=[...new Set((row.numbers||[]).map(x=>String(lastN(x,2)).padStart(2,'0')).filter(Boolean))];
-  const counts=new Map(wanted.map(n=>[n,0]));
-  const where=new Map(wanted.map(n=>[n,[]]));
-  const keys=["g8","g7","g6","g5","g4","g3","g2","g1","db"];
-
-  for(const draw of draws){
-    // Dùng entriesForKeys đã chuẩn hóa để đọc được cả prizes/result/results.
-    // Không chỉ đọc lô tô riêng, vì như vậy có thể bỏ sót G4.
-    for(const e of entriesForKeys(draw,keys)){
-      const n=String(lastN(e.value,2)).padStart(2,'0');
-      if(counts.has(n)){
-        counts.set(n,(counts.get(n)||0)+1);
-        where.get(n).push({province:drawProvince(draw),prize:e.prize,value:e.value});
-      }
-    }
-  }
-
-  const hitNumbers=wanted.filter(n=>(counts.get(n)||0)>0);
-  const winningPairs=[];
-  for(let i=0;i<wanted.length;i++){
-    for(let j=i+1;j<wanted.length;j++){
-      const a=wanted[i], b=wanted[j];
-      // Mỗi cặp số đá trúng tối đa 1 lần dù một hoặc cả hai số lặp trong kết quả.
-      const times=(counts.get(a)||0)>0 && (counts.get(b)||0)>0 ? 1 : 0;
-      if(times>0) winningPairs.push({a,b,times});
-    }
-  }
-  const pairCount=winningPairs.reduce((sum,p)=>sum+p.times,0);
-
-  const detailParts=[];
-  if(hitNumbers.length){
-    detailParts.push("Số về: "+hitNumbers.map(n=>`${n}(${counts.get(n)||0})`).join(", "));
-  }
-  if(winningPairs.length){
-    detailParts.push("Cặp trúng: "+winningPairs.map(p=>`${p.a}–${p.b}`+(p.times>1?` ×${p.times}`:"")).join(", "));
-  }
-  if(draws.length){
-    detailParts.push("Đài dò: "+draws.map(drawProvince).join(" + "));
-  }
-
-  return {
-    draws,
-    pairCount,
-    numbers:hitNumbers,
-    pairs:winningPairs,
-    detail:detailParts.join(" • "),
-    counts:Object.fromEntries(wanted.map(n=>[n,counts.get(n)||0])),
-    where:Object.fromEntries(wanted.map(n=>[n,where.get(n)||[]]))
-  };
-}
 function expand3DmnCrossDA(rows){
   const out=[];
   // 3DMN + DA là ĐÁ XUYÊN đủ 3 cặp của đúng 3 đài MN trong NGÀY ĐANG TÍNH.
@@ -6539,7 +6453,8 @@ function expandThreeStationRows(rows){
   return out;
 }
 function scanRow(row){
-  const draws=regionDraws(row), hits=[];
+  const crossDA=isCrossDA(row);
+  const draws=crossDA?mainDrawsForCross2(row):regionDraws(row), hits=[];
   // BAO 2 ĐÀI: dò cứng từng đài trong crossProvinces.
   // Không dùng kết quả fallback của regionDraws; điều này tránh lỗi 2DMT
   // khi API trả thứ tự Đà Nẵng/Quảng Ngãi khác nhau.
@@ -6575,16 +6490,13 @@ function scanRow(row){
     }
     return hits;
   }
-  // ĐÁ 2 đài MN/MT là trường hợp đặc biệt: dò xuyên 2 đài chính,
-  // không tính đài phụ và không tách thành từng đài.
-  // ĐÁ XUYÊN: chỉ khi phôi thực sự khai báo 2 đài/cross2 mới gộp kết quả.
-  // ĐÁ THẲNG (DNANG 6768DA10, QNGIAI..., ...) rơi xuống vòng lặp dưới và
-  // chỉ dò draw duy nhất do regionDraws(row) chọn.
-  if(row.type==="DA" && (row.cross2 || /^2 Đài (MN|MT)$/i.test(String(row.station||"")))){
-    const r=resultForCross2DA(row);
-    if((r.pairCount||0)>0){
-      hits.push({province:r.draws.map(drawProvince).join(' + '),date:$("date").value,
-        pairCount:r.pairCount||0,detail:r.detail});
+  if(row.type==="DA"){
+    const groups=crossDA?[draws]:draws.map(draw=>[draw]);
+    for(const group of groups){
+      const {pairCount,detail}=resultForDA(row,group);
+      if(pairCount>0) hits.push({province:group.map(drawProvince).join(" + "),
+        date:crossDA?$("date").value:group[0].formatted_date||group[0].date,
+        pairCount,detail});
     }
     return hits;
   }
@@ -6595,13 +6507,7 @@ function scanRow(row){
     else if(row.type==="XC"||row.type==="XC-ĐẦU"||row.type==="XC-ĐUÔI") r=resultForXC(row,draw);
     else if(row.type==="DD"||row.type==="ĐẦU"||row.type==="ĐUÔI") r=resultForDD(row,draw);
     else if(row.type==="NHẤT TO 2"||row.type==="NHẤT TO 3") r=resultForNhatTo(row,draw);
-    else if(row.type==="DA") r=resultForDA(row,draw);
-    if(row.type==="DA"){
-      // ĐÁ 1 đài: phải có đủ 2 số tạo thành ít nhất 1 cặp.
-      if((r.pairCount||0)>0) hits.push({province:drawProvince(draw),date:draw.formatted_date||draw.date,
-        pairCount:r.pairCount||0,
-        detail:"Số về: "+r.numbers.join(", ")+(r.pairs.length?" • Cặp: "+r.pairs.join(", "):"")});
-    }else if(r.length){
+    if(r.length){
       const unique=r.filter((x,i,a)=>a.findIndex(y=>y.prize===x.prize&&y.value===x.value)===i);
       hits.push({
         province:drawProvince(draw),
@@ -6728,15 +6634,7 @@ function priceForRow(row,c){
     // HÀ NỘI / MIỀN BẮC luôn dùng giá Đá MB riêng.
     // Tuyệt đối không để logic Đá 1 đài MN/MT (dathang, ví dụ 750) ghi đè.
     if(row.region==='B') return +(c.daMB||c.xc||0);
-    // ĐÁ THẲNG / ĐÁ XUYÊN: ưu tiên daMode do parser gắn ngay khi đọc phôi.
-    // DNANG 6768DA10 -> daMode='straight' -> giá Đá 1 đài.
-    // DNANGQNGIAI 6768DA10 -> daMode='cross' -> giá Đá 2 đài.
-    // Chỉ dùng cross2/crossProvinces làm fallback cho các dòng phôi cũ.
-    // CHỐT: hễ là ĐÁ XUYÊN 2 ĐÀI (cross2 / có đúng 2 crossProvinces)
-    // thì luôn dùng giá da2, không để daMode='straight' cũ ghi đè thành 700.
-    if(row.cross2 || (Array.isArray(row.crossProvinces)&&row.crossProvinces.length===2)) k='da2';
-    else if(row.daMode==='cross') k='da2';
-    else k='dathang';
+    k=(row.cross2 || row.daMode==='cross' || row.crossProvinces?.length===2)?'da2':'dathang';
   }
   if(row.type==='XC'||row.type==='DAO XC'||row.type==='XC-ĐẦU'||row.type==='XC-ĐUÔI') k='xc';
   if(row.type==='DD'||row.type==='ĐẦU'||row.type==='ĐUÔI'||row.type==='NHẤT TO 2') k='dd';
@@ -6763,11 +6661,7 @@ function calcWinning(rows, priceTable){
       continue;
     }
     if(row.type==='DA'){
-      // THƯỞNG ĐÁ: giá thưởng × điểm × số CẶP thực tế trúng.
-      // Mỗi đài được tính riêng; 1 cặp trúng ở 1 đài = 1 lần thưởng.
-      // Ví dụ DA 2 đài, 0,5n, giá Đá 2 đài 540:
-      // 1 cặp trúng 1 đài => 540 × 0,5 = 270k.
-      // 1 cặp trúng cả 2 đài => 540 × 0,5 × 2 = 540k.
+      // Thưởng ĐÁ = giá thưởng × điểm × tổng số lượt ghép cặp.
       const winningPairs=hits.reduce((sum,h)=>sum+(Number(h.pairCount)||0),0);
       payout=priceForRow(row,cp)*Number(row.points||0)*winningPairs;
     }else if(row.type==='DAO XC'){
@@ -6794,11 +6688,12 @@ function calcWinningAvailable(rows,priceTable){
   const ready=[],waiting=new Set();
   for(const row of rows){
     if(row.hidden){ready.push(row);continue;}
-    const draws=regionDraws(row);
+    const crossDA=isCrossDA(row);
+    const draws=crossDA?mainDrawsForCross2(row):regionDraws(row);
     const label=String(row.scopeStation||row.station||'');
-    const count=/^3 Đài/i.test(label)?3:/^4 Đài/i.test(label)?4:/^2 Đài/i.test(label)?2:Array.isArray(row.crossProvinces)&&row.cross2?2:Array.isArray(row.fixedStations)&&row.fixedStations.length?row.fixedStations.length:1;
+    const count=crossDA?2:/^3 Đài/i.test(label)?3:/^4 Đài/i.test(label)?4:/^2 Đài/i.test(label)?2:Array.isArray(row.crossProvinces)&&row.cross2?2:Array.isArray(row.fixedStations)&&row.fixedStations.length?row.fixedStations.length:1;
     const complete=draws.length>=count && draws.every(d=>{
-      const prizes=drawPrizes(d);
+      const prizes=drawPrizes(d,row.type==="DA");
       const n=Object.values(prizes).reduce((sum,v)=>sum+(Array.isArray(v)?v.length:0),0);
       return n>=(row.region==='B'?27:18);
     });
@@ -7404,7 +7299,7 @@ function liveMergeRegion(previous,incoming){
   for(const fresh of incoming){
     const was=old.find(d=>norm(d)===norm(fresh));
     if(!was){result.push(fresh);continue;}
-    const a=drawPrizes(was),b=drawPrizes(fresh),merged={...a};
+    const a=drawPrizes(was,true),b=drawPrizes(fresh,true),merged={...a};
     for(const k of new Set([...Object.keys(a),...Object.keys(b)])){
       const before=Array.isArray(a[k])?a[k]:[];
       const after=Array.isArray(b[k])?b[k]:[];
@@ -8258,7 +8153,7 @@ function mainDrawsForCross2(row){
     const picked=[];
     for(const name of row.crossProvinces){
       const d=findDrawForStation(unique,name);
-      if(d) picked.push(d);
+      if(d&&!picked.includes(d)) picked.push(d);
     }
     return picked;
   }

@@ -24,9 +24,9 @@ const ctx=vm.createContext({
   drawDateKey:d=>d.date,
   provinceMatches:(name,d)=>name===d.province,
   lotteryResults:{N:[draw,{province:'Long An',date:'2026-10-26',pr:{g7:['999']}}]},
-  resultForDA:()=>({}),resultForXC:()=>[],resultForDD:()=>[],resultForCross2DA:()=>({pairCount:0})
+  resultForDA:()=>({}),resultForXC:()=>[],resultForDD:()=>[],isCrossDA:()=>false
 });
-vm.runInContext(section('eligibleKeys','resultForXC')+section('resultForCross2B','resultForCross2DA')+section('scanRow','renderScan')+section('priceForRow','typeLabel'),ctx,{timeout:2000});
+vm.runInContext(section('eligibleKeys','resultForXC')+section('resultForCross2B','expand3DmnCrossDA')+section('scanRow','renderScan')+section('priceForRow','typeLabel'),ctx,{timeout:2000});
 
 test('221bdao1 parses as DAO BL with three unique permutations',()=>{
   const result=parse('2dmn\n221bdao1.','2026-10-26');

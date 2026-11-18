@@ -21,6 +21,7 @@ const main = new vm.Script([
   section('drawProvince', 'function renderScan('),
   section('priceForRow', 'function typeLabel('),
   section('mainDrawsForCross2', '</script>'),
+  section('resultBoardDraws', 'function resultBoardHtmlForDraw('),
   section('liveMergeRegion', 'function liveResultCounts('),
 ].join('\n'));
 
@@ -61,6 +62,8 @@ test('2dmt 6776da10 pays 10,800k on the main screen, using only the selected sta
   assert.equal(result.wins, 10800);
   assert.equal(result.details[0].hits[0].pairCount, 2);
   assert.match(result.details[0].hits[0].detail, /67–76 ×2/);
+  const selectedBoards = vm.runInContext('resultBoardDraws(rows[0]).map(drawProvince).join(" + ")', ctx);
+  assert.equal(selectedBoards, 'Đà Nẵng + Khánh Hòa');
 });
 
 test('ĐÁ MN three numbers produce three pairs per complete set', () => {

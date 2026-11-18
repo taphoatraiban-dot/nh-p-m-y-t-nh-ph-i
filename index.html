@@ -7339,7 +7339,7 @@ function liveQualityReport(results,requestedDate){
       if(key)seen.add(key);
       const dt=drawDateKey(draw);
       if(dt && dt!==requestedDate)warnings.push(label+': sai ngày '+dt);
-      const prizes=drawPrizes(draw);
+      const prizes=drawPrizes(draw,true);
       let count=0,total=0;
       for(const [prize,need] of Object.entries(expected[region])){
         const nums=Array.isArray(prizes[prize])?prizes[prize]:[];
@@ -8056,14 +8056,12 @@ function resultBoardWanted(row){
 function resultBoardDraws(row){
   if(!row) return [];
   try{
-    if(row.type==='DA' && (row.cross2 || /^2 Đài (MN|MT)$/i.test(String(row.station||'')))){
-      return resultForCross2DA(row).draws||[];
-    }
+    if(isCrossDA(row)) return mainDrawsForCross2(row);
     return regionDraws(row)||[];
   }catch(e){ return []; }
 }
 function resultBoardHtmlForDraw(draw,row,wanted){
-  const prizes=drawPrizes(draw);
+  const prizes=drawPrizes(draw,row.type==="DA");
   const order=['g8','g7','g6','g5','g4','g3','g2','g1','db'];
   let rows='';
   for(const key of order){

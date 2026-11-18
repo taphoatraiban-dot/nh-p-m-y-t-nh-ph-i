@@ -9,6 +9,7 @@ on:
       - 'qr-payout-preview.mjs'
       - 'tests/qr-payout-preview.test.mjs'
       - 'tests/qr-receipt-privacy.test.mjs'
+      - 'tests/qr-da-server-repeat.test.mjs'
       - 'supabase/functions/receipt-verify/index.ts'
       - '.github/workflows/qr-payout-preview.yml'
 jobs:
@@ -21,4 +22,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/qr-payout-preview.test.mjs tests/qr-receipt-privacy.test.mjs
+      - run: node --test tests/qr-payout-preview.test.mjs tests/qr-receipt-privacy.test.mjs tests/qr-da-server-repeat.test.mjs

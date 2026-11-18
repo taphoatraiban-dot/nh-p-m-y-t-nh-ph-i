@@ -246,7 +246,9 @@ Deno.serve(async (req) => {
         const region = row?.region === "N" ? "MN" : row?.region === "T" ? "MT" : "MB";
         // Multi-station wagers must validate every selected station, including B3/B4/XC.
         const selected = Array.isArray(row?.crossProvinces) ? row.crossProvinces.filter((s: unknown) => typeof s === "string" && s.trim()) : [];
-        const multi = row?.cross2 === true && selected.length >= 2 && !row?.scopeStation;
+        const daCross = String(row?.type || "").toUpperCase() === "DA" &&
+          (row.cross2 === true || row.daMode === "cross" || selected.length === 2);
+        const multi = daCross || (row?.cross2 === true && selected.length >= 2 && !row?.scopeStation);
         const names = multi ? selected : [row?.scopeStation || row?.station];
         const matches = names.map((name: unknown) => {
           const normalized = normalizeStation(name);
@@ -331,15 +333,14 @@ Deno.serve(async (req) => {
         const perStation = stationCoverage[index].stations.map((station: {matched:string|null}) => {
           const province = (Array.isArray(draw?.data?.data) ? draw.data.data : []).find((p: any) => p.province === station.matched);
           const prizes = province?.prizes || {};
-          const counts = Object.entries(prizes).flatMap(([key,values]) =>
-            (region === "MB" && key === "g8") ? [] :
-            Array.isArray(values) ? values.map(v => safeSuffix(v,2)).filter(Boolean) : []);
+          const counts = Object.keys(requiredCounts[region]).flatMap(key =>
+            Array.isArray(prizes[key]) ? prizes[key].map((v: unknown) => safeSuffix(v,2)).filter(Boolean) : []);
           return { station: station.matched, hits: numbers.map(number => ({
             number, count: counts.filter(n => n === number).length
           })) };
         });
         const cross = row.cross2 === true || row.daMode === "cross" || (Array.isArray(row.crossProvinces) && row.crossProvinces.length === 2);
-        if (cross && perStation.length !== 2)
+        if (cross && (perStation.length !== 2 || perStation[0].station === perStation[1].station))
           return { index, supported: false, reason: "cross_requires_two_stations" };
         if (!cross && perStation.length !== 1)
           return { index, supported: false, reason: "straight_requires_one_station" };

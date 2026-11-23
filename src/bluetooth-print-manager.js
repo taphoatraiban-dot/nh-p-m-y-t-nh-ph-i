@@ -138,15 +138,17 @@
       try {
         if (action === 'sync-now') {
           const control=root.CuncunRecentPhoiBootstrap;
-          if(!control||typeof control.syncNow!=='function'||!control.active()) {
-            notify('Đồng bộ chưa sẵn sàng. Hãy đăng nhập lại hoặc tải lại trang.'); return;
+          const setup=root.CuncunRecentPhoiControl;
+          if(!control||typeof control.syncNow!=='function'||!setup||typeof setup.enable!=='function') {
+            notify('Đồng bộ chưa sẵn sàng. Hãy tải lại trang.'); return;
           }
           button.disabled=true;
           button.textContent='ĐANG ĐỒNG BỘ...';
           try {
-            await control.syncNow();
+            if(!control.active()) await setup.enable();
+            else await control.syncNow();
             render();
-            notify('Đã hoàn tất yêu cầu đồng bộ. Kiểm tra lại danh sách phiếu.');
+            notify('Đã đồng bộ phơi. Tự đồng bộ trong phiên đăng nhập này.');
           } finally { button.disabled=false; button.textContent='↻ ĐỒNG BỘ NGAY'; }
         } else if (action === 'region') {
           activeRegion=button.dataset.region; render();

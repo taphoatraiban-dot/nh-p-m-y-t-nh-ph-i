@@ -1,0 +1,82 @@
+name: Deploy Telegram Edge Functions
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/config.toml'
+      - 'supabase/functions/telegram-chat/**'
+      - 'supabase/functions/telegram-member-sync/**'
+      - 'supabase/functions/telegram-tenant/**'
+      - 'tests/telegram-retention-window.test.cjs'
+      - '.github/workflows/deploy-telegram-edge-functions.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/config.toml'
+      - 'supabase/functions/telegram-chat/**'
+      - 'supabase/functions/telegram-member-sync/**'
+      - 'supabase/functions/telegram-tenant/**'
+      - 'tests/telegram-retention-window.test.cjs'
+      - '.github/workflows/deploy-telegram-edge-functions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-edge-deploy-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check the 24-hour retention rules
+        run: node --test tests/telegram-retention-window.test.cjs
+      - name: Keep deployed gateway authentication settings explicit
+        run: |
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+
+          config = tomllib.loads(Path("supabase/config.toml").read_text())
+          for name in ("telegram-chat", "telegram-member-sync", "telegram-tenant"):
+              assert config["functions"][name]["verify_jwt"] is False, (
+                  f"{name} must keep its existing custom authentication and webhook checks"
+              )
+          PY
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 3.2.0
+      - name: Require production deployment secrets
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::Add the SUPABASE_ACCESS_TOKEN repository secret"; exit 1; }
+          test -n "$SUPABASE_PROJECT_ID" || { echo "::error::Add the SUPABASE_PROJECT_ID repository secret"; exit 1; }
+      - name: Deploy the three Telegram functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          supabase functions deploy telegram-chat --project-ref "$SUPABASE_PROJECT_ID"
+          supabase functions deploy telegram-member-sync --project-ref "$SUPABASE_PROJECT_ID"
+          supabase functions deploy telegram-tenant --project-ref "$SUPABASE_PROJECT_ID"

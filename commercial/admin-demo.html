@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuncun — Demo quản lý đơn WEB</title>
+<style>body{font:16px system-ui,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;background:#f5f6f8;color:#111}main{background:white;border-radius:14px;padding:22px}input,select,button{font:inherit;padding:10px;margin:5px;border:1px solid #bbb;border-radius:7px}button{background:#161616;color:white;cursor:pointer}button:disabled{opacity:.5}article{border-top:1px solid #ddd;padding:12px 0}label{display:block}#demo-warning{background:#fff0c2;padding:14px;border-radius:9px}</style></head>
+<body><main><h1>Cuncun — Demo quản lý đơn WEB</h1>
+<p id="demo-warning"><strong>CHỈ LÀ DEMO.</strong> Dữ liệu giả trong bộ nhớ trình duyệt. Không kết nối Supabase, không nhận tiền, không cấp hay gia hạn bản quyền. Tải lại trang sẽ xóa dữ liệu demo.</p>
+<p>Thử nhanh: chọn kỳ hạn → Tạo đơn → Xác nhận hoặc Hủy. Mỗi lần tải lại trang, đơn giả sẽ mất.</p>
+<div id="commercial-root"></div></main>
+<script type="module">
+import {mountCommercialAdmin} from './admin-panel.mjs';
+const orders=[];
+let sequence=0;
+const uuid=()=>`00000000-0000-4000-8000-${String(++sequence).padStart(12,'0')}`;
+const prices={1:799000,3:2290000,6:4390000,12:7990000};
+const client={async rpc(name,args){
+ if(name==='ott_admin_create_commercial_order'){
+  if(args.p_plan_code!=='WEB'||!(args.p_duration_months in prices))return {data:null,error:{message:'Gói không hợp lệ'}};
+  const id=uuid();
+  orders.unshift({id,customer_user_id:args.p_customer_user_id,plan_code:'WEB',duration_months:args.p_duration_months,amount_vnd:prices[args.p_duration_months],status:'pending',payment_reference:args.p_payment_reference,created_at:new Date().toISOString(),confirmed_at:null});
+  return {data:id,error:null};
+ }
+ if(name==='ott_admin_list_commercial_orders')return {data:orders.slice(0,args.p_limit).map(o=>({...o})),error:null};
+ if(name==='ott_admin_confirm_commercial_order'||name==='ott_admin_cancel_commercial_order'){
+  const order=orders.find(o=>o.id===args.p_order_id&&o.status==='pending');
+  if(!order)return {data:false,error:null};
+  order.status=name==='ott_admin_confirm_commercial_order'?'confirmed':'cancelled';
+  if(order.status==='confirmed')order.confirmed_at=new Date().toISOString();
+  return {data:true,error:null};
+ }
+ return {data:null,error:{message:'RPC không được hỗ trợ trong demo'}};
+}};
+const root=document.querySelector('#commercial-root');
+const panel=mountCommercialAdmin({root,client});
+// A clearly fake, prefilled customer makes the offline demo usable immediately.
+root.querySelector('[name=customer]').value='11111111-1111-4111-8111-111111111111';
+await panel.refresh();
+</script></body></html>

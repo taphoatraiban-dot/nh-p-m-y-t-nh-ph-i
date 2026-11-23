@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quản lý thuê bao - Bản thử nghiệm</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#161616;background:#f3f4f6}*{box-sizing:border-box}body{margin:0;padding:20px}main{max-width:760px;margin:auto}h1{font-size:25px}section{background:white;border:1px solid #ddd;border-radius:14px;padding:18px;margin:14px 0}label{display:block;font-weight:650;margin:12px 0 5px}input,select,button{font:inherit;padding:12px;border-radius:9px;border:1px solid #aaa;width:100%}button{background:#171717;color:white;font-weight:700;cursor:pointer;margin-top:15px}button:disabled{opacity:.4;cursor:not-allowed}.muted{color:#666}.price{font-size:28px;font-weight:800}#result{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f5f5;padding:14px;border-radius:10px}table{width:100%;border-collapse:collapse}td,th{padding:10px 6px;border-bottom:1px solid #ddd;text-align:left}
+</style></head><body><main>
+<h1>Quản lý thuê bao</h1><p class="muted">Bản thử nghiệm nội bộ. Chỉ lập báo giá; không thu tiền, không cấp quyền và không thay đổi thiết bị.</p>
+<section><h2>Lập báo giá</h2>
+<label for="customer">Mã khách hàng (UUID)</label><input id="customer" placeholder="UUID của khách hàng" autocomplete="off">
+<label for="plan">Gói dịch vụ</label><select id="plan"><option value="WEB">WEB</option><option value="WEB_PRINT" disabled>WEB + IN (chưa mở bán)</option></select>
+<label for="months">Thời hạn</label><select id="months"><option value="1">1 tháng</option><option value="3">3 tháng</option><option value="6">6 tháng</option><option value="12">12 tháng</option></select>
+<label for="expiry">Ngày hết hạn hiện tại (nếu có)</label><input id="expiry" type="datetime-local">
+<p class="muted">Số tiền dự kiến</p><div class="price" id="amount">799.000 ₫</div>
+<button id="preview">Xem báo giá — không cấp quyền</button>
+<h3>Kết quả</h3><div id="result" role="status">Chưa lập báo giá.</div></section>
+<section><h2>Lịch sử giao dịch</h2><p class="muted">Chưa kết nối dữ liệu thật. Chỉ hiển thị khi tích hợp RPC admin an toàn; không lấy dữ liệu khách bằng quyền công khai.</p></section>
+</main><script type="module">
+import {renewalQuote} from './catalog.mjs';
+const $=id=>document.getElementById(id);
+const prices={1:799000,3:2290000,6:4390000,12:7990000};
+function refresh(){ $('amount').textContent=new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(prices[$('months').value]); }
+$('months').addEventListener('change',refresh);
+$('preview').addEventListener('click',()=>{
+ try {
+  const id=$('customer').value.trim();
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw Error('Mã khách hàng UUID không hợp lệ.');
+  const current=$('expiry').value?new Date($('expiry').value).toISOString():null;
+  const q=renewalQuote({now:new Date().toISOString(),expiresAt:current,plan:$('plan').value,months:Number($('months').value)});
+  $('result').textContent='Khách: '+id+'\nGói: '+q.plan+'\nKỳ hạn: '+q.months+' tháng\nSố tiền: '+new Intl.NumberFormat('vi-VN').format(q.amountVnd)+' ₫\nHết hạn dự kiến: '+new Date(q.proposedExpiresAt).toLocaleString('vi-VN')+'\nTrạng thái: CHỜ ADMIN XÁC NHẬN\nChưa ghi dữ liệu.';
+ }catch(e){$('result').textContent='Lỗi: '+e.message;}
+});
+refresh();
+</script></body></html>

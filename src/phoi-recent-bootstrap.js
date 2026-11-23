@@ -1,5 +1,5 @@
-/* Explicit opt-in bootstrap for the CUNCUN print-history backup.
-   No production auto-start, no credentials, no database provisioning. */
+/* User-triggered opt-in bootstrap for CUNCUN print-history backup.
+   No automatic start, no credentials, no database provisioning. */
 (function(root){
  'use strict';
  let session=null;

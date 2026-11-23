@@ -1,5 +1,5 @@
-/* Staging-only print-history hooks. Does not contact cloud or modify receipts.
-   Explicitly attach a configured bridge after authenticated staging is ready. */
+/* Opt-in print-history hooks. Inert until an authenticated user starts sync.
+   Does not intercept printing or block receipt saves on cloud requests. */
 (function(root){
  'use strict';
  let bridge=null;

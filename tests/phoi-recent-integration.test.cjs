@@ -49,7 +49,6 @@ test('recovery merges cloud receipts without replacing local copies',async()=>{
  assert.equal(result.restored,0);
  assert.equal(written,null);
 });
-
 test('recovery refuses to write when account changes during cloud fetch',async()=>{
  const integration=load();
  let raw='[]',userId='owner-1',writes=0;
@@ -62,7 +61,6 @@ test('recovery refuses to write when account changes during cloud fetch',async()
  await assert.rejects(()=>client.recover(),/Account changed during restore/);
  assert.equal(writes,0);
 });
-
 test('local storage failure never throws into the print flow',async()=>{
  const integration=load();
  const storage={getItem:()=> '[]',setItem:()=>{throw new Error('QuotaExceededError');}};
@@ -71,7 +69,6 @@ test('local storage failure never throws into the print flow',async()=>{
  assert.equal(result.queued,false);
  assert.equal(result.error,'backup_unavailable');
 });
-
 test('authentication lookup failure never throws into the print flow',async()=>{
  const integration=load();
  const storage={getItem:()=> '[]',setItem:()=>{}};
@@ -80,7 +77,6 @@ test('authentication lookup failure never throws into the print flow',async()=>{
  assert.equal(result.queued,false);
  assert.equal(result.error,'backup_unavailable');
 });
-
 test('recovery preserves a new local receipt added during cloud restoration',async()=>{
  const integration=load();
  const now=new Date();
@@ -102,10 +98,6 @@ test('recovery preserves a new local receipt added during cloud restoration',asy
  assert.ok(written.some(x=>x.id==='local-new'));
  assert.ok(written.some(x=>x.id==='remote-1'));
 });
-
-// The receipt-save hook is intentionally not enabled in production until the
-// actual index.html persistence point and its receipt shape are verified.
-
 test('deleted receipt writes local marker before cloud tombstone',async()=>{
  const integration=load();
  const calls=[];
@@ -153,7 +145,6 @@ test('offline deletion persists for retry and clears after connection returns',a
  assert.equal(retried.deletions.synced,1);
  assert.equal(client.pending(),0);
 });
-
 test('restore excludes receipts pending offline deletion for current account',async()=>{
  const integration=load();
  const now=new Date();
@@ -171,7 +162,6 @@ test('restore excludes receipts pending offline deletion for current account',as
  assert.equal(result.restored,0);
  assert.equal(written,false);
 });
-
 test('invalid deletion IDs cannot create local or remote tombstones',async()=>{
  const integration=load();
  let localCalls=0,cloudCalls=0;
@@ -190,7 +180,6 @@ test('invalid deletion IDs cannot create local or remote tombstones',async()=>{
  assert.equal(localCalls,0);
  assert.equal(cloudCalls,0);
 });
-
 test('failed local deletion marker must not send a cloud tombstone',async()=>{
  const integration=load();
  let cloudCalls=0;
@@ -206,7 +195,6 @@ test('failed local deletion marker must not send a cloud tombstone',async()=>{
  assert.equal(cloudCalls,0);
  assert.equal(client.pending(),0);
 });
-
 test('retry blocks old backup uploads until offline deletion markers sync',async()=>{
  const integration=load();
  const store=new Map();
@@ -235,7 +223,6 @@ test('retry blocks old backup uploads until offline deletion markers sync',async
  assert.equal(second.backups.error,null);
  assert.equal(client.pending(),0);
 });
-
 test('automatic receipt save respects pending offline deletions',async()=>{
  const integration=load();
  const store=new Map([['cuncun_pending_phoi_deletions_v1',JSON.stringify([{userId:'owner-1',receiptId:'old-deleted'}])]]);

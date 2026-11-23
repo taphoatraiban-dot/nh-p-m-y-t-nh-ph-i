@@ -42,7 +42,7 @@ Deno.serve(async(req)=>{
   const {data:groups}=await db.from("telegram_tenant_groups").select("chat_id,group_name,enabled").eq("user_id",user.id).order("created_at",{ascending:false});
   const ids=(groups||[]).filter(g=>g.enabled).map(g=>g.chat_id);
   let messages:any[]=[];
-  if(ids.length){const since=new Date(Date.now()-48*3600000).toISOString();const {data}=await db.from("telegram_tenant_messages").select("id,chat_id,message_text,message_date").eq("user_id",user.id).in("chat_id",ids).gte("message_date",since).order("message_date",{ascending:false}).limit(300);messages=data||[]}
+  if(ids.length){const since=new Date(Date.now()-24*3600000).toISOString();const {data}=await db.from("telegram_tenant_messages").select("id,chat_id,message_text,message_date").eq("user_id",user.id).in("chat_id",ids).gte("message_date",since).order("message_date",{ascending:false}).limit(300);messages=data||[]}
   return reply({success:true,bot,groups:groups||[],messages});
  }
  if(req.method!=="POST")return reply({error:"Method not allowed"},405);

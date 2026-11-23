@@ -91,7 +91,7 @@ if(action==="hide"&&req.method==="POST"){
 if(action!=="read"||req.method!=="GET")return out({error:"Bad action"},400);
 const [g,m,k,h]=await Promise.all([
  db.from("telegram_member_groups").select("chat_id,group_name,enabled,last_seen_at").eq("user_id",userId).order("group_name"),
- db.from("telegram_member_messages").select("chat_id,message_id,message_text,sender_name,message_date,edited_at").eq("user_id",userId).gte("message_date",new Date(Date.now()-48*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000),
+ db.from("telegram_member_messages").select("chat_id,message_id,message_text,sender_name,message_date,edited_at").eq("user_id",userId).gte("message_date",new Date(Date.now()-24*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000),
  db.from("telegram_member_sync_keys").select("created_at,telegram_display_name,telegram_username,telegram_phone,telegram_account_id,telegram_profile_updated_at").eq("user_id",userId).maybeSingle(),
  db.from("telegram_member_hidden").select("chat_id,message_id").eq("user_id",userId)
 ]);

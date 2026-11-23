@@ -114,7 +114,7 @@ Deno.serve(async req=>{
    const hiddenJobs=checked(await db.from("telegram_member_hidden").select("chat_id,message_id").eq("user_id",uid).in("message_id",jobIds));
    const hiddenKeys=new Set(hiddenJobs.map((h:any)=>h.chat_id+":"+h.message_id));jobs=jobs.filter((j:any)=>!hiddenKeys.has(j.chat_id+":"+j.message_id));
   }
-  const notices=checked(await db.from("telegram_member_messages").select("chat_id,message_id,sender_name").eq("user_id",uid).gte("message_date",new Date(Date.now()-48*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000));
+  const notices=checked(await db.from("telegram_member_messages").select("chat_id,message_id,sender_name").eq("user_id",uid).gte("message_date",new Date(Date.now()-24*3600000).toISOString()).order("message_date",{ascending:false}).limit(1000));
   const allowed=new Set(groups.map((g:any)=>g.chat_id));
   return out({success:true,groups,messages,jobs:jobs.filter((j:any)=>j.chat_id!==b.chat_id||!hiddenIds.has(j.message_id)),notices:notices.filter((m:any)=>allowed.has(m.chat_id)&&(m.chat_id!==b.chat_id||!hiddenIds.has(m.message_id)))});
  }catch{ return out({error:"Không thể xử lý Telegram Chat"},500); }

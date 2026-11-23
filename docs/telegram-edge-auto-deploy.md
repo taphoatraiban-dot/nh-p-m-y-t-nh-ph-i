@@ -2,7 +2,7 @@
 
 Workflow `.github/workflows/deploy-telegram-edge-functions.yml` kiểm tra thay đổi rồi triển khai đúng ba function `telegram-chat`, `telegram-member-sync` và `telegram-tenant` khi commit có liên quan được merge vào `main`.
 
-Workflow kiểm tra giới hạn truy vấn 24 giờ và xác nhận cấu hình `verify_jwt = false` cho cả ba function. Các function tự kiểm tra JWT, khóa đồng bộ hoặc webhook secret ở trong mã nguồn. Workflow không chạy migration, không thay đổi secrets của Supabase và không triển khai function khác.
+Workflow kiểm tra giới hạn truy vấn 24 giờ, cấu hình `verify_jwt = false` và biên dịch TypeScript của cả ba function trước khi cho phép triển khai. Khi deploy, workflow cũng xác nhận project ref đúng project production CUNCUN. Các function tự kiểm tra JWT, khóa đồng bộ hoặc webhook secret ở trong mã nguồn. Workflow không chạy migration, không thay đổi secrets của Supabase và không triển khai function khác.
 
 ## Cần cấu hình một lần
 

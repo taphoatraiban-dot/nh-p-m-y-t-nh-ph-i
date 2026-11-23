@@ -16,6 +16,11 @@ Dự án production `zigpqddlhvjbjrwhfhaa` đang có bảng sao lưu phơi và t
 
 Các bảng `public.printed_phoi` và `public.print_queue` vẫn có RLS theo `auth.uid() = user_id`. Policy `phone_license_guard` là RESTRICTIVE, nên được kết hợp với policy chủ sở hữu bằng AND. Không thay đổi policy production.
 
+## Kiểm thử Supabase staging (23/11/2026)
+Tạo nhánh Supabase tạm không mang theo dữ liệu production, áp dụng migration sao lưu rồi kiểm tra qua SQL: chủ phiếu đọc được bản ghi của mình; tài khoản thứ hai không đọc hoặc ghi được bản ghi chủ; dấu xóa chặn upload đến muộn; vai trò anon không có quyền đọc; authenticated không được gọi hàm dọn. Advisor staging không phát hiện cảnh báo mới trên hai bảng sao lưu. Giao dịch kiểm thử đã rollback; xác nhận sau đó staging không còn hàng thử nghiệm. Nhánh staging tạm đã xóa.
+
+Phép thử này xác minh schema, RLS và trigger trên Supabase; chưa mô phỏng đăng nhập thật trên iPhone, cài lại ứng dụng hoặc phục hồi hàng đợi cục bộ. Các ca đó vẫn cần chạy trên bản ứng dụng với tài khoản staging được cấp phép trước khi phát hành rộng.
+
 ## An toàn dữ liệu và kiểm thử còn lại
 Các test đơn vị bao phủ hàng đợi, phục hồi hợp nhất, đổi tài khoản giữa lúc tải, đánh dấu xóa và retry khi offline. Vẫn cần chạy bộ kiểm tra trên tài khoản staging trước khi bật rộng, đặc biệt kiểm thử cạnh tranh giữa upload cũ và dấu xóa trên PostgreSQL thật. Không suy ra bảo đảm giao dịch từ test đơn vị.
 

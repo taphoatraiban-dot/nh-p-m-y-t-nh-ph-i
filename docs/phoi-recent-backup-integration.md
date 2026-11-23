@@ -1,49 +1,22 @@
-# Tích hợp sao lưu phơi: điều kiện bắt buộc trước khi bật
+# Tích hợp sao lưu phơi: trạng thái và điều kiện phát hành
 
-Trạng thái: **chưa tích hợp vào in Wi-Fi hoặc bản chính**.
+Trạng thái: **đã có điểm bật đồng bộ do người dùng chủ động chọn trong trình quản lý in; mặc định không tự bật**. Nút **ĐỒNG BỘ NGAY** gọi thiết lập đồng bộ cho phiên đăng nhập hiện tại hoặc đồng bộ ngay nếu đã bật. Luồng in tiếp tục không chờ mạng sao lưu.
 
-## Luồng ghi an toàn
-1. Sau khi ứng dụng đã tạo một phiếu có `id` ổn định, `created_at` dạng ISO có múi giờ và đã lưu phiếu vào danh sách quản lý in, gọi `queue.enqueue(receipt, authUser.id)` **trước khi gửi lệnh in**. Không được chặn việc in khi mạng Supabase lỗi.
-2. Gọi `queue.flush()` khi có kết nối, sau khi đăng nhập và khi ứng dụng hoạt động trở lại. Hiển thị số phiếu đang chờ và lỗi đồng bộ. **Không báo "đã sao lưu" chỉ vì đã enqueue.**
-3. Sau đăng nhập, gọi `restore({supabase,userId:authUser.id})`, so sánh theo ID, hợp nhất với phiếu hiện có; không xóa hay thay thế toàn bộ danh sách in. Chỉ hiển thị phơi của hôm nay/hôm qua theo Asia/Ho_Chi_Minh.
-4. Khi khách chuyển tài khoản, không được tải dữ liệu tài khoản trước. Mọi truy vấn dùng auth.uid và RLS; hàng đợi offline gắn userId riêng.
-5. Với iOS Wi-Fi ESC/POS, điểm tích hợp phải nằm **trước** TCP send, ngay sau bước lưu phiếu; không dựa vào phản hồi TCP để quyết định có sao lưu hay không.
-6. Trước khi phát hành: kiểm thử in thật qua Wi-Fi, tắt mạng rồi in, bật mạng đồng bộ, đóng/mở app, cài lại app, đăng nhập và phục hồi; kiểm thử hai tài khoản, trùng ID, qua 00:00 giờ Việt Nam, phiếu quá hạn.
-7. Phải có tác vụ dọn bản ghi **trên máy chủ** sau khi kết thúc ngày hôm qua theo giờ Việt Nam. Lọc phía ứng dụng không tương đương xóa dữ liệu.
-8. Chỉ chạy migration và dọn dữ liệu sau khi có sao lưu database và xác nhận chính sách RLS, tránh ảnh hưởng dữ liệu hiện hữu.
+## Hành vi và giới hạn đã xác minh
+1. Bản sao lưu phơi dùng hàng đợi cục bộ và thao tác cloud không được làm chặn lệnh in.
+2. Người dùng phải chủ động bấm nút đồng bộ; không tự khởi chạy sau khi cài đặt hoặc đăng nhập.
+3. Dữ liệu cloud được gắn với tài khoản đăng nhập; luồng phục hồi hợp nhất theo ID và chặn ghi nếu tài khoản đổi trong khi tải.
+4. Các kiểm thử trong `tests/phoi-recent-integration.test.cjs` kiểm tra adapter với dữ liệu giả. Chúng **không thay thế** kiểm tra phục hồi end-to-end trên bản ứng dụng và tài khoản staging.
+5. Trước khi phát hành rộng: kiểm thử in Wi-Fi khi online/offline, đóng/mở app, cài lại rồi đăng nhập phục hồi, đổi tài khoản, ID trùng, qua 00:00 giờ Việt Nam và phiếu quá hạn.
+6. Phải xác minh lịch dọn bản ghi phía máy chủ và chính sách RLS theo tài khoản. Lọc phía ứng dụng không tương đương xóa dữ liệu trên máy chủ.
+7. Không chạy phục hồi thử hoặc xóa trên tài khoản production. Dùng tài khoản staging có dữ liệu kiểm thử, xác nhận sao lưu database trước migration hoặc thao tác thay đổi dữ liệu.
 
-## Chú ý
-Bản mã thử nghiệm chỉ là thư viện dùng khi tích hợp. Chưa có bảng `phoi_recent_backups` trên production, chưa có lịch dọn tự động, chưa có kiểm thử end-to-end, và chưa bật tính năng cho khách.
+## Kiểm tra production chỉ đọc (23/11/2026)
+Dự án production `zigpqddlhvjbjrwhfhaa` đang có bảng sao lưu phơi và tác vụ `cuncun-retention-24h` chạy hàng giờ; tác vụ dọn các bản ghi liên quan quá 24 giờ. Không xóa bản ghi production trong đợt kiểm tra này.
 
-## Kiểm tra cơ sở dữ liệu thật (04/11/2026, chỉ đọc)
+Các bảng `public.printed_phoi` và `public.print_queue` vẫn có RLS theo `auth.uid() = user_id`. Policy `phone_license_guard` là RESTRICTIVE, nên được kết hợp với policy chủ sở hữu bằng AND. Không thay đổi policy production.
 
-Dự án production `zigpqddlhvjbjrwhfhaa` hiện có `public.printed_phoi` và `public.print_queue`; chưa có `public.phoi_recent_backups`. `printed_phoi` chứa `id` bigint, `user_id` uuid, `phoi_key`, `phoi_text`, `created_at`, `deleted` và các tổng tiền. `print_queue` chứa `print_text`, `created_at`, `printed_at` và trạng thái. Hai bảng có chính sách RLS theo `auth.uid() = user_id`.
+## An toàn dữ liệu và kiểm thử còn lại
+Các test đơn vị bao phủ hàng đợi, phục hồi hợp nhất, đổi tài khoản giữa lúc tải, đánh dấu xóa và retry khi offline. Vẫn cần chạy bộ kiểm tra trên tài khoản staging trước khi bật rộng, đặc biệt kiểm thử cạnh tranh giữa upload cũ và dấu xóa trên PostgreSQL thật. Không suy ra bảo đảm giao dịch từ test đơn vị.
 
-**Đã xác minh bảo mật bằng truy vấn chỉ đọc:** `phone_license_guard` trên cả hai bảng có `permissive = RESTRICTIVE` (không phải `PERMISSIVE`). Do đó điều kiện `phone_auth_session_allowed()` được kết hợp AND với các policy chủ sở hữu theo `auth.uid() = user_id`; không phát sinh đường OR bỏ qua chủ sở hữu từ policy này. Hàm `phone_auth_session_allowed()` kiểm tra phiên đăng nhập và hạn sử dụng của tài khoản SĐT. Không cần thay đổi policy production vì nghi ngờ ban đầu. Vẫn phải kiểm thử hai tài khoản trước khi phát hành.
-
-**Tích hợp thực tế:** Không tự suy diễn `TSH_PRINT_HISTORY_V1` tương đương `printed_phoi`. Cần xác định nơi ghi phiếu trong `index.html` và mối liên hệ ID trước khi bật adapter. Giữ nguyên bản ghi `printed_phoi` và `print_queue`; không chạy thao tác xóa hoặc migration lên production cho đến khi kiểm thử staging đạt.
-
-
-## Independent deletion markers (draft)
-The backup client now queries `phoi_recent_backup_deletions` before upload and restore.
-A deletion is upserted to that table even when the original snapshot was never uploaded.
-Both tables must be provisioned together on staging before enabling the feature.
-Never enable the new helper against production before verifying RLS, account switching,
-offline retries, and race conditions. A check-then-upsert is not atomic: a concurrent
-backup request can still race with deletion, so a server-side enforcement trigger or
-transactional RPC is required before release. The deletion marker table also needs a
-retention policy; do not purge markers while stale upload queues may still retry.
-
-
-## Concurrency test required before release
-The draft migration now uses matching transaction-scoped advisory locks in the
-backup validation trigger and deletion-marker insert trigger. Verify with two
-authenticated staging sessions using the same account/receipt:
-1. Hold a backup insert transaction open, then insert its deletion marker in
-   another session; confirm the deletion waits and eventually commits.
-2. Reverse the order: hold the deletion-marker transaction open, then attempt
-   the backup insert; confirm the backup is rejected after the marker commits.
-3. Confirm a different account with the same receipt ID remains independent.
-4. Confirm a stale backup retry cannot clear an existing deletion marker.
-5. Verify the RLS policies reject cross-account reads and writes.
-Do not infer these guarantees from unit tests alone. Run on staging first.
+Tác vụ dọn 24 giờ đã được xác minh đang hoạt động. Cửa sổ hiển thị và giữ cục bộ trong PR này được chỉnh về 24 giờ để đồng nhất với tác vụ đó.

@@ -1,6 +1,6 @@
-/* CUNCUN staging-only bridge for existing TSH_PRINT_HISTORY_V1 entries.
-   Load only after both recent backup helpers and authenticated Supabase client.
-   Does not intercept localStorage, printing or deletion automatically. */
+/* Opt-in bridge for existing TSH_PRINT_HISTORY_V1 entries.
+   Start only after an authenticated user requests sync.
+   Cloud failures never block local printing or deletion. */
 (function(root){
  'use strict';
  const KEY='TSH_PRINT_HISTORY_V1';

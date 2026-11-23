@@ -8950,7 +8950,7 @@ sb.auth.onAuthStateChange((event)=>{
 /* ===== IN PHOI + LICH SU IN + TONG HOP TELEGRAM ===== */
 (function(){
   const KEY='TSH_PRINT_HISTORY_V1';
-  const historyKeep=a=>a.filter(x=>{const t=Number(x.createdAt||x.lastPrintedAt||Date.parse(x.date||''));return t>0&&Date.now()-t<172800000&&Date.now()>=t-60000;});
+  const historyKeep=a=>a.filter(x=>{const t=Number(x.createdAt||x.lastPrintedAt||Date.parse(x.date||''));return t>0&&Date.now()-t<86400000&&Date.now()>=t-60000;});
   const read=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(a))return [];const fresh=historyKeep(a);if(fresh.length!==a.length)localStorage.setItem(KEY,JSON.stringify(fresh));return fresh;}catch(_){return []}};
   const write=a=>localStorage.setItem(KEY,JSON.stringify(historyKeep(a).slice(-1000)));
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11791,7 +11791,7 @@ function init(){
    const content=document.createElement("div");content.textContent=m.message_text||"";text.append(title,content);line.append(check,text);fragment.append(line);
   }
   area.append(fragment);
-  status.textContent=shown.length+" tin của "+(groupFilter?.selectedOptions?.[0]?.textContent||"Tất cả nhóm")+" · chỉ 48 giờ gần nhất · cập nhật mỗi 15 giây";
+  status.textContent=shown.length+" tin của "+(groupFilter?.selectedOptions?.[0]?.textContent||"Tất cả nhóm")+" · chỉ 24 giờ gần nhất · cập nhật mỗi 15 giây";
  }
  async function load(){
   if(loading||document.hidden)return;loading=true;
@@ -13650,7 +13650,7 @@ if(p.telegram_id){
     if(logoutStatus&&logoutStatus.getAttribute("role")==="status")logout.after(logoutStatus);
   }
 }
-status.textContent=(fresh.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+fresh.groups.filter(g=>!String(g.group_name||"").startsWith("Cá nhân: ")).length+" nhóm · "+fresh.groups.filter(g=>String(g.group_name||"").startsWith("Cá nhân: ")).length+" cá nhân · "+fresh.messages.length+" tin trong 48 giờ · Tự cập nhật";
+status.textContent=(fresh.configured?"Đã tạo khóa · ":"Chưa cấu hình VPS · ")+fresh.groups.filter(g=>!String(g.group_name||"").startsWith("Cá nhân: ")).length+" nhóm · "+fresh.groups.filter(g=>String(g.group_name||"").startsWith("Cá nhân: ")).length+" cá nhân · "+fresh.messages.length+" tin trong 24 giờ · Tự cập nhật";
   if(signature!==lastInboxSignature){
    const scroll=list.scrollTop;
    data=fresh;lastInboxSignature=signature;render();

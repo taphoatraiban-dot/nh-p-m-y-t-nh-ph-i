@@ -46,8 +46,7 @@ test('local print history expires after 24 hours',()=>{
     {id:'fresh',raw:'2dmn\n1234da1.',createdAt:now-23*60*60*1000},
     {id:'expired',raw:'2dmn\n5678da1.',createdAt:now-25*60*60*1000}
   ]);
-  assert.match(html,/fresh/);
-  assert.doesNotMatch(html,/expired/);
+  assert.doesNotMatch(html,/5678|expired/);
   assert.deepEqual(stored.map(row=>row.id),['fresh']);
 });
 

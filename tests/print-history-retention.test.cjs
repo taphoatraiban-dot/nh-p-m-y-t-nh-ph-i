@@ -55,3 +55,12 @@ test('history screen states its 24-hour retention window',()=>{
   // The list heading is rendered after the modal template is attached.
   assert.match(html,/Lưu 24 giờ/);
 });
+
+const appHtml=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+test('main app and Telegram inbox honor the 24-hour retention window',()=>{
+  assert.ok(appHtml.includes('Date.now()-t<86400000'),'main app print history must expire after one day');
+  assert.ok(appHtml.includes('· chỉ 24 giờ gần nhất'),'Telegram UI must state the one-day window');
+  assert.ok(appHtml.includes('tin trong 24 giờ'),'inbox summary must state the one-day window');
+  assert.ok(!appHtml.includes('172800000'),'main app must not keep history for 48 hours');
+  assert.ok(!appHtml.includes('48 giờ'),'UI must not claim a 48-hour window');
+});

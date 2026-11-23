@@ -8,8 +8,7 @@ Workflow kiểm tra giới hạn truy vấn 24 giờ, cấu hình `verify_jwt = 
 
 Trong GitHub, mở **Settings → Secrets and variables → Actions → New repository secret** và thêm:
 
-- `SUPABASE_ACCESS_TOKEN`: access token tạo trong Supabase Account → Access Tokens.
-- `SUPABASE_PROJECT_ID`: project ref production `zigpqddlhvjbjrwhfhaa`.
+- `SUPABASE_ACCESS_TOKEN`: access token tạo trong Supabase Account → Access Tokens. Workflow đã cố định project ref production `zigpqddlhvjbjrwhfhaa` và sẽ từ chối deploy nếu mã định danh không đúng.
 
 Không ghi access token vào repository, workflow, tài liệu, hoặc log.
 

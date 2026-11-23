@@ -32,6 +32,15 @@ test('real print history contains the opt-in save and deletion integration point
  assert.match(html,/window\.CuncunRecentPhoiHooks\?\.deleted\(ids\)/);
 });
 
+test('print manager can start backup from the explicit sync button',()=>{
+ const manager=fs.readFileSync(path.join(__dirname,'../src/bluetooth-print-manager.js'),'utf8');
+ const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+ assert.match(manager,/data-action="sync-now"/);
+ assert.match(manager,/if\(!control\.active\(\)\) await setup\.enable\(\)/);
+ assert.match(manager,/else await control\.syncNow\(\)/);
+ assert.match(html,/window\.CuncunRecentPhoiControl=\{/);
+});
+
 test('hooks cannot silently replace an already configured backup adapter',()=>{
  const hooks=load();
  const adapter={saved:()=>{},deleted:()=>{}};

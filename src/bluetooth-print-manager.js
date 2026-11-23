@@ -6,7 +6,7 @@
   const utils = root.TSHPrintHistoryUtils;
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const read = () => { try { const data = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(data) ? data : []; } catch { return []; } };
-  const RETENTION_MS = 48 * 60 * 60 * 1000;
+  const RETENTION_MS = 24 * 60 * 60 * 1000;
   const stamp = item => Number(item.createdAt || item.lastPrintedAt || Date.parse(item.date || '')) || 0;
   const keep = entries => entries.filter(item => stamp(item) && Date.now() - stamp(item) < RETENTION_MS && Date.now() >= stamp(item) - 60000);
   const write = entries => localStorage.setItem(KEY, JSON.stringify(keep(entries).slice(-1000)));
@@ -53,7 +53,7 @@
       </header>
       <div style="padding:10px">
         <p style="font-size:12px;color:#475569;margin:4px 0 12px">Lịch sử chỉ lưu trên trình duyệt này. Sao chép tin để tự dán sang Telegram; phần mềm không tự gửi.</p>
-        <p style="font-size:12px;color:#64748b;margin:0 0 8px">Tự lưu tối đa 48 giờ. Ngày cũ tự thu gọn; hết 48 giờ tự xóa trên thiết bị.</p>
+        <p style="font-size:12px;color:#64748b;margin:0 0 8px">Tự lưu tối đa 24 giờ. Ngày cũ tự thu gọn; hết 24 giờ tự xóa trên thiết bị.</p>
         <div id="bluetoothPrintList"></div>
 
       </div></section>`;
@@ -101,7 +101,7 @@
         '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px">'+regions.map(reg=>
           '<button type="button" data-action="region" data-region="'+reg+'" style="'+btn+'background:'+(reg===activeRegion?'#1d4ed8':'#e2e8f0')+';color:'+(reg===activeRegion?'#fff':'#334155')+'">'+reg+' ('+entries.filter(x=>region(x)===reg).length+')</button>'
         ).join('')+'</div>'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px"><span style="font-size:12px;color:#166534">☁ Sao lưu đám mây</span><button type="button" data-action="sync-now" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">↻ ĐỒNG BỘ NGAY</button></div>'+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:#475569">'+selected.size+' tin đã chọn · Lưu 48 giờ</span><button type="button" data-action="toggle-actions" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">'+(actionsOpen?'✕':'•••')+'</button></div>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px"><span style="font-size:12px;color:#166534">☁ Sao lưu đám mây</span><button type="button" data-action="sync-now" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">↻ ĐỒNG BỘ NGAY</button></div>'+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:#475569">'+selected.size+' tin đã chọn · Lưu 24 giờ</span><button type="button" data-action="toggle-actions" style="'+btn+'background:#dbeafe;color:#1e40af;padding:8px 12px">'+(actionsOpen?'✕':'•••')+'</button></div>'+
         (actionsOpen?'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:10px">'+
           '<button data-action="select-region" style="'+btn+'background:#dbeafe">☑ Chọn tất cả</button>'+
           '<button data-action="unselect-region" style="'+btn+'background:#e2e8f0">Bỏ chọn</button>'+
@@ -241,7 +241,7 @@
       if(!id)return;
       if(event.target.checked)selected.add(id);else selected.delete(id);
       const label=backdrop.querySelector('[data-action="toggle-actions"]')?.previousElementSibling;
-      if(label)label.textContent=selected.size+' tin đã chọn · Lưu 48 giờ';
+      if(label)label.textContent=selected.size+' tin đã chọn · Lưu 24 giờ';
     });
     // Prevent global calculator click handlers from intercepting manager controls.
     backdrop.addEventListener('click',event=>event.stopPropagation());

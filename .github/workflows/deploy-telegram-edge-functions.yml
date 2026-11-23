@@ -30,7 +30,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,6 +39,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - name: Check the 24-hour retention rules
         run: node --test tests/telegram-retention-window.test.cjs
       - name: Keep deployed gateway authentication settings explicit
@@ -53,6 +56,12 @@ jobs:
                   f"{name} must keep its existing custom authentication and webhook checks"
               )
           PY
+      - name: Type-check all production Edge Functions before any deployment
+        run: >-
+          deno check
+          supabase/functions/telegram-chat/index.ts
+          supabase/functions/telegram-member-sync/index.ts
+          supabase/functions/telegram-tenant/index.ts
 
   deploy:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
@@ -69,8 +78,10 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
+          set -euo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::Add the SUPABASE_ACCESS_TOKEN repository secret"; exit 1; }
           test -n "$SUPABASE_PROJECT_ID" || { echo "::error::Add the SUPABASE_PROJECT_ID repository secret"; exit 1; }
+          test "$SUPABASE_PROJECT_ID" = "zigpqddlhvjbjrwhfhaa" || { echo "::error::SUPABASE_PROJECT_ID must point to the production CUNCUN project"; exit 1; }
       - name: Deploy the three Telegram functions
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

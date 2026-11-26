@@ -32,10 +32,29 @@
       catch(err){pending.delete(id);clearTimeout(timer);reject(err);}
     });
   }
+  function installDDAlias(doc,box){
+    if(box.dataset.ottDDAliasInstalled)return;
+    box.dataset.ottDDAliasInstalled='1';
+    const normalize=()=>{
+      const before=box.value;
+      const after=before.replace(/đd/gi,'dd');
+      if(after===before)return;
+      const start=Number.isInteger(box.selectionStart)?box.selectionStart:before.length;
+      const end=Number.isInteger(box.selectionEnd)?box.selectionEnd:start;
+      const nextStart=before.slice(0,start).replace(/đd/gi,'dd').length;
+      const nextEnd=before.slice(0,end).replace(/đd/gi,'dd').length;
+      box.value=after;
+      if(typeof box.setSelectionRange==='function')box.setSelectionRange(nextStart,nextEnd);
+      box.dispatchEvent(new doc.defaultView.Event('input',{bubbles:true}));
+    };
+    box.addEventListener('input',normalize);
+    if(box.value.includes('đd'))normalize();
+  }
   function installClipboardPasteButton(doc){
     const mount=()=>{
       const box=doc.getElementById('bets');
       if(!box)return false;
+      installDDAlias(doc,box);
       if(doc.querySelector('[aria-label="Dán nhiều tin từ clipboard"]'))return true;
       const tools=doc.createElement('div');
       tools.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0';

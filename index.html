@@ -2865,6 +2865,11 @@ function cuncunNormalizeBaoDdMissingAliases(raw){
 }
 function ttNormalizeClearNaturalBetNames(raw){
  let out=cuncunNormalizeBaoDdMissingAliases(cuncunNormalizeXiuChuAlias(raw))
+  // A compact customer format may state the number once, then list more bets:
+  // "445b2, bao dao 2; xc30, dao xc5" means all four wagers use 445.
+  // Expand only this complete, unambiguous sequence on the parsing copy.
+  .replace(/(\d{2,4})\s*b\s*(\d+(?:,\d+)?n?)\s*,\s*bao\s+(?:đảo|dao)\s*(\d+(?:,\d+)?n?)\s*;\s*xc\s*(\d+(?:,\d+)?n?)\s*,\s*(?:đảo|dao)\s+xc\s*(\d+(?:,\d+)?n?)\s*;?/giu,
+   (_m,num,b,bdao,xc,xdao)=>`${num}b${b}.${num}bdao${bdao}.${num}xc${xc}.${num}xdao${xdao}.`)
   // "5645 bao 12" is the spelled-out Bao instruction for the same number.
   .replace(/(\d{2,4})[ \t]+bao[ \t]+(\d+(?:,\d+)?n?)(?=\s*(?:[.;\n]|$))/giu,"$1b$2")
   // "639 xc dao 5n" explicitly means xỉu chủ đảo (XCDAO).

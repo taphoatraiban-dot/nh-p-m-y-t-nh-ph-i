@@ -28,6 +28,9 @@ jobs:
       - name: Prepare content-addressed Telegram assets
         run: node scripts/release-telegram-chat.cjs
 
+      - name: Create a fresh entry URL for clients with cached index
+        run: cp index.html cuncun-moi.html
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 

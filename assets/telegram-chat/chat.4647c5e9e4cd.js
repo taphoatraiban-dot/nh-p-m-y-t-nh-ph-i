@@ -51,22 +51,36 @@ function init(){
  }
  // Preserve legacy polling and settings, but show only unified Chat.
  anchor.before(panel);
- // Preserve multi-line text copied from Telegram when iOS/WKWebView does not insert it natively.
+ // iOS may expose selected Telegram messages as several ClipboardItems instead of one text value.
  const betInput=document.getElementById('bets');
  if(betInput&&!betInput.dataset.ottTelegramPaste){
   betInput.dataset.ottTelegramPaste='1';
   betInput.addEventListener('paste',event=>{
    const clipboard=event.clipboardData;if(!clipboard)return;
-   const pasted=clipboard.getData('text/plain')||clipboard.getData('text');if(!pasted)return;
    event.preventDefault();
-   const start=Number.isInteger(betInput.selectionStart)?betInput.selectionStart:betInput.value.length;
-   const end=Number.isInteger(betInput.selectionEnd)?betInput.selectionEnd:betInput.value.length;
-   const clean=pasted.replace(/\r\n?/g,'\n');
-   if(typeof betInput.setRangeText==='function')betInput.setRangeText(clean,start,end,'end');
-   else betInput.value=betInput.value.slice(0,start)+clean+betInput.value.slice(end);
-   const EventCtor=betInput.ownerDocument.defaultView.Event;
-   betInput.dispatchEvent(new EventCtor('input',{bubbles:true}));
-   betInput.dispatchEvent(new EventCtor('change',{bubbles:true}));
+   const fallback=clipboard.getData('text/plain')||clipboard.getData('text')||'';
+   const insert=pasted=>{
+    if(!pasted)return;
+    const start=Number.isInteger(betInput.selectionStart)?betInput.selectionStart:betInput.value.length;
+    const end=Number.isInteger(betInput.selectionEnd)?betInput.selectionEnd:betInput.value.length;
+    const clean=pasted.replace(/\r\n?/g,'\n');
+    if(typeof betInput.setRangeText==='function')betInput.setRangeText(clean,start,end,'end');
+    else betInput.value=betInput.value.slice(0,start)+clean+betInput.value.slice(end);
+    const EventCtor=betInput.ownerDocument.defaultView.Event;
+    betInput.dispatchEvent(new EventCtor('input',{bubbles:true}));
+    betInput.dispatchEvent(new EventCtor('change',{bubbles:true}));
+   };
+   const readItems=async()=>{
+    try{
+     if(!navigator.clipboard?.read)return '';
+     const items=await navigator.clipboard.read(),parts=[];
+     for(const item of items){
+      if(item.types?.includes('text/plain'))parts.push(await (await item.getType('text/plain')).text());
+     }
+     return parts.filter(Boolean).join('\n');
+    }catch{return '';}
+   };
+   readItems().then(allText=>insert(allText||fallback));
   });
  }
  const legacyStyle=document.createElement('style');

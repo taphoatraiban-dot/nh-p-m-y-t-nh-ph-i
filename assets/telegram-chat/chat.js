@@ -280,8 +280,8 @@ function init(){
   const box=document.getElementById('bets');if(!box){status('Không tìm thấy ô nhập phơi');return;}
   const chosen=messages.filter(m=>selected.has(m.message_id)&&typeof m.message_text==='string'&&m.message_text.trim()).sort((a,b)=>Date.parse(a.message_date)-Date.parse(b.message_date)).map(m=>m.message_text);
   if(!chosen.length){status('Hãy chọn tin nhắn có nội dung chữ để nhập phơi.');return;}
-  const text=chosen.join('\\n');
-  box.value=(box.value.trim()?box.value.replace(/\\s*$/,'')+'\\n':'')+text;
+  const text=chosen.join('\n');
+  box.value=(box.value.trim()?box.value.replace(/\s*$/,'')+'\n':'')+text;
   box.dispatchEvent(new CustomEvent('input',{bubbles:true,detail:{ottChatManualImport:true}}));
   box.dispatchEvent(new Event('change',{bubbles:true}));
   box.focus();box.scrollIntoView({behavior:'smooth',block:'center'});

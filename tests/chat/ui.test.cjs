@@ -48,7 +48,7 @@ test('imports several selected Telegram messages as one text block into phoi',as
   await s.unlock();s.el('Conversations').firstChild.querySelector('button').click();await tick();
   s.el('Select').click();const checks=s.el('Messages').querySelectorAll('input[type="checkbox"]');
   assert.equal(checks.length,2);checks[0].click();checks[1].click();s.el('Import').click();
-  assert.equal(s.w.document.getElementById('bets').value,'Phơi đang nhập\\n<img onerror="bad">\\nTin nhận\\n3dmn 72b5.');
+  assert.equal(s.w.document.getElementById('bets').value,'Phơi đang nhập\n<img onerror="bad">\nTin nhận\n3dmn 72b5.');
   assert.equal(detail.ottChatManualImport,true);assert(!s.calls.some(c=>c.action==='send'));
  }finally{s.d.window.close();}
 });

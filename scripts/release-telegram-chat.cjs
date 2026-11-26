@@ -10,5 +10,5 @@ for(const ext of ['js','css']){
 }
 const bridge=fs.readFileSync(path.join(root,'src/ios-native-print-bridge.js'));
 const bridgeHash=crypto.createHash('sha256').update(bridge).digest('hex').slice(0,12);
-html=html.replace(/src\\/ios-native-print-bridge\\.js(?:\\?[^"\\s]*)?/g,'src/ios-native-print-bridge.js?v='+bridgeHash);
+html=html.replace(/src\/ios-native-print-bridge\.js(?:\?[^"\s]*)?/g,'src/ios-native-print-bridge.js?v='+bridgeHash);
 fs.writeFileSync(path.join(root,'index.html'),html);

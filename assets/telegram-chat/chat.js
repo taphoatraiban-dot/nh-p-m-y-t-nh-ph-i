@@ -51,54 +51,6 @@ function init(){
  }
  // Preserve legacy polling and settings, but show only unified Chat.
  anchor.before(panel);
- // iOS WebKit can expose only the last message through a normal paste event.
- // A direct button click gives Clipboard API access under a clear user gesture.
- const betInput=document.getElementById('bets');
- if(betInput&&!betInput.dataset.ottTelegramPaste){
-  betInput.dataset.ottTelegramPaste='1';
-  const pasteTools=document.createElement('div');
-  pasteTools.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0';
-  const pasteButton=document.createElement('button');
-  pasteButton.type='button';pasteButton.textContent='Dán nhiều tin';
-  pasteButton.setAttribute('aria-label','Dán nhiều tin từ clipboard');
-  pasteButton.title='Chép các tin trong Telegram, sau đó chạm nút này.';
-  const pasteStatus=document.createElement('span');
-  pasteStatus.setAttribute('role','status');pasteStatus.setAttribute('aria-live','polite');
-  pasteStatus.style.cssText='font-size:13px';
-  pasteTools.append(pasteButton,pasteStatus);
-  betInput.insertAdjacentElement('afterend',pasteTools);
-  const insertClipboardText=pasted=>{
-   const start=Number.isInteger(betInput.selectionStart)?betInput.selectionStart:betInput.value.length;
-   const end=Number.isInteger(betInput.selectionEnd)?betInput.selectionEnd:betInput.value.length;
-   const clean=pasted.replace(/\\r\\n?/g,'\\n');
-   if(typeof betInput.setRangeText==='function')betInput.setRangeText(clean,start,end,'end');
-   else betInput.value=betInput.value.slice(0,start)+clean+betInput.value.slice(end);
-   const EventCtor=betInput.ownerDocument.defaultView.Event;
-   betInput.dispatchEvent(new EventCtor('input',{bubbles:true}));
-   betInput.dispatchEvent(new EventCtor('change',{bubbles:true}));
-   betInput.focus();
-  };
-  pasteButton.addEventListener('click',async()=>{
-   pasteButton.disabled=true;pasteStatus.textContent='Đang đọc clipboard…';
-   try{
-    let parts=[];
-    if(navigator.clipboard?.read){
-     const items=await navigator.clipboard.read();
-     for(const item of items){
-      if(item.types?.includes('text/plain'))parts.push(await (await item.getType('text/plain')).text());
-     }
-    }
-    let pasted=parts.filter(Boolean).join('\\n');
-    if(!pasted&&navigator.clipboard?.readText)pasted=await navigator.clipboard.readText();
-    if(!pasted){pasteStatus.textContent='Clipboard không có văn bản. Hãy chép lại tin trong Telegram.';return;}
-    insertClipboardText(pasted);
-    const count=parts.filter(Boolean).length;
-    pasteStatus.textContent=count>1?'Đã ghép '+count+' mục clipboard thành nhiều dòng.':'Đã dán nội dung clipboard.';
-   }catch{
-    pasteStatus.textContent='iPhone chưa cho phép đọc clipboard. Chạm giữ ô nhập rồi chọn “Dán”.';
-   }finally{pasteButton.disabled=false;}
-  });
- }
  const legacyStyle=document.createElement('style');
  legacyStyle.id='ottChatHideLegacyInbox';
  legacyStyle.textContent='#tgMemberInbox,#tgForwardInbox{display:none!important}';

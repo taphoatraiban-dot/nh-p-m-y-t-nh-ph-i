@@ -30,6 +30,17 @@ test('PIN gate hides chat; setup confirms 4 digits and does not read before unlo
 test('group and personal conversations render safe text; import only appends to manual input',async()=>{
  const s=await setup();try{let detail;s.w.document.getElementById('bets').addEventListener('input',e=>detail=e.detail);await s.unlock();assert.equal(s.el('Conversations').children.length,2);s.el('Conversations').firstChild.querySelector('button').click();await tick();assert.equal(s.el('Messages').querySelector('img'),null);s.el('Messages').querySelector('button').click();assert.equal(s.w.document.getElementById('bets').value,'Phơi đang nhập\n<img onerror="bad">\nTin nhận');assert(!s.calls.some(c=>c.action==='send'));assert.equal(detail.ottChatManualImport,true);}finally{s.d.window.close();}
 });
+test('multi-line Telegram paste inserts the full plain text and notifies the input parser',async()=>{
+ const s=await setup();try{
+  const box=s.w.document.getElementById('bets');box.value='start';box.setSelectionRange(5,5);
+  let input=0,change=0;box.addEventListener('input',()=>input++);box.addEventListener('change',()=>change++);
+  const event=new s.w.Event('paste',{bubbles:true,cancelable:true});
+  Object.defineProperty(event,'clipboardData',{value:{getData:type=>type==='text/plain'?'2dmn 19b10.\\r\\n3dmn 72b5.':''}});
+  box.dispatchEvent(event);
+  assert.equal(event.defaultPrevented,true);assert.equal(box.value,'start2dmn 19b10.\\n3dmn 72b5.');
+  assert.equal(input,1);assert.equal(change,1);
+ }finally{s.d.window.close();}
+});
 test('lost send response preserves draft and request UUID on retry',async()=>{
  const s=await setup({sendFail:true});try{await s.unlock();s.el('Conversations').firstChild.querySelector('button').click();await tick();s.el('Text').value='Tin gửi';await s.submit('Compose');assert.equal(s.el('Text').value,'Tin gửi');await s.submit('Compose');const sent=s.calls.filter(c=>c.action==='send');assert.equal(sent.length,2);assert.equal(sent[0].body.id,sent[1].body.id);assert.equal(s.el('Text').value,'');}finally{s.d.window.close();}
 });

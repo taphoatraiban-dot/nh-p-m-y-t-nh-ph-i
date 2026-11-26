@@ -41,6 +41,17 @@ test('multi-line Telegram paste inserts the full plain text and notifies the inp
   assert.equal(input,1);assert.equal(change,1);
  }finally{s.d.window.close();}
 });
+test('imports several selected Telegram messages as one text block into phoi',async()=>{
+ const s=await setup({extraMessages:[{chat_id:-123,message_id:2,message_text:'3dmn 72b5.',message_date:'2026-11-09T06:01:00Z',sender_name:'Khách'}]});
+ try{
+  let detail;s.w.document.getElementById('bets').addEventListener('input',e=>detail=e.detail);
+  await s.unlock();s.el('Conversations').firstChild.querySelector('button').click();await tick();
+  s.el('Select').click();const checks=s.el('Messages').querySelectorAll('input[type="checkbox"]');
+  assert.equal(checks.length,2);checks[0].click();checks[1].click();s.el('Import').click();
+  assert.equal(s.w.document.getElementById('bets').value,'Phơi đang nhập\\n<img onerror="bad">\\nTin nhận\\n3dmn 72b5.');
+  assert.equal(detail.ottChatManualImport,true);assert(!s.calls.some(c=>c.action==='send'));
+ }finally{s.d.window.close();}
+});
 test('lost send response preserves draft and request UUID on retry',async()=>{
  const s=await setup({sendFail:true});try{await s.unlock();s.el('Conversations').firstChild.querySelector('button').click();await tick();s.el('Text').value='Tin gửi';await s.submit('Compose');assert.equal(s.el('Text').value,'Tin gửi');await s.submit('Compose');const sent=s.calls.filter(c=>c.action==='send');assert.equal(sent.length,2);assert.equal(sent[0].body.id,sent[1].body.id);assert.equal(s.el('Text').value,'');}finally{s.d.window.close();}
 });

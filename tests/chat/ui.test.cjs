@@ -35,9 +35,9 @@ test('multi-line Telegram paste inserts the full plain text and notifies the inp
   const box=s.w.document.getElementById('bets');box.value='start';box.setSelectionRange(5,5);
   let input=0,change=0;box.addEventListener('input',()=>input++);box.addEventListener('change',()=>change++);
   const event=new s.w.Event('paste',{bubbles:true,cancelable:true});
-  Object.defineProperty(event,'clipboardData',{value:{getData:type=>type==='text/plain'?'2dmn 19b10.\\r\\n3dmn 72b5.':''}});
+  Object.defineProperty(event,'clipboardData',{value:{getData:type=>type==='text/plain'?'2dmn 19b10.\r\n3dmn 72b5.':''}});
   box.dispatchEvent(event);
-  assert.equal(event.defaultPrevented,true);assert.equal(box.value,'start2dmn 19b10.\\n3dmn 72b5.');
+  assert.equal(event.defaultPrevented,true);assert.equal(box.value,'start2dmn 19b10.\n3dmn 72b5.');
   assert.equal(input,1);assert.equal(change,1);
  }finally{s.d.window.close();}
 });

@@ -32,5 +32,55 @@
       catch(err){pending.delete(id);clearTimeout(timer);reject(err);}
     });
   }
+  function installClipboardPasteButton(doc){
+    const mount=()=>{
+      const box=doc.getElementById('bets');
+      if(!box)return false;
+      if(doc.querySelector('[aria-label="Dán nhiều tin từ clipboard"]'))return true;
+      const tools=doc.createElement('div');
+      tools.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0';
+      const button=doc.createElement('button');
+      button.type='button';button.textContent='Dán nhiều tin';
+      button.setAttribute('aria-label','Dán nhiều tin từ clipboard');
+      button.title='Chép các tin trong Telegram, sau đó chạm nút này.';
+      const message=doc.createElement('span');
+      message.setAttribute('role','status');message.setAttribute('aria-live','polite');
+      message.style.cssText='font-size:13px';
+      tools.append(button,message);box.insertAdjacentElement('afterend',tools);
+      button.addEventListener('click',async()=>{
+        button.disabled=true;message.textContent='Đang đọc clipboard…';
+        try{
+          const clip=doc.defaultView.navigator.clipboard;
+          let parts=[];
+          if(clip?.read){
+            const items=await clip.read();
+            for(const item of items){
+              if(item.types?.includes('text/plain'))parts.push(await (await item.getType('text/plain')).text());
+            }
+          }
+          let text=parts.filter(Boolean).join('\\n');
+          if(!text&&clip?.readText)text=await clip.readText();
+          if(!text){message.textContent='Clipboard không có văn bản. Hãy chép lại tin trong Telegram.';return;}
+          const start=Number.isInteger(box.selectionStart)?box.selectionStart:box.value.length;
+          const end=Number.isInteger(box.selectionEnd)?box.selectionEnd:box.value.length;
+          if(typeof box.setRangeText==='function')box.setRangeText(text.replace(/\\r\\n?/g,'\\n'),start,end,'end');
+          else box.value=box.value.slice(0,start)+text+box.value.slice(end);
+          const EventCtor=doc.defaultView.Event;
+          box.dispatchEvent(new EventCtor('input',{bubbles:true}));
+          box.dispatchEvent(new EventCtor('change',{bubbles:true}));
+          box.focus();message.textContent=parts.filter(Boolean).length>1?'Đã ghép '+parts.filter(Boolean).length+' mục clipboard thành nhiều dòng.':'Đã dán nội dung clipboard.';
+        }catch{
+          message.textContent='iPhone chưa cho phép đọc clipboard. Chạm giữ ô nhập rồi chọn “Dán”.';
+        }finally{button.disabled=false;}
+      });
+      return true;
+    };
+    if(mount())return;
+    if(doc.documentElement&&typeof MutationObserver==='function'){
+      const observer=new MutationObserver(()=>{if(mount())observer.disconnect();});
+      observer.observe(doc.documentElement,{childList:true,subtree:true});
+    }
+  }
+  if(root?.document)installClipboardPasteButton(root.document);
   return {available,send,resolve};
 });

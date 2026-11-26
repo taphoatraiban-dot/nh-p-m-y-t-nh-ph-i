@@ -61,7 +61,7 @@ function init(){
    event.preventDefault();
    const start=Number.isInteger(betInput.selectionStart)?betInput.selectionStart:betInput.value.length;
    const end=Number.isInteger(betInput.selectionEnd)?betInput.selectionEnd:betInput.value.length;
-   const clean=pasted.replace(/\\r\\n?/g,'\\n');
+   const clean=pasted.replace(/\r\n?/g,'\n');
    if(typeof betInput.setRangeText==='function')betInput.setRangeText(clean,start,end,'end');
    else betInput.value=betInput.value.slice(0,start)+clean+betInput.value.slice(end);
    const EventCtor=betInput.ownerDocument.defaultView.Event;

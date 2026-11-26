@@ -8,4 +8,7 @@ for(const ext of ['js','css']){
  fs.writeFileSync(path.join(dir,name),content);
  html=html.replace(new RegExp('assets/telegram-chat/chat(?:\\.[a-f0-9]{12})?\\.'+ext+'(?:\\?[^"\\s]*)?','g'),'assets/telegram-chat/'+name);
 }
+const bridge=fs.readFileSync(path.join(root,'src/ios-native-print-bridge.js'));
+const bridgeHash=crypto.createHash('sha256').update(bridge).digest('hex').slice(0,12);
+html=html.replace(/src\/ios-native-print-bridge\.js(?:\?[^"\s]*)?/g,'src/ios-native-print-bridge.js?v='+bridgeHash);
 fs.writeFileSync(path.join(root,'index.html'),html);

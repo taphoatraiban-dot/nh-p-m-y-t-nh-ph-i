@@ -97,7 +97,7 @@ Deno.serve(async req=>{
   if(action!=="read")return out({error:"Bad action"},400);
   const groups=checked(await db.from("telegram_member_groups").select("chat_id,group_name,enabled,last_seen_at").eq("user_id",uid).neq("enabled",false).order("group_name"));
   const clearRows=checked(await db.from("telegram_chat_cleared").select("chat_id,cleared_at").eq("user_id",uid));
-  const cleared=new Map(clearRows.map((r:any)=>[String(r.chat_id),Date.parse(r.cleared_at)]));
+  const cleared=new Map<string,number>(clearRows.map((r:any)=>[String(r.chat_id),Date.parse(r.cleared_at)] as [string,number]));
   let messages:any[]=[];let hiddenIds=new Set<number>();
   if(b.chat_id!==undefined){
    if(!Number.isSafeInteger(b.chat_id)||!groups.some((g:any)=>g.chat_id===b.chat_id))return out({error:"Hội thoại chưa được cấp quyền"},403);

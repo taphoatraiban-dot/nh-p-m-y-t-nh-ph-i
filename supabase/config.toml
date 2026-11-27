@@ -2,3 +2,11 @@
 # The handler validates sync-key hashes; user actions require getUser + Chat PIN.
 [functions.telegram-chat]
 verify_jwt = false
+
+# Worker endpoints validate account-specific hashed sync keys internally.
+[functions.telegram-member-sync]
+verify_jwt = false
+
+# Telegram webhook and user endpoints validate their own secrets or user tokens.
+[functions.telegram-tenant]
+verify_jwt = false

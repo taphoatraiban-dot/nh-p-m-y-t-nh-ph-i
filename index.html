@@ -2818,10 +2818,10 @@ function cuncunNormalizeGroupStationHeader(raw){
    const region=/^(?:miền\s*trung|mien\s*trung|mt|trung)$/iu.test(suffixGroup[3])?'mt':'mn';
    if(region==='mt'&&n===4)return line;
    const bets=suffixGroup[1].replace(/[.\s]+$/,'').trim();
-   return n+'d'+region+'\\n'+bets;
+   return n+'d'+region+'\n'+bets;
   }
   const namedSuffix=line.match(/^(.*?)[.\s]+(hn|mb)\s*$/iu);
-  if(namedSuffix&&namedSuffix[1].trim())return namedSuffix[2].toLowerCase()+'\\n'+namedSuffix[1].replace(/[.\s]+$/,'').trim();
+  if(namedSuffix&&namedSuffix[1].trim())return namedSuffix[2].toLowerCase()+'\n'+namedSuffix[1].replace(/[.\s]+$/,'').trim();
   const folded=line.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[đ₫]/gi,'d').toLowerCase();
   const m=folded.match(/^(\s*)(2|3|4|hai|ba|bon)\s*(?:(?:[._-]\s*)?(?:dai|d)(?:\s*[._-]\s*|\s*)|\s*)(mien\s*nam|mien\s*trung|mn|mt|nam|trung)\b\s*([:.]?\s*\d.*)?\s*$/i);
   if(!m)return line;
@@ -4152,7 +4152,7 @@ function cuncunForgivingExtraSeparators(raw){
  }).join('\n');
 }
 function parseBets(){
- const _forgivingInput=cuncunForgivingExtraSeparators($('bets')?.value||'');
+ const _forgivingInput=ttNormalizeNaturalStationHeaders(cuncunForgivingExtraSeparators($('bets')?.value||''));
  const _stationSchedule=cuncunStrictSocTrangSchedule(_forgivingInput,$('date')?.value||'');
  if(_stationSchedule.length)return {rows:[],errors:_stationSchedule};
  const _rawDa=String(_forgivingInput).replace(/\r/g,'');

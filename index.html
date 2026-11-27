@@ -2809,9 +2809,20 @@ function ttFixCompactBetSeparators(raw){
     (_m,prefix,left,right,stake)=>prefix+left+right+stake.replace(/[ \t]/g,""));
 }
 function cuncunNormalizeGroupStationHeader(raw){
- // Recognize only explicit MN/MT group headers; never guess from bare "2d"/"3 dai".
+ // Convert an explicit group written at the end of a bet line into a header for that line.
+ // Examples: wagers..2₫ai..mn and wagers..3₫ai..mn.
  return String(raw??'').split(/\r?\n/).map(line=>{
-  const folded=line.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/gi,'d').toLowerCase();
+  const suffixGroup=line.match(/^(.*?)[.\s]+(2|3|4|hai|ba|bon)\s*(?:(?:[._-]\s*)?(?:dai|d|đai|đài|₫ai|₫)(?:\s*[._-]+\s*|\s*)|\s*)(miền\s*nam|miền\s*trung|mien\s*nam|mien\s*trung|mn|mt|nam|trung)\b\s*$/iu);
+  if(suffixGroup&&suffixGroup[1].trim()){
+   const n=/^hai$/i.test(suffixGroup[2])?2:/^ba$/i.test(suffixGroup[2])?3:/^bon$/i.test(suffixGroup[2])?4:Number(suffixGroup[2]);
+   const region=/^(?:miền\s*trung|mien\s*trung|mt|trung)$/iu.test(suffixGroup[3])?'mt':'mn';
+   if(region==='mt'&&n===4)return line;
+   const bets=suffixGroup[1].replace(/[.\s]+$/,'').trim();
+   return n+'d'+region+'\\n'+bets;
+  }
+  const namedSuffix=line.match(/^(.*?)[.\s]+(hn|mb)\s*$/iu);
+  if(namedSuffix&&namedSuffix[1].trim())return namedSuffix[2].toLowerCase()+'\\n'+namedSuffix[1].replace(/[.\s]+$/,'').trim();
+  const folded=line.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[đ₫]/gi,'d').toLowerCase();
   const m=folded.match(/^(\s*)(2|3|4|hai|ba|bon)\s*(?:(?:[._-]\s*)?(?:dai|d)(?:\s*[._-]\s*|\s*)|\s*)(mien\s*nam|mien\s*trung|mn|mt|nam|trung)\b\s*([:.]?\s*\d.*)?\s*$/i);
   if(!m)return line;
   const n=/^hai$/i.test(m[2])?2:/^ba$/i.test(m[2])?3:/^bon$/i.test(m[2])?4:Number(m[2]);

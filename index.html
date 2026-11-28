@@ -4151,8 +4151,15 @@ function cuncunForgivingExtraSeparators(raw){
   return v;
  }).join('\n');
 }
+function cuncunNormalizeCompletedWagerSeparators(raw){
+  // Separate a completed wager from the next explicit wager only when comma/semicolon is unambiguous.
+  const type='(?:b7ldao|b7ld|b7lo|baobay|bao7|bao8|b8l|bao2|bl2|xcdao|daoxc|xdao|dxc|xcdau|xcduoi|xdau|xduoi|duoi|dau|dd|xc|da|đ[aá]|đ|₫a|d|x|b)';
+  const finished='('+type+'\\s*\\d+(?:,\\d)?(?:ng|n)?)';
+  const next='(?=\\d{2,4}(?:\\s*[.,]\\s*\\d{2,4})*\\s*'+type+'\\s*\\d)';
+  return String(raw??'').replace(new RegExp(finished+'\\s*[,;]\\s*'+next,'giu'),'$1 ');
+}
 function parseBets(){
- const _forgivingInput=ttNormalizeNaturalStationHeaders(cuncunForgivingExtraSeparators($('bets')?.value||''));
+ const _forgivingInput=ttNormalizeNaturalStationHeaders(cuncunNormalizeCompletedWagerSeparators(cuncunForgivingExtraSeparators($('bets')?.value||'')));
  const _stationSchedule=cuncunStrictSocTrangSchedule(_forgivingInput,$('date')?.value||'');
  if(_stationSchedule.length)return {rows:[],errors:_stationSchedule};
  const _rawDa=String(_forgivingInput).replace(/\r/g,'');

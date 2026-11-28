@@ -7886,11 +7886,13 @@ $('pasteAll').onclick=async function(){
     ta.focus();
     return;
   }
-  // DÁN TOÀN BỘ: lọc tên/ngày/giờ Telegram, giữ nguyên nội dung cược; parser chuẩn hóa khi tính.
-  ta.value=String(txt||'').replace(/\r\n?/g,'\n');  ta.focus();
+  // Normalize Telegram clipboard before showing it: remove sender/time headers and decode escaped line breaks.
+  const pasted=String(txt||'').replace(/\r\n?/g,'\n').replace(/\\n/g,'\n');
+  const cleaned=typeof ttUnifiedNormalize==='function' ? ttUnifiedNormalize(pasted) : pasted;
+  ta.value=cleaned; ta.focus();
   ta.setSelectionRange(ta.value.length,ta.value.length);
   autoReadPhoi();
-  setStatus(`✓ Đã dán nguyên văn ${ta.value.split('\n').length} dòng (${ta.value.length} ký tự) từ Clipboard. Kiểm tra đủ tin trước khi bấm OK.`,'ok');
+  setStatus(`✓ Đã dán ${ta.value.split('\n').length} dòng và lọc tên/giờ Telegram. Kiểm tra đủ tin trước khi bấm OK.`,'ok');
 };
 $('clearBets').onclick=function(){ $('bets').value=''; clearBetsHighlights(); autoReadPhoi(); $('bets').focus(); };
 

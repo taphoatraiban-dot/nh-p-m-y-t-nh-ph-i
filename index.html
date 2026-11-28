@@ -7860,7 +7860,9 @@ $('bets').addEventListener('input',function(e){
       __phoiPasting=false;
       const box=$('bets');
       if(box){
-        const cleaned=box.value; // Preserve all pasted Telegram messages verbatim.
+        // Remove sender/time-only Telegram headers after the native iPhone paste is complete.
+        // Leave every wager line and its punctuation untouched.
+        const cleaned=stripTelegramMetadataOnly(box.value);
         if(cleaned!==box.value){
           const oldPos=box.selectionStart==null?cleaned.length:box.selectionStart;
           box.value=cleaned;
@@ -7888,7 +7890,7 @@ $('pasteAll').onclick=async function(){
   }
   // Normalize Telegram clipboard before showing it: remove sender/time headers and decode escaped line breaks.
   const pasted=String(txt||'').replace(/\r\n?/g,'\n').replace(/\\n/g,'\n');
-  const cleaned=typeof ttUnifiedNormalize==='function' ? ttUnifiedNormalize(pasted) : pasted;
+  const cleaned=stripTelegramMetadataOnly(pasted);
   ta.value=cleaned; ta.focus();
   ta.setSelectionRange(ta.value.length,ta.value.length);
   autoReadPhoi();
@@ -11526,8 +11528,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function install(){
   const ta=document.getElementById('bets');if(!ta||ta.dataset.unifiedPaste)return;
   ta.dataset.unifiedPaste='1';let busy=false;
-  function apply(){if(busy||typeof ttUnifiedNormalize!=='function')return;
-   const old=ta.value,now=ttUnifiedNormalize(old);if(now===old)return;
+  function apply(){if(busy||typeof stripTelegramMetadataOnly!=='function')return;
+   const old=ta.value,now=stripTelegramMetadataOnly(old);if(now===old)return;
    busy=true;const at=ta.selectionStart;ta.value=now;
    try{ta.setSelectionRange(Math.min(at,now.length),Math.min(at,now.length));}catch(_){}
    ta.dispatchEvent(new Event('input',{bubbles:true}));busy=false;

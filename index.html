@@ -3459,6 +3459,8 @@ function stationToken(t, dateValue){
  if(t==='4dn')t='4dmn';
  if(t==='tpbp'||t==='tphobp')t='tphobphuoc';
  if(t==='lan'||t==='long')t='longan';
+ // Explicit three-station shorthand TP.HCM + Bình Phước + Hậu Giang.
+ if(t==='tpbphg') return {region:'N',stations:3,label:'TP.HCM + Bình Phước + Hậu Giang',fixedStations:['TP.HCM','Bình Phước','Hậu Giang'],crossProvinces:['TP.HCM','Bình Phước','Hậu Giang'],cross2:true};
  if(t==='tp')t='tpho';
  // CHỐT: mã hai đài viết liền, không phân biệt hoa/thường. Ưu tiên mã chính xác,
  // không tự suy đoán mã gần giống vì có thể dẫn tới tính sai đài.

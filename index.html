@@ -4152,11 +4152,16 @@ function cuncunForgivingExtraSeparators(raw){
  }).join('\n');
 }
 function cuncunNormalizeCompletedWagerSeparators(raw){
-  // Separate a completed wager from the next explicit wager only when comma/semicolon is unambiguous.
+  // Commas are decimal marks only for half-point stakes (0,5 / 1,5 / 2,5...).
+  // Other commas/semicolons between completed wagers are separators.
   const type='(?:b7ldao|b7ld|b7lo|baobay|bao7|bao8|b8l|bao2|bl2|xcdao|daoxc|xdao|dxc|xcdau|xcduoi|xdau|xduoi|duoi|dau|dd|xc|da|đ[aá]|đ|₫a|d|x|b)';
-  const finished='('+type+'\\s*\\d+(?:,\\d)?(?:ng|n)?)';
+  const finished='('+type+'\\s*\\d+(?:,5)?(?:ng|n)?)';
   const next='(?=\\d{2,4}(?:\\s*[.,]\\s*\\d{2,4})*\\s*'+type+'\\s*\\d)';
-  return String(raw??'').replace(new RegExp(finished+'\\s*[,;]\\s*'+next,'giu'),'$1 ');
+  const separated=String(raw??'').replace(new RegExp(finished+'\\s*[,;]\\s*'+next,'giu'),'$1 ');
+  // Rejoin a number pair wrapped onto the next line before its DA function:
+  // 26.\n62da1 -> 26.62da1. This is parser-copy-only; the textarea is untouched.
+  const wrapped=new RegExp('(\\d{2,4}\\.)[ \\t]*\\n[ \\t]*(\\d{2,4}\\s*'+type+'\\s*\\d+(?:,5)?(?:ng|n)?)','giu');
+  return separated.replace(wrapped,'$1$2');
 }
 function parseBets(){
  const _forgivingInput=ttNormalizeNaturalStationHeaders(cuncunNormalizeCompletedWagerSeparators(cuncunForgivingExtraSeparators($('bets')?.value||'')));

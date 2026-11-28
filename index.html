@@ -11535,7 +11535,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // Do not rewrite the textarea on blur or during a multi-message paste.
   // Restore user-requested automatic conversion on both validation and calculation.
   // Use the same existing unified normalizer, not multiple competing formatters.
-  ['okAll','checkPhoi'].forEach(id=>document.getElementById(id)?.addEventListener('click',apply,true));
+  // Never rewrite the raw phoi when the user asks to validate or calculate it.
+  // parseBets() applies normalizers to a private copy instead.
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();

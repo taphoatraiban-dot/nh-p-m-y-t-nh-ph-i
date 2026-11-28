@@ -4164,6 +4164,7 @@ function cuncunNormalizeCompletedWagerSeparators(raw){
   return separated.replace(wrapped,'$1$2');
 }
 function parseBets(){
+ // Parser-only copy: comma decimals are half-point stakes, and wrapped DA pairs are rejoined here.
  const _forgivingInput=ttNormalizeNaturalStationHeaders(cuncunNormalizeCompletedWagerSeparators(cuncunForgivingExtraSeparators($('bets')?.value||'')));
  const _stationSchedule=cuncunStrictSocTrangSchedule(_forgivingInput,$('date')?.value||'');
  if(_stationSchedule.length)return {rows:[],errors:_stationSchedule};

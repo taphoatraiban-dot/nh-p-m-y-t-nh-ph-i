@@ -14902,7 +14902,7 @@ body.app-unlocked #liveSoiBar{display:block!important}
 const input=document.getElementById("bets"),out=document.getElementById("phoiLiveWarnings");if(!input||!out)return;
 let timer;
 function inspect(){
- const warnings=[],lines=input.value.replace(/\r/g,"").split("\n");
+ const warnings=[],validationCopy=cuncunNormalizeCompletedWagerSeparators(input.value),lines=validationCopy.replace(/\r/g,"").split("\n");
  function warn(i,part,reason,level){if(!warnings.some(w=>w.line===i+1&&w.part===part&&w.reason===reason))warnings.push({line:i+1,part,reason,level});}
  for(let i=0;i<lines.length;i++){
   const line=lines[i].trim();if(!line)continue;
@@ -14976,9 +14976,11 @@ inspect();
  if(!input||!out)return;
  function findErrors(value){
   var errors=[];
-  cuncunDaSeparatedSixErrors(value).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\d+)/)||[])[1]||1),token:message});});
-  cuncunXcLengthErrors(value).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\\d+)/)||[])[1]||1),token:message.replace(/^Dòng \\d+: /,'')});});
-  String(value||'').replace(/\r/g,'').split('\n').forEach(function(line,index){
+  // Validate a normalized copy only; keep the textarea exactly as entered.
+  var validationCopy=cuncunNormalizeCompletedWagerSeparators(value);
+  cuncunDaSeparatedSixErrors(validationCopy).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\d+)/)||[])[1]||1),token:message});});
+  cuncunXcLengthErrors(validationCopy).forEach(function(message){errors.push({line:Number((message.match(/^Dòng (\\d+)/)||[])[1]||1),token:message.replace(/^Dòng \\d+: /,'')});});
+  String(validationCopy||'').replace(/\r/g,'').split('\n').forEach(function(line,index){
    var pattern=/(?:^|[\s;])((?:\d{2,4}\s*[.,-]\s*){2,}\d{2,4})\s*(?:b|bao)\s*\d+(?:[,.]\d+)?\s*[.;]?\s*xc\s*\d+(?:[,.]\d+)?(?=[.;\s]|$)/gi;
    var m;
    while((m=pattern.exec(line))!==null){

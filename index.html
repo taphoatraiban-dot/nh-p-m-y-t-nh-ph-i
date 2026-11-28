@@ -11530,19 +11530,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    try{ta.setSelectionRange(Math.min(at,now.length),Math.min(at,now.length));}catch(_){}
    ta.dispatchEvent(new Event('input',{bubbles:true}));busy=false;
   }
-  // Let Safari/iOS insert the complete Telegram clipboard natively.
-  // Do not preventDefault or stop other paste handlers: they track multi-message pastes.
+  // Let Safari/iOS insert the full clipboard first, then clean Telegram sender/time headers.
+  // Keep the cleaned text visible after paste; DÒ SAI/OK still only parse a private copy.
   ta.addEventListener('paste',function(){
-   // No eager normalization here; downstream handlers process after paste completes.
+   setTimeout(apply,0);
   },true);
-  ta.addEventListener('input',function(e){if(busy||e.isComposing)return;
-   // Native paste must remain intact until the user chooses DÒ SAI / OK.
-  });
-  // Do not rewrite the textarea on blur or during a multi-message paste.
-  // Restore user-requested automatic conversion on both validation and calculation.
-  // Use the same existing unified normalizer, not multiple competing formatters.
-  // Never rewrite the raw phoi when the user asks to validate or calculate it.
-  // parseBets() applies normalizers to a private copy instead.
+  ta.addEventListener('input',function(e){if(busy||e.isComposing)return;});
+  // Do not rewrite the textarea on blur or while the user is typing.
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
@@ -12471,7 +12465,7 @@ function applyLineBreaks(){const el=by('bets');if(!el||busy)return;const old=el.
 function attach(){
  const bets=by('bets');if(!bets||by('ttEditorTools'))return;
  const bar=document.createElement('div');bar.id='ttEditorTools';
- bar.innerHTML='<button type="button" id="ttSplit">📋 Tách nhiều tin</button><div id="ttSyntaxNote" role="status">Tự tách tên đài khi dán • Kiểm tra cú pháp trước khi tính.</div>';
+ bar.innerHTML='<button type="button" id="ttSplit">📋 Tách nhiều tin</button><div id="ttSyntaxNote" role="status">Tự lọc tên và giờ Telegram khi dán • Kiểm tra cú pháp trước khi tính.</div>';
  bets.insertAdjacentElement('afterend',bar);
  
  by('ttSplit').onclick=()=>{applyLineBreaks();by('v5Split')?.click()};
